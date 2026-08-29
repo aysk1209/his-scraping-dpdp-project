@@ -32,22 +32,32 @@ can be swapped in later without downstream refactoring.
 | Step | Deliverable | State |
 |------|-------------|-------|
 | 1 | Repo scaffolding + project structure | done |
-| 2 | DPDP compliance framework — criteria as code-checkable rules/schema | next |
-| 3 | Synthetic HIS data generator — records matching the five-layer HIS architecture | pending |
-| 4 | Extraction module skeleton — Tier 2 adapter interface, first against synthetic data | pending |
+| 2 | DPDP compliance framework — criteria as code-checkable rules/schema | in progress (4 rules: DM/LB/SL/SS) |
+| 3 | Synthetic HIS data generator — records matching the five-layer HIS architecture | thin slice (field catalogue + generator) |
+| 4 | Extraction module skeleton — Tier 2 adapter interface, first against synthetic data | thin slice (MockHISDataSource) |
 | 5 | Compliance benchmarking harness — scores any extraction run against DPDP criteria | pending |
 | 6 | LLM-agent scaffolding (AXE-method inspired), against synthetic data | pending |
 | 7 | Swap synthetic source for live HIS, re-run benchmarks | blocked (data access) |
 
 Do not skip ahead to step 7. Keep the data source pluggable throughout steps 1–6.
 
-**Current state:** the skeleton is in place and imports cleanly (27 tests
-passing). Concrete so far: the `HISDataSource` adapter interface
-(`src/extraction/base.py`), the five-layer HIS architecture enum
-(`src/interop/layers.py`), and the layer → interoperability-standard map
-(`src/interop/mapping.py`). Everything else is a documented stub. The five-layer
-model is a working reconstruction pending confirmation against the Review-1
-artifacts before step 3.
+**Current state:** end-to-end thin slice working — synthetic records →
+field-selective extraction → DPDP compliance score. Concrete:
+
+- `src/compliance/` — 4 executable DPDP rules (DM-01, LB-01, SL-01, SS-01), a
+  declarative purpose policy, and a `ComplianceReport` artifact.
+- `src/data_synthetic/` — field catalogue (name → HIS layer → DPDP category) and
+  a Faker-seeded record generator.
+- `src/extraction/` — `HISDataSource` interface + a working `MockHISDataSource`.
+- `src/interop/` — five-layer HIS enum + layer → interoperability-standard map.
+
+Demos: `python scripts/score_extraction_run.py` and
+`python scripts/run_synthetic_extraction.py`. See
+[`docs/compliance/approach.md`](docs/compliance/approach.md).
+
+Open assumptions pending confirmation against Review-1 artifacts: the DPDP
+section numbers (all marked `TODO: verify`), the five-layer model, and the
+`care_coordination` purpose definition.
 
 ## Repository layout
 

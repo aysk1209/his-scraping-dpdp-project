@@ -1,0 +1,12 @@
+# Normalise line endings: LF in the repo, checked out native.
+* text=auto eol=lf
+
+# Treat common binaries as binary (no EOL munging, no diff).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.xlsx binary
+*.parquet binary
