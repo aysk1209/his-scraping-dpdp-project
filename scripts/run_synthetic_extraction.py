@@ -16,7 +16,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import _present as present
 from compliance.checkers import run_all
 from compliance.models import (
     ExtractedRecord,
@@ -128,14 +130,19 @@ def main() -> None:
         run, records = builder(source)
         report = run_all(run, records)
         scores[run.run_id] = report.compliance_score
+        print(present.banner(f"Run: {run.run_id}"))
         print(report.render_table())
-        print(f"\n  -> wrote {report.to_json_file()}")
-        print(f"  -> wrote {report.to_markdown_file()}")
-        print("=" * 72)
+        print(present.wrote(report.to_json_file()))
+        print(present.wrote(report.to_markdown_file()))
 
-    print("\nComparison")
+    print(present.banner("Comparison"))
     for run_id, score in scores.items():
-        print(f"  {run_id:<24} {score:.3f}")
+        print(f"  {run_id:<26} {score:.3f}")
+    spread = max(scores.values()) - min(scores.values())
+    print(present.takeaway(
+        "Same technique, same rules: the score tracks how the run is configured "
+        f"(spread {spread:.3f} across the three configurations)."
+    ))
 
 
 if __name__ == "__main__":

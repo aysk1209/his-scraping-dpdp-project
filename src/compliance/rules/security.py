@@ -39,7 +39,7 @@ class SecuritySafeguardsRule(Rule):
         score = satisfied / total
 
         findings = [
-            f"{'ok     ' if ok else 'MISSING'} : {name}"
+            f"[{'x' if ok else ' '}] {name}"
             for name, ok in checks.items()
         ]
         findings.append(f"{satisfied}/{total} required safeguards in place.")

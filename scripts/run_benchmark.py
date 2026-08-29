@@ -18,7 +18,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import _present as present
 from compliance.benchmark import run_benchmark
 from compliance.models import Purpose
 from extraction.adapters.mock_his import MockHISDataSource
@@ -59,9 +61,11 @@ def main() -> None:
     source = MockHISDataSource(records_per_layer=5, seed=42)
     result = run_benchmark(DEFAULT_TECHNIQUES, TASKS, source)
 
+    print(present.banner("DPDP compliance benchmark - extraction techniques compared"))
     print(result.render_table())
-    print(f"\n  -> wrote {result.to_json_file()}")
-    print(f"  -> wrote {result.to_markdown_file()}")
+    print(present.rule())
+    print(present.wrote(result.to_json_file()))
+    print(present.wrote(result.to_markdown_file()))
 
 
 if __name__ == "__main__":

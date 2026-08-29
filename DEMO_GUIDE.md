@@ -186,8 +186,10 @@ The demos write files into `docs/benchmark_results/`:
 - `<run-name>.json` / `<run-name>.md` — individual scorecards (Demos B and C).
 
 The `.md` files are formatted scorecards, ready to paste into slides or the
-report. All of these are regenerated every time you run a demo, and are
-intentionally excluded from version control.
+report. `benchmark.md` is committed to the repo as a browsable copy of the
+current result (viewable on GitHub without running anything); everything else
+here regenerates on each run and is not tracked. See
+[`docs/benchmark_results/README.md`](docs/benchmark_results/README.md).
 
 ---
 

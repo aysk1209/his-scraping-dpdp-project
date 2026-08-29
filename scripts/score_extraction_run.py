@@ -18,7 +18,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import _present as present
 from compliance.checkers import run_all
 from compliance.models import (
     ExtractedRecord,
@@ -153,16 +155,18 @@ def main() -> None:
         report = run_all(run, records)
         scores[run.run_id] = report.compliance_score
 
+        print(present.banner(f"Run: {run.run_id}"))
         print(report.render_table())
-        json_path = report.to_json_file()
-        md_path = report.to_markdown_file()
-        print(f"\n  -> wrote {json_path}")
-        print(f"  -> wrote {md_path}")
-        print("=" * 72)
+        print(present.wrote(report.to_json_file()))
+        print(present.wrote(report.to_markdown_file()))
 
-    print("\nComparison")
+    print(present.banner("Comparison"))
     for run_id, score in scores.items():
         print(f"  {run_id:<32} {score:.3f}")
+    print(present.takeaway(
+        "The seven rules resolve to a single 0-1 score per run, with a stated "
+        "reason for every deduction."
+    ))
 
 
 if __name__ == "__main__":

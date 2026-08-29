@@ -26,7 +26,7 @@ class AccountabilityRule(Rule):
         score = satisfied / total
 
         findings = [
-            f"{'ok     ' if ok else 'MISSING'} : {name}"
+            f"[{'x' if ok else ' '}] {name}"
             for name, ok in checks.items()
         ]
         if gov.accountable_party:

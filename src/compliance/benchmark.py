@@ -24,6 +24,7 @@ from extraction.technique import ExtractionTask, ExtractionTechnique
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 ARTIFACT_DIR = _REPO_ROOT / "docs" / "benchmark_results"
 _RULE_IDS = [rule.rule_id for rule in ALL_RULES]
+_RULE_TITLES = {rule.rule_id: rule.title for rule in ALL_RULES}
 
 
 class TechniqueScore(BaseModel):
@@ -44,25 +45,30 @@ class BenchmarkResult(BaseModel):
     def _fmt(value: float | None) -> str:
         return "  n/a" if value is None else f"{value:.2f}"
 
+    def _takeaway(self) -> str:
+        best, worst = self.scores[0], self.scores[-1]
+        gap = round(best.mean_compliance_score - worst.mean_compliance_score, 3)
+        return (
+            f"{best.technique} scores {best.mean_compliance_score:.3f}; "
+            f"{worst.technique} scores {worst.mean_compliance_score:.3f} on the "
+            f"same {len(self.rule_ids)} rules -- a {gap:.3f} gap that is purely a "
+            f"compliance difference, not coverage or speed."
+        )
+
     def render_table(self) -> str:
         head = (
-            f"{'technique':<28} {'score':>7} {'pass':>6}  "
+            f"{'technique':<26} {'score':>6} {'pass':>6}  "
             + " ".join(f"{rid:>6}" for rid in self.rule_ids)
         )
-        lines = [
-            "Compliance benchmark -- techniques ranked by score",
-            "",
-            head,
-            "-" * len(head),
-        ]
+        lines = [head, "-" * len(head)]
         for score in self.scores:
             row = (
-                f"{score.technique:<28} {score.mean_compliance_score:>7.3f} "
+                f"{score.technique:<26} {score.mean_compliance_score:>6.3f} "
                 f"{score.mean_pass_rate:>6.0%}  "
                 + " ".join(f"{self._fmt(score.per_rule_mean.get(rid)):>6}" for rid in self.rule_ids)
             )
             lines.append(row)
-        lines += ["", f"tasks: {', '.join(self.task_ids)}"]
+        lines += ["", f"tasks: {', '.join(self.task_ids)}", "", self._takeaway()]
         return "\n".join(lines)
 
     def render_markdown(self) -> str:
@@ -71,9 +77,12 @@ class BenchmarkResult(BaseModel):
         lines = [
             "### Compliance benchmark",
             "",
+            f"_{self._takeaway()}_",
+            "",
             f"Techniques scored against {len(self.task_ids)} task(s): "
             + ", ".join(f"`{t}`" for t in self.task_ids)
-            + ". Identical DPDP rule set for every technique.",
+            + ". Identical DPDP rule set for every technique. "
+            + f"Generated {self.generated_at:%Y-%m-%d}.",
             "",
             header,
             sep,
@@ -84,6 +93,9 @@ class BenchmarkResult(BaseModel):
                 f"| {score.technique} | {score.mean_compliance_score:.3f} | "
                 f"{score.mean_pass_rate:.0%} | {cells} |"
             )
+        lines += ["", "**Rules**", ""]
+        for rid in self.rule_ids:
+            lines.append(f"- `{rid}` — {_RULE_TITLES.get(rid, rid)}")
         return "\n".join(lines)
 
     def to_json_file(self, directory: Path | None = None) -> Path:

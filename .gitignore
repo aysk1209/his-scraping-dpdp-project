@@ -31,6 +31,8 @@ htmlcov/
 # --- browser capture artifacts from Tier 2 work ---
 *.har
 
-# --- benchmark run artifacts: keep the directory, not the runs ---
+# --- benchmark run artifacts: keep the directory + the headline result, not every run ---
 /docs/benchmark_results/*
 !/docs/benchmark_results/.gitkeep
+!/docs/benchmark_results/README.md
+!/docs/benchmark_results/benchmark.md
