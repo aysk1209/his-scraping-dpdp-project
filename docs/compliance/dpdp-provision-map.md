@@ -45,9 +45,10 @@ This artifact — not prose — is the comparison point against baseline techniq
 ## Demos
 
 ```
-python scripts/score_extraction_run.py       # hand-built records, rules in isolation
-python scripts/run_synthetic_extraction.py    # records from the synthetic generator
+python scripts/run_benchmark.py               # headline: 3 techniques compared
+python scripts/run_synthetic_extraction.py    # 1 technique, 3 configurations
+python scripts/score_extraction_run.py        # hand-built records, rules in isolation
 ```
 
-Each scores three runs — compliant, partial, careless. Current spread
-(synthetic demo): **1.00 / ~0.63 / ~0.23**.
+`run_benchmark.py` output (compliance-aware / minimising / baseline):
+**1.000 / 0.625 / 0.229**.

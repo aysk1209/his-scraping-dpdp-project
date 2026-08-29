@@ -87,40 +87,47 @@ You will know it worked when your prompt shows `(.venv)` at the start.
 
 ## 3. Running the demos
 
-There are **two demo programs**. Both print a scorecard and save report files.
+There are **three demo programs**. Each prints a scorecard and saves report files.
 
-### Demo A — the rules on their own
+### Demo A — compare scraping methods (the headline)
 
 ```
-python scripts/score_extraction_run.py
+python scripts/run_benchmark.py
 ```
 
-This has three make-believe scraping jobs written into it and scores each one:
+This runs **three different scraping methods** against the same fake hospital
+and scores each on compliance:
 
-| Job | Meaning | Score you'll see |
-|-----|---------|------------------|
-| `compliant` | did everything by the book | **1.000** |
-| `partial`  | took only the data it needed, but skipped paperwork and some security | **~0.625** |
-| `careless` | grabbed everything, documented nothing | **~0.188** |
+| Method | What it does | Score you'll see |
+|--------|--------------|------------------|
+| compliance-aware (ours) | takes only the data the job needs, does the paperwork | **1.000** |
+| minimising, undocumented | takes only what it needs, but skips paperwork/security | **~0.625** |
+| unconstrained (baseline) | grabs everything on the page, documents nothing | **~0.229** |
 
-For each job it prints every rule, whether it passed, and a plain-English reason
-(e.g. *"Out-of-scope category extracted: financial"*).
+It prints one comparison table. **This is the main thing to show** — it is the
+project's core argument: compliance is a number that separates good methods from
+bad ones.
 
-### Demo B — the full pipeline on fake hospital data
+### Demo B — one method, three configurations
 
 ```
 python scripts/run_synthetic_extraction.py
 ```
 
-Same three-way spread, but this time the records are not hand-written — the
-program:
+Takes a single method and runs it carefully, half-carefully, and carelessly,
+using fake patient records generated on the spot. Expected:
+**1.000 / ~0.625 / ~0.229**. Useful for showing *why* a score moves.
 
-1. generates fake patient records for four areas of a hospital system,
-2. "extracts" a selection of fields from them (a careful selection, a careful
-   selection with sloppy paperwork, and a grab-everything selection),
-3. scores each one.
+### Demo C — the rules on their own
 
-Expected: **1.000 / ~0.625 / ~0.229**.
+```
+python scripts/score_extraction_run.py
+```
+
+The four rules scored against hand-written examples, with no data generator in
+the way. Prints every rule, pass/fail, and a plain-English reason
+(e.g. *"Out-of-scope category extracted: financial"*). Expected:
+**1.000 / ~0.625 / ~0.188**.
 
 ### The test suite (optional but reassuring)
 
@@ -128,9 +135,9 @@ Expected: **1.000 / ~0.625 / ~0.229**.
 python -m pytest -q
 ```
 
-Runs every automated check on the code. You should see **`54 passed`**. This
-confirms the rules, the fake-data generator, and the extraction step all behave
-as intended.
+Runs every automated check on the code. You should see **`70 passed`**. This
+confirms the rules, the fake-data generator, the extraction methods, and the
+comparison harness all behave as intended.
 
 ---
 
@@ -144,24 +151,27 @@ environment activated.
    "The claim" section — that compliance becomes a *measured number*, produced by
    the same tool for any scraping method.
 
-2. **Run Demo B live:** `python scripts/run_synthetic_extraction.py`. Point at
-   the three scores at the bottom (1.00 / 0.63 / 0.23). Note that the "careless"
-   job fails each rule with a specific stated reason.
+2. **Run Demo A live:** `python scripts/run_benchmark.py`. Point at the
+   comparison table — our method 1.00, the coverage-optimised baseline 0.23, on
+   the same rules. This is the core result.
 
-3. **Show a saved artifact.** Open
-   `docs/benchmark_results/synthetic-careless.md` — a clean scorecard table.
-   This is the kind of evidence file the research paper will be built on.
+3. **Run Demo B** if asked why a score moves:
+   `python scripts/run_synthetic_extraction.py` — same method, three
+   configurations, each rule failing with a stated reason.
 
-4. **Run the tests:** `python -m pytest -q` → `54 passed`. Shows the work is
+4. **Show a saved artifact.** Open `docs/benchmark_results/benchmark.md` — the
+   comparison table as a file. This is the evidence the research paper is built on.
+
+5. **Run the tests:** `python -m pytest -q` → `70 passed`. Shows the work is
    real, checked code, not slideware.
 
 **Three points to make while doing this:**
 
 - Compliance is **measured, not asserted** — the score comes out of rules, each
   tied to a DPDP Act 2023 principle.
-- The **same scorer** will later grade an off-the-shelf scraping method
-  (AutoScraper) through the exact same rules. That side-by-side comparison is the
-  core of the paper.
+- The **same harness** scores every method on equal terms. Right now the baseline
+  is a stand-in for a coverage-optimised scraper (cf. AutoScraper); swapping in a
+  real implementation is the next step, and the table is already built for it.
 - It **works today with zero hospital access**. When real access arrives, the
   data source is swapped by one configuration change — the rest of the pipeline
   is unaffected by design.
@@ -170,14 +180,14 @@ environment activated.
 
 ## 5. Where the output goes
 
-Both demos write files into `docs/benchmark_results/`:
+The demos write files into `docs/benchmark_results/`:
 
-- `<run-name>.json` — machine-readable, for later analysis and comparison.
-- `<run-name>.md` — a formatted scorecard, ready to paste into slides or the
-  report.
+- `benchmark.json` / `benchmark.md` — the method-comparison table (Demo A).
+- `<run-name>.json` / `<run-name>.md` — individual scorecards (Demos B and C).
 
-These files are regenerated every time you run a demo, and are intentionally
-excluded from version control.
+The `.md` files are formatted scorecards, ready to paste into slides or the
+report. All of these are regenerated every time you run a demo, and are
+intentionally excluded from version control.
 
 ---
 

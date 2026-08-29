@@ -57,8 +57,34 @@ plain-language findings.
 per-rule breakdown. It renders three ways — console table (`render_table`),
 JSON (`to_json_file`), and Markdown (`to_markdown_file`, for pasting into slides
 or the report). Artifacts land in `docs/benchmark_results/<run_id>.{json,md}`.
-This artifact is the comparison unit — the same rules will score a baseline
-technique (e.g. AutoScraper, EMNLP 2024).
+
+## Comparing techniques — the core evidence
+
+A **technique** ([`extraction/technique.py`](../../src/extraction/technique.py))
+is a strategy that fulfils an `ExtractionTask` *and* produces its own compliance
+manifest — so "compliance-aware" is a property of the technique's design, not a
+label added afterwards. Three are implemented
+([`extraction/techniques/`](../../src/extraction/techniques/)):
+
+| Technique | Behaviour |
+|-----------|-----------|
+| compliance-aware (ours) | pulls exactly the task's needed fields; full manifest |
+| minimising, undocumented | pulls only needed fields, but no paperwork / partial safeguards |
+| unconstrained (baseline) | ignores the task, grabs every field of every layer; no manifest. Stands in for a coverage-optimised scraper (cf. AutoScraper, EMNLP 2024) |
+
+[`compliance.benchmark.run_benchmark`](../../src/compliance/benchmark.py) runs
+every technique against every task, scores each run with the **same** rule set,
+and aggregates. `python scripts/run_benchmark.py`:
+
+| Technique | Compliance score | Pass rate | DM-01 | LB-01 | SL-01 | SS-01 |
+|-----------|-----------------|-----------|-------|-------|-------|-------|
+| compliance-aware (ours) | 1.000 | 100% | 1.00 | 1.00 | 1.00 | 1.00 |
+| minimising, undocumented | 0.625 | 25% | 1.00 | 0.50 | 0.50 | 0.50 |
+| unconstrained (baseline) | 0.229 | 0% | 0.67 | 0.00 | 0.00 | 0.25 |
+
+This table is the paper's central claim made concrete: compliance discriminates
+between *techniques*, and it is produced by one harness that will later score
+real baseline implementations on equal terms.
 
 ## End to end, on synthetic data
 
@@ -73,15 +99,14 @@ extraction.adapters.MockHISDataSource
 compliance.checkers.run_all     score the run -> ComplianceReport
 ```
 
-Two demos, each scoring three runs — compliant, partial, careless:
+Three demos:
 
-- `python scripts/score_extraction_run.py` — hand-built records, isolates the rules.
-- `python scripts/run_synthetic_extraction.py` — records come from the generator
-  via the adapter; a compliant field selection, a tight selection with a sloppy
-  manifest, and a "request everything, declare nothing" selection.
-
-Current spread (synthetic demo): compliant **1.00**, partial **~0.63**,
-careless **~0.23**. The spread is the thesis, demonstrated.
+- `python scripts/run_benchmark.py` — **the headline**: three techniques
+  compared, the table above.
+- `python scripts/run_synthetic_extraction.py` — one technique, three
+  configurations (compliant / partial / careless), records from the generator.
+- `python scripts/score_extraction_run.py` — hand-built records, isolates the
+  rules with no generator or adapter in the way.
 
 ## Assumptions in play (accepted as the working set)
 

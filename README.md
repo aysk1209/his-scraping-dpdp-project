@@ -34,28 +34,34 @@ can be swapped in later without downstream refactoring.
 | 1 | Repo scaffolding + project structure | done |
 | 2 | DPDP compliance framework — criteria as code-checkable rules/schema | in progress (4 rules: DM/LB/SL/SS) |
 | 3 | Synthetic HIS data generator — records matching the five-layer HIS architecture | thin slice (field catalogue + generator) |
-| 4 | Extraction module skeleton — Tier 2 adapter interface, first against synthetic data | thin slice (MockHISDataSource) |
-| 5 | Compliance benchmarking harness — scores any extraction run against DPDP criteria | pending |
+| 4 | Extraction module skeleton — Tier 2 adapter interface, first against synthetic data | interface + `MockHISDataSource` + technique layer (3 techniques) |
+| 5 | Compliance benchmarking harness — scores any extraction run against DPDP criteria | working (`run_benchmark`, technique comparison table) |
 | 6 | LLM-agent scaffolding (AXE-method inspired), against synthetic data | pending |
 | 7 | Swap synthetic source for live HIS, re-run benchmarks | blocked (data access) |
 
 Do not skip ahead to step 7. Keep the data source pluggable throughout steps 1–6.
 
-**Current state:** end-to-end thin slice working — synthetic records →
-field-selective extraction → DPDP compliance score. Concrete:
+**Current state:** technique-comparison benchmark working — multiple extraction
+techniques scored on DPDP compliance by one harness. Concrete:
 
 - `src/compliance/` — 4 executable DPDP rules (DM-01, LB-01, SL-01, SS-01), a
-  declarative purpose policy, and a `ComplianceReport` artifact.
+  declarative purpose policy, a `ComplianceReport`, and `run_benchmark`.
+- `src/extraction/` — `HISDataSource` interface, `MockHISDataSource`, and a
+  technique layer with three techniques (compliance-aware, minimising, baseline).
 - `src/data_synthetic/` — field catalogue (name → HIS layer → DPDP category) and
   a Faker-seeded record generator.
-- `src/extraction/` — `HISDataSource` interface + a working `MockHISDataSource`.
 - `src/interop/` — five-layer HIS enum + layer → interoperability-standard map.
 
-Demos (each scores three runs — compliant / partial / careless):
-`python scripts/score_extraction_run.py` and
-`python scripts/run_synthetic_extraction.py`. Plain-language run-and-demo
-instructions: [`DEMO_GUIDE.md`](DEMO_GUIDE.md). Method walkthrough:
-[`docs/compliance/approach.md`](docs/compliance/approach.md).
+Headline demo — `python scripts/run_benchmark.py`:
+
+| Technique | Compliance score | Pass rate |
+|-----------|-----------------|-----------|
+| compliance-aware (ours) | 1.000 | 100% |
+| minimising, undocumented | 0.625 | 25% |
+| unconstrained (baseline) | 0.229 | 0% |
+
+Plain-language run instructions: [`DEMO_GUIDE.md`](DEMO_GUIDE.md). Method
+walkthrough: [`docs/compliance/approach.md`](docs/compliance/approach.md).
 
 Working assumptions (accepted as the working set): the five-layer HIS model, the
 `care_coordination` purpose, and citing DPDP Act 2023 principles by name rather
