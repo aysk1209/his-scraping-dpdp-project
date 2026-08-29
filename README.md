@@ -31,8 +31,8 @@ can be swapped in later without downstream refactoring.
 
 | Step | Deliverable | State |
 |------|-------------|-------|
-| 1 | Repo scaffolding + project structure | **in progress** |
-| 2 | DPDP compliance framework — criteria as code-checkable rules/schema | pending |
+| 1 | Repo scaffolding + project structure | done |
+| 2 | DPDP compliance framework — criteria as code-checkable rules/schema | next |
 | 3 | Synthetic HIS data generator — records matching the five-layer HIS architecture | pending |
 | 4 | Extraction module skeleton — Tier 2 adapter interface, first against synthetic data | pending |
 | 5 | Compliance benchmarking harness — scores any extraction run against DPDP criteria | pending |
@@ -40,6 +40,14 @@ can be swapped in later without downstream refactoring.
 | 7 | Swap synthetic source for live HIS, re-run benchmarks | blocked (data access) |
 
 Do not skip ahead to step 7. Keep the data source pluggable throughout steps 1–6.
+
+**Current state:** the skeleton is in place and imports cleanly (27 tests
+passing). Concrete so far: the `HISDataSource` adapter interface
+(`src/extraction/base.py`), the five-layer HIS architecture enum
+(`src/interop/layers.py`), and the layer → interoperability-standard map
+(`src/interop/mapping.py`). Everything else is a documented stub. The five-layer
+model is a working reconstruction pending confirmation against the Review-1
+artifacts before step 3.
 
 ## Repository layout
 
