@@ -10,10 +10,9 @@ from compliance.rules.base import Rule, RuleResult, RuleStatus
 class StorageLimitationRule(Rule):
     rule_id = "SL-01"
     title = "Storage limitation"
-    # DPDP Act 2023, s.8(7) -- a Data Fiduciary shall erase personal data on
-    # withdrawal of consent or once the specified purpose is no longer being
-    # served, whichever is earlier. TODO: verify section number against Act text.
-    provision = "DPDP Act 2023, s.8(7)"
+    # DPDP Act 2023 -- storage limitation principle: personal data is retained
+    # only as long as the purpose requires, then erased; a deletion route exists.
+    provision = "DPDP Act 2023 - storage limitation"
 
     def evaluate(self, run: ExtractionRun, records: list[ExtractedRecord]) -> RuleResult:
         max_days = policy_for(run.purpose).max_retention_days

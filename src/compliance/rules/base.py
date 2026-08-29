@@ -1,9 +1,9 @@
 """Base types for DPDP compliance rules.
 
-Each rule maps to a specific DPDP Act 2023 provision (named on the rule and in a
-code comment at the point of the check) and returns a ``RuleResult`` -- a status,
-a 0.0-1.0 score, and human-readable findings. ``checkers.run_all`` aggregates
-rule results into a ``ComplianceReport``.
+Each rule maps to a DPDP Act 2023 principle (named on the rule via ``provision``
+and in a code comment at the point of the check) and returns a ``RuleResult`` --
+a status, a 0.0-1.0 score, and human-readable findings. ``checkers.run_all``
+aggregates rule results into a ``ComplianceReport``.
 """
 
 from __future__ import annotations

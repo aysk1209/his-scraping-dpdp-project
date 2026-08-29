@@ -9,10 +9,9 @@ from compliance.rules.base import Rule, RuleResult, RuleStatus
 class LawfulBasisRule(Rule):
     rule_id = "LB-01"
     title = "Lawful basis for processing"
-    # DPDP Act 2023, s.4 -- personal data may be processed only for a lawful
-    # purpose for which the Data Principal has given consent (s.6) or for a
-    # legitimate use (s.7). TODO: verify section numbers against Act text.
-    provision = "DPDP Act 2023, s.4"
+    # DPDP Act 2023 -- lawful basis principle: personal data is processed only on
+    # a recognised basis, i.e. the Data Principal's consent or a legitimate use.
+    provision = "DPDP Act 2023 - lawful basis for processing"
 
     def evaluate(self, run: ExtractionRun, records: list[ExtractedRecord]) -> RuleResult:
         basis = run.lawful_basis

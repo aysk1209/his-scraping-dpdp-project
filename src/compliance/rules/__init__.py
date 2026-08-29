@@ -8,8 +8,8 @@ Slice 1 implements four rules, each exercising a distinct check mechanism:
   SS-01  Security safeguards    -- fraction of required safeguards satisfied
 
 Remaining criteria from docs/compliance/dpdp-provision-map.md (PL-01, NT-01,
-AC-01) are not yet implemented. Section references throughout carry a
-``TODO: verify against Act text`` marker.
+AC-01) are not yet implemented. Rules cite DPDP Act 2023 principles by name;
+exact section citations are left for the report's references.
 """
 
 from __future__ import annotations

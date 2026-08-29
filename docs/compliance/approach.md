@@ -36,15 +36,15 @@ policy edit, not a rule-code change. One purpose is modelled so far:
 ## The rules
 
 Four rules ([`compliance/rules/`](../../src/compliance/rules/)), each a distinct
-check mechanism, each citing a DPDP provision (all `TODO: verify` against the
-Act text):
+check mechanism, each citing a DPDP Act 2023 **principle** (exact section
+citations are left for the report's references, not pinned in code):
 
-| Rule | Provision | Mechanism |
-|------|-----------|-----------|
-| `DM-01` data minimisation | s.6(1) | extracted categories ⊆ policy-allowed; score = 1 − excess/total |
-| `LB-01` lawful basis | s.4 | basis declared, recognised, carries a reference |
-| `SL-01` storage limitation | s.8(7) | `retention_days` present and ≤ policy max; deletion mechanism declared |
-| `SS-01` security safeguards | s.8(5) | fraction of required safeguards satisfied |
+| Rule | DPDP principle | Mechanism |
+|------|----------------|-----------|
+| `DM-01` | data minimisation | extracted categories ⊆ policy-allowed; score = 1 − excess/total |
+| `LB-01` | lawful basis for processing | basis declared, recognised, carries a reference |
+| `SL-01` | storage limitation | `retention_days` present and ≤ policy max; deletion mechanism declared |
+| `SS-01` | security safeguards | fraction of required safeguards satisfied |
 
 Each returns a status (`pass` / `fail` / `not_applicable`), a 0–1 score, and
 plain-language findings.
@@ -54,9 +54,11 @@ plain-language findings.
 `compliance.checkers.run_all(run, records)` →
 [`ComplianceReport`](../../src/compliance/report.py): an overall
 `compliance_score` (mean of applicable rule scores), a `pass_rate`, and the
-per-rule breakdown. `to_json_file()` writes it to
-`docs/benchmark_results/<run_id>.json`. This artifact is the comparison unit —
-the same rules will score a baseline technique (e.g. AutoScraper, EMNLP 2024).
+per-rule breakdown. It renders three ways — console table (`render_table`),
+JSON (`to_json_file`), and Markdown (`to_markdown_file`, for pasting into slides
+or the report). Artifacts land in `docs/benchmark_results/<run_id>.{json,md}`.
+This artifact is the comparison unit — the same rules will score a baseline
+technique (e.g. AutoScraper, EMNLP 2024).
 
 ## End to end, on synthetic data
 
@@ -71,20 +73,22 @@ extraction.adapters.MockHISDataSource
 compliance.checkers.run_all     score the run -> ComplianceReport
 ```
 
-Two demos:
+Two demos, each scoring three runs — compliant, partial, careless:
 
 - `python scripts/score_extraction_run.py` — hand-built records, isolates the rules.
 - `python scripts/run_synthetic_extraction.py` — records come from the generator
-  via the adapter; a compliant field selection vs. a "request everything, declare
-  nothing" selection.
+  via the adapter; a compliant field selection, a tight selection with a sloppy
+  manifest, and a "request everything, declare nothing" selection.
 
-Current contrast: **~1.0** for the compliant run vs **~0.2** for the careless
-one. The gap is the thesis, demonstrated.
+Current spread (synthetic demo): compliant **1.00**, partial **~0.63**,
+careless **~0.23**. The spread is the thesis, demonstrated.
 
-## Assumptions still to confirm
+## Assumptions in play (accepted as the working set)
 
-- DPDP section numbers (every `provision` string).
 - The five-layer HIS model ([`interop/layers.py`](../../src/interop/layers.py)) —
-  working reconstruction, not from the source docs.
+  a working reconstruction; the team has accepted it for now and will reconfigure
+  if real HIS access shows a different structure.
 - The `care_coordination` purpose and its allowed-category set.
 - Staff names categorised as `administrative`, not `direct_identifier`.
+- Rules cite DPDP principles by name; exact section numbers are a report-time
+  reference task, deliberately not pinned in code.

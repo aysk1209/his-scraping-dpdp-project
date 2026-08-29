@@ -51,13 +51,15 @@ field-selective extraction → DPDP compliance score. Concrete:
 - `src/extraction/` — `HISDataSource` interface + a working `MockHISDataSource`.
 - `src/interop/` — five-layer HIS enum + layer → interoperability-standard map.
 
-Demos: `python scripts/score_extraction_run.py` and
-`python scripts/run_synthetic_extraction.py`. See
+Demos (each scores three runs — compliant / partial / careless):
+`python scripts/score_extraction_run.py` and
+`python scripts/run_synthetic_extraction.py`. Plain-language run-and-demo
+instructions: [`DEMO_GUIDE.md`](DEMO_GUIDE.md). Method walkthrough:
 [`docs/compliance/approach.md`](docs/compliance/approach.md).
 
-Open assumptions pending confirmation against Review-1 artifacts: the DPDP
-section numbers (all marked `TODO: verify`), the five-layer model, and the
-`care_coordination` purpose definition.
+Working assumptions (accepted as the working set): the five-layer HIS model, the
+`care_coordination` purpose, and citing DPDP Act 2023 principles by name rather
+than pinned section numbers. Revisit if/when real HIS access lands.
 
 ## Repository layout
 

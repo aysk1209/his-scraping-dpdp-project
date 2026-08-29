@@ -6,9 +6,9 @@ These models are that structured form. Any extraction technique -- ours or a
 baseline -- is wrapped in an ``ExtractionRun`` plus a sample of ``ExtractedRecord``
 objects so the same rules score every technique on equal terms.
 
-Section references in the compliance code carry a ``TODO: verify against Act
-text`` marker until confirmed against the DPDP Act 2023 and the project's
-background review report.
+The compliance rules encode DPDP Act 2023 *principles* (data minimisation,
+lawful basis, storage limitation, security safeguards). Exact section citations
+are left for the report's references, not pinned in code.
 """
 
 from __future__ import annotations
@@ -42,9 +42,8 @@ class Purpose(str, Enum):
 
 
 class LawfulBasisType(str, Enum):
-    # DPDP Act 2023, s.4 -- personal data may be processed only for a lawful
-    # purpose for which consent has been given (s.6) or for a legitimate use
-    # (s.7). TODO: verify section numbers against Act text.
+    # DPDP Act 2023 -- lawful basis principle: processing rests on the Data
+    # Principal's consent or a recognised legitimate use.
     CONSENT = "consent"
     LEGITIMATE_USE = "legitimate_use"
 
@@ -54,16 +53,15 @@ class LawfulBasis(BaseModel):
 
     type: LawfulBasisType
     # For CONSENT: reference to the recorded consent artefact.
-    # For LEGITIMATE_USE: the specific s.7 legitimate use being relied on.
+    # For LEGITIMATE_USE: the specific legitimate use being relied on.
     reference: str | None = None
 
 
 class SecurityPosture(BaseModel):
     """Security safeguards asserted for the extraction pipeline.
 
-    DPDP Act 2023, s.8(5) -- a Data Fiduciary shall protect personal data in its
-    possession by taking reasonable security safeguards to prevent a personal
-    data breach. TODO: verify section number.
+    DPDP Act 2023 -- security safeguards principle: reasonable technical and
+    organisational safeguards protect personal data against breach.
     """
 
     transport_encrypted: bool = False          # TLS on the portal connection

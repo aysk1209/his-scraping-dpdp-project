@@ -3,10 +3,11 @@ DPDP compliance score.
 
     python scripts/run_synthetic_extraction.py
 
-Same compliant-vs-careless contrast as ``scripts/score_extraction_run.py``, but
-the extracted records now come from the synthetic generator via
+Same compliant / partial / careless spread as ``scripts/score_extraction_run.py``,
+but the extracted records now come from the synthetic generator via
 ``MockHISDataSource``, and field categories are derived from the catalogue
-rather than hand-written. Writes JSON artifacts to docs/benchmark_results/.
+rather than hand-written. Writes JSON + Markdown artifacts to
+docs/benchmark_results/.
 """
 
 from __future__ import annotations
@@ -81,6 +82,21 @@ def compliant(source: MockHISDataSource) -> tuple[ExtractionRun, list[ExtractedR
     return run, _extract(source, IN_SCOPE_SELECTION)
 
 
+def partial(source: MockHISDataSource) -> tuple[ExtractionRun, list[ExtractedRecord]]:
+    """Same tight field selection as the compliant run, but a sloppy manifest:
+    consent with no reference, no deletion mechanism, half the safeguards."""
+
+    run = ExtractionRun(
+        run_id="synthetic-partial",
+        purpose=Purpose.CARE_COORDINATION,
+        lawful_basis=LawfulBasis(type=LawfulBasisType.CONSENT, reference=None),
+        retention_days=45,
+        deletion_mechanism=None,
+        security=SecurityPosture(transport_encrypted=True, at_rest_encrypted=True),
+    )
+    return run, _extract(source, IN_SCOPE_SELECTION)
+
+
 def careless(source: MockHISDataSource) -> tuple[ExtractionRun, list[ExtractedRecord]]:
     everything = {layer: fields_for(layer) for layer in source.layers()}
     run = ExtractionRun(
@@ -94,12 +110,13 @@ def careless(source: MockHISDataSource) -> tuple[ExtractionRun, list[ExtractedRe
 def main() -> None:
     source = MockHISDataSource(records_per_layer=4, seed=42)
     scores: dict[str, float] = {}
-    for builder in (compliant, careless):
+    for builder in (compliant, partial, careless):
         run, records = builder(source)
         report = run_all(run, records)
         scores[run.run_id] = report.compliance_score
         print(report.render_table())
         print(f"\n  -> wrote {report.to_json_file()}")
+        print(f"  -> wrote {report.to_markdown_file()}")
         print("=" * 72)
 
     print("\nComparison")

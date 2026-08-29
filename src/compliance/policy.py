@@ -21,10 +21,9 @@ class PurposePolicy(BaseModel):
     requires_pseudonymised_identifiers: bool
 
 
-# DPDP Act 2023, s.6(1) -- consent must be for a specified purpose and limited to
-# such personal data as is necessary for that purpose. The allowed-category set
-# below is the machine-checkable form of "necessary for the purpose".
-# TODO: verify section number against Act text.
+# DPDP Act 2023 -- data minimisation principle: data is limited to what is
+# necessary for the specified purpose. The allowed-category set below is the
+# machine-checkable form of "necessary for the purpose".
 PURPOSE_POLICY: dict[Purpose, PurposePolicy] = {
     Purpose.CARE_COORDINATION: PurposePolicy(
         allowed_categories={

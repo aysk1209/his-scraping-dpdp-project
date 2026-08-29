@@ -141,6 +141,37 @@ def test_report_writes_json_artifact(tmp_path):
     assert '"compliance_score"' in path.read_text(encoding="utf-8")
 
 
+def test_report_writes_markdown_artifact(tmp_path):
+    run, records = _fully_compliant()
+    report = run_all(run, records)
+    path = report.to_markdown_file(tmp_path)
+    assert path.exists()
+    assert path.name == "test-compliant.md"
+    text = path.read_text(encoding="utf-8")
+    assert "| Rule | DPDP principle | Status | Score |" in text
+    assert "DM-01" in text
+
+
+def test_rules_cite_dpdp_principles_not_pinned_sections():
+    run, records = _fully_compliant()
+    report = run_all(run, records)
+    for result in report.results:
+        assert result.provision.startswith("DPDP Act 2023")
+        # principle-level wording, not a pinned sub-section like "s.6(1)"
+        assert "s." not in result.provision
+
+
+def test_partial_run_scores_in_the_middle_band():
+    """Tight field scope but sloppy manifest -> a score clearly between the extremes."""
+    run, records = _fully_compliant()
+    run.lawful_basis = LawfulBasis(type=LawfulBasisType.CONSENT, reference=None)
+    run.deletion_mechanism = None
+    run.security = SecurityPosture(transport_encrypted=True, at_rest_encrypted=True)
+    report = run_all(run, records)
+    assert 0.5 <= report.compliance_score <= 0.75
+    assert _result(report, "DM-01").status == RuleStatus.PASS
+
+
 def test_empty_records_makes_dm01_not_applicable():
     run, _ = _fully_compliant()
     report = run_all(run, [])

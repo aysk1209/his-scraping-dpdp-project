@@ -10,10 +10,9 @@ from compliance.rules.base import Rule, RuleResult, RuleStatus
 class DataMinimisationRule(Rule):
     rule_id = "DM-01"
     title = "Data minimisation"
-    # DPDP Act 2023, s.6(1) -- personal data processed under consent must be
-    # limited to what is necessary for the specified purpose.
-    # TODO: verify section number against Act text.
-    provision = "DPDP Act 2023, s.6(1)"
+    # DPDP Act 2023 -- data minimisation principle: personal data is limited to
+    # what is necessary for the stated processing purpose.
+    provision = "DPDP Act 2023 - data minimisation"
 
     def evaluate(self, run: ExtractionRun, records: list[ExtractedRecord]) -> RuleResult:
         allowed = policy_for(run.purpose).allowed_categories

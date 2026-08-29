@@ -2,8 +2,12 @@
 
 This is the object that gets written to docs/benchmark_results/ and, later,
 placed side by side with a baseline technique's report. It is the paper's core
-evidence: compliance expressed as a number plus a per-provision breakdown, not a
+evidence: compliance expressed as a number plus a per-principle breakdown, not a
 paragraph.
+
+Three renderings: ``render_table`` (console), ``model_dump_json`` /
+``to_json_file`` (machine-readable), ``render_markdown`` / ``to_markdown_file``
+(paste into slides or the report).
 """
 
 from __future__ import annotations
@@ -75,3 +79,32 @@ class ComplianceReport(BaseModel):
             for finding in result.findings:
                 lines.append(f"            - {finding}")
         return "\n".join(lines)
+
+    def render_markdown(self) -> str:
+        lines = [
+            f"### Compliance report -- `{self.run_id}`",
+            "",
+            f"**Overall score:** {self.compliance_score:.3f} &nbsp;&nbsp; "
+            f"**Pass rate:** {self.pass_rate:.0%}",
+            "",
+            "| Rule | DPDP principle | Status | Score |",
+            "|------|----------------|--------|-------|",
+        ]
+        for result in self.results:
+            lines.append(
+                f"| {result.rule_id} | {result.provision} "
+                f"| {result.status.value} | {result.score:.2f} |"
+            )
+        lines += ["", "**Findings**", ""]
+        for result in self.results:
+            lines.append(f"- **{result.rule_id}**")
+            for finding in result.findings:
+                lines.append(f"  - {finding}")
+        return "\n".join(lines)
+
+    def to_markdown_file(self, directory: Path | None = None) -> Path:
+        directory = directory or ARTIFACT_DIR
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / f"{self.run_id}.md"
+        path.write_text(self.render_markdown(), encoding="utf-8")
+        return path

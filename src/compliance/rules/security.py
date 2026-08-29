@@ -10,10 +10,9 @@ from compliance.rules.base import Rule, RuleResult, RuleStatus
 class SecuritySafeguardsRule(Rule):
     rule_id = "SS-01"
     title = "Security safeguards"
-    # DPDP Act 2023, s.8(5) -- a Data Fiduciary shall protect personal data in
-    # its possession by taking reasonable security safeguards to prevent a
-    # personal data breach. TODO: verify section number against Act text.
-    provision = "DPDP Act 2023, s.8(5)"
+    # DPDP Act 2023 -- security safeguards principle: reasonable technical and
+    # organisational safeguards protect personal data against breach.
+    provision = "DPDP Act 2023 - security safeguards"
 
     def evaluate(self, run: ExtractionRun, records: list[ExtractedRecord]) -> RuleResult:
         posture = run.security
