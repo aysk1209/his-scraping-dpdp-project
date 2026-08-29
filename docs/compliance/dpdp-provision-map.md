@@ -2,28 +2,52 @@
 
 The build-step-2 compliance framework turns each criterion below into a
 code-checkable rule in [`src/compliance/rules/`](../../src/compliance/rules/),
-with a stable rule ID and an evaluation that yields a pass/fail + score against
-an extraction run.
+with a stable rule ID and an evaluation that yields a status + 0–1 score against
+an extraction run (`compliance.models.ExtractionRun` + sampled
+`ExtractedRecord`s).
 
-Every compliance-relevant code path must cite its provision in a comment, e.g.
-`# DPDP Act 2023, Sec 8(5) — data retention limitation`.
+Every compliance-relevant code path cites its provision in a comment, e.g.
+`# DPDP Act 2023, s.8(5) — reasonable security safeguards`.
 
-> Section references below are **placeholders to be confirmed** against the Act
-> text and the Review-1 background report before rules are implemented.
+> **Section references are placeholders.** Each is marked `TODO: verify against
+> Act text` in the code and must be confirmed against the DPDP Act 2023 and the
+> Review-1 background report before the review.
 
-| Rule ID | Criterion | DPDP Act 2023 provision (to confirm) | Notes |
-|---------|-----------|--------------------------------------|-------|
-| `DM-01` | Data minimisation | Sec 5 / Sec 6 — collection limited to what is necessary for the stated purpose | Extraction must not pull fields beyond the declared purpose scope |
-| `PL-01` | Purpose limitation | Sec 5(2) / Sec 6 — processing tied to the purpose consented to | Each extraction run declares a purpose; benchmark checks adherence |
-| `SL-01` | Storage limitation | Sec 8(5) — erase once the purpose is served | Retention window + deletion evidence for scraped records |
-| `CL-01` | Consent / legitimate use basis | Sec 6 (consent) / Sec 7 (legitimate uses) | Lawful basis recorded per run |
-| `SS-01` | Security safeguards | Sec 8(4) / Sec 8(5) — reasonable security safeguards | Encryption at rest/in transit, access control, breach-resistance of the pipeline |
-| `TR-01` | Transparency / notice | Sec 5(3) — notice to the Data Principal | Applicability to scraping context to be assessed |
-| `AC-01` | Accountability | Sec 8(1)–(3) — Data Fiduciary obligations | Audit trail produced by the benchmarking harness |
+## Rules
+
+| Rule ID | Criterion | Provision (to confirm) | Check mechanism | Status |
+|---------|-----------|------------------------|-----------------|--------|
+| `DM-01` | Data minimisation | s.6(1) — data limited to what is necessary for the specified purpose | Extracted field categories ⊆ purpose-allowed set; score = 1 − excess/total | **implemented** (slice 1) |
+| `LB-01` | Lawful basis | s.4 — lawful purpose with consent (s.6) or legitimate use (s.7) | Basis declared, recognised, and carries a reference | **implemented** (slice 1) |
+| `SL-01` | Storage limitation | s.8(7) — erase once purpose served / consent withdrawn | `retention_days` present and ≤ policy max; deletion mechanism declared | **implemented** (slice 1) |
+| `SS-01` | Security safeguards | s.8(5) — reasonable security safeguards against breach | Fraction of required safeguards (TLS, at-rest encryption, access control, pseudonymisation) satisfied | **implemented** (slice 1) |
+| `PL-01` | Purpose limitation | s.5(2) / s.6 — processing confined to the purpose consented to | planned | pending |
+| `NT-01` | Transparency / notice | s.5 — notice to the Data Principal | planned | pending |
+| `AC-01` | Accountability | s.8(1)–(3) — Data Fiduciary obligations; audit trail | planned | pending |
+
+## Policy
+
+The "what is necessary for the purpose" and retention limits live as a
+declarative table in [`src/compliance/policy.py`](../../src/compliance/policy.py)
+(`PURPOSE_POLICY`), keyed by processing purpose. Slice 1 models a single
+purpose, `care_coordination`. Tuning the compliance envelope is a policy edit,
+not a rule-code change.
 
 ## Output artifact
 
-Build step 5 (`src/compliance/benchmark.py`) writes a scored result per
-extraction run to `docs/benchmark_results/` (gitignored). That artifact — not
-prose — is the comparison point against baseline techniques (e.g. AutoScraper,
-EMNLP 2024).
+`compliance.checkers.run_all(run, records)` returns a `ComplianceReport`
+(`compliance.report`) with an overall `compliance_score`, a `pass_rate`, and a
+per-rule breakdown. `ComplianceReport.to_json_file()` writes it to
+`docs/benchmark_results/<run_id>.json` (gitignored).
+
+This artifact — not prose — is the comparison point against baseline techniques
+(e.g. AutoScraper, EMNLP 2024): the same rules score any technique's run.
+
+## Demo
+
+```
+python scripts/score_extraction_run.py
+```
+
+Scores a compliant run against a "grab everything, declare nothing" run and
+prints both reports. Current contrast: **1.000** vs **0.188**.

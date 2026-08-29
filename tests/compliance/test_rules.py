@@ -1,0 +1,147 @@
+"""Tests for the DPDP compliance rule slice (DM-01, LB-01, SL-01, SS-01)."""
+
+from __future__ import annotations
+
+import pytest
+
+from compliance.checkers import run_all
+from compliance.models import (
+    ExtractedRecord,
+    ExtractionRun,
+    FieldCategory,
+    LawfulBasis,
+    LawfulBasisType,
+    Purpose,
+    SecurityPosture,
+)
+from compliance.rules import ALL_RULES
+from compliance.rules.base import RuleStatus
+
+
+def _fully_compliant() -> tuple[ExtractionRun, list[ExtractedRecord]]:
+    run = ExtractionRun(
+        run_id="test-compliant",
+        purpose=Purpose.CARE_COORDINATION,
+        lawful_basis=LawfulBasis(
+            type=LawfulBasisType.LEGITIMATE_USE, reference="s.7 medical services"
+        ),
+        retention_days=30,
+        deletion_mechanism="daily purge",
+        security=SecurityPosture(
+            transport_encrypted=True,
+            at_rest_encrypted=True,
+            access_controlled=True,
+            identifiers_pseudonymised=True,
+        ),
+    )
+    records = [
+        ExtractedRecord(
+            source_layer="patient_administration",
+            field_categories={FieldCategory.DIRECT_IDENTIFIER, FieldCategory.QUASI_IDENTIFIER},
+        ),
+        ExtractedRecord(
+            source_layer="clinical_ehr",
+            field_categories={FieldCategory.CLINICAL, FieldCategory.ADMINISTRATIVE},
+        ),
+    ]
+    return run, records
+
+
+def _result(report, rule_id: str):
+    return next(r for r in report.results if r.rule_id == rule_id)
+
+
+def test_rule_slice_has_exactly_the_four_expected_rules():
+    assert {rule.rule_id for rule in ALL_RULES} == {"DM-01", "LB-01", "SL-01", "SS-01"}
+
+
+def test_fully_compliant_run_scores_top_marks():
+    run, records = _fully_compliant()
+    report = run_all(run, records)
+    assert report.compliance_score == 1.0
+    assert report.pass_rate == 1.0
+    assert all(r.status == RuleStatus.PASS for r in report.results)
+
+
+def test_out_of_scope_category_fails_dm01():
+    run, records = _fully_compliant()
+    records.append(
+        ExtractedRecord(
+            source_layer="administrative_financial",
+            field_categories={FieldCategory.FINANCIAL},
+        )
+    )
+    report = run_all(run, records)
+    dm01 = _result(report, "DM-01")
+    assert dm01.status == RuleStatus.FAIL
+    assert dm01.score < 1.0
+    assert any("financial" in f for f in dm01.findings)
+
+
+def test_missing_lawful_basis_fails_lb01():
+    run, records = _fully_compliant()
+    run.lawful_basis = None
+    report = run_all(run, records)
+    assert _result(report, "LB-01").status == RuleStatus.FAIL
+    assert _result(report, "LB-01").score == 0.0
+
+
+def test_lawful_basis_without_reference_is_partial_fail():
+    run, records = _fully_compliant()
+    run.lawful_basis = LawfulBasis(type=LawfulBasisType.CONSENT, reference=None)
+    lb01 = _result(run_all(run, records), "LB-01")
+    assert lb01.status == RuleStatus.FAIL
+    assert lb01.score == pytest.approx(0.5)
+
+
+def test_retention_over_policy_limit_fails_sl01():
+    run, records = _fully_compliant()
+    run.retention_days = 365  # policy max for care_coordination is 90
+    sl01 = _result(run_all(run, records), "SL-01")
+    assert sl01.status == RuleStatus.FAIL
+    assert any("exceeds the policy maximum" in f for f in sl01.findings)
+
+
+def test_missing_retention_and_deletion_zeroes_sl01():
+    run, records = _fully_compliant()
+    run.retention_days = None
+    run.deletion_mechanism = None
+    sl01 = _result(run_all(run, records), "SL-01")
+    assert sl01.status == RuleStatus.FAIL
+    assert sl01.score == 0.0
+
+
+def test_weak_security_posture_fails_ss01_proportionally():
+    run, records = _fully_compliant()
+    run.security = SecurityPosture(transport_encrypted=True)  # 1 of 4 (pseudonymisation applies)
+    ss01 = _result(run_all(run, records), "SS-01")
+    assert ss01.status == RuleStatus.FAIL
+    assert ss01.score == pytest.approx(0.25)
+
+
+def test_pseudonymisation_not_required_when_no_direct_identifiers():
+    run, records = _fully_compliant()
+    records = [
+        ExtractedRecord(source_layer="clinical_ehr", field_categories={FieldCategory.CLINICAL})
+    ]
+    run.security = SecurityPosture(
+        transport_encrypted=True, at_rest_encrypted=True, access_controlled=True
+    )
+    ss01 = _result(run_all(run, records), "SS-01")
+    assert ss01.status == RuleStatus.PASS
+    assert ss01.score == 1.0
+
+
+def test_report_writes_json_artifact(tmp_path):
+    run, records = _fully_compliant()
+    report = run_all(run, records)
+    path = report.to_json_file(tmp_path)
+    assert path.exists()
+    assert path.name == "test-compliant.json"
+    assert '"compliance_score"' in path.read_text(encoding="utf-8")
+
+
+def test_empty_records_makes_dm01_not_applicable():
+    run, _ = _fully_compliant()
+    report = run_all(run, [])
+    assert _result(report, "DM-01").status == RuleStatus.NOT_APPLICABLE
