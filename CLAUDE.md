@@ -8,9 +8,20 @@ This file gives Claude Code persistent context for this repository. Read it full
 **Institution:** VIT, SENSE department — final-year research project
 **Team:** Avanindra (23BLC1089), Ananya (23BLC1017)
 **Guide:** Dr. Manoj Kumar
-**Stage:** Post Review-1 (approved). Now entering the build phase, targeting Review 2 (~70% completion).
+**Stage:** Post Review-1 (approved). In the build phase. Three reviews remain (as of 2026-08-29).
 
 For full background, methodology, and research framing, see `PROJECT_CONTEXT.md` in this same directory — read it before starting any non-trivial task.
+
+## Review Cadence — CURRENT FOCUS
+
+Three reviews remain (as of 2026-08-29). This supersedes the earlier "Review 2 (~70% completion) then Final review" framing (still worded the old way in `PROJECT_CONTEXT.md`).
+
+**The upcoming review is the immediate priority.** For it:
+- There is **no fixed percentage of work** expected — do not optimise for volume of implemented code.
+- What is graded: a **precise, on-point explanation to the reviewer** — the architecture, the "DPDP compliance as a benchmarkable property" thesis, and how progress continues without live HIS data access.
+- Plus **one small, concrete deliverable** to demonstrate (e.g. a runnable compliance-scoring demo), not a large build.
+
+Scope for the two later reviews is not yet fixed — revisit after this one.
 
 ## What This Project Is
 
