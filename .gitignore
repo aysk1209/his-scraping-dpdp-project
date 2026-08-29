@@ -1,0 +1,36 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+build/
+dist/
+
+# --- tooling caches ---
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# --- editors / OS ---
+.idea/
+.vscode/
+.DS_Store
+
+# --- secrets / credentials (never commit) ---
+.env
+/secrets/
+
+# --- synthetic datasets are regenerable; keep them out of git ---
+/data/
+/src/data_synthetic/output/
+
+# --- browser capture artifacts from Tier 2 work ---
+*.har
+
+# --- benchmark run artifacts: keep the directory, not the runs ---
+/docs/benchmark_results/*
+!/docs/benchmark_results/.gitkeep

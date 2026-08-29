@@ -1,0 +1,30 @@
+# Runtime dependencies for the HIS scraping + DPDP compliance benchmarking project.
+# Pinned to current major versions. Confirm with the team before adding anything here
+# (CLAUDE.md: "Confirm before introducing a new major dependency").
+
+# --- core data handling ---
+pandas>=2.2,<3.0
+
+# --- schema modelling: DPDP compliance rules + five-layer HIS record schemas ---
+pydantic>=2.9,<3.0
+
+# --- synthetic HIS data generation ---
+Faker>=30.0,<40.0
+
+# --- LLM-based extraction agent (build step 6, AXE-method inspired) ---
+anthropic>=0.40,<1.0
+
+# --- testing ---
+pytest>=8.0,<9.0
+
+# --- Tier 2 headless browser automation ---
+# Installed now so the extraction skeleton can be written; exercised only once
+# credentialed live-HIS access is usable (build step 7, currently blocked).
+playwright>=1.47,<2.0
+
+# ------------------------------------------------------------------
+# Deferred, pending team sign-off:
+#   ruff / black   - lint + format
+#   pytest-cov     - coverage reporting for the benchmark evidence trail
+#   mypy           - static type checking
+# ------------------------------------------------------------------
