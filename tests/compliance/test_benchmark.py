@@ -52,7 +52,9 @@ def test_compliance_aware_wins_and_baseline_loses():
 
 def test_per_rule_mean_covers_every_rule():
     for score in _result().scores:
-        assert set(score.per_rule_mean) == {"DM-01", "LB-01", "SL-01", "SS-01"}
+        assert set(score.per_rule_mean) == {
+            "DM-01", "LB-01", "SL-01", "SS-01", "PL-01", "NT-01", "AC-01"
+        }
 
 
 def test_per_task_has_an_entry_per_task():

@@ -7,6 +7,13 @@ import pytest
 MODULES = [
     "compliance",
     "compliance.rules",
+    "compliance.rules.minimisation",
+    "compliance.rules.lawful_basis",
+    "compliance.rules.storage",
+    "compliance.rules.security",
+    "compliance.rules.purpose_limitation",
+    "compliance.rules.notice",
+    "compliance.rules.accountability",
     "compliance.checkers",
     "compliance.benchmark",
     "data_synthetic",

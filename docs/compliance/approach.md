@@ -35,7 +35,7 @@ policy edit, not a rule-code change. One purpose is modelled so far:
 
 ## The rules
 
-Four rules ([`compliance/rules/`](../../src/compliance/rules/)), each a distinct
+Seven rules ([`compliance/rules/`](../../src/compliance/rules/)), each a distinct
 check mechanism, each citing a DPDP Act 2023 **principle** (exact section
 citations are left for the report's references, not pinned in code):
 
@@ -44,7 +44,10 @@ citations are left for the report's references, not pinned in code):
 | `DM-01` | data minimisation | extracted categories ⊆ policy-allowed; score = 1 − excess/total |
 | `LB-01` | lawful basis for processing | basis declared, recognised, carries a reference |
 | `SL-01` | storage limitation | `retention_days` present and ≤ policy max; deletion mechanism declared |
-| `SS-01` | security safeguards | fraction of required safeguards satisfied |
+| `SS-01` | security safeguards | fraction of required technical safeguards satisfied |
+| `PL-01` | purpose limitation | a purpose is specified, recognised, and not extended by undeclared onward uses |
+| `NT-01` | transparency / notice | a privacy notice is recorded and covers the stated purpose |
+| `AC-01` | accountability | fraction of governance controls (audit log, named party, processing record) in place |
 
 Each returns a status (`pass` / `fail` / `not_applicable`), a 0–1 score, and
 plain-language findings.
@@ -73,14 +76,16 @@ label added afterwards. Three are implemented
 | unconstrained (baseline) | ignores the task, grabs every field of every layer; no manifest. Stands in for a coverage-optimised scraper (cf. AutoScraper, EMNLP 2024) |
 
 [`compliance.benchmark.run_benchmark`](../../src/compliance/benchmark.py) runs
-every technique against every task, scores each run with the **same** rule set,
-and aggregates. `python scripts/run_benchmark.py`:
+every technique against every task, scores each run with the **same** seven-rule
+set, and aggregates. `python scripts/run_benchmark.py`:
 
-| Technique | Compliance score | Pass rate | DM-01 | LB-01 | SL-01 | SS-01 |
-|-----------|-----------------|-----------|-------|-------|-------|-------|
-| compliance-aware (ours) | 1.000 | 100% | 1.00 | 1.00 | 1.00 | 1.00 |
-| minimising, undocumented | 0.625 | 25% | 1.00 | 0.50 | 0.50 | 0.50 |
-| unconstrained (baseline) | 0.229 | 0% | 0.67 | 0.00 | 0.00 | 0.25 |
+| Technique | Compliance score | Pass rate |
+|-----------|-----------------|-----------|
+| compliance-aware (ours) | 1.000 | 100% |
+| minimising, undocumented | 0.500 | 29% |
+| unconstrained (baseline) | 0.131 | 0% |
+
+(The full per-rule breakdown is in `docs/benchmark_results/benchmark.md`.)
 
 This table is the paper's central claim made concrete: compliance discriminates
 between *techniques*, and it is produced by one harness that will later score

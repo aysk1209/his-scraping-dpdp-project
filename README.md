@@ -32,7 +32,7 @@ can be swapped in later without downstream refactoring.
 | Step | Deliverable | State |
 |------|-------------|-------|
 | 1 | Repo scaffolding + project structure | done |
-| 2 | DPDP compliance framework — criteria as code-checkable rules/schema | in progress (4 rules: DM/LB/SL/SS) |
+| 2 | DPDP compliance framework — criteria as code-checkable rules/schema | 7 rules (DM/LB/SL/SS/PL/NT/AC), policy engine, report |
 | 3 | Synthetic HIS data generator — records matching the five-layer HIS architecture | thin slice (field catalogue + generator) |
 | 4 | Extraction module skeleton — Tier 2 adapter interface, first against synthetic data | interface + `MockHISDataSource` + technique layer (3 techniques) |
 | 5 | Compliance benchmarking harness — scores any extraction run against DPDP criteria | working (`run_benchmark`, technique comparison table) |
@@ -44,7 +44,7 @@ Do not skip ahead to step 7. Keep the data source pluggable throughout steps 1�
 **Current state:** technique-comparison benchmark working — multiple extraction
 techniques scored on DPDP compliance by one harness. Concrete:
 
-- `src/compliance/` — 4 executable DPDP rules (DM-01, LB-01, SL-01, SS-01), a
+- `src/compliance/` — 7 executable DPDP rules (DM/LB/SL/SS/PL/NT/AC), a
   declarative purpose policy, a `ComplianceReport`, and `run_benchmark`.
 - `src/extraction/` — `HISDataSource` interface, `MockHISDataSource`, and a
   technique layer with three techniques (compliance-aware, minimising, baseline).
@@ -57,8 +57,8 @@ Headline demo — `python scripts/run_benchmark.py`:
 | Technique | Compliance score | Pass rate |
 |-----------|-----------------|-----------|
 | compliance-aware (ours) | 1.000 | 100% |
-| minimising, undocumented | 0.625 | 25% |
-| unconstrained (baseline) | 0.229 | 0% |
+| minimising, undocumented | 0.500 | 29% |
+| unconstrained (baseline) | 0.131 | 0% |
 
 Plain-language run instructions: [`DEMO_GUIDE.md`](DEMO_GUIDE.md). Method
 walkthrough: [`docs/compliance/approach.md`](docs/compliance/approach.md).

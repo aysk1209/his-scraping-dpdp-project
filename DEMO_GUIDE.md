@@ -101,8 +101,8 @@ and scores each on compliance:
 | Method | What it does | Score you'll see |
 |--------|--------------|------------------|
 | compliance-aware (ours) | takes only the data the job needs, does the paperwork | **1.000** |
-| minimising, undocumented | takes only what it needs, but skips paperwork/security | **~0.625** |
-| unconstrained (baseline) | grabs everything on the page, documents nothing | **~0.229** |
+| minimising, undocumented | takes only what it needs, but skips paperwork/security | **~0.500** |
+| unconstrained (baseline) | grabs everything on the page, documents nothing | **~0.131** |
 
 It prints one comparison table. **This is the main thing to show** — it is the
 project's core argument: compliance is a number that separates good methods from
@@ -116,7 +116,7 @@ python scripts/run_synthetic_extraction.py
 
 Takes a single method and runs it carefully, half-carefully, and carelessly,
 using fake patient records generated on the spot. Expected:
-**1.000 / ~0.625 / ~0.229**. Useful for showing *why* a score moves.
+**1.000 / ~0.500 / ~0.131**. Useful for showing *why* a score moves.
 
 ### Demo C — the rules on their own
 
@@ -124,10 +124,10 @@ using fake patient records generated on the spot. Expected:
 python scripts/score_extraction_run.py
 ```
 
-The four rules scored against hand-written examples, with no data generator in
+The seven rules scored against hand-written examples, with no data generator in
 the way. Prints every rule, pass/fail, and a plain-English reason
 (e.g. *"Out-of-scope category extracted: financial"*). Expected:
-**1.000 / ~0.625 / ~0.188**.
+**1.000 / ~0.500 / ~0.107**.
 
 ### The test suite (optional but reassuring)
 
@@ -135,7 +135,7 @@ the way. Prints every rule, pass/fail, and a plain-English reason
 python -m pytest -q
 ```
 
-Runs every automated check on the code. You should see **`70 passed`**. This
+Runs every automated check on the code. You should see **`83 passed`**. This
 confirms the rules, the fake-data generator, the extraction methods, and the
 comparison harness all behave as intended.
 
@@ -152,8 +152,8 @@ environment activated.
    the same tool for any scraping method.
 
 2. **Run Demo A live:** `python scripts/run_benchmark.py`. Point at the
-   comparison table — our method 1.00, the coverage-optimised baseline 0.23, on
-   the same rules. This is the core result.
+   comparison table — our method 1.00, the coverage-optimised baseline 0.13, on
+   the same seven rules. This is the core result.
 
 3. **Run Demo B** if asked why a score moves:
    `python scripts/run_synthetic_extraction.py` — same method, three
@@ -162,7 +162,7 @@ environment activated.
 4. **Show a saved artifact.** Open `docs/benchmark_results/benchmark.md` — the
    comparison table as a file. This is the evidence the research paper is built on.
 
-5. **Run the tests:** `python -m pytest -q` → `70 passed`. Shows the work is
+5. **Run the tests:** `python -m pytest -q` → `83 passed`. Shows the work is
    real, checked code, not slideware.
 
 **Three points to make while doing this:**

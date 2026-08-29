@@ -24,8 +24,10 @@ from compliance.models import (
     ExtractedRecord,
     ExtractionRun,
     FieldCategory,
+    Governance,
     LawfulBasis,
     LawfulBasisType,
+    Notice,
     Purpose,
     SecurityPosture,
 )
@@ -49,6 +51,16 @@ def compliant_run() -> tuple[ExtractionRun, list[ExtractedRecord]]:
             access_controlled=True,
             identifiers_pseudonymised=True,
         ),
+        notice=Notice(
+            reference="patient privacy notice, acknowledged at registration",
+            covers_purpose=True,
+            machine_readable=True,
+        ),
+        governance=Governance(
+            audit_log_enabled=True,
+            accountable_party="hospital Data Protection Officer",
+            processing_record_kept=True,
+        ),
     )
     records = [
         ExtractedRecord(
@@ -69,9 +81,11 @@ def compliant_run() -> tuple[ExtractionRun, list[ExtractedRecord]]:
 def partial_run() -> tuple[ExtractionRun, list[ExtractedRecord]]:
     """A run that keeps field scope tight but cuts corners on paperwork and security.
 
-    Only in-scope categories are extracted (DM-01 passes), but the lawful basis
-    has no reference, there is no deletion mechanism, and only half the security
-    safeguards are in place -- so LB-01, SL-01 and SS-01 land around 0.5.
+    Only in-scope categories are extracted (DM-01 passes) and a purpose is
+    declared (PL-01 passes), but the lawful basis has no reference, there is no
+    deletion mechanism, only half the security safeguards are in place, and no
+    notice or governance is recorded -- so LB-01, SL-01, SS-01 land around 0.5
+    and NT-01, AC-01 fail.
     """
 
     run = ExtractionRun(
@@ -109,6 +123,7 @@ def careless_run() -> tuple[ExtractionRun, list[ExtractedRecord]]:
     run = ExtractionRun(
         run_id="care-coordination-careless",
         purpose=Purpose.CARE_COORDINATION,
+        purpose_specified=False,
         lawful_basis=None,
         retention_days=None,
         deletion_mechanism=None,

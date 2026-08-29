@@ -15,13 +15,15 @@ don't rot against a mis-transcribed clause.
 
 | Rule ID | DPDP principle | Check mechanism | Status |
 |---------|----------------|-----------------|--------|
-| `DM-01` | Data minimisation — data limited to what is necessary for the purpose | Extracted field categories ⊆ purpose-allowed set; score = 1 − excess/total | **implemented** (slice 1) |
-| `LB-01` | Lawful basis — processing rests on consent or a recognised legitimate use | Basis declared, recognised, and carries a reference | **implemented** (slice 1) |
-| `SL-01` | Storage limitation — retain only as long as the purpose requires, then erase | `retention_days` present and ≤ policy max; deletion mechanism declared | **implemented** (slice 1) |
-| `SS-01` | Security safeguards — reasonable safeguards against personal data breach | Fraction of required safeguards (TLS, at-rest encryption, access control, pseudonymisation) satisfied | **implemented** (slice 1) |
-| `PL-01` | Purpose limitation — processing confined to the declared purpose | planned | pending |
-| `NT-01` | Transparency / notice — notice to the Data Principal | planned | pending |
-| `AC-01` | Accountability — Data Fiduciary obligations; audit trail | planned | pending |
+| `DM-01` | Data minimisation — data limited to what is necessary for the purpose | Extracted field categories ⊆ purpose-allowed set; score = 1 − excess/total | **implemented** |
+| `LB-01` | Lawful basis — processing rests on consent or a recognised legitimate use | Basis declared, recognised, and carries a reference | **implemented** |
+| `SL-01` | Storage limitation — retain only as long as the purpose requires, then erase | `retention_days` present and ≤ policy max; deletion mechanism declared | **implemented** |
+| `SS-01` | Security safeguards — reasonable safeguards against personal data breach | Fraction of required technical safeguards (TLS, at-rest encryption, access control, pseudonymisation) satisfied | **implemented** |
+| `PL-01` | Purpose limitation — processing confined to the declared purpose | Purpose specified, recognised in policy, and not extended by undeclared secondary uses | **implemented** |
+| `NT-01` | Transparency / notice — notice to the Data Principal | A privacy notice is recorded and covers the stated purpose | **implemented** |
+| `AC-01` | Accountability — Data Fiduciary can demonstrate compliance | Fraction of governance controls (audit log, named accountable party, record of processing) in place | **implemented** |
+
+All seven principles are now covered. The rule set is `compliance.rules.ALL_RULES`.
 
 ## Policy
 
@@ -51,4 +53,4 @@ python scripts/score_extraction_run.py        # hand-built records, rules in iso
 ```
 
 `run_benchmark.py` output (compliance-aware / minimising / baseline):
-**1.000 / 0.625 / 0.229**.
+**1.000 / 0.500 / 0.131**.

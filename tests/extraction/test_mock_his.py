@@ -6,8 +6,10 @@ from compliance.checkers import run_all
 from compliance.models import (
     ExtractedRecord,
     ExtractionRun,
+    Governance,
     LawfulBasis,
     LawfulBasisType,
+    Notice,
     Purpose,
     SecurityPosture,
 )
@@ -55,7 +57,9 @@ def test_in_scope_selection_scores_fully_compliant():
     run = ExtractionRun(
         run_id="t-compliant",
         purpose=Purpose.CARE_COORDINATION,
-        lawful_basis=LawfulBasis(type=LawfulBasisType.LEGITIMATE_USE, reference="s.7"),
+        lawful_basis=LawfulBasis(
+            type=LawfulBasisType.LEGITIMATE_USE, reference="medical services"
+        ),
         retention_days=30,
         deletion_mechanism="daily purge",
         security=SecurityPosture(
@@ -63,6 +67,12 @@ def test_in_scope_selection_scores_fully_compliant():
             at_rest_encrypted=True,
             access_controlled=True,
             identifiers_pseudonymised=True,
+        ),
+        notice=Notice(reference="privacy notice v3", covers_purpose=True),
+        governance=Governance(
+            audit_log_enabled=True,
+            accountable_party="Data Protection Officer",
+            processing_record_kept=True,
         ),
     )
     assert run_all(run, records).compliance_score == 1.0

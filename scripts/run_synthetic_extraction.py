@@ -21,8 +21,10 @@ from compliance.checkers import run_all
 from compliance.models import (
     ExtractedRecord,
     ExtractionRun,
+    Governance,
     LawfulBasis,
     LawfulBasisType,
+    Notice,
     Purpose,
     SecurityPosture,
 )
@@ -78,13 +80,24 @@ def compliant(source: MockHISDataSource) -> tuple[ExtractionRun, list[ExtractedR
             access_controlled=True,
             identifiers_pseudonymised=True,
         ),
+        notice=Notice(
+            reference="patient privacy notice, acknowledged at registration",
+            covers_purpose=True,
+            machine_readable=True,
+        ),
+        governance=Governance(
+            audit_log_enabled=True,
+            accountable_party="hospital Data Protection Officer",
+            processing_record_kept=True,
+        ),
     )
     return run, _extract(source, IN_SCOPE_SELECTION)
 
 
 def partial(source: MockHISDataSource) -> tuple[ExtractionRun, list[ExtractedRecord]]:
     """Same tight field selection as the compliant run, but a sloppy manifest:
-    consent with no reference, no deletion mechanism, half the safeguards."""
+    consent with no reference, no deletion mechanism, half the safeguards, and
+    no notice or governance recorded."""
 
     run = ExtractionRun(
         run_id="synthetic-partial",
@@ -102,6 +115,7 @@ def careless(source: MockHISDataSource) -> tuple[ExtractionRun, list[ExtractedRe
     run = ExtractionRun(
         run_id="synthetic-careless",
         purpose=Purpose.CARE_COORDINATION,
+        purpose_specified=False,
         security=SecurityPosture(transport_encrypted=True),
     )
     return run, _extract(source, everything)

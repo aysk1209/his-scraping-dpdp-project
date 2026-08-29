@@ -37,9 +37,12 @@ class MinimisingUndocumentedTechnique(ExtractionTechnique):
                 )
 
         policy = policy_for(task.purpose)
+        # A specific purpose is declared, but notice and governance are left
+        # unset -- the "means well, no paperwork" failure mode.
         run = ExtractionRun(
             run_id=f"{task.task_id}--minimising",
             purpose=task.purpose,
+            purpose_specified=True,
             lawful_basis=LawfulBasis(type=LawfulBasisType.CONSENT, reference=None),
             retention_days=min(45, policy.max_retention_days),
             deletion_mechanism=None,

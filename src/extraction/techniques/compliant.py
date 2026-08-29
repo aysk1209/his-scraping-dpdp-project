@@ -11,8 +11,10 @@ from __future__ import annotations
 from compliance.models import (
     ExtractedRecord,
     ExtractionRun,
+    Governance,
     LawfulBasis,
     LawfulBasisType,
+    Notice,
     SecurityPosture,
 )
 from compliance.policy import policy_for
@@ -39,6 +41,8 @@ class CompliantExtractionTechnique(ExtractionTechnique):
         run = ExtractionRun(
             run_id=f"{task.task_id}--compliance-aware",
             purpose=task.purpose,
+            purpose_specified=True,
+            secondary_uses=[],
             lawful_basis=LawfulBasis(
                 type=LawfulBasisType.LEGITIMATE_USE,
                 reference="legitimate use -- provision of medical services",
@@ -50,6 +54,16 @@ class CompliantExtractionTechnique(ExtractionTechnique):
                 at_rest_encrypted=True,
                 access_controlled=True,
                 identifiers_pseudonymised=True,
+            ),
+            notice=Notice(
+                reference="patient privacy notice, acknowledged at registration",
+                covers_purpose=True,
+                machine_readable=True,
+            ),
+            governance=Governance(
+                audit_log_enabled=True,
+                accountable_party="hospital Data Protection Officer",
+                processing_record_kept=True,
             ),
         )
         return TechniqueOutput(run=run, records=records)

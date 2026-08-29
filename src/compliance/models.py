@@ -7,8 +7,9 @@ baseline -- is wrapped in an ``ExtractionRun`` plus a sample of ``ExtractedRecor
 objects so the same rules score every technique on equal terms.
 
 The compliance rules encode DPDP Act 2023 *principles* (data minimisation,
-lawful basis, storage limitation, security safeguards). Exact section citations
-are left for the report's references, not pinned in code.
+lawful basis, storage limitation, security safeguards, purpose limitation,
+transparency / notice, accountability). Exact section citations are left for the
+report's references, not pinned in code.
 """
 
 from __future__ import annotations
@@ -70,15 +71,43 @@ class SecurityPosture(BaseModel):
     identifiers_pseudonymised: bool = False    # direct identifiers tokenised on export
 
 
+class Notice(BaseModel):
+    """A privacy notice made available to the Data Principal.
+
+    DPDP Act 2023 -- transparency / notice principle: the Data Principal is told
+    what personal data is processed and for what purpose.
+    """
+
+    reference: str                             # pointer to the notice artefact / version
+    covers_purpose: bool = True                # the notice describes this run's purpose
+    machine_readable: bool = False             # notice is also available structured
+
+
+class Governance(BaseModel):
+    """Accountability controls around the extraction.
+
+    DPDP Act 2023 -- accountability principle: the Data Fiduciary can demonstrate
+    compliance.
+    """
+
+    audit_log_enabled: bool = False            # the extraction run is logged
+    accountable_party: str | None = None       # named role responsible for the processing
+    processing_record_kept: bool = False       # a record of processing activities is retained
+
+
 class ExtractionRun(BaseModel):
     """Declared manifest for a single extraction run."""
 
     run_id: str
     purpose: Purpose
+    purpose_specified: bool = True             # a specific purpose was declared for this run
+    secondary_uses: list[str] = Field(default_factory=list)  # onward uses beyond the purpose
     lawful_basis: LawfulBasis | None = None
     retention_days: int | None = None
     deletion_mechanism: str | None = None
     security: SecurityPosture = Field(default_factory=SecurityPosture)
+    notice: Notice | None = None
+    governance: Governance = Field(default_factory=Governance)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 

@@ -35,6 +35,7 @@ class UnconstrainedExtractionTechnique(ExtractionTechnique):
         run = ExtractionRun(
             run_id=f"{task.task_id}--unconstrained",
             purpose=task.purpose,
+            purpose_specified=False,  # the scraper has no declared purpose of its own
             security=SecurityPosture(transport_encrypted=True),
         )
         return TechniqueOutput(run=run, records=records)
