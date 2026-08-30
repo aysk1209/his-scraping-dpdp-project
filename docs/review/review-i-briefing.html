@@ -322,7 +322,7 @@ hr.div{border:none; border-top:1px solid var(--rule); margin:0}
     <li><a href="#demo"><span class="n">08</span> Demo run order</a></li>
     <li><a href="#qa"><span class="n">09</span> Cross-examination</a></li>
     <li><a href="#gaps"><span class="n">10</span> Gaps to volunteer</a></li>
-    <li><a href="#deckfix"><span class="n">11</span> Deck needs fixing</a></li>
+    <li><a href="#deckfix"><span class="n">11</span> Before the review</a></li>
   </ol>
 </nav>
 
@@ -717,17 +717,21 @@ same 7 rules — a 0.869 gap that is purely a compliance difference, not coverag
 
   <hr class="div">
   <section id="deckfix">
-    <h2><span class="sn">11</span>The deck contradicts the code</h2>
-    <div class="call flag">
-      <p class="ct">Fix before 02.09</p>
-      <p>The slides say <strong>“four executable rules”</strong> and <strong>“careless ≈ 0.2”</strong>. The code now has <strong>seven</strong> rules, and the real figures are <strong>1.000 / 0.500 / 0.131</strong> across three techniques. A panelist reading the slide and then watching the demo print seven rule columns is an avoidable cross-question.</p>
+    <h2><span class="sn">11</span>Before the review</h2>
+    <p class="lede">The deck and the code now agree. What is left is physical, not technical.</p>
+    <div class="call">
+      <p class="ct">Resolved &mdash; 30 August</p>
+      <p>The deck previously said &ldquo;four executable rules&rdquo; and a careless score of &asymp;&nbsp;0.2, left behind when purpose limitation, notice and accountability were added. It has been corrected: the methodology and work-completed slides now say <strong>seven</strong> rules, and the Results slide carries the real benchmark table &mdash; 1.000 / 0.500 / 0.131 &mdash; typeset rather than screenshotted, so it stays legible when projected.</p>
     </div>
-    <p>Three edits are needed:</p>
+    <h3>Still to do</h3>
     <ul>
-      <li><strong>Proposed Solution slide</strong> — “four executable rules … minimisation, lawful basis, storage limitation, security safeguards” becomes seven, adding purpose limitation, notice and accountability.</li>
-      <li><strong>Work Completed slide</strong> — “4 executable DPDP rules” becomes 7; the demo line becomes the three-technique result.</li>
-      <li><strong>Both Results slides</strong> — the placeholder captions should describe the three-technique benchmark and the real numbers, since that is the stronger demo and the one you will actually run.</li>
+      <li><strong>Screenshot the per-rule output.</strong> Run <code>python scripts/score_extraction_run.py</code>, capture the findings table, and drop it into the placeholder on the Results (contd.) slide. That box is sized for it.</li>
+      <li><strong>Get the title slide signed and scanned.</strong> The guide signs slide 2; the scan replaces slide 1. Mandatory for every review of Project-I, and nothing else in the deck substitutes for it.</li>
+      <li><strong>Rehearse the commands once in the room.</strong> The demo runs in 2&nbsp;ms and needs no network, but a wrong working directory costs a minute you do not have in an eight-minute slot.</li>
+      <li><strong>Tidy references 9&ndash;11.</strong> The paywalled interoperability and DPDP-healthcare entries are cited by outlet and year; they need full author lists in IEEE form before the report.</li>
     </ul>
+    <h3>One thing deliberately left alone</h3>
+    <p>The review-information slide still reads &ldquo;Focus: Proposed Solution &amp; 50% Work Completion&rdquo;. That is the institution&rsquo;s own rubric text, not a claim we are making, so it stays verbatim. If asked directly, the honest answer is that this review was scoped around a precise explanation plus one working deliverable rather than a percentage of code.</p>
   </section>
 
   <p class="foot">Figures verified by running <code>scripts/run_benchmark.py</code>, <code>scripts/score_extraction_run.py</code> and <code>pytest</code> against the repository on 30 August 2026.</p>
