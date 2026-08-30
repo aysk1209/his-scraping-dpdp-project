@@ -9,4 +9,6 @@
 *.ico binary
 *.pdf binary
 *.xlsx binary
+*.pptx binary
+*.potx binary
 *.parquet binary

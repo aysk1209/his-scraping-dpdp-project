@@ -1,0 +1,735 @@
+<title>DPDP Harness Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;700&display=swap">
+
+<style>
+:root{
+  --ground:#FAFAFC;
+  --surface:#FFFFFF;
+  --surface-2:#F2F4F8;
+  --ink:#141824;
+  --ink-2:#4E5568;
+  --ink-3:#767D91;
+  --rule:#E2E5EC;
+  --navy:#1D2F82;
+  --navy-soft:#E8EBF7;
+  --on-navy:#FFFFFF;
+  --good:#1B6B45;
+  --good-bg:#E4F0E9;
+  --warn:#8A5A00;
+  --warn-bg:#F7EEDC;
+  --bad:#A32219;
+  --bad-bg:#F7E5E3;
+  --shadow:0 1px 2px rgba(20,24,36,.05), 0 6px 20px -12px rgba(20,24,36,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#101219;
+    --surface:#171A24;
+    --surface-2:#1E222E;
+    --ink:#E7E9F0;
+    --ink-2:#A9AFC0;
+    --ink-3:#7E8496;
+    --rule:#2A2F3E;
+    --navy:#93A5EE;
+    --navy-soft:#1D2333;
+    --on-navy:#101219;
+    --good:#6FCB9C;
+    --good-bg:#16281F;
+    --warn:#DFAE5A;
+    --warn-bg:#2A2115;
+    --bad:#EF8B80;
+    --bad-bg:#2B1917;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#101219;
+  --surface:#171A24;
+  --surface-2:#1E222E;
+  --ink:#E7E9F0;
+  --ink-2:#A9AFC0;
+  --ink-3:#7E8496;
+  --rule:#2A2F3E;
+  --navy:#93A5EE;
+  --navy-soft:#1D2333;
+  --on-navy:#101219;
+  --good:#6FCB9C;
+  --good-bg:#16281F;
+  --warn:#DFAE5A;
+  --warn-bg:#2A2115;
+  --bad:#EF8B80;
+  --bad-bg:#2B1917;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px -12px rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  font-size:17px;
+  line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  max-width:1180px;
+  margin:0 auto;
+  padding:0 clamp(18px,4vw,44px) 100px;
+}
+@media (min-width:1000px){
+  .wrap{grid-template-columns:214px minmax(0,1fr); gap:56px}
+}
+
+/* ---------- nav ---------- */
+nav{display:none}
+@media (min-width:1000px){
+  nav{
+    display:block;
+    position:sticky; top:0; align-self:start;
+    max-height:100vh; overflow-y:auto;
+    padding:56px 0 40px;
+    font-size:14px;
+  }
+  nav .navlabel{
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    font-size:10.5px; letter-spacing:.13em; text-transform:uppercase;
+    color:var(--ink-3); margin-bottom:14px;
+  }
+  nav ol{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px}
+  nav a{
+    display:flex; gap:9px; align-items:baseline;
+    text-decoration:none; color:var(--ink-2);
+    padding:5px 9px; border-radius:5px; line-height:1.35;
+  }
+  nav a:hover{background:var(--navy-soft); color:var(--navy)}
+  nav a:focus-visible{outline:2px solid var(--navy); outline-offset:1px}
+  nav a .n{
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    font-size:11px; color:var(--ink-3); flex:none;
+  }
+}
+
+main{padding-top:clamp(40px,6vw,64px); min-width:0}
+
+/* ---------- masthead ---------- */
+.eyebrow{
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  font-size:11.5px; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--navy); margin:0 0 16px;
+}
+h1{
+  font-family:"Newsreader",Georgia,serif;
+  font-weight:600; font-size:clamp(38px,6vw,60px); line-height:1.06;
+  letter-spacing:-.018em; margin:0 0 18px; text-wrap:balance;
+}
+.standfirst{
+  font-size:clamp(18px,2.1vw,21px); color:var(--ink-2);
+  max-width:60ch; margin:0 0 30px; line-height:1.55;
+}
+.meta{
+  display:flex; flex-wrap:wrap; gap:8px 10px;
+  padding-bottom:34px; border-bottom:1px solid var(--rule); margin-bottom:14px;
+}
+.chip{
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  font-size:11.5px; padding:4px 10px; border-radius:100px;
+  background:var(--surface-2); color:var(--ink-2); border:1px solid var(--rule);
+}
+.chip.on{background:var(--navy-soft); color:var(--navy); border-color:transparent}
+
+/* ---------- sections ---------- */
+section{padding-top:52px; scroll-margin-top:20px}
+h2{
+  font-family:"Newsreader",Georgia,serif;
+  font-weight:600; font-size:clamp(27px,3.4vw,35px); line-height:1.16;
+  letter-spacing:-.012em; margin:0 0 8px; text-wrap:balance;
+}
+h2 .sn{
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  font-size:12px; color:var(--navy); letter-spacing:.1em;
+  display:block; margin-bottom:9px; font-weight:400;
+}
+h3{
+  font-family:"Source Sans 3",sans-serif;
+  font-weight:600; font-size:18.5px; line-height:1.35;
+  margin:34px 0 10px; letter-spacing:-.005em;
+}
+p{margin:0 0 15px; max-width:68ch}
+.lede{color:var(--ink-2); max-width:66ch; margin-bottom:26px}
+a{color:var(--navy)}
+strong{font-weight:600}
+code{
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  font-size:.855em; background:var(--surface-2);
+  padding:1.5px 5px; border-radius:4px; border:1px solid var(--rule);
+  word-break:break-word;
+}
+ul,ol{margin:0 0 16px; padding-left:22px; max-width:68ch}
+li{margin-bottom:7px}
+li::marker{color:var(--ink-3)}
+
+/* ---------- callouts ---------- */
+.call{
+  background:var(--surface); border:1px solid var(--rule);
+  border-radius:9px; padding:20px 22px; margin:22px 0;
+  box-shadow:var(--shadow);
+}
+.call.flag{background:var(--bad-bg); border-color:transparent}
+.call.say{background:var(--navy-soft); border-color:transparent}
+.call .ct{
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  font-size:10.5px; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--ink-3); margin:0 0 9px;
+}
+.call.flag .ct{color:var(--bad)}
+.call.say .ct{color:var(--navy)}
+.call p:last-child,.call ul:last-child,.call ol:last-child{margin-bottom:0}
+.call.say p{font-family:"Newsreader",Georgia,serif; font-size:18.5px; line-height:1.5; color:var(--ink)}
+
+/* ---------- pipeline ---------- */
+.stage{
+  display:grid; grid-template-columns:auto minmax(0,1fr); gap:0 20px;
+  padding-bottom:4px;
+}
+.stage + .stage{margin-top:2px}
+.stage .num{
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  font-size:12px; font-weight:700; color:var(--navy);
+  width:30px; height:30px; border-radius:50%;
+  background:var(--navy-soft);
+  display:flex; align-items:center; justify-content:center;
+  grid-row:1; flex:none;
+}
+.stage .spine{
+  grid-row:2; justify-self:center; width:1px;
+  background:var(--rule); min-height:14px; height:100%;
+}
+.stage:last-child .spine{background:transparent}
+.stage .head{grid-row:1; align-self:center; font-weight:600; font-size:17.5px}
+.stage .body{grid-row:2; padding:8px 0 22px; color:var(--ink-2)}
+.stage .body p{margin-bottom:9px}
+.stage .body p:last-child{margin-bottom:0}
+
+/* ---------- file table ---------- */
+.files{margin:16px 0 8px}
+.grp{
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  font-size:10.5px; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--navy); padding:22px 0 9px; border-bottom:1px solid var(--rule);
+  margin-bottom:2px;
+}
+.f{
+  display:grid; grid-template-columns:minmax(0,1fr); gap:1px 18px;
+  padding:11px 0; border-bottom:1px solid var(--rule);
+}
+@media (min-width:660px){
+  .f{grid-template-columns:minmax(210px,.42fr) minmax(0,1fr)}
+}
+.f .path{
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  font-size:12.5px; color:var(--ink); word-break:break-word; line-height:1.45;
+}
+.f .path .dim{color:var(--ink-3)}
+.f .what{color:var(--ink-2); font-size:15.5px; line-height:1.5}
+.f .what em{color:var(--ink-3); font-style:normal; font-size:14px}
+
+/* ---------- data table ---------- */
+.tw{overflow-x:auto; margin:20px 0; border:1px solid var(--rule); border-radius:9px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; font-size:15px; min-width:520px}
+th,td{padding:10px 15px; text-align:left; border-bottom:1px solid var(--rule); vertical-align:top}
+th{
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:400; background:var(--surface-2);
+  white-space:nowrap;
+}
+tbody tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right; font-family:"JetBrains Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums; white-space:nowrap}
+.rid{font-family:"JetBrains Mono",ui-monospace,monospace; font-size:13px; font-weight:700; color:var(--navy); white-space:nowrap}
+.sc{font-family:"JetBrains Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums; font-weight:700; padding:1.5px 7px; border-radius:4px; font-size:13.5px}
+.sc.g{background:var(--good-bg); color:var(--good)}
+.sc.w{background:var(--warn-bg); color:var(--warn)}
+.sc.b{background:var(--bad-bg); color:var(--bad)}
+
+/* ---------- terminal ---------- */
+pre{
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  font-size:12.5px; line-height:1.62; margin:18px 0;
+  background:var(--surface); color:var(--ink);
+  border:1px solid var(--rule); border-radius:9px;
+  padding:16px 18px; overflow-x:auto; tab-size:2;
+}
+pre .c{color:var(--ink-3)}
+pre .g{color:var(--good); font-weight:700}
+pre .b{color:var(--bad); font-weight:700}
+pre .w{color:var(--warn); font-weight:700}
+
+/* ---------- Q&A ---------- */
+.qa{border-top:1px solid var(--rule); padding:22px 0 4px}
+.qa:first-of-type{border-top:none}
+.q{
+  font-family:"Newsreader",Georgia,serif;
+  font-size:21px; font-weight:600; line-height:1.28;
+  margin:0 0 12px; letter-spacing:-.008em; text-wrap:balance;
+}
+.q .qm{
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  font-size:11px; color:var(--navy); letter-spacing:.1em;
+  margin-right:9px; font-weight:400;
+}
+.qa p{font-size:16.5px}
+
+/* ---------- run steps ---------- */
+.run{counter-reset:r; list-style:none; padding:0; margin:20px 0}
+.run li{
+  counter-increment:r; position:relative;
+  padding:0 0 18px 44px; margin:0;
+  border-left:1px solid var(--rule); margin-left:13px;
+}
+.run li:last-child{border-left-color:transparent; padding-bottom:0}
+.run li::before{
+  content:counter(r); position:absolute; left:-13px; top:-2px;
+  width:26px; height:26px; border-radius:50%;
+  background:var(--navy); color:var(--on-navy);
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  font-size:11.5px; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+}
+.run .rt{font-weight:600; display:block; margin-bottom:3px}
+.run .rs{color:var(--ink-3); font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11.5px; letter-spacing:.06em}
+
+hr.div{border:none; border-top:1px solid var(--rule); margin:0}
+.foot{margin-top:60px; padding-top:22px; border-top:1px solid var(--rule); color:var(--ink-3); font-size:14.5px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+<nav>
+  <div class="navlabel">Contents</div>
+  <ol>
+    <li><a href="#short"><span class="n">01</span> The short version</a></li>
+    <li><a href="#noai"><span class="n">02</span> There is no AI in it</a></li>
+    <li><a href="#pipeline"><span class="n">03</span> The pipeline</a></li>
+    <li><a href="#inputs"><span class="n">04</span> What the inputs are</a></li>
+    <li><a href="#files"><span class="n">05</span> Every file</a></li>
+    <li><a href="#math"><span class="n">06</span> How the score is computed</a></li>
+    <li><a href="#tools"><span class="n">07</span> Tools and why</a></li>
+    <li><a href="#demo"><span class="n">08</span> Demo run order</a></li>
+    <li><a href="#qa"><span class="n">09</span> Cross-examination</a></li>
+    <li><a href="#gaps"><span class="n">10</span> Gaps to volunteer</a></li>
+    <li><a href="#deckfix"><span class="n">11</span> Deck needs fixing</a></li>
+  </ol>
+</nav>
+
+<main>
+  <p class="eyebrow">Review-I · 02.09.2026 · Internal briefing</p>
+  <h1>What we built, and how to defend it</h1>
+  <p class="standfirst">Every file, the whole pipeline, the exact scoring arithmetic, and the answers to the questions the panel is most likely to ask. Written for someone who has never seen the code.</p>
+  <div class="meta">
+    <span class="chip on">7 DPDP rules</span>
+    <span class="chip on">3 techniques</span>
+    <span class="chip">91 tests passing</span>
+    <span class="chip">~1,900 lines Python</span>
+    <span class="chip">0 models trained</span>
+  </div>
+
+  <section id="short">
+    <h2><span class="sn">01</span>The short version</h2>
+    <p class="lede">If you only remember one paragraph, remember this one.</p>
+    <p>Hospitals hold extremely sensitive data. There are many published techniques for pulling data out of hospital systems, and they are all judged on the same three things: how fast they are, how much they capture, and how well they survive a page redesign. <strong>Nobody scores them on whether the extraction was lawful.</strong></p>
+    <p>We built the missing instrument. It takes any extraction run, checks it against seven principles from India's Digital Personal Data Protection Act 2023, and returns a single number between 0 and 1 — plus a written reason for every mark lost. Because it is the same instrument every time, two different extraction techniques can finally be compared on compliance the way they are already compared on speed.</p>
+    <div class="call say">
+      <p class="ct">Say this</p>
+      <p>“Existing scrapers are benchmarked on speed, coverage and robustness. We add a fourth axis — data-protection compliance — and we make it a number, produced by one shared harness, so techniques can be ranked on it.”</p>
+    </div>
+    <p>The demo shows three extraction techniques attempting the same three jobs against the same hospital data. They differ only in how they treat personal data. The instrument separates them cleanly:</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Technique</th><th class="num">Score</th><th class="num">Rules passed</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td>Compliance-aware <em>(ours)</em></td><td class="num"><span class="sc g">1.000</span></td><td class="num">7/7</td><td>Pulls only the fields the job needs, files a full manifest</td></tr>
+          <tr><td>Minimising, undocumented</td><td class="num"><span class="sc w">0.500</span></td><td class="num">2/7</td><td>Pulls only what it needs, but does no paperwork</td></tr>
+          <tr><td>Unconstrained <em>(baseline)</em></td><td class="num"><span class="sc b">0.131</span></td><td class="num">0/7</td><td>Ignores the job, scrapes every field it can reach</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The middle row is the one worth pointing at. It proves the instrument is measuring more than “did you grab too much data” — that technique passes data minimisation outright and still loses half its marks, because it never recorded a lawful basis, a deletion route, a privacy notice or an audit trail.</p>
+  </section>
+
+  <hr class="div">
+  <section id="noai">
+    <h2><span class="sn">02</span>There is no AI in what we are demonstrating</h2>
+    <p class="lede">This is the single most important thing to get right on the day. Say it before you are asked.</p>
+    <div class="call flag">
+      <p class="ct">Do not get caught out</p>
+      <p>Nothing in the demo is trained. There is no model, no dataset of labelled examples, no neural network, and no API call to any language model. <code>src/agent/</code> contains a docstring and nothing else. Every number on screen is produced by ordinary Python — set arithmetic, boolean checks and an average.</p>
+    </div>
+    <p>At Review-1 the panel asked how we are “training” the agent. That question came from our own slide, which said the agent would be “trained and validated” on the hospital system. That wording was wrong, and correcting it is the honest answer:</p>
+    <ul>
+      <li><strong>Nothing is trained.</strong> No fine-tuning, no weights, no training data, no GPU.</li>
+      <li><strong>The language model comes later and does a different job.</strong> In build step 6 an off-the-shelf model (Claude, via the Anthropic API) will be used to <em>find and pull</em> data out of unfamiliar hospital screens. It will never be the thing that decides a compliance score.</li>
+      <li><strong>What replaces “training” is prompt design, tool design and evaluation.</strong> We give the model instructions and a fixed set of actions it may take, then measure how well it does against synthetic data we control.</li>
+    </ul>
+    <h3>Why the scorer deliberately is not an AI</h3>
+    <p>This is a design decision to defend, not a gap to apologise for. A benchmark has to be reproducible: the same run must produce the same score today, next month, and in a reviewer's hands. A language model gives slightly different answers to the same question, so a model-scored benchmark could not be replicated — and a number nobody can reproduce is worthless as evidence in a paper.</p>
+    <p>It also has to be auditable. Every mark our harness deducts points at a specific line of code and prints a sentence saying why. “The model judged it non-compliant” is not something you could ever put in front of a regulator or a hospital's data protection officer.</p>
+    <div class="call say">
+      <p class="ct">Say this</p>
+      <p>“The scorer is deliberately deterministic, not learned. A compliance benchmark has to be reproducible and auditable — every deduction traces to a rule and prints its reason. The language model belongs in the extraction stage, where the problem is genuinely open-ended, not in the measurement stage.”</p>
+    </div>
+  </section>
+
+  <hr class="div">
+  <section id="pipeline">
+    <h2><span class="sn">03</span>The pipeline, stage by stage</h2>
+    <p class="lede">Six stages. Data is manufactured, pulled, tagged, judged, scored and compared.</p>
+
+    <div class="stage">
+      <div class="num">0</div><div class="head">Define the vocabulary</div>
+      <div class="spine"></div>
+      <div class="body">
+        <p>Before anything runs, the code fixes what words mean. A hospital system is modelled as <strong>five layers</strong> (patient admin, clinical records, departmental systems like lab and imaging, billing, and the infrastructure that joins them). Every piece of data belongs to one of <strong>six categories</strong>: direct identifier, quasi-identifier, clinical, financial, administrative, contact.</p>
+        <p>That category is the unit everything downstream reasons about — never the hospital's own field names. This is what makes the work portable across different hospital systems.</p>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="num">1</div><div class="head">Manufacture the data</div>
+      <div class="spine"></div>
+      <div class="body">
+        <p>We have no live hospital access, so we generate our own records. A <strong>catalogue</strong> lists every field that exists in each layer and what category it falls into — <code>mrn</code> is a direct identifier, <code>primary_diagnosis</code> is clinical, <code>billed_amount</code> is financial. A generator then invents plausible values for those fields using Faker, seeded so the demo produces identical output every run.</p>
+        <p>Five records per layer across four layers. No real patients, no real hospital.</p>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="num">2</div><div class="head">Pull the data</div>
+      <div class="spine"></div>
+      <div class="body">
+        <p>Everything downstream talks to one interface, <code>HISDataSource</code>, which offers exactly two things: which layers exist, and give me records from a layer. Today the synthetic generator sits behind it. When credentialed hospital access arrives, a real browser-automation scraper sits behind the same interface and <em>nothing else in the codebase changes</em>.</p>
+        <p>The live version already exists as a file that deliberately refuses to run — proof the boundary is real rather than promised.</p>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="num">3</div><div class="head">Apply a technique</div>
+      <div class="spine"></div>
+      <div class="body">
+        <p>A <strong>task</strong> says what someone wants: an identifier, a date of birth, a diagnosis, a medication list — and the lawful purpose for wanting it. A <strong>technique</strong> is a strategy for satisfying that task. Three exist, and they behave differently on purpose.</p>
+        <p>Critically, each technique also files its own <strong>manifest</strong>: the purpose, the lawful basis, how long data is kept, how it gets deleted, what security is in place, whether patients were given notice, and who is accountable. Compliance is something the technique produces about itself, not a label we bolt on afterwards.</p>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="num">4</div><div class="head">Judge it</div>
+      <div class="spine"></div>
+      <div class="body">
+        <p>Seven rules read the manifest and the pulled records. Each returns pass or fail, a score from 0 to 1, and plain-English findings. They check against a <strong>policy table</strong> that states, for each purpose, which categories are necessary, the maximum retention, and whether identifiers must be pseudonymised.</p>
+        <p>Keeping that policy in one editable table means tuning the compliance envelope is a configuration change, not a code change — which is exactly what an auditor would want.</p>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="num">5</div><div class="head">Score and compare</div>
+      <div class="spine"></div>
+      <div class="body">
+        <p>The seven rule scores collapse into one number, and the result is written out three ways: a console table for the demo, JSON for machines, and Markdown to paste into the report. The benchmark repeats this for every technique against every task and ranks them.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="div">
+  <section id="inputs">
+    <h2><span class="sn">04</span>What the inputs actually are</h2>
+    <p class="lede">Expect “where does your data come from?” — there are three inputs, and two of them are configuration, not data.</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Input</th><th>What it is</th><th>Where it lives</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Synthetic records</strong></td><td>Invented patient/billing/clinical rows. Fake values, real structure. Seeded for reproducibility.</td><td><code>data_synthetic/</code></td></tr>
+          <tr><td><strong>Extraction tasks</strong></td><td>Three hand-written jobs — patient summary, ward census, medication review — each naming the minimum fields it needs and its lawful purpose.</td><td><code>scripts/run_benchmark.py</code></td></tr>
+          <tr><td><strong>The purpose policy</strong></td><td>The rulebook: for care coordination, which data categories are necessary, 90-day retention ceiling, identifiers must be pseudonymised.</td><td><code>compliance/policy.py</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Nothing is downloaded. Nothing is scraped from a live system. There is no training set because there is no training.</p>
+    <p>One detail worth volunteering, because it sounds like a weakness and is actually a strength: <strong>the compliance rules never see a single patient value.</strong> Records reaching the scorer carry only their category tags — “this record contained a direct identifier and something clinical”. The benchmark inputs are therefore free of personal data by construction, which is what lets the same harness eventually run against real hospital data without the benchmark itself becoming a privacy liability.</p>
+  </section>
+
+  <hr class="div">
+  <section id="files">
+    <h2><span class="sn">05</span>Every file, and where it sits in the pipeline</h2>
+    <p class="lede">Grouped by stage. Line counts are approximate; the point is what each file is responsible for.</p>
+
+    <div class="files">
+      <div class="grp">Stage 0 — vocabulary and shared types</div>
+      <div class="f"><div class="path">src/interop/<strong>layers.py</strong></div><div class="what">The five hospital layers as a fixed list. <em>Single source of truth — nothing else redefines a layer name.</em></div></div>
+      <div class="f"><div class="path">src/interop/<strong>mapping.py</strong></div><div class="what">Which interoperability standards carry each layer — HL7 and FHIR for patient and clinical data, DICOM for imaging, ISO/IEEE 11073 for devices.</div></div>
+      <div class="f"><div class="path">src/interop/<span class="dim">{hl7,fhir,dicom,iso_ieee_11073}/</span></div><div class="what">Placeholder modules for message and resource shaping. <em>Stubs — named so the architecture is visible, not yet implemented.</em></div></div>
+      <div class="f"><div class="path">src/compliance/<strong>models.py</strong></div><div class="what">The shared vocabulary: field categories, purposes, lawful basis, security posture, notice, governance, and the two central objects — <code>ExtractionRun</code> (the manifest) and <code>ExtractedRecord</code> (a category-tagged record).</div></div>
+
+      <div class="grp">Stage 1 — synthetic data</div>
+      <div class="f"><div class="path">src/data_synthetic/<strong>catalogue.py</strong></div><div class="what">The field inventory: layer → field name → data category. <em>The bridge between generated data and the compliance rules — this is the file that decides an email is “contact” and a diagnosis is “clinical”.</em></div></div>
+      <div class="f"><div class="path">src/data_synthetic/generators/<strong>records.py</strong></div><div class="what">Invents a plausible value for every catalogue field using Faker. Seeded, so demos are repeatable.</div></div>
+      <div class="f"><div class="path">scripts/<strong>generate_dataset.py</strong></div><div class="what">Command-line dataset export. <em>Stub — exits with a message. Not part of the demo.</em></div></div>
+
+      <div class="grp">Stage 2 — extraction boundary</div>
+      <div class="f"><div class="path">src/extraction/<strong>base.py</strong></div><div class="what">The <code>HISDataSource</code> interface. Two methods. <em>The swap point that makes synthetic and live sources interchangeable.</em></div></div>
+      <div class="f"><div class="path">src/extraction/adapters/<strong>mock_his.py</strong></div><div class="what">Serves the synthetic dataset through that interface, and can project records down to a requested subset of fields.</div></div>
+      <div class="f"><div class="path">src/extraction/adapters/<strong>live_his.py</strong></div><div class="what">The real credentialed scraper. <em>Deliberately raises an error — blocked until data access is granted. Its existence is the proof the boundary is genuine.</em></div></div>
+      <div class="f"><div class="path">src/extraction/tier2/</div><div class="what">Shared browser-automation helpers for Playwright. <em>Stub until live access.</em></div></div>
+
+      <div class="grp">Stage 3 — techniques</div>
+      <div class="f"><div class="path">src/extraction/<strong>technique.py</strong></div><div class="what">Defines what a task is, what a technique must do, and what it must return — records plus its own manifest.</div></div>
+      <div class="f"><div class="path">src/extraction/techniques/<strong>compliant.py</strong></div><div class="what"><strong>Ours.</strong> Pulls exactly the fields the task declares, retention capped at 30 days, full security posture, notice and governance recorded.</div></div>
+      <div class="f"><div class="path">src/extraction/techniques/<strong>minimising.py</strong></div><div class="what">Pulls only what is needed but skips the paperwork — consent claimed with no reference, no deletion route, partial security. The “means well, cuts corners” case.</div></div>
+      <div class="f"><div class="path">src/extraction/techniques/<strong>unconstrained.py</strong></div><div class="what">The coverage-optimised baseline. Ignores the task, sweeps every field of every layer, declares no purpose. Modelled on how published scrapers behave.</div></div>
+
+      <div class="grp">Stage 4 — the seven rules</div>
+      <div class="f"><div class="path">src/compliance/<strong>policy.py</strong></div><div class="what">The auditable rulebook: allowed categories per purpose, retention ceiling, pseudonymisation requirement. <em>Tuning compliance is an edit here, not in rule code.</em></div></div>
+      <div class="f"><div class="path">src/compliance/rules/<strong>base.py</strong></div><div class="what">What every rule must look like — an id, a principle, and an <code>evaluate</code> that returns status, score and findings.</div></div>
+      <div class="f"><div class="path">src/compliance/rules/<strong>minimisation.py</strong> <span class="dim">DM-01</span></div><div class="what">Were any categories pulled that the purpose does not need? Score is the fraction that were in scope.</div></div>
+      <div class="f"><div class="path">src/compliance/rules/<strong>lawful_basis.py</strong> <span class="dim">LB-01</span></div><div class="what">Is a basis declared — consent or legitimate use — and does it cite a specific reference? Half marks for a claim with no reference.</div></div>
+      <div class="f"><div class="path">src/compliance/rules/<strong>storage.py</strong> <span class="dim">SL-01</span></div><div class="what">Is retention stated and within the policy ceiling, and is there a deletion mechanism? Half a mark each.</div></div>
+      <div class="f"><div class="path">src/compliance/rules/<strong>security.py</strong> <span class="dim">SS-01</span></div><div class="what">Fraction of required safeguards in place: transport encryption, encryption at rest, access control, and pseudonymisation when identifiers were actually pulled.</div></div>
+      <div class="f"><div class="path">src/compliance/rules/<strong>purpose_limitation.py</strong> <span class="dim">PL-01</span></div><div class="what">Was a specific, recognised purpose declared, and is the data being reused for anything beyond it?</div></div>
+      <div class="f"><div class="path">src/compliance/rules/<strong>notice.py</strong> <span class="dim">NT-01</span></div><div class="what">Is there a privacy notice on record, and does it cover this purpose?</div></div>
+      <div class="f"><div class="path">src/compliance/rules/<strong>accountability.py</strong> <span class="dim">AC-01</span></div><div class="what">Fraction of governance controls: audit logging, a named accountable party, a retained record of processing.</div></div>
+      <div class="f"><div class="path">src/compliance/rules/<strong>__init__.py</strong></div><div class="what">The registry — the list of all seven rules the harness runs.</div></div>
+
+      <div class="grp">Stage 5 — scoring, reporting, benchmarking</div>
+      <div class="f"><div class="path">src/compliance/<strong>checkers.py</strong></div><div class="what">The entry point. Runs every rule over one run and hands the results to the report. <em>Twenty-five lines — deliberately thin.</em></div></div>
+      <div class="f"><div class="path">src/compliance/<strong>summary.py</strong></div><div class="what">Human-facing detail: how many records, which layers, how many fields per category, which were out of scope. Turns an abstract score into something readable.</div></div>
+      <div class="f"><div class="path">src/compliance/<strong>report.py</strong></div><div class="what">The scored artifact for one run. Computes the overall score and pass rate; renders as console table, JSON or Markdown.</div></div>
+      <div class="f"><div class="path">src/compliance/<strong>benchmark.py</strong></div><div class="what">The comparison harness. Every technique against every task, aggregated and ranked, with a per-rule and per-task breakdown. <em>The largest file, and the one producing the paper's core evidence.</em></div></div>
+
+      <div class="grp">Demo entry points</div>
+      <div class="f"><div class="path">scripts/<strong>run_benchmark.py</strong></div><div class="what"><strong>The headline demo.</strong> Three techniques × three tasks, one comparison table. Defines the tasks.</div></div>
+      <div class="f"><div class="path">scripts/<strong>score_extraction_run.py</strong></div><div class="what">Rules in isolation on three hand-built runs. Best for showing <em>why</em> marks were lost, rule by rule.</div></div>
+      <div class="f"><div class="path">scripts/<strong>run_synthetic_extraction.py</strong></div><div class="what">The full path end to end — generator, adapter, field selection, score.</div></div>
+      <div class="f"><div class="path">scripts/<strong>_present.py</strong></div><div class="what">Shared console formatting so the three demos look consistent.</div></div>
+
+      <div class="grp">Not built yet</div>
+      <div class="f"><div class="path">src/agent/<strong>__init__.py</strong></div><div class="what"><strong>Empty.</strong> A docstring describing the planned language-model extraction agent. Build step 6. <em>If asked, say plainly that it is not started.</em></div></div>
+
+      <div class="grp">Tests — 91 passing in 0.64s</div>
+      <div class="f"><div class="path">tests/compliance/<span class="dim">test_rules · test_benchmark · test_summary</span></div><div class="what">Each rule's pass, fail and partial-credit paths; benchmark aggregation and ranking.</div></div>
+      <div class="f"><div class="path">tests/extraction/<span class="dim">test_mock_his · test_techniques</span></div><div class="what">Field projection through the adapter; each technique's records and manifest.</div></div>
+      <div class="f"><div class="path">tests/<span class="dim">data_synthetic · interop · test_scaffolding</span></div><div class="what">Catalogue coverage, generator output, layer/standard mapping, project structure.</div></div>
+    </div>
+  </section>
+
+  <hr class="div">
+  <section id="math">
+    <h2><span class="sn">06</span>How the score is computed</h2>
+    <p class="lede">Know this cold. “How exactly did you get 0.131?” is an easy question to ask and an embarrassing one to fumble.</p>
+    <p>Each of the seven rules returns a score between 0 and 1. The overall score is their <strong>weighted mean</strong>, skipping any rule that does not apply. All seven weights are currently 1.0, so today it is a plain average — but the weighting mechanism exists for when we can justify treating some principles as heavier than others.</p>
+    <p>Worked example — the unconstrained baseline, which scores <span class="sc b">0.131</span>:</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Rule</th><th>Principle</th><th class="num">Score</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td class="rid">DM-01</td><td>Data minimisation</td><td class="num"><span class="sc w">0.67</span></td><td>Pulled 6 categories, 4 allowed → 2 in excess → 1 − 2/6</td></tr>
+          <tr><td class="rid">LB-01</td><td>Lawful basis</td><td class="num"><span class="sc b">0.00</span></td><td>None declared</td></tr>
+          <tr><td class="rid">SL-01</td><td>Storage limitation</td><td class="num"><span class="sc b">0.00</span></td><td>No retention period, no deletion route</td></tr>
+          <tr><td class="rid">SS-01</td><td>Security safeguards</td><td class="num"><span class="sc b">0.25</span></td><td>Only transport encryption → 1 of 4</td></tr>
+          <tr><td class="rid">PL-01</td><td>Purpose limitation</td><td class="num"><span class="sc b">0.00</span></td><td>No specific purpose declared</td></tr>
+          <tr><td class="rid">NT-01</td><td>Transparency / notice</td><td class="num"><span class="sc b">0.00</span></td><td>No privacy notice on record</td></tr>
+          <tr><td class="rid">AC-01</td><td>Accountability</td><td class="num"><span class="sc b">0.00</span></td><td>No audit log, no named party, no processing record</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><code>(0.67 + 0 + 0 + 0.25 + 0 + 0 + 0) ÷ 7 = 0.131</code></p>
+    <p>And the middle technique, at <span class="sc w">0.500</span>: full marks on minimisation and purpose limitation, half on lawful basis (consent claimed, no reference), half on storage (retention fine, no deletion route), half on security (2 of 4), zero on notice and accountability. <code>(1 + 0.5 + 0.5 + 0.5 + 1 + 0 + 0) ÷ 7 = 0.500</code>.</p>
+    <div class="call">
+      <p class="ct">The point of partial credit</p>
+      <p>Compliance is not binary in practice, and a pass/fail benchmark would put “forgot to write down the consent reference” in the same bucket as “collected financial records with no lawful basis whatsoever”. Graded scores let the instrument rank techniques rather than merely reject them — which is what makes it a benchmark rather than a checklist.</p>
+    </div>
+  </section>
+
+  <hr class="div">
+  <section id="tools">
+    <h2><span class="sn">07</span>Every tool, and why that one</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Tool</th><th>Job</th><th>Why this choice</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Python 3.14</strong></td><td>Everything</td><td>Standard for data and research code; the whole scraping and compliance ecosystem is here.</td></tr>
+          <tr><td><strong>Pydantic</strong></td><td>Defines and validates every data structure</td><td>Rules must not silently accept a malformed manifest. Pydantic rejects bad data at the boundary and serialises reports to JSON for free.</td></tr>
+          <tr><td><strong>Faker</strong></td><td>Generates synthetic records</td><td>Realistic-looking values without touching real patients. Seeded, so the demo is reproducible.</td></tr>
+          <tr><td><strong>pytest</strong></td><td>91 tests</td><td>Evidence the rules behave as claimed — essential when the rules <em>are</em> the contribution.</td></tr>
+          <tr><td><strong>Playwright / Selenium</strong></td><td>Browser automation for Tier-2 scraping</td><td>Hospital portals need login, sessions and JavaScript rendering; simple HTTP fetching cannot reach that data. <em>Installed, not yet exercised.</em></td></tr>
+          <tr><td><strong>Anthropic API (Claude)</strong></td><td>The extraction agent, build step 6</td><td>Off-the-shelf, no fine-tuning. Chosen for reliable structured output and tool use. <em>Not yet called.</em></td></tr>
+          <tr><td><strong>pandas</strong></td><td>Tabular handling</td><td>Declared for the wider dataset work; the current demo path does not need it.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>Models used today: none.</strong> If asked to name the model, the answer is that the scoring harness uses no model at all, and the planned extraction agent uses Claude off the shelf without fine-tuning.</p>
+  </section>
+
+  <hr class="div">
+  <section id="demo">
+    <h2><span class="sn">08</span>Demo run order</h2>
+    <p class="lede">Budget two to three minutes inside an eight-to-ten minute slot. One command is enough; the second is your depth reserve if a panelist digs.</p>
+    <ol class="run">
+      <li>
+        <span class="rt">Set the scene before typing anything</span>
+        <span class="rs">~20 seconds</span>
+        <p>“Three techniques attempt the same three jobs against the same synthetic hospital data. They differ only in how they handle personal data. The same seven rules score all three.”</p>
+      </li>
+      <li>
+        <span class="rt">Run the headline benchmark</span>
+        <span class="rs">python scripts/run_benchmark.py</span>
+        <p>Prints sample synthetic records, then the comparison table. Point at the sample rows and say “these are invented — no real patients”. Then point at the score column.</p>
+      </li>
+      <li>
+        <span class="rt">Land the middle row</span>
+        <span class="rs">~20 seconds</span>
+        <p>“The middle technique pulls exactly the right data — it passes minimisation outright — and still loses half its marks on paperwork it never did. That is the instrument measuring something a coverage benchmark cannot see.”</p>
+      </li>
+      <li>
+        <span class="rt">Hold this in reserve</span>
+        <span class="rs">python scripts/score_extraction_run.py</span>
+        <p>Only if someone asks why a technique lost marks. It prints every rule with its findings written out — “no lawful basis declared”, “1/4 required safeguards in place”. This is the answer to “how do you know it's not arbitrary?”</p>
+      </li>
+      <li>
+        <span class="rt">If challenged on rigour</span>
+        <span class="rs">python -m pytest -q</span>
+        <p>91 tests, under a second. Shows the rules are pinned by tests rather than asserted.</p>
+      </li>
+    </ol>
+    <p>What the headline command prints, trimmed:</p>
+<pre><span class="c">technique                   score    pass   DM-01  LB-01  SL-01  SS-01  PL-01  NT-01  AC-01
+-------------------------------------------------------------------------------------------</span>
+compliance-aware (ours)     <span class="g">1.000</span>     7/7    1.00   1.00   1.00   1.00   1.00   1.00   1.00
+minimising, undocumented    <span class="w">0.500</span>     2/7    1.00   0.50   0.50   0.50   1.00   0.00   0.00
+unconstrained (baseline)    <span class="b">0.131</span>     0/7    0.67   0.00   0.00   0.25   0.00   0.00   0.00
+
+<span class="c">what each technique pulled (all tasks combined):</span>
+  compliance-aware  30 records, 2 layers; out-of-scope: <span class="g">none</span>
+  unconstrained     60 records, 4 layers; out-of-scope: <span class="b">contact, financial</span>
+
+<span class="c">compliance-aware (ours) scores 1.000; unconstrained (baseline) scores 0.131 on the
+same 7 rules — a 0.869 gap that is purely a compliance difference, not coverage or speed.</span></pre>
+    <div class="call">
+      <p class="ct">Practical</p>
+      <p>Run every command once, in the room's terminal, before the panel arrives — the demo takes 2&nbsp;ms and needs no network, but a wrong working directory will cost you a minute you do not have. Have the screenshots on the slides as the fallback.</p>
+    </div>
+  </section>
+
+  <hr class="div">
+  <section id="qa">
+    <h2><span class="sn">09</span>Cross-examination</h2>
+    <p class="lede">The two questions in bold are the ones with real teeth. Answer both honestly — a panel rewards a known limitation far more than a bluffed strength.</p>
+
+    <div class="qa">
+      <p class="q"><span class="qm">Q</span>How did you train your model? What dataset?</p>
+      <p>Nothing is trained and there is no dataset of examples. The scorer is deterministic Python. Later, an off-the-shelf language model will do the extraction, used through prompting and tool design rather than fine-tuning, and evaluated against synthetic data. The word “trained” on our Review-1 slide was our error and we are correcting it.</p>
+    </div>
+
+    <div class="qa">
+      <p class="q"><span class="qm">Q</span>So this is just if-statements. Where is the research contribution?</p>
+      <p>The contribution is not the difficulty of the code, it is the instrument and what it makes possible. No existing extraction technique reports a compliance number, so compliance cannot currently be compared across techniques at all. We define the criteria as executable checks, express an extraction run as scoreable data, and produce a reproducible artifact. The simplicity is deliberate — an auditable benchmark should be simple enough that anyone can verify what it does.</p>
+    </div>
+
+    <div class="qa">
+      <p class="q"><span class="qm">Q</span><strong>You wrote both the good technique and the bad one. Isn't the comparison rigged?</strong></p>
+      <p>That is a fair challenge and we will not overclaim. What the benchmark demonstrates today is that the <em>instrument</em> discriminates — it produces different, explainable scores for different behaviours, with every deduction traced to a reason. It does not yet prove our method beats a published one.</p>
+      <p>The unconstrained baseline is modelled on how techniques in the literature actually behave: optimised for coverage, no declared purpose, no manifest. But modelled is not measured. Running a third-party technique such as AutoScraper through the identical harness is exactly the Review-II deliverable, and it is the honest next step.</p>
+    </div>
+
+    <div class="qa">
+      <p class="q"><span class="qm">Q</span><strong>What stops a technique from simply lying in its manifest?</strong></p>
+      <p>Today, nothing — and that is a stated limitation. Two things soften it. First, some rules check observable output rather than claims: data minimisation counts the categories actually pulled, so a technique cannot claim minimisation while sweeping up financial records. Second, the direction of travel is to derive more of the manifest from instrumentation instead of declaration — observing TLS on the connection, confirming an audit log was written.</p>
+      <p>It is worth adding that declared records are how compliance auditing genuinely works — a record of processing activities is a declaration too. Our contribution is making that declaration machine-checkable and scoreable rather than prose.</p>
+    </div>
+
+    <div class="qa">
+      <p class="q"><span class="qm">Q</span>Your data is fake. Does the result mean anything?</p>
+      <p>The synthetic data exercises the pipeline; it is not the evidence. The rules score categories and manifests, and both are identical in structure whether the record came from our generator or a real hospital. Swapping in live data changes the values, not the scoring behaviour — which is precisely why the adapter boundary is built the way it is. Live access is secured on paper but not yet usable, and we chose not to stall the compliance work waiting for it.</p>
+    </div>
+
+    <div class="qa">
+      <p class="q"><span class="qm">Q</span>How does this handle the fact that every hospital system is different?</p>
+      <p>Three ways. The data source sits behind an interface, so a new hospital means a new adapter and no downstream change. Records are normalised onto a five-layer model and the standards that carry them — HL7, FHIR, DICOM, ISO/IEEE 11073. And most importantly the rules score <em>data categories</em>, never vendor field names: one system's <code>PatientID</code> and another's <code>MRN</code> are both a direct identifier, and the rule is identical for both.</p>
+    </div>
+
+    <div class="qa">
+      <p class="q"><span class="qm">Q</span>Who decided which categories a purpose is allowed? Isn't that arbitrary?</p>
+      <p>It is a judgement, and we made it explicit rather than burying it. The policy sits in one readable table so a clinician, a lawyer or a data protection officer can inspect and challenge it without reading code — which is a stronger position than a system whose thresholds are scattered through the implementation. Validating that table against domain expertise is future work we will name in the report.</p>
+    </div>
+
+    <div class="qa">
+      <p class="q"><span class="qm">Q</span>Why is the overall score a plain average? Are all seven principles equally important?</p>
+      <p>Almost certainly not, and we do not yet have grounds to claim a particular weighting. Equal weights are the honest default. The harness already carries a per-rule weight, so once there is a defensible basis — legal severity, or expert elicitation — changing it is a one-line edit and the whole benchmark re-runs.</p>
+    </div>
+
+    <div class="qa">
+      <p class="q"><span class="qm">Q</span>Why India's DPDP Act rather than GDPR or HIPAA?</p>
+      <p>The deployment context is Indian hospitals, and DPDP 2023 is the binding law there. The seven principles we encode — minimisation, lawful basis, storage limitation, security, purpose limitation, notice, accountability — are common to modern data-protection regimes, so the harness structure ports to GDPR by changing the policy table rather than the architecture.</p>
+    </div>
+
+    <div class="qa">
+      <p class="q"><span class="qm">Q</span>Why headless browser automation rather than an API?</p>
+      <p>Because hospital systems mostly do not offer one. Data staff actually use sits behind a login, in a rendered interface. A managed API would be the stable choice if it existed; for the systems in scope it generally does not, which is why credentialed browser automation is the realistic path and why the literature treats it as its own tier.</p>
+    </div>
+
+    <div class="qa">
+      <p class="q"><span class="qm">Q</span>Is scraping a hospital system even legal?</p>
+      <p>We are not scraping anything without permission. Access is credentialed and institutionally arranged, which is a different activity from scraping a public site. The project's entire premise is that lawfulness is a design constraint measured from the start — and the harness is what turns that claim into something checkable.</p>
+    </div>
+
+    <div class="qa">
+      <p class="q"><span class="qm">Q</span>Why not have the language model score compliance?</p>
+      <p>Reproducibility and auditability. A benchmark must give the same score for the same input every time, and a language model does not. And a deduction has to be defensible to a regulator — “the model judged it non-compliant” is not. The model's place is extraction, where the problem is genuinely open-ended.</p>
+    </div>
+
+    <div class="qa">
+      <p class="q"><span class="qm">Q</span>How will you score AutoScraper if you cannot run it against a hospital system?</p>
+      <p>The harness does not need the hospital. It needs the categories a technique pulls and the manifest it can substantiate. We can run a published technique against our synthetic source through the same adapter, record what it retrieves and what it declares, and score that. Running it against live data is a later refinement, not a prerequisite.</p>
+    </div>
+
+    <div class="qa">
+      <p class="q"><span class="qm">Q</span>What is actually finished, and what is not?</p>
+      <p>Finished: the seven-rule compliance framework, the policy layer, synthetic generation, the adapter boundary, three techniques, the benchmarking harness, 91 tests. Not started: the language-model extraction agent, and anything requiring live hospital data. We would rather state that plainly than imply more.</p>
+    </div>
+  </section>
+
+  <hr class="div">
+  <section id="gaps">
+    <h2><span class="sn">10</span>Gaps worth volunteering</h2>
+    <p class="lede">Naming these first costs nothing and buys credibility. A panel that finds a gap you hid marks you down twice.</p>
+    <ul>
+      <li><strong>One purpose is modelled.</strong> Care coordination only. The structure supports more; we have not designed the taxonomy.</li>
+      <li><strong>Manifests are declared, not verified.</strong> The strongest attack on the design, and we have a roadmap rather than a fix.</li>
+      <li><strong>Both techniques are ours.</strong> A published baseline through the same harness is the Review-II deliverable.</li>
+      <li><strong>No live hospital data.</strong> Secured on paper, unusable in practice; the adapter exists so this changes nothing downstream.</li>
+      <li><strong>Rule weights are equal and unvalidated.</strong> The mechanism exists; the justification does not yet.</li>
+      <li><strong>The agent is not started.</strong> Build step 6, deliberately after the measurement layer.</li>
+      <li><strong>Act section numbers are not pinned.</strong> Rules cite DPDP principles by name; exact citations belong in the report's references and are still to be verified.</li>
+    </ul>
+  </section>
+
+  <hr class="div">
+  <section id="deckfix">
+    <h2><span class="sn">11</span>The deck contradicts the code</h2>
+    <div class="call flag">
+      <p class="ct">Fix before 02.09</p>
+      <p>The slides say <strong>“four executable rules”</strong> and <strong>“careless ≈ 0.2”</strong>. The code now has <strong>seven</strong> rules, and the real figures are <strong>1.000 / 0.500 / 0.131</strong> across three techniques. A panelist reading the slide and then watching the demo print seven rule columns is an avoidable cross-question.</p>
+    </div>
+    <p>Three edits are needed:</p>
+    <ul>
+      <li><strong>Proposed Solution slide</strong> — “four executable rules … minimisation, lawful basis, storage limitation, security safeguards” becomes seven, adding purpose limitation, notice and accountability.</li>
+      <li><strong>Work Completed slide</strong> — “4 executable DPDP rules” becomes 7; the demo line becomes the three-technique result.</li>
+      <li><strong>Both Results slides</strong> — the placeholder captions should describe the three-technique benchmark and the real numbers, since that is the stronger demo and the one you will actually run.</li>
+    </ul>
+  </section>
+
+  <p class="foot">Figures verified by running <code>scripts/run_benchmark.py</code>, <code>scripts/score_extraction_run.py</code> and <code>pytest</code> against the repository on 30 August 2026.</p>
+</main>
+</div>
