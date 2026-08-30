@@ -104,10 +104,10 @@ This runs **three different scraping methods** against the same fake hospital
 | minimising, undocumented | takes only what it needs, but skips paperwork/security | **~0.500** |
 | unconstrained (baseline) | grabs everything on the page, documents nothing | **~0.131** |
 
-The output also shows: a couple of sample (fake) patient records, a per-task
-score table, what each task actually needs, and **what each method pulled** —
-e.g. the baseline grabs *60 records across 4 layers* including billing and
-contact details it was never asked for, versus *30 records across 2 layers* for
+The output also shows: a few sample (fake) patient records, a per-task score
+table, what each task actually needs, and **what each method pulled** — e.g. the
+baseline grabs *600 records across 4 layers* including 150 billing and 150
+contact fields it was never asked for, versus *300 records across 2 layers* for
 the compliance-aware method.
 
 **This is the main thing to show** — the core argument: compliance is a number

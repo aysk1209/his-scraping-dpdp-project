@@ -28,7 +28,7 @@ def rule() -> str:
     return "-" * _WIDTH
 
 
-def sample_records(source, layers, n: int = 2, fields: int = 5, width: int = 20) -> str:
+def sample_records(source, layers, n: int = 3, fields: int = 5, width: int = 20) -> str:
     """A few illustrative synthetic rows, straight from the data source.
 
     Trimmed to the first ``fields`` columns and short values so each row fits on

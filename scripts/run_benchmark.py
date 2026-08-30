@@ -80,7 +80,7 @@ Each run is scored against the same seven DPDP Act 2023 rules."""
 
 
 def main() -> None:
-    records_per_layer, seed = 5, 42
+    records_per_layer, seed = 50, 42
     source = MockHISDataSource(records_per_layer=records_per_layer, seed=seed)
     result = run_benchmark(
         DEFAULT_TECHNIQUES,

@@ -124,7 +124,7 @@ def careless(source: MockHISDataSource) -> tuple[ExtractionRun, list[ExtractedRe
 
 
 def main() -> None:
-    source = MockHISDataSource(records_per_layer=4, seed=42)
+    source = MockHISDataSource(records_per_layer=50, seed=42)
 
     print(present.banner("Synthetic extraction -> DPDP compliance score"))
     print(present.sample_records(

@@ -91,10 +91,10 @@ every technique against every task (three, currently), scores each run with the
 
 The full artifact (`docs/benchmark_results/benchmark.md`) also carries the
 per-rule breakdown, a per-task table, what each task needs, and what each
-technique actually pulled — e.g. the baseline collects *60 records across 4
-layers* including *contact* and *financial* fields it was never asked for, while
-the compliance-aware technique pulls *30 records across 2 layers*, nothing
-out-of-scope.
+technique actually pulled over the workload — e.g. the baseline collects *600
+records across 4 layers* including 150 *contact* and 150 *financial* fields it
+was never asked for, while the compliance-aware technique pulls *300 records
+across 2 layers*, nothing out-of-scope.
 
 This table is the paper's central claim made concrete: compliance discriminates
 between *techniques*, and it is produced by one harness that will later score

@@ -108,7 +108,7 @@ class BenchmarkResult(BaseModel):
             )
             lines.append(row)
 
-        lines += ["", "what each technique pulled (all tasks combined):"]
+        lines += ["", f"what each technique pulled (total over the {len(self.task_ids)}-task workload):"]
         for score in self.scores:
             lines.append(f"  {score.short:<17} {score.pulled_note}")
 
@@ -153,7 +153,7 @@ class BenchmarkResult(BaseModel):
                     + "; ".join(detail.needs)
                 )
 
-        lines += ["", "**What each technique pulled** (across all tasks)", ""]
+        lines += ["", f"**What each technique pulled** (total over the {len(self.task_ids)}-task workload)", ""]
         for score in self.scores:
             lines.append(f"- **{score.short}** — {score.pulled_note}")
 
