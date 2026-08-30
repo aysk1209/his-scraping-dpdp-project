@@ -125,6 +125,12 @@ def careless(source: MockHISDataSource) -> tuple[ExtractionRun, list[ExtractedRe
 
 def main() -> None:
     source = MockHISDataSource(records_per_layer=4, seed=42)
+
+    print(present.banner("Synthetic extraction -> DPDP compliance score"))
+    print(present.sample_records(
+        source, [HISLayer.PATIENT_ADMINISTRATION, HISLayer.CLINICAL_EHR]
+    ))
+
     scores: dict[str, float] = {}
     for builder in (compliant, partial, careless):
         run, records = builder(source)

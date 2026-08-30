@@ -77,3 +77,19 @@ def test_json_is_valid_json_no_nan(tmp_path):
     result = _result()
     data = json.loads(result.to_json_file(tmp_path).read_text(encoding="utf-8"))
     assert len(data["scores"]) == 3
+
+
+def test_result_carries_task_details_pulled_notes_and_timing():
+    result = _result()
+    assert {d.task_id for d in result.task_details} == {"patient-summary", "ward-census"}
+    assert result.elapsed_ms is not None and result.elapsed_ms >= 0
+    for score in result.scores:
+        assert score.record_count > 0
+        assert "records" in score.pulled_note
+        assert score.short and " " not in score.short
+
+
+def test_baseline_pulled_note_reports_out_of_scope_categories():
+    scores = {s.short: s for s in _result().scores}
+    assert "out-of-scope: contact, financial" in scores["unconstrained"].pulled_note
+    assert "out-of-scope: none" in scores["compliance-aware"].pulled_note

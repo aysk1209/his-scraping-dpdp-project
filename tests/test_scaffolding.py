@@ -15,6 +15,7 @@ MODULES = [
     "compliance.rules.notice",
     "compliance.rules.accountability",
     "compliance.checkers",
+    "compliance.summary",
     "compliance.benchmark",
     "data_synthetic",
     "data_synthetic.schemas",

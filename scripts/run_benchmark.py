@@ -54,14 +54,48 @@ TASKS = [
             LayerFields(layer=HISLayer.CLINICAL_EHR, fields=["encounter_datetime"]),
         ],
     ),
+    ExtractionTask(
+        task_id="medication-review",
+        purpose=Purpose.CARE_COORDINATION,
+        needed=[
+            LayerFields(
+                layer=HISLayer.PATIENT_ADMINISTRATION,
+                fields=["mrn", "date_of_birth"],
+            ),
+            LayerFields(
+                layer=HISLayer.CLINICAL_EHR,
+                fields=["primary_diagnosis", "medication", "allergy"],
+            ),
+        ],
+    ),
 ]
+
+_SCENARIO = """\
+Scenario: a care-coordination assistant reads patient data from the HIS.
+Three extraction tasks are defined; three techniques attempt them:
+  - compliance-aware (ours)  : pulls only what a task needs, files a full manifest
+  - minimising, undocumented : pulls only what a task needs, files no paperwork
+  - unconstrained (baseline)  : ignores the task, scrapes every field it can reach
+Each run is scored against the same seven DPDP Act 2023 rules."""
 
 
 def main() -> None:
-    source = MockHISDataSource(records_per_layer=5, seed=42)
-    result = run_benchmark(DEFAULT_TECHNIQUES, TASKS, source)
+    records_per_layer, seed = 5, 42
+    source = MockHISDataSource(records_per_layer=records_per_layer, seed=seed)
+    result = run_benchmark(
+        DEFAULT_TECHNIQUES,
+        TASKS,
+        source,
+        dataset_note=f"{records_per_layer} records/layer x 4 layers, seed {seed}",
+    )
 
     print(present.banner("DPDP compliance benchmark - extraction techniques compared"))
+    print(_SCENARIO)
+    print()
+    print(present.sample_records(
+        source, [HISLayer.PATIENT_ADMINISTRATION, HISLayer.CLINICAL_EHR]
+    ))
+    print(present.rule())
     print(result.render_table())
     print(present.rule())
     print(present.wrote(result.to_json_file()))

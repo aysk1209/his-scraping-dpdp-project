@@ -10,6 +10,7 @@ from __future__ import annotations
 from compliance.models import ExtractedRecord, ExtractionRun
 from compliance.report import ComplianceReport
 from compliance.rules import ALL_RULES
+from compliance.summary import summarise
 
 
 def run_all(run: ExtractionRun, records: list[ExtractedRecord]) -> ComplianceReport:
@@ -17,6 +18,8 @@ def run_all(run: ExtractionRun, records: list[ExtractedRecord]) -> ComplianceRep
 
     results = [rule.evaluate(run, records) for rule in ALL_RULES]
     weights = {rule.rule_id: rule.weight for rule in ALL_RULES}
-    return ComplianceReport.from_results(
+    report = ComplianceReport.from_results(
         run_id=run.run_id, results=results, weights=weights
     )
+    report.extraction = summarise(run, records)
+    return report

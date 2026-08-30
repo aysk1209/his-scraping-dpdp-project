@@ -13,9 +13,9 @@ Information System). Pulling data out of them automatically ("scraping") can
 easily break India's data-protection law, the **DPDP Act 2023**.
 
 This project builds a small tool that **gives a data-scraping job a compliance
-score** — a number from 0 to 1, plus a pass/fail on four separate rules — so
-different scraping methods can be compared on how lawful they are, not just on
-how fast they run.
+score** — a number from 0 to 1, plus a pass/fail on seven separate rules (one per
+DPDP data-protection principle) — so different scraping methods can be compared on
+how lawful they are, not just on how fast they run.
 
 We do not have access to a real hospital system yet, so the tool is exercised
 against **synthetic (fake) data** the project generates itself.
@@ -96,7 +96,7 @@ python scripts/run_benchmark.py
 ```
 
 This runs **three different scraping methods** against the same fake hospital
-and scores each on compliance:
+(three extraction tasks each) and scores every run on compliance:
 
 | Method | What it does | Score you'll see |
 |--------|--------------|------------------|
@@ -104,9 +104,14 @@ and scores each on compliance:
 | minimising, undocumented | takes only what it needs, but skips paperwork/security | **~0.500** |
 | unconstrained (baseline) | grabs everything on the page, documents nothing | **~0.131** |
 
-It prints one comparison table. **This is the main thing to show** — it is the
-project's core argument: compliance is a number that separates good methods from
-bad ones.
+The output also shows: a couple of sample (fake) patient records, a per-task
+score table, what each task actually needs, and **what each method pulled** —
+e.g. the baseline grabs *60 records across 4 layers* including billing and
+contact details it was never asked for, versus *30 records across 2 layers* for
+the compliance-aware method.
+
+**This is the main thing to show** — the core argument: compliance is a number
+that separates good methods from bad ones.
 
 ### Demo B — one method, three configurations
 
@@ -135,7 +140,7 @@ the way. Prints every rule, pass/fail, and a plain-English reason
 python -m pytest -q
 ```
 
-Runs every automated check on the code. You should see **`83 passed`**. This
+Runs every automated check on the code. You should see **`91 passed`**. This
 confirms the rules, the fake-data generator, the extraction methods, and the
 comparison harness all behave as intended.
 
@@ -162,7 +167,7 @@ environment activated.
 4. **Show a saved artifact.** Open `docs/benchmark_results/benchmark.md` — the
    comparison table as a file. This is the evidence the research paper is built on.
 
-5. **Run the tests:** `python -m pytest -q` → `83 passed`. Shows the work is
+5. **Run the tests:** `python -m pytest -q` → `91 passed`. Shows the work is
    real, checked code, not slideware.
 
 **Three points to make while doing this:**

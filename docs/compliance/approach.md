@@ -56,10 +56,14 @@ plain-language findings.
 
 `compliance.checkers.run_all(run, records)` →
 [`ComplianceReport`](../../src/compliance/report.py): an overall
-`compliance_score` (mean of applicable rule scores), a `pass_rate`, and the
-per-rule breakdown. It renders three ways — console table (`render_table`),
-JSON (`to_json_file`), and Markdown (`to_markdown_file`, for pasting into slides
-or the report). Artifacts land in `docs/benchmark_results/<run_id>.{json,md}`.
+`compliance_score` (mean of applicable rule scores), a `rules_passed` count, a
+`pass_rate`, the per-rule breakdown with plain-language findings, and an
+`ExtractionSummary` ([`compliance/summary.py`](../../src/compliance/summary.py)) —
+record count, layers touched, field counts per DPDP category, and which
+categories fell outside the purpose policy. It renders three ways — console
+table (`render_table`), JSON (`to_json_file`), and Markdown (`to_markdown_file`,
+for pasting into slides or the report). Artifacts land in
+`docs/benchmark_results/<run_id>.{json,md}`.
 
 ## Comparing techniques — the core evidence
 
@@ -76,16 +80,21 @@ label added afterwards. Three are implemented
 | unconstrained (baseline) | ignores the task, grabs every field of every layer; no manifest. Stands in for a coverage-optimised scraper (cf. AutoScraper, EMNLP 2024) |
 
 [`compliance.benchmark.run_benchmark`](../../src/compliance/benchmark.py) runs
-every technique against every task, scores each run with the **same** seven-rule
-set, and aggregates. `python scripts/run_benchmark.py`:
+every technique against every task (three, currently), scores each run with the
+**same** seven-rule set, and aggregates. `python scripts/run_benchmark.py`:
 
-| Technique | Compliance score | Pass rate |
-|-----------|-----------------|-----------|
-| compliance-aware (ours) | 1.000 | 100% |
-| minimising, undocumented | 0.500 | 29% |
-| unconstrained (baseline) | 0.131 | 0% |
+| Technique | Compliance score | Rules passed |
+|-----------|-----------------|--------------|
+| compliance-aware (ours) | 1.000 | 7/7 |
+| minimising, undocumented | 0.500 | 2/7 |
+| unconstrained (baseline) | 0.131 | 0/7 |
 
-(The full per-rule breakdown is in `docs/benchmark_results/benchmark.md`.)
+The full artifact (`docs/benchmark_results/benchmark.md`) also carries the
+per-rule breakdown, a per-task table, what each task needs, and what each
+technique actually pulled — e.g. the baseline collects *60 records across 4
+layers* including *contact* and *financial* fields it was never asked for, while
+the compliance-aware technique pulls *30 records across 2 layers*, nothing
+out-of-scope.
 
 This table is the paper's central claim made concrete: compliance discriminates
 between *techniques*, and it is produced by one harness that will later score

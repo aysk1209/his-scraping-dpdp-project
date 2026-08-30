@@ -26,3 +26,27 @@ def wrote(path: Path) -> str:
 
 def rule() -> str:
     return "-" * _WIDTH
+
+
+def sample_records(source, layers, n: int = 2, fields: int = 5, width: int = 20) -> str:
+    """A few illustrative synthetic rows, straight from the data source.
+
+    Trimmed to the first ``fields`` columns and short values so each row fits on
+    one line.
+    """
+
+    lines = [
+        "sample synthetic records "
+        "(illustrative -- scoring uses field categories, not values):"
+    ]
+    for layer in layers:
+        lines.append(f"  {layer.value}:")
+        for row in list(source.fetch(layer))[:n]:
+            items = list(row.items())
+            shown = ", ".join(
+                f"{key}={str(val)[: width - 1] + '…' if len(str(val)) > width else val}"
+                for key, val in items[:fields]
+            )
+            extra = f"  (+{len(items) - fields} more)" if len(items) > fields else ""
+            lines.append(f"    {shown}{extra}")
+    return "\n".join(lines)
