@@ -2,7 +2,7 @@
 
 _compliance-aware (ours) scores 1.000; unconstrained (baseline) scores 0.131 on the same 7 rules -- a 0.869 gap that is purely a compliance difference, not coverage or speed._
 
-Synthetic data: 50 records/layer x 4 layers, seed 42. 3 extraction tasks, identical DPDP rule set for every technique. Generated 2026-08-30 in 5 ms.
+Synthetic data: 50 records/layer x 4 layers, seed 42. 3 extraction tasks, identical DPDP rule set for every technique. Generated 2026-09-09 in 5 ms.
 
 | Technique | Compliance score | Rules passed | DM-01 | LB-01 | SL-01 | SS-01 | PL-01 | NT-01 | AC-01 |
 |---|---|---|---|---|---|---|---|---|---|

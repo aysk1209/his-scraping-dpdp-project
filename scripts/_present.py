@@ -44,7 +44,7 @@ def sample_records(source, layers, n: int = 3, fields: int = 5, width: int = 20)
         for row in list(source.fetch(layer))[:n]:
             items = list(row.items())
             shown = ", ".join(
-                f"{key}={str(val)[: width - 1] + '…' if len(str(val)) > width else val}"
+                f"{key}={str(val)[: width - 3] + '...' if len(str(val)) > width else val}"
                 for key, val in items[:fields]
             )
             extra = f"  (+{len(items) - fields} more)" if len(items) > fields else ""

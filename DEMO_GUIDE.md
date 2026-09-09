@@ -87,7 +87,25 @@ You will know it worked when your prompt shows `(.venv)` at the start.
 
 ## 3. Running the demos
 
-There are **three demo programs**. Each prints a scorecard and saves report files.
+There are **four demo programs**. Each prints a scorecard and saves report files.
+
+### Demo 0 — one patient, end to end (show this first)
+
+```
+python scripts/trace_one_patient.py
+```
+
+Takes a **single** synthetic patient and walks it through every stage of the
+pipeline, printing each one: the raw record as the source holds it (25 fields
+across 4 HIS layers) -> the task's declared minimum field set -> a field-by-field
+table mapping each field to its DPDP category and whether it is in scope ->
+the compliance manifest each technique emits -> all seven rules with a written
+reason each -> the score.
+
+The same patient is run through both our compliance-aware technique (**1.000**)
+and the coverage-optimised baseline (**0.131**), so the gap is visible field by
+field. Use this to explain *how* the score is produced; use Demo A to show that
+it holds at scale.
 
 ### Demo A — compare scraping methods (the headline)
 
@@ -151,23 +169,28 @@ comparison harness all behave as intended.
 A five-minute walkthrough. Have a terminal open in the project folder with the
 environment activated.
 
-1. **The one-page explanation.** Open
+1. **The mechanism, on one record:** `python scripts/trace_one_patient.py`.
+   Walk the panel down the stages — the record, the task, the category table,
+   the manifest, the seven rules, the score. This answers "what is actually
+   happening" before any aggregate number is shown.
+
+2. **The one-page explanation.** Open
    [`docs/compliance/approach.md`](docs/compliance/approach.md). Read out the
    "The claim" section — that compliance becomes a *measured number*, produced by
    the same tool for any scraping method.
 
-2. **Run Demo A live:** `python scripts/run_benchmark.py`. Point at the
+3. **Run Demo A live:** `python scripts/run_benchmark.py`. Point at the
    comparison table — our method 1.00, the coverage-optimised baseline 0.13, on
    the same seven rules. This is the core result.
 
-3. **Run Demo B** if asked why a score moves:
+4. **Run Demo B** if asked why a score moves:
    `python scripts/run_synthetic_extraction.py` — same method, three
    configurations, each rule failing with a stated reason.
 
-4. **Show a saved artifact.** Open `docs/benchmark_results/benchmark.md` — the
+5. **Show a saved artifact.** Open `docs/benchmark_results/benchmark.md` — the
    comparison table as a file. This is the evidence the research paper is built on.
 
-5. **Run the tests:** `python -m pytest -q` → `91 passed`. Shows the work is
+6. **Run the tests:** `python -m pytest -q` → `91 passed`. Shows the work is
    real, checked code, not slideware.
 
 **Three points to make while doing this:**
