@@ -201,6 +201,31 @@ policy table that scores the scraping benchmark decides what the assistant may s
 to whom. This is the compliance half of the staff-guidance agent; the agent itself
 sits on top of it.
 
+### Demo D — the assistant, in conversation
+
+```
+python scripts/ask_agent.py
+python scripts/ask_agent.py --interactive
+```
+
+Four short scenes. A receptionist registers a walk-in and gets numbered steps,
+each tagged with where in the HIS it happens and, where it matters, a one-line
+reason (search before creating; read the notice before saving). The same
+receptionist then asks what is wrong with the patient — and is refused, **before
+being asked for a single detail**, with the rule named and a pointer to who *can*
+answer. An administrator types just "insurance" and is asked which of two things
+they meant. A nurse records vitals, then asks to raise the bill and is refused for
+the opposite reason.
+
+The point to make out loud: **there is no AI model in this.** It is a fixed list
+of hospital functions, word matching, and templates — and one call to the
+compliance policy before it speaks. The reason it is in a compliance project at
+all is that the refusal comes from the same table that scores the scraping
+benchmark. If someone asks "how is it trained?", the answer is: it isn't, by
+design.
+
+Use `--interactive` if a reviewer wants to type their own request.
+
 ### Demo B — one method, three configurations
 
 ```

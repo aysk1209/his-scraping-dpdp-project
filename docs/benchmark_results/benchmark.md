@@ -2,7 +2,7 @@
 
 _compliance-aware (ours) scores 1.000; unconstrained (baseline) scores 0.131 on the same 7 rules -- a 0.869 gap. It also pulls 1.00x the fields the purpose requires, against 5.00x for the baseline, at full coverage. That surplus is exactly what the data-minimisation rule penalises, so on this workload compliance and extraction cost move together rather than trading off against each other._
 
-Synthetic data: 50 records/layer x 4 layers, seed 42. 3 extraction tasks, identical DPDP rule set for every technique. Generated 2026-09-12 in 20 ms.
+Synthetic data: 50 records/layer x 4 layers, seed 42. 3 extraction tasks, identical DPDP rule set for every technique. Generated 2026-09-12 in 18 ms.
 
 | Technique | Compliance score | Rules passed | DM-01 | LB-01 | SL-01 | SS-01 | PL-01 | NT-01 | AC-01 |
 |---|---|---|---|---|---|---|---|---|---|
@@ -16,9 +16,9 @@ Synthetic data: 50 records/layer x 4 layers, seed 42. 3 extraction tasks, identi
 
 | Technique | Compliance | Excess ratio | Coverage | Fields pulled | Fetches | Records | Wall-clock (ms) |
 |---|---|---|---|---|---|---|---|
-| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 750 | 6 | 300 | 1.7 |
-| minimising, undocumented | 0.500 | 1.00 | 1.00 | 750 | 6 | 300 | 1.2 |
-| unconstrained (baseline) | 0.131 | 5.00 | 1.00 | 3750 | 12 | 600 | 2.5 |
+| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 750 | 6 | 300 | 1.2 |
+| minimising, undocumented | 0.500 | 1.00 | 1.00 | 750 | 6 | 300 | 1.0 |
+| unconstrained (baseline) | 0.131 | 5.00 | 1.00 | 3750 | 12 | 600 | 3.2 |
 
 **Per task**
 

@@ -136,16 +136,16 @@ are weighted toward the contribution described in §2.
 | 7 | Dataset adapter for the hospital export | 5 | 0 | 4 |
 | 8 | Rough mock HIS portal | 5 | 0 | 5 |
 | 9 | Interop normalisation wired into a run | 5 | 2 | 5 |
-| 10 | Rule-based staff-guidance agent | 10 | 0 | 7 |
+| 10 | Rule-based staff-guidance agent | 10 | 8 | 8 |
 | 11 | End-to-end demonstration | 5 | 0 | 5 |
 | 12 | Project report + manuscript (compliance-focused) | 6 | 0 | 1 |
-| | **Total** | **100** | **52** | **89** |
+| | **Total** | **100** | **60** | **90** |
 
-Review-II's floor is ~75%; this targets 89, so slippage on any one workstream still
+Review-II's floor is ~75%; this targets 90, so slippage on any one workstream still
 clears it. The residual 11 points to Review-III are almost entirely the report and
 the manuscript — which is exactly what Review-III is for.
 
-*Updated 2026-09-12: W3 complete, component 2 closed — 41 to 45. W5 complete, component 3 closed — 45 to 52.*
+*Updated 2026-09-12: W3 complete, component 2 closed — 41 to 45. W5 complete, component 3 closed — 45 to 52. W4 complete, component 10 at 8 of 10 — 52 to 60; the last two points are the navigation-map pages filled in once the portal exists.*
 
 ## 6. Workstreams
 
@@ -208,9 +208,20 @@ trading off. The two axes turn out to be complementary — compliance separates 
 three techniques, cost separates the baseline from the other two — so both are
 needed to tell the whole story.
 
-### W4 — Staff-guidance agent *(component 10)*
+### W4 — Staff-guidance agent *(component 10)* — **DONE 2026-09-12** (8 of 10)
 
-Rule-based, deterministic, no LLM. Four parts:
+Built as specified below. `src/agent/functions.py` holds 13 functions across the
+three roles; `session.py` is the state machine (recognise → gate → collect →
+instruct); `guidance.py` renders the answer with its own compliance footer. The
+gate runs **before** any input is collected. `scripts/ask_agent.py` plays four
+scenes or runs `--interactive`. Tests assert groundedness against the artefact
+vocabulary and the field catalogue, so no step can name something the HIS model
+lacks. The remaining 2 points are the `page` on each step, which the Tier 2
+navigation map fills in via `Session(role, navigation=...)` — the seam exists and
+is tested; only the portal is missing.
+
+Original specification, kept for the record — rule-based, deterministic, no LLM.
+Four parts:
 
 1. **Function registry** — pre-defined staff functions, each declaring: an id and
    label, the roles permitted to perform it, the HIS layers and field categories it
