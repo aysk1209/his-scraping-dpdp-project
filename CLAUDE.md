@@ -8,16 +8,17 @@ This file gives Claude Code persistent context for this repository. Read it full
 **Institution:** VIT, SENSE department — final-year research project
 **Team:** Avanindra (23BLC1089), Ananya (23BLC1017)
 **Guide:** Dr. Manoj Kumar
-**Stage:** Post Review-1 (approved). In the build phase — repo scaffolding, the full DPDP compliance framework (7 rules), the synthetic-data + extraction slice, and the benchmarking harness are implemented and demoable. Three reviews remain (as of 2026-08-29).
+**Stage:** Review-I cleared 02.09.2026 (outcome satisfactory). Building toward **Review-II**, which is the current focus. Implemented and demoable today: repo scaffolding, the full DPDP compliance framework (7 rules), the synthetic-data + extraction slice, and the benchmarking harness. Two reviews remain (as of 2026-09-12).
 
 For full background, methodology, and research framing, see `PROJECT_CONTEXT.md` in this same directory — read it before starting any non-trivial task.
 
 ## Review Cadence — CURRENT FOCUS
 
-Three reviews remain (as of 2026-08-29), superseding the earlier "Review 2 (~70%) then Final review" framing:
+**Review-I is done (02.09.2026) and the outcome was satisfactory.** Two reviews remain (as of 2026-09-12).
 
-- **Review-I (upcoming, 02.09.2026) — the immediate priority. No fixed percentage of work.** Do not optimise for volume of implemented code. What is graded: a **precise, on-point explanation to the reviewer** — the architecture, the "DPDP compliance as a benchmarkable property" thesis, and how progress continues without live HIS data access — plus **one small, concrete deliverable** to demonstrate (the runnable compliance-scoring / benchmark demo). The deck must use the mandatory VIT/SENSE Project-I 2026 template (fixed 11-slide sequence, white background, navy `1D2F82`, 8–10 min); a literature-survey table of 8–10 recent references is required.
-- **Review-II — a solid ~75% completion.** Real implemented breadth: extraction layer built out, agent scaffolding, benchmark harness scoring at least one real baseline, wider synthetic coverage; live HIS folded in if access unblocks.
+**Feedback carried forward from Review-I.** The panel's one substantive suggestion: **report processing time alongside the compliance score, for all three benchmarked techniques** (compliance-aware, minimising, coverage-optimised baseline). The harness currently times the benchmark as a whole (`BenchmarkResult.elapsed_ms`) but not each technique. Per-technique timing is now a required column in the headline table — it lets us answer "what does compliance cost you?" with a measured number rather than an assertion, and it turns the comparison into a genuine two-axis benchmark (compliance × cost) instead of a single-axis one.
+
+- **Review-II — the immediate priority.** Floor: **~75% completion**. The stronger recommendation on top of that floor: **show that the entire pipeline runs end to end**, minor shortcomings accepted. A complete-but-rough pipeline demonstrates more than polished fragments. Concretely: one command that goes portal → extraction → normalisation → compliance scoring → ranked benchmark with per-technique timings, plus an agent layer that actually runs rather than a stub. Deck continues to use the mandatory VIT/SENSE Project-I 2026 template.
 - **Review-III — everything, including the full project report and a publication-ready manuscript.** Deployment is explicitly **not** required — the graded contribution is the extraction + compliance-benchmarking work and its write-up.
 
 ## What This Project Is
@@ -31,7 +32,7 @@ The long-term vision (beyond this project's scope, but informs architecture) is 
 
 ## Current Phase Constraint — READ THIS FIRST
 
-**We do NOT have live HIS data access yet.** Credentialed access exists on paper but is not usable right now.
+**We still do NOT have live HIS data access.** Unchanged as of 2026-09-12: credentialed access exists on paper but has not become usable, and has now failed to materialise across a full review cycle. **Plan the rest of the build as though it never arrives.** If it unblocks, that is upside folded in via the adapter boundary — it is not a dependency any remaining deliverable rests on.
 
 This means, until told otherwise:
 - Do NOT build against a real HIS endpoint.
@@ -39,19 +40,23 @@ This means, until told otherwise:
 - Any scraping module should be built against **mock/synthetic HIS data** we generate ourselves, with a clean interface boundary so the real HIS can be swapped in later without refactoring.
 - If a task seems to require live data, stop and flag it rather than assuming/fabricating a workaround.
 
+**The proposed workaround (Review-II — proposed 2026-09-12, confirm with the team before building):** a **locally served mock HIS portal** — a login-gated web application we author ourselves, rendering synthetic records as HTML across the five-layer module structure. The Tier 2 Playwright machinery then scrapes it *for real*: real browser, real authentication, real DOM traversal, real pagination, real latency. This unblocks build step 4's browser layer and makes per-technique processing time a meaningful measurement rather than a microsecond artefact of in-memory dict access — without touching any real hospital system. The portal is a test fixture, not a product: it gets its own `HISDataSource` adapter, and `LiveHISDataSource` stays a stub.
+
 ## Build Order (with current status)
+
+Status as of 2026-09-12, re-baselined against the Review-II target.
 
 1. **Done.** Repo scaffolding + project structure.
 2. **Done.** DPDP compliance framework — 7 criteria as code-checkable pydantic rules (`src/compliance/rules/`), a declarative purpose policy, and a scored `ComplianceReport` artifact.
-3. **Thin slice done.** Synthetic HIS data generator — a field catalogue (name → HIS layer → DPDP category) and a Faker-seeded record generator (`src/data_synthetic/`). Full per-layer pydantic schemas + HL7/FHIR shaping still to do.
-4. **Substantially done.** Extraction layer — `HISDataSource` adapter interface, a working `MockHISDataSource`, and a technique layer with three techniques (compliance-aware, minimising, coverage-optimised baseline). Tier 2 browser machinery still stubbed.
-5. **Working.** Compliance benchmarking harness — `run_benchmark` scores every technique against every task with the same rule set and emits a ranked comparison table (`src/compliance/benchmark.py`). This is the paper's core evidence.
-6. **Not started.** LLM-agent scaffolding (AXE-method-inspired extraction assistant) — to be built against synthetic data.
-7. **Blocked until data access.** Swap synthetic source for live HIS, re-run benchmarks, tune.
+3. **Thin slice done; Review-II work remains.** Synthetic HIS data generator — a field catalogue (name → HIS layer → DPDP category) and a Faker-seeded record generator (`src/data_synthetic/`). Still to do: per-layer pydantic schemas, the fifth layer's fields, and volume/variety wide enough to make timing differences legible.
+4. **Substantially done; browser layer is the Review-II gap.** `HISDataSource` adapter interface, a working `MockHISDataSource`, and three techniques (compliance-aware, minimising, coverage-optimised baseline). `src/extraction/tier2/` is still empty — it is now unblocked by the local mock portal (see "Current Phase Constraint") and is the single highest-value remaining item.
+5. **Working; needs the timing axis.** `run_benchmark` scores every technique against every task with the same rule set and emits a ranked comparison table (`src/compliance/benchmark.py`). This is the paper's core evidence. Review-I feedback adds **per-technique processing time** to it.
+6. **Not started — required for Review-II.** LLM-agent scaffolding (AXE-method-inspired extraction assistant), built against synthetic data. Off-the-shelf Claude via the Anthropic API, driven agentically — no fine-tuning, and the deck must say so.
+7. **Blocked until data access; assume it stays blocked.** Swap synthetic source for live HIS, re-run benchmarks, tune.
 
-Do not skip ahead to step 7 work. Do not silently substitute real HIS assumptions into steps 1–6 — keep the data source pluggable.
+Do not skip ahead to step 7 work. Do not silently substitute real HIS assumptions into steps 1–6 — keep the data source pluggable. The local mock portal is explicitly *not* step 7: it is a fixture that exercises step 4's browser code.
 
-Three runnable demos exist: `scripts/run_benchmark.py` (headline — technique comparison), `scripts/run_synthetic_extraction.py` (one technique, three configs), `scripts/score_extraction_run.py` (rules in isolation). See `DEMO_GUIDE.md` and `docs/compliance/approach.md`.
+Three runnable demos exist: `scripts/run_benchmark.py` (headline — technique comparison), `scripts/run_synthetic_extraction.py` (one technique, three configs), `scripts/score_extraction_run.py` (rules in isolation), plus `scripts/trace_one_patient.py` and `scripts/generate_dataset.py`. See `DEMO_GUIDE.md` and `docs/compliance/approach.md`. Review-II wants one further script above these: a single end-to-end pipeline run.
 
 ## Tech Stack
 
