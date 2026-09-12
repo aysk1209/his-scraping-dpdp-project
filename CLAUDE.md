@@ -10,7 +10,7 @@ This file gives Claude Code persistent context for this repository. Read it full
 **Guide:** Dr. Manoj Kumar
 **Stage:** Review-I cleared 02.09.2026 (outcome satisfactory). Building toward **Review-II**, which is the current focus. Implemented and demoable today: repo scaffolding, the full DPDP compliance framework (7 rules), the synthetic-data + extraction slice, and the benchmarking harness. Two reviews remain (as of 2026-09-12).
 
-For full background, methodology, and research framing, see `PROJECT_CONTEXT.md` in this same directory — read it before starting any non-trivial task.
+For full background, methodology, and research framing, see `PROJECT_CONTEXT.md` in this same directory — read it before starting any non-trivial task. For the definition of 100%, the completion ledger, and the sequenced workstreams to Review-II/III, see `PLAN.md`.
 
 ## Review Cadence — CURRENT FOCUS
 
@@ -27,8 +27,11 @@ We're building a system that scrapes and interfaces with Hospital Information Sy
 
 1. **The scraping/extraction layer** — techniques for pulling structured data out of HIS portals (credentialed, Tier 2: headless browser automation).
 2. **The compliance layer** — this is our actual research differentiator. Every scraping/extraction technique is designed and benchmarked against DPDP Act 2023 compliance criteria. Compliance is not a wrapper we add later; it constrains design choices from the start.
+3. **The agent layer** — an agent that understands the HIS structure and returns simple, role-appropriate operating instructions to hospital staff (administrator / nurse / reception), differentiated by the type of task being performed.
 
-The long-term vision (beyond this project's scope, but informs architecture) is an AI agent that helps hospital staff use and adapt to HIS systems without workflow disruption.
+**Scope change, 2026-09-12:** layer 3 was previously described here as a long-term vision "beyond this project's scope". It is now inside the graded scope and is part of the team's definition of 100% — see `PLAN.md` §1. Do not treat the staff-guidance agent as optional or future work.
+
+The two halves join through one mechanism: **role-based guidance and DPDP purpose limitation are the same check.** The compliance layer does not only score extraction runs after the fact — it also gates what the agent may instruct a given role to do (reception asking for clinical data is declined, with the rule cited). See `PLAN.md` §2.
 
 ## Current Phase Constraint — READ THIS FIRST
 
@@ -51,7 +54,7 @@ Status as of 2026-09-12, re-baselined against the Review-II target.
 3. **Thin slice done; Review-II work remains.** Synthetic HIS data generator — a field catalogue (name → HIS layer → DPDP category) and a Faker-seeded record generator (`src/data_synthetic/`). Still to do: per-layer pydantic schemas, the fifth layer's fields, and volume/variety wide enough to make timing differences legible.
 4. **Substantially done; browser layer is the Review-II gap.** `HISDataSource` adapter interface, a working `MockHISDataSource`, and three techniques (compliance-aware, minimising, coverage-optimised baseline). `src/extraction/tier2/` is still empty — it is now unblocked by the local mock portal (see "Current Phase Constraint") and is the single highest-value remaining item.
 5. **Working; needs the timing axis.** `run_benchmark` scores every technique against every task with the same rule set and emits a ranked comparison table (`src/compliance/benchmark.py`). This is the paper's core evidence. Review-I feedback adds **per-technique processing time** to it.
-6. **Not started — required for Review-II.** LLM-agent scaffolding (AXE-method-inspired extraction assistant), built against synthetic data. Off-the-shelf Claude via the Anthropic API, driven agentically — no fine-tuning, and the deck must say so.
+6. **Not started — now a headline deliverable, not scaffolding.** The agent has two roles: **(A)** an AXE-inspired extraction assistant that enters the benchmark as a further scored technique, and **(B)** the **role- and task-aware staff-guidance agent** that the 100% definition names. B outranks A — if time is short, sacrifice A. Both use off-the-shelf Claude via the Anthropic API, driven agentically — no fine-tuning, and the deck must say so. B is grounded in real artifacts (the `HISLayer` enum, the field catalogue, the navigation map the Tier 2 crawler discovers), never in hand-written prose, so its output is checkable rather than merely plausible.
 7. **Blocked until data access; assume it stays blocked.** Swap synthetic source for live HIS, re-run benchmarks, tune.
 
 Do not skip ahead to step 7 work. Do not silently substitute real HIS assumptions into steps 1–6 — keep the data source pluggable. The local mock portal is explicitly *not* step 7: it is a fixture that exercises step 4's browser code.

@@ -6,7 +6,9 @@ Deeper background for `CLAUDE.md`. Read this once at project start and revisit w
 
 Hospital Information Systems (HIS) hold high-value, high-sensitivity data. Existing web scraping techniques for extracting data from HIS portals are typically evaluated on speed, robustness, and coverage — rarely on data-protection compliance. This project's core contribution is showing that **DPDP Act 2023 compliance can be treated as a measurable, benchmarkable property of a scraping technique**, not just a legal afterthought bolted on post-hoc.
 
-The applied use case (an AI agent that helps hospital staff manage/adapt to HIS systems) is the long-term motivating vision — it justifies *why* extraction matters, but the graded research contribution for this project is the extraction + compliance benchmarking work itself.
+The applied use case — an AI agent that helps hospital staff operate the HIS — was originally the long-term motivating vision, justifying *why* extraction matters without itself being graded. **As of 2026-09-12 that changed: it is now part of the team's definition of 100%** (`PLAN.md` §1). The project is complete when we can show, in one run, data scraped from a portal, carried through the DPDP compliance pipeline, and an agent that understands the HIS structure well enough to return simple operating instructions differentiated by staff role (administrator / nurse / reception) and by task type.
+
+That shift improves the project's coherence rather than diluting it. Role-based guidance and DPDP purpose limitation turn out to be the same mechanism: a receptionist has no clinical-category access under the purpose policy, so the agent declines and cites the rule. The compliance layer therefore does two jobs with one rule set — it scores extraction runs, and it gates agent guidance. The scraper discovers the HIS architecture; that discovered structure grounds the agent; the compliance layer constrains both.
 
 ## Review Structure
 
@@ -25,7 +27,7 @@ The suggestion reads as a small table column, but it changes what the benchmark 
 
 - **Five-layer HIS architecture** — a functional decomposition (Patient Administration / Clinical-EHR / Ancillary-Departmental / Administrative-Financial / Infrastructure-Integration), now canonical in code as the `HISLayer` enum in `src/interop/layers.py`. Everything downstream imports it rather than re-declaring layers. The Review-1 deck's technical tiers were conceptual and are superseded by this. Not flattened into a single schema.
 - **Four interoperability standards:** HL7, FHIR, DICOM, ISO/IEEE 11073 — mapped per layer in `src/interop/mapping.py`. Synthetic data and extraction outputs should be structurable into at least HL7/FHIR-shaped records; hand-rolled lightweight shapers, HL7/FHIR prioritised.
-- **AXE method (Cairo University)** — LLM-based agentic extraction technique; conceptual basis for the `/agent` module (not yet built).
+- **AXE method (Cairo University)** — LLM-based agentic extraction technique; conceptual basis for the `/agent` module's *extraction* role (not yet built). The module's *staff-guidance* role, added to scope 2026-09-12, is our own contribution and has no direct antecedent in the surveyed literature — which is worth saying plainly in the manuscript.
 - **AutoScraper (EMNLP 2024)** — comparison baseline technique. Venue confirmed. Currently represented by a generic "coverage-optimised baseline" technique in the benchmark; a real implementation is Review-II work.
 
 ## Scraping Tier Decision
