@@ -9,7 +9,7 @@
 </form>
 <p>{{ total }} record{{ '' if total == 1 else 's' }}{% if query %} matching "{{ query }}"{% endif %} &middot; page {{ page }} of {{ pages }}</p>
 <table>
-  <thead><tr>{% for c in columns %}<th>{{ c }}</th>{% endfor %}<th></th></tr></thead>
+  <thead><tr>{% for c in columns %}<th>{{ label(c) }}</th>{% endfor %}<th></th></tr></thead>
   <tbody>
   {% for rid, row in rows %}
   <tr>

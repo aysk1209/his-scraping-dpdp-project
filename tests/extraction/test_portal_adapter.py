@@ -44,7 +44,7 @@ def test_wrong_password_is_refused_by_the_portal(portal):
 
 def test_navigation_map_finds_every_populated_module(scraper, portal):
     nav = scraper.navigation
-    assert len(nav.modules) == 4
+    assert len(nav.modules) == 5
     for module in nav.modules:
         assert module.columns, module.title
         assert module.detail_fields, module.title
@@ -61,6 +61,7 @@ def test_layers_are_inferred_from_field_names_not_urls(scraper):
     assert inferred["/m/clinical/"] == HISLayer.CLINICAL_EHR
     assert inferred["/m/departments/"] == HISLayer.ANCILLARY_DEPARTMENTAL
     assert inferred["/m/billing/"] == HISLayer.ADMINISTRATIVE_FINANCIAL
+    assert inferred["/m/integration/"] == HISLayer.INFRASTRUCTURE_INTEGRATION
     assert all(m.layer_confidence == 1.0 for m in nav.modules)
 
 
@@ -113,8 +114,19 @@ def test_fetch_without_fields_returns_every_field_of_the_layer(scraper):
     assert set(row) == set(FIELD_CATALOGUE[HISLayer.CLINICAL_EHR])
 
 
-def test_unknown_layer_yields_nothing(scraper):
-    assert list(scraper.fetch(HISLayer.INFRASTRUCTURE_INTEGRATION)) == []
+def test_layer_the_crawler_did_not_find_yields_nothing(scraper):
+    # Same browser, a navigation map with one module removed: the adapter has
+    # nowhere to look for that layer and says so by yielding nothing.
+    nav = scraper.navigation.model_copy(update={
+        "modules": [m for m in scraper.navigation.modules
+                    if m.inferred_layer != HISLayer.ADMINISTRATIVE_FINANCIAL]
+    })
+    original = scraper.navigation
+    scraper.navigation = nav
+    try:
+        assert list(scraper.fetch(HISLayer.ADMINISTRATIVE_FINANCIAL)) == []
+    finally:
+        scraper.navigation = original
 
 
 # --- the techniques run unchanged ---------------------------------------------

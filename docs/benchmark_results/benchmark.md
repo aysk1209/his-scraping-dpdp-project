@@ -1,8 +1,8 @@
 ### Compliance benchmark
 
-_compliance-aware (ours) scores 1.000; unconstrained (baseline) scores 0.131 on the same 7 rules -- a 0.869 gap. It also pulls 1.00x the fields the purpose requires, against 5.00x for the baseline, at full coverage. That surplus is exactly what the data-minimisation rule penalises, so on this workload compliance and extraction cost move together rather than trading off against each other._
+_compliance-aware (ours) scores 1.000; unconstrained (baseline) scores 0.131 on the same 7 rules -- a 0.869 gap. It also pulls 1.00x the fields the purpose requires, against 6.20x for the baseline, at full coverage. That surplus is exactly what the data-minimisation rule penalises, so on this workload compliance and extraction cost move together rather than trading off against each other._
 
-Synthetic data: 50 records/layer x 4 layers, seed 42. 3 extraction tasks, identical DPDP rule set for every technique. Generated 2026-09-12 in 13 ms.
+Synthetic data: 50 records/layer x 5 layers, seed 42. 3 extraction tasks, identical DPDP rule set for every technique. Generated 2026-09-12 in 20 ms.
 
 | Technique | Compliance score | Rules passed | DM-01 | LB-01 | SL-01 | SS-01 | PL-01 | NT-01 | AC-01 |
 |---|---|---|---|---|---|---|---|---|---|
@@ -16,9 +16,9 @@ Synthetic data: 50 records/layer x 4 layers, seed 42. 3 extraction tasks, identi
 
 | Technique | Compliance | Excess ratio | Coverage | Fields pulled | Fetches | Pages loaded | Records | Wall-clock (ms) |
 |---|---|---|---|---|---|---|---|---|
-| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 750 | 6 | n/a | 300 | 0.8 |
-| minimising, undocumented | 0.500 | 1.00 | 1.00 | 750 | 6 | n/a | 300 | 0.7 |
-| unconstrained (baseline) | 0.131 | 5.00 | 1.00 | 3750 | 12 | n/a | 600 | 2.0 |
+| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 750 | 6 | n/a | 300 | 1.2 |
+| minimising, undocumented | 0.500 | 1.00 | 1.00 | 750 | 6 | n/a | 300 | 0.9 |
+| unconstrained (baseline) | 0.131 | 6.20 | 1.00 | 4650 | 15 | n/a | 750 | 3.6 |
 
 **Per task**
 
@@ -38,7 +38,7 @@ Synthetic data: 50 records/layer x 4 layers, seed 42. 3 extraction tasks, identi
 
 - **compliance-aware** — 300 records across 2 layer(s); fields by category: administrative (100), clinical (100), direct_identifier (150), quasi_identifier (100); out-of-scope: none
 - **minimising** — 300 records across 2 layer(s); fields by category: administrative (100), clinical (100), direct_identifier (150), quasi_identifier (100); out-of-scope: none
-- **unconstrained** — 600 records across 4 layer(s); fields by category: administrative (450), clinical (300), contact (150), direct_identifier (150), financial (150), quasi_identifier (150); out-of-scope: contact, financial
+- **unconstrained** — 750 records across 5 layer(s); fields by category: administrative (600), clinical (300), contact (150), direct_identifier (300), financial (150), quasi_identifier (150); out-of-scope: contact, financial
 
 **Rules**
 

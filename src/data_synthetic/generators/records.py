@@ -78,6 +78,18 @@ def _value_for(field: str, fake: Faker) -> Any:
             return fake.bothify("??########").upper()
         case "payer_name":
             return fake.company()
+        case "audit_event_id":
+            return f"EVT{fake.random_number(digits=9, fix_len=True)}"
+        case "event_timestamp":
+            return fake.date_time_this_year().isoformat(timespec="seconds")
+        case "actor_role":
+            return fake.random_element(("reception", "nurse", "administrator", "clinician"))
+        case "action":
+            return fake.random_element(("read", "create", "update", "export"))
+        case "source_system":
+            return fake.random_element(("registration", "ehr", "lab", "billing", "portal"))
+        case "subject_mrn":
+            return f"MRN{fake.random_number(digits=7, fix_len=True)}"
         case _:  # pragma: no cover - guards against a catalogue field with no recipe
             return fake.word()
 

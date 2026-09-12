@@ -58,6 +58,7 @@ LIST_COLUMNS: dict[HISLayer, list[str]] = {
     HISLayer.CLINICAL_EHR: ["encounter_datetime", "primary_diagnosis", "attending_clinician"],
     HISLayer.ANCILLARY_DEPARTMENTAL: ["order_id", "specimen_type", "imaging_modality"],
     HISLayer.ADMINISTRATIVE_FINANCIAL: ["invoice_id", "billed_amount", "payer_name"],
+    HISLayer.INFRASTRUCTURE_INTEGRATION: ["audit_event_id", "event_timestamp", "actor_role", "action"],
 }
 
 # A portal's module names, not our layer names -- the scraper should not get the
@@ -74,7 +75,7 @@ MODULE_TITLES: dict[HISLayer, str] = {
     HISLayer.CLINICAL_EHR: "Clinical Records",
     HISLayer.ANCILLARY_DEPARTMENTAL: "Departmental Orders",
     HISLayer.ADMINISTRATIVE_FINANCIAL: "Billing & Accounts",
-    HISLayer.INFRASTRUCTURE_INTEGRATION: "Integration",
+    HISLayer.INFRASTRUCTURE_INTEGRATION: "Audit Log",
 }
 _SLUG_TO_LAYER = {slug: layer for layer, slug in MODULE_SLUGS.items()}
 
@@ -88,8 +89,14 @@ def create_app(
     page_size: int = 25,
     latency_ms: int = 0,
     secret_key: str | None = None,
+    labels: dict[str, str] | None = None,
 ) -> Flask:
-    """Build the portal over ``source``. Records are snapshotted at creation."""
+    """Build the portal over ``source``. Records are snapshotted at creation.
+
+    ``labels`` renders column headers as display text (``{"mrn": "Patient ID"}``)
+    the way a real portal would, instead of the raw field names. It exists so the
+    adapter's label-to-field mapping can be exercised against this fixture.
+    """
 
     app = Flask(__name__)
     app.config.update(
@@ -97,6 +104,7 @@ def create_app(
         PAGE_SIZE=page_size,
         LATENCY_MS=latency_ms,
         USERS=dict(users or DEFAULT_USERS),
+        LABELS=dict(labels or {}),
     )
 
     # Snapshot: one pass through the adapter, then in-memory pages.
@@ -131,11 +139,13 @@ def create_app(
 
     @app.context_processor
     def _inject():
+        labels = app.config["LABELS"]
         return {
             "modules": [
                 (MODULE_SLUGS[layer], MODULE_TITLES[layer]) for layer in app.config["MODULES"]
             ],
             "user": session.get("user"),
+            "label": lambda name: labels.get(name, name),
         }
 
     # -------------------------------------------------------------- routes --

@@ -6,7 +6,7 @@
 <table>
   <tbody>
   {% for name, value in record.items() %}
-  <tr><th>{{ name }}</th><td>{{ value }}</td></tr>
+  <tr><th>{{ label(name) }}</th><td>{{ value }}</td></tr>
   {% endfor %}
   </tbody>
 </table>

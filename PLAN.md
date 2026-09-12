@@ -131,21 +131,21 @@ are weighted toward the contribution described in §2.
 | 2 | Benchmark harness + cost profile (§3) | 12 | 12 | 12 |
 | 3 | Role × task DPDP policy (gates the agent) | 7 | 7 | 7 |
 | 4 | Extraction: adapter interface + three techniques | 10 | 10 | 10 |
-| 5 | Tier 2 browser extraction (Playwright) | 12 | 10 | 10 |
-| 6 | Synthetic data: catalogue, generator, schemas | 8 | 6 | 8 |
-| 7 | Dataset adapter for the hospital export | 5 | 0 | 4 |
+| 5 | Tier 2 browser extraction (Playwright) | 12 | 12 | 12 |
+| 6 | Synthetic data: catalogue, generator, schemas | 8 | 8 | 8 |
+| 7 | Dataset adapter for the hospital export | 5 | 5 | 5 |
 | 8 | Rough mock HIS portal | 5 | 5 | 5 |
 | 9 | Interop normalisation wired into a run | 5 | 5 | 5 |
 | 10 | Rule-based staff-guidance agent | 10 | 10 | 10 |
 | 11 | End-to-end demonstration | 5 | 5 | 5 |
 | 12 | Project report + manuscript (compliance-focused) | 6 | 0 | 1 |
-| | **Total** | **100** | **85** | **92** |
+| | **Total** | **100** | **94** | **94** |
 
-Review-II's floor is ~75%; this targets 92, so slippage on any one workstream still
-clears it. The residual 11 points to Review-III are almost entirely the report and
+Review-II's floor is ~75%; the build stands at 94. The residual 6 points are the
+report and the manuscript — Review-III work by definition. The residual 11 points to Review-III are almost entirely the report and
 the manuscript — which is exactly what Review-III is for.
 
-*Updated 2026-09-12: W3 complete, component 2 closed — 41 to 45. W5 complete, component 3 closed — 45 to 52. W4 complete, component 10 at 8 of 10 — 52 to 60; the last two points are the navigation-map pages filled in once the portal exists. W1 complete, component 8 closed — 60 to 65. W2 (Tier 2) at 10 of 12 and W9 rough at 4 of 5, agent pages now filled — 65 to 81. **The 75% floor is crossed with a working end-to-end chain.** Interop shaping + export audit wired in, components 9 and 11 closed — 81 to 85.*
+*Updated 2026-09-12: W3 complete, component 2 closed — 41 to 45. W5 complete, component 3 closed — 45 to 52. W4 complete, component 10 at 8 of 10 — 52 to 60; the last two points are the navigation-map pages filled in once the portal exists. W1 complete, component 8 closed — 60 to 65. W2 (Tier 2) at 10 of 12 and W9 rough at 4 of 5, agent pages now filled — 65 to 81. **The 75% floor is crossed with a working end-to-end chain.** Interop shaping + export audit wired in, components 9 and 11 closed — 81 to 85. 2026-09-13: fifth-layer fields + schemas, dataset adapter against a synthetic export, label→field mapping — components 5, 6, 7 closed — 85 to 94. **Everything not requiring live access is built; the remaining 6 points are the report and manuscript.***
 
 ## 6. Workstreams
 
@@ -181,6 +181,22 @@ produce cost differences.
 **Done when:** one command serves a portal a human can log into and browse.
 
 ### W2 — Data sources: Tier 2 scraping and the hospital dataset *(components 5, 7)* — **Tier 2 DONE 2026-09-12; dataset adapter pending the export's format**
+
+**Dataset adapter: DONE 2026-09-13**, against a synthetic export of the right
+shape. `scripts/generate_dataset.py` writes one CSV per layer plus a manifest into
+`data/` (git-ignored, so the rule is in force before any real data exists).
+`adapters/dataset_his.py` reads any directory of CSV/Excel files, classifies each
+by its *columns* via `infer_layer` — the same classification the crawler applies
+to a portal module — and takes a `column_map` for hospital-named headers. A file
+called `PatientMaster_2026.csv` with columns "Patient ID", "DOB", "Gender" is
+served correctly given the map and nothing else; unknown columns are dropped and
+reported, never carried through. The real export is that map.
+
+**Label→field mapping: DONE 2026-09-13.** The fixture renders display labels on
+request (`labels=`); `PortalHISDataSource(field_aliases=...)` maps them back as
+headers are read, so discovery, inference and fetching all see catalogue names.
+Tested both ways: without the map the labelled module cannot be classified; with
+it, everything downstream is unchanged.
 
 Tier 2 is built exactly as the black-box rule demands. `tier2/browser.py` logs in
 through the form (the browser carries the token and cookie), parses tables by
@@ -231,7 +247,7 @@ cost axis gameable.
 
 **Result on the synthetic workload:** the compliant technique and the minimising
 one both pull exactly what the purpose requires (excess 1.00); the baseline pulls
-5.00x at the same coverage. Compliance and cost move together here rather than
+6.20x at the same coverage (five layers now). Compliance and cost move together here rather than
 trading off. The two axes turn out to be complementary — compliance separates all
 three techniques, cost separates the baseline from the other two — so both are
 needed to tell the whole story.
@@ -326,9 +342,14 @@ SS-01's pseudonymisation check from a declaration into a verified property of th
 output. Shaping is tested to add nothing that was not extracted. DICOM and 11073
 stay stubs and are reported as skipped.
 
-**Still open under W6:** per-layer pydantic schemas; fields for the fifth layer.
-These touch the HIS structure rather than the policy, so they are better done once
-the hospital dataset shows what that structure really looks like.
+**Schemas and the fifth layer: DONE 2026-09-13** (team decision: use synthetic
+structure now rather than wait). `data_synthetic/schemas` derives one pydantic model
+per layer from the catalogue, so the two cannot disagree; the Integration layer
+gets an audit-event record set (`audit_event_id`, `event_timestamp`, `actor_role`,
+`action`, `source_system`, `subject_mrn`) — compliance instrumentation, not a
+patient record, and not identifier-free, which is why it is worth modelling. It
+shapes to FHIR `AuditEvent`; the artefact is granted to no role. If the hospital
+dataset shows a different structure, the catalogue is the one place to change.
 
 ### W7 — Cut: LLM extraction agent
 

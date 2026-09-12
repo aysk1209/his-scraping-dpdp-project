@@ -23,10 +23,9 @@ def test_mock_source_is_a_hisdatasource():
     assert isinstance(MockHISDataSource(records_per_layer=1, seed=1), HISDataSource)
 
 
-def test_layers_are_the_record_layers_not_infrastructure():
+def test_layers_cover_all_five_including_the_audit_log():
     source = MockHISDataSource(records_per_layer=1, seed=1)
-    assert HISLayer.PATIENT_ADMINISTRATION in source.layers()
-    assert HISLayer.INFRASTRUCTURE_INTEGRATION not in source.layers()
+    assert set(source.layers()) == set(HISLayer)
 
 
 def test_fetch_without_fields_returns_full_records():

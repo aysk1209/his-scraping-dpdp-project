@@ -68,10 +68,9 @@ def test_robots_disallows_everything(client):
 def test_home_lists_one_module_per_populated_layer(client):
     _login(client)
     html = client.get("/").data.decode()
-    for layer in (HISLayer.PATIENT_ADMINISTRATION, HISLayer.CLINICAL_EHR,
-                  HISLayer.ANCILLARY_DEPARTMENTAL, HISLayer.ADMINISTRATIVE_FINANCIAL):
+    for layer in HISLayer:
         assert f"/m/{MODULE_SLUGS[layer]}/" in html
-    assert "/m/integration/" not in html      # no records there; not a module
+    assert "Audit Log" in html
 
 
 def test_list_page_shows_only_list_columns_and_paginates(client):

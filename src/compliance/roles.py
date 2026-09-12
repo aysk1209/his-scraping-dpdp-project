@@ -34,9 +34,11 @@ Three checks, three principles, in the order a data-protection officer would ask
 # report-time task, as elsewhere in this package.
 
 Deliberately NOT granted to any role: ``fhir:Claim`` (carries coded diagnosis --
-adjudication is an unmodelled purpose, see ``policy.py``) and ``dicom:Study`` (no
-imaging role is modelled). Both are kept in the vocabulary so the gate can be
-seen refusing them for the right reason rather than because they are unknown.
+adjudication is an unmodelled purpose, see ``policy.py``), ``dicom:Study`` (no
+imaging role is modelled) and ``fhir:AuditEvent`` (the audit log is reviewed by a
+data-protection role, not by front-line staff). All are kept in the vocabulary so
+the gate can be seen refusing them for the right reason rather than because they
+are unknown.
 """
 
 from __future__ import annotations
@@ -189,6 +191,11 @@ ARTEFACTS: dict[str, InteropArtefact] = {
         standard=InteropStandard.FHIR, name="Claim",
         layer=HISLayer.ADMINISTRATIVE_FINANCIAL, categories=frozenset({_DI, _FI, _CL}),
         note="carries coded diagnosis; adjudication is an unmodelled purpose -- granted to no role",
+    ),
+    "fhir:AuditEvent": InteropArtefact(
+        standard=InteropStandard.FHIR, name="AuditEvent",
+        layer=HISLayer.INFRASTRUCTURE_INTEGRATION, categories=frozenset({_DI, _AD}),
+        note="who touched which record; accountability evidence -- reviewed by a DPO role not modelled here, granted to no role",
     ),
     # --- DICOM and ISO/IEEE 11073 ---------------------------------------------
     "dicom:Study": InteropArtefact(

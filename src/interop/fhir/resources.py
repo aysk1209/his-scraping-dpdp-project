@@ -10,6 +10,7 @@ the resources carry exactly what the extraction pulled and no more.
                                 AllergyIntolerance, Observation (lab result)
     Ancillary / Departmental -> ServiceRequest, Observation, DiagnosticReport
     Administrative/Financial -> Invoice, Coverage
+    Infrastructure/Integration -> AuditEvent
 
 These are the resource types ``compliance.roles.ARTEFACTS`` names, so what a role
 may be instructed to touch and what an export actually produces share one
@@ -140,11 +141,37 @@ def shape_financial(row: dict[str, Any]) -> list[dict[str, Any]]:
     return out
 
 
+def shape_audit(row: dict[str, Any]) -> list[dict[str, Any]]:
+    if not _present(row, "audit_event_id", "event_timestamp", "actor_role", "action",
+                    "source_system", "subject_mrn"):
+        return []
+    ev: dict[str, Any] = {"resourceType": "AuditEvent"}
+    if row.get("audit_event_id"):
+        ev["id"] = row["audit_event_id"]
+    if row.get("action"):
+        ev["action"] = {"read": "R", "create": "C", "update": "U", "export": "E"}.get(
+            str(row["action"]).lower(), str(row["action"]))
+    if row.get("event_timestamp"):
+        ev["recorded"] = row["event_timestamp"]
+    if row.get("actor_role") or row.get("source_system"):
+        agent: dict[str, Any] = {}
+        if row.get("actor_role"):
+            agent["role"] = [{"text": row["actor_role"]}]
+        if row.get("source_system"):
+            agent["name"] = row["source_system"]
+        ev["agent"] = [agent]
+    if row.get("subject_mrn"):
+        ev["entity"] = [{"what": {"identifier": {"system": IDENTIFIER_SYSTEM,
+                                                  "value": row["subject_mrn"]}}}]
+    return [ev]
+
+
 _SHAPERS = {
     HISLayer.PATIENT_ADMINISTRATION: shape_patient_administration,
     HISLayer.CLINICAL_EHR: shape_clinical,
     HISLayer.ANCILLARY_DEPARTMENTAL: shape_ancillary,
     HISLayer.ADMINISTRATIVE_FINANCIAL: shape_financial,
+    HISLayer.INFRASTRUCTURE_INTEGRATION: shape_audit,
 }
 
 
@@ -161,4 +188,4 @@ def bundle(resources: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 __all__ = ["shape_fhir", "bundle", "shape_patient_administration", "shape_clinical",
-           "shape_ancillary", "shape_financial", "IDENTIFIER_SYSTEM"]
+           "shape_ancillary", "shape_financial", "shape_audit", "IDENTIFIER_SYSTEM"]

@@ -27,7 +27,7 @@ from urllib.parse import urlparse
 from pydantic import BaseModel, Field
 
 from compliance.roles import ARTEFACTS
-from data_synthetic.catalogue import FIELD_CATALOGUE
+from data_synthetic.catalogue import infer_layer
 from extraction.tier2.browser import PortalBrowser
 from interop.layers import HISLayer
 
@@ -114,21 +114,6 @@ class NavigationMap(BaseModel):
         path = directory / "navigation-map.json"
         path.write_text(self.model_dump_json(indent=2), encoding="utf-8")
         return path
-
-
-def infer_layer(fields: list[str]) -> tuple[HISLayer | None, float]:
-    """Which catalogue layer explains the most of these field names?"""
-
-    if not fields:
-        return None, 0.0
-    best_layer, best_hits = None, 0
-    for layer, catalogue in FIELD_CATALOGUE.items():
-        hits = sum(1 for f in fields if f in catalogue)
-        if hits > best_hits:
-            best_layer, best_hits = layer, hits
-    if best_layer is None:
-        return None, 0.0
-    return best_layer, round(best_hits / len(fields), 3)
 
 
 def discover(browser: PortalBrowser, *, home_path: str = "/") -> NavigationMap:

@@ -99,10 +99,10 @@ every technique against every task (three, currently), scores each run with the
 
 The full artifact (`docs/benchmark_results/benchmark.md`) also carries the
 per-rule breakdown, a per-task table, what each task needs, and what each
-technique actually pulled over the workload — e.g. the baseline collects *600
-records across 4 layers* including 150 *contact* and 150 *financial* fields it
-was never asked for, while the compliance-aware technique pulls *300 records
-across 2 layers*, nothing out-of-scope.
+technique actually pulled over the workload — e.g. the baseline collects *750
+records across 5 layers* including 150 *contact*, 150 *financial* and 150
+audit-log fields it was never asked for, while the compliance-aware technique
+pulls *300 records across 2 layers*, nothing out-of-scope.
 
 ### The second axis: cost
 
@@ -116,7 +116,7 @@ cooperates in its own measurement or could game it.
 |-----------|-----------:|-------------:|---------:|--------------:|--------:|
 | compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 750 | 6 |
 | minimising, undocumented | 0.500 | 1.00 | 1.00 | 750 | 6 |
-| unconstrained (baseline) | 0.131 | 5.00 | 1.00 | 3750 | 12 |
+| unconstrained (baseline) | 0.131 | 6.20 | 1.00 | 4650 | 15 |
 
 **`excess_ratio`** is distinct fields pulled divided by the fields the task's
 purpose requires. It is a cost measure and a compliance measure at once, because

@@ -23,5 +23,7 @@ def test_hl7_and_fhir_cover_the_clinical_layers() -> None:
         assert InteropStandard.FHIR in stds
 
 
-def test_infrastructure_layer_carries_no_record_standard() -> None:
-    assert standards_for(HISLayer.INFRASTRUCTURE_INTEGRATION) == ()
+def test_infrastructure_layer_carries_audit_events_as_fhir_only() -> None:
+    # Not a patient-record layer: its records are audit events, and FHIR has a
+    # resource for exactly that (AuditEvent). HL7 v2 has nothing that fits.
+    assert standards_for(HISLayer.INFRASTRUCTURE_INTEGRATION) == (InteropStandard.FHIR,)

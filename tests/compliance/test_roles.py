@@ -47,8 +47,8 @@ def test_every_role_artefact_exists_in_the_vocabulary():
         assert not missing, f"{role.value}: {missing}"
 
 
-def test_claim_and_dicom_are_deliberately_granted_to_nobody():
-    assert unassigned_artefacts() == ["dicom:Study", "fhir:Claim"]
+def test_claim_dicom_and_audit_are_deliberately_granted_to_nobody():
+    assert unassigned_artefacts() == ["dicom:Study", "fhir:AuditEvent", "fhir:Claim"]
 
 
 # --- derived scopes ----------------------------------------------------------

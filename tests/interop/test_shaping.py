@@ -139,6 +139,8 @@ def test_shaping_follows_the_layer_standard_matrix():
     out = UnconstrainedExtractionTechnique().extract(MockHISDataSource(records_per_layer=2, seed=1), TASK)
     shaped = normalise(out, key="k")
     assert set(shaped.hl7) == {l.value for l in (PA, EHR, HISLayer.ANCILLARY_DEPARTMENTAL, FIN)}
+    assert HISLayer.INFRASTRUCTURE_INTEGRATION.value in shaped.fhir      # AuditEvent, FHIR only
+    assert HISLayer.INFRASTRUCTURE_INTEGRATION.value not in shaped.hl7
     assert set(shaped.skipped_standards) == {"dicom", "iso_ieee_11073"}
 
 

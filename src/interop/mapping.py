@@ -49,7 +49,9 @@ LAYER_STANDARDS: dict[HISLayer, tuple[InteropStandard, ...]] = {
         InteropStandard.HL7_V2,
         InteropStandard.FHIR,
     ),
-    HISLayer.INFRASTRUCTURE_INTEGRATION: (),
+    # The audit log has a FHIR resource of its own -- AuditEvent -- and nothing in
+    # HL7 v2 that fits. Added with the fifth layer's fields, 2026-09-13.
+    HISLayer.INFRASTRUCTURE_INTEGRATION: (InteropStandard.FHIR,),
 }
 
 

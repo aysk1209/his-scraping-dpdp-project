@@ -89,7 +89,7 @@ def main() -> None:
         DEFAULT_TECHNIQUES,
         TASKS,
         source,
-        dataset_note=f"{records_per_layer} records/layer x 4 layers, seed {seed}",
+        dataset_note=f"{records_per_layer} records/layer x 5 layers, seed {seed}",
         # Wall-clock is the one non-reproducible number in the table; take the
         # median of three runs so it is at least stable between invocations.
         repeats=3,

@@ -11,10 +11,12 @@ when some requested field lives there. A technique that asks for more than it
 needs therefore loads more pages, and ``page_loads`` says how many. The
 compliance benchmark's metering picks that up as the honest cost column.
 
-Field names are whatever the portal shows in its table headers. Our fixture
-happens to show catalogue names; a real portal would show display labels, and the
-mapping from label to catalogue field would sit here, in the adapter, where
-portal-specific knowledge belongs.
+Field names are whatever the portal shows in its table headers. Our fixture shows
+catalogue names by default and display labels when asked (``labels=``); a real
+portal shows display labels. ``field_aliases`` maps label to catalogue field and
+is applied as headers are read, so discovery, layer inference and fetching all see
+catalogue names. That mapping is the one piece of portal-specific knowledge in the
+chain, and it sits here, where it belongs.
 """
 
 from __future__ import annotations
@@ -40,8 +42,12 @@ class PortalHISDataSource(HISDataSource):
         navigation: NavigationMap | None = None,
         headless: bool = True,
         max_records: int | None = None,
+        field_aliases: dict[str, str] | None = None,
     ) -> None:
-        self._browser = PortalBrowser(base_url, username, password, headless=headless)
+        self._browser = PortalBrowser(
+            base_url, username, password, headless=headless,
+            field_aliases=dict(field_aliases or {}),
+        )
         self._browser.open()
         self._browser.login()
         self.navigation = navigation or discover(self._browser)

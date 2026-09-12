@@ -51,6 +51,10 @@ class PortalBrowser:
     username: str
     password: str
     headless: bool = True
+    # Display label -> catalogue field. A real portal shows "Patient ID", not
+    # ``mrn``; this is where that portal-specific knowledge lives. Matching is
+    # case- and whitespace-insensitive; unmapped headers pass through unchanged.
+    field_aliases: dict[str, str] = field(default_factory=dict)
     page_loads: int = 0
     _pw: Playwright | None = field(default=None, repr=False)
     _browser: Browser | None = field(default=None, repr=False)
@@ -84,6 +88,15 @@ class PortalBrowser:
     def page(self) -> Page:
         assert self._page is not None, "PortalBrowser is not open"
         return self._page
+
+    def field_name(self, header: str) -> str:
+        """Map a header as displayed to the catalogue field it means."""
+
+        key = " ".join(header.split()).lower()
+        for label, name in self.field_aliases.items():
+            if " ".join(label.split()).lower() == key:
+                return name
+        return header
 
     # --------------------------------------------------------------- navigation
 
@@ -128,7 +141,7 @@ class PortalBrowser:
         page = self.page
         headers = [h.inner_text().strip() for h in page.locator("table thead th").all()]
         has_actions = bool(headers) and headers[-1] == ""
-        columns = headers[:-1] if has_actions else headers
+        columns = [self.field_name(h) for h in (headers[:-1] if has_actions else headers)]
 
         rows: list[dict[str, str]] = []
         row_links: list[str | None] = []
@@ -170,7 +183,7 @@ class PortalBrowser:
             name = tr.locator("th").first.inner_text().strip()
             value = tr.locator("td").first.inner_text().strip()
             if name:
-                record[name] = value
+                record[self.field_name(name)] = value
         return record
 
     def iter_table_pages(self, first_url: str, *, max_pages: int | None = None):

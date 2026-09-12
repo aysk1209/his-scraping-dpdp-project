@@ -163,9 +163,9 @@ This runs **three different scraping methods** against the same fake hospital
 
 The output also shows: a few sample (fake) patient records, a per-task score
 table, what each task actually needs, and **what each method pulled** — e.g. the
-baseline grabs *600 records across 4 layers* including 150 billing and 150
-contact fields it was never asked for, versus *300 records across 2 layers* for
-the compliance-aware method.
+baseline grabs *750 records across 5 layers* including 150 billing, 150 contact
+and 150 audit-log rows it was never asked for, versus *300 records across 2
+layers* for the compliance-aware method.
 
 ### The cost table underneath it
 
@@ -176,11 +176,11 @@ question a score alone invites — *what do you give up to be compliant?*
 |--------|-------------:|--------------:|--------:|
 | compliance-aware (ours) | 1.00 | 750 | 6 |
 | minimising, undocumented | 1.00 | 750 | 6 |
-| unconstrained (baseline) | 5.00 | 3750 | 12 |
+| unconstrained (baseline) | 6.20 | 4650 | 15 |
 
 **Excess ratio** is the number to point at: how many fields a method pulled for
 every one the job actually required. The compliant method pulls exactly what is
-needed (1.00); the baseline pulls five times that. All three obtain everything
+needed (1.00); the baseline pulls six times that. All three obtain everything
 the tasks require, so nobody is winning by doing less work — the "coverage"
 column in the real output is 1.00 across the board.
 
@@ -337,7 +337,7 @@ environment activated.
    the same seven rules. This is the core result.
 
    Then drop to the cost table underneath and make the second point: the
-   baseline pulls **5x** the fields the purpose requires, at the same coverage.
+   baseline pulls **6x** the fields the purpose requires, at the same coverage.
    Compliance did not cost anything here — the surplus the baseline pays for is
    the same surplus the minimisation rule penalises. (This answers the Review-I
    panel's request to show processing time; wall-clock is in the table too, but

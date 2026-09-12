@@ -7,17 +7,19 @@ from data_synthetic.catalogue import FIELD_CATALOGUE, categories_for_fields, fie
 from data_synthetic.generators import build_dataset, generate_layer_records
 from interop.layers import HISLayer
 
-_RECORD_LAYERS = {
-    HISLayer.PATIENT_ADMINISTRATION,
-    HISLayer.CLINICAL_EHR,
-    HISLayer.ANCILLARY_DEPARTMENTAL,
-    HISLayer.ADMINISTRATIVE_FINANCIAL,
-}
+_RECORD_LAYERS = set(HISLayer)
 
 
-def test_catalogue_covers_the_four_record_layers_only():
+def test_catalogue_covers_all_five_layers():
     assert set(FIELD_CATALOGUE) == _RECORD_LAYERS
-    assert HISLayer.INFRASTRUCTURE_INTEGRATION not in FIELD_CATALOGUE
+
+
+def test_infrastructure_layer_is_audit_instrumentation_not_a_patient_record():
+    fields = FIELD_CATALOGUE[HISLayer.INFRASTRUCTURE_INTEGRATION]
+    assert "audit_event_id" in fields and "action" in fields
+    # ...but it still references the patient, so it is not identifier-free.
+    assert fields["subject_mrn"] == FieldCategory.DIRECT_IDENTIFIER
+    assert FieldCategory.CLINICAL not in fields.values()
 
 
 def test_every_catalogue_category_is_a_valid_field_category():

@@ -1,12 +1,12 @@
 {
-  "base_url": "http://127.0.0.1:55532",
-  "discovered_at": "2026-09-12T15:59:19.310226Z",
+  "base_url": "http://127.0.0.1:54983",
+  "discovered_at": "2026-09-12T19:03:23.982858Z",
   "login_path": "/login",
-  "page_loads": 9,
+  "page_loads": 11,
   "modules": [
     {
       "title": "Patient Registration",
-      "list_url": "http://127.0.0.1:55532/m/registration/",
+      "list_url": "http://127.0.0.1:54983/m/registration/",
       "list_path": "/m/registration/",
       "columns": [
         "mrn",
@@ -27,13 +27,13 @@
         "admission_datetime"
       ],
       "page_count": 2,
-      "record_count": 10,
+      "record_count": 30,
       "inferred_layer": "patient_administration",
       "layer_confidence": 1.0
     },
     {
       "title": "Clinical Records",
-      "list_url": "http://127.0.0.1:55532/m/clinical/",
+      "list_url": "http://127.0.0.1:54983/m/clinical/",
       "list_path": "/m/clinical/",
       "columns": [
         "encounter_datetime",
@@ -49,13 +49,13 @@
         "attending_clinician"
       ],
       "page_count": 2,
-      "record_count": 10,
+      "record_count": 30,
       "inferred_layer": "clinical_ehr",
       "layer_confidence": 1.0
     },
     {
       "title": "Departmental Orders",
-      "list_url": "http://127.0.0.1:55532/m/departments/",
+      "list_url": "http://127.0.0.1:54983/m/departments/",
       "list_path": "/m/departments/",
       "columns": [
         "order_id",
@@ -70,13 +70,13 @@
         "report_text"
       ],
       "page_count": 2,
-      "record_count": 10,
+      "record_count": 30,
       "inferred_layer": "ancillary_departmental",
       "layer_confidence": 1.0
     },
     {
       "title": "Billing & Accounts",
-      "list_url": "http://127.0.0.1:55532/m/billing/",
+      "list_url": "http://127.0.0.1:54983/m/billing/",
       "list_path": "/m/billing/",
       "columns": [
         "invoice_id",
@@ -90,8 +90,31 @@
         "payer_name"
       ],
       "page_count": 2,
-      "record_count": 10,
+      "record_count": 30,
       "inferred_layer": "administrative_financial",
+      "layer_confidence": 1.0
+    },
+    {
+      "title": "Audit Log",
+      "list_url": "http://127.0.0.1:54983/m/integration/",
+      "list_path": "/m/integration/",
+      "columns": [
+        "audit_event_id",
+        "event_timestamp",
+        "actor_role",
+        "action"
+      ],
+      "detail_fields": [
+        "audit_event_id",
+        "event_timestamp",
+        "actor_role",
+        "action",
+        "source_system",
+        "subject_mrn"
+      ],
+      "page_count": 2,
+      "record_count": 30,
+      "inferred_layer": "infrastructure_integration",
       "layer_confidence": 1.0
     }
   ]

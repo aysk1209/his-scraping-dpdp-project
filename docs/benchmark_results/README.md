@@ -12,6 +12,8 @@ re-running the matching script from the repo root.
 | `benchmark-portal.{json,md}` | `python scripts/run_pipeline.py` | The same three techniques scraping the served portal through a real browser; cost includes real page loads. **The end-to-end result.** |
 | `navigation-map.json` | `python scripts/run_pipeline.py` | What the crawler discovered about the portal and which HIS layer it inferred for each module. |
 
+`data/synthetic_export/` (git-ignored) is written by `python scripts/generate_dataset.py` and read by the dataset adapter.
+
 Tracked in git as browsable references: `benchmark.md`, `benchmark-portal.md`,
 `navigation-map.json`, the two `*--purpose-matrix.md` files that show the
 care/billing comparison in both directions, and this README. Every other file here is git-ignored and regenerated
