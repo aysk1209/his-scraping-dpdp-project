@@ -2,7 +2,8 @@
 
 Working plan for the remainder of the project. Complements `CLAUDE.md` (operating
 rules) and `PROJECT_CONTEXT.md` (background). Written 2026-09-12, after Review-I
-cleared. Revise in place rather than appending revisions.
+cleared; revised the same day following the team's scope decisions. Revise in
+place rather than appending revisions.
 
 ---
 
@@ -13,277 +14,316 @@ in one continuous run:
 
 1. **Scraping** — data pulled out of a HIS portal by real browser automation.
 2. **The DPDP pipeline** — that data carried through our compliance layer, scored
-   per principle, with techniques compared against each other.
-3. **The agent** — an agent that demonstrably understands the structure of the HIS
-   and returns **simple operating instructions for hospital staff**, differentiated
-   by **role** (administrator, nurse, receptionist) and by **the type of task being
-   performed**.
+   per principle, with techniques compared against each other on both compliance
+   and cost.
+3. **The agent** — recognises a pre-defined function from what a staff member types,
+   asks for the input details that function needs, and replies with simple
+   operating instructions, differentiated by staff role (administrator / nurse /
+   reception) and by task type.
 
-Deployment is explicitly **not** part of 100%. Live hospital data access is
-explicitly **not** part of 100% — see §3.
+Deployment is **not** part of 100%.
 
-### What this changed
+## 2. Where the contribution lies — and what follows from it
 
-Part 3 was previously framed as the project's long-term motivation, "beyond this
-project's scope". It is now inside the graded scope, and `CLAUDE.md` /
-`PROJECT_CONTEXT.md` have been corrected accordingly. Two consequences follow:
+**The DPDP compliance work is the novelty.** The research paper and the project
+report are about compliance as a measurable, benchmarkable property of an
+extraction technique. Everything else exists to make that contribution
+demonstrable and the project complete.
 
-- The agent stops being an optional fourth benchmark technique and becomes a
-  **headline deliverable**. Work on it is re-prioritised upward.
-- The compliance layer acquires a **second job**. Until now it scored extraction
-  runs after the fact. It now also *gates* what the agent may instruct a given role
-  to do — see §2.
+**The agent is a completeness deliverable, not a research contribution.** It is
+deliberately simple: pre-defined functions, recognised from user input, slot-filled
+by asking for the details, answered with templated instructions. **No LLM, no
+model, no training, no fine-tuning.** Build it to work and to look complete; do not
+invest research effort in it, do not benchmark it, and do not let it grow.
 
-## 2. The architectural insight this plan is built on
+Three consequences that this plan is built around:
 
-Role-based staff guidance and DPDP purpose limitation are the **same mechanism**.
+- **Effort follows the contribution.** Compliance-related components carry the most
+  weight in §5 and are sequenced to be finished, not merely started.
+- **The agent earns its place through one property only:** its function registry is
+  **DPDP-gated per role**. Reception asking how to look up a diagnosis is declined,
+  because reception carries no clinical-category access under the purpose policy.
+  That single check is what connects the agent to the contribution instead of
+  sitting beside it. Without it the agent is decoration; with it, it is a second
+  application of the same rule set.
+- **The LLM extraction agent is cut.** The AXE-inspired agent-as-a-fourth-technique
+  is dropped from the build (see W7). AXE remains a literature-survey citation and
+  related work; it is no longer something we implement.
 
-A receptionist asking "how do I look up this patient's diagnosis?" should not
-receive instructions, because reception's role does not carry clinical-category
-access under the `care_coordination` purpose. The agent declines, and cites the
-rule. A nurse asking the same question is guided through it.
+## 3. Quantifying the difference between techniques
 
-This matters beyond a demo flourish. It is what makes the two halves of the
-project one project rather than two bolted together:
+The Review-I panel asked for processing time. The deeper requirement is simply **a
+defensible way to quantify what separates the techniques** beyond their compliance
+scores. Precise numbers matter less than a metric that holds up.
 
-```
-  Tier 2 scraper  --discovers-->  HIS structure  --grounds-->  Agent guidance
-        |                          (layers, fields,                  ^
-        |                           navigation map)                  |
-        v                                 |                          |
-  Extraction runs --scored by-->  DPDP compliance layer --gates------+
-                                  (7 rules + purpose policy
-                                   + role x task policy)
-```
+**Wall-clock time alone is a weak metric here.** It moves with the machine, the
+dataset size, and network conditions, so it is not reproducible by a reader of the
+paper — which is exactly what a published benchmark needs to be.
 
-The scraper discovers the architecture; that structure becomes the agent's
-knowledge of the HIS; the compliance layer both scores the extraction and
-constrains the guidance. One rule set, two applications. This is also the
-strongest available answer to the Review-1 panel's heterogeneity doubt: point the
-scraper at a different HIS and the agent's understanding re-derives itself.
+**Proposed: an extraction cost profile, reported alongside the compliance score.**
 
-## 3. Standing constraint: no live HIS data
+| Metric | Deterministic | What it captures |
+|---|---|---|
+| `fields_pulled` | yes | Total field-values extracted |
+| `pages_fetched` | yes | Navigation actions — the real driver of browser-scraping cost |
+| `excess_ratio` | yes | Fields pulled ÷ fields the purpose actually needs (≥ 1.0) |
+| `elapsed_ms` | no | Wall-clock, median of n runs — answers the panel's literal question |
 
-Credentialed access has now missed a full review cycle with no committed date.
-**Plan as though it never arrives.** Nothing in §1 depends on it.
+The first three are reproducible on any machine and independent of dataset size,
+so they are what the paper leans on. Wall-clock is reported as a secondary,
+labelled as hardware-dependent.
 
-The substitute is a **mock HIS portal we author ourselves** (W1): a login-gated web
-application serving synthetic records as HTML. Playwright scrapes it for real —
-real browser, real authentication, real DOM, real latency. It is a test fixture,
-not a product. `LiveHISDataSource` stays a stub; if access ever lands, it becomes a
-matter of selectors and credentials rather than unwritten code.
+**Why `excess_ratio` is the one that matters.** It is simultaneously a cost measure
+and a compliance measure: fields pulled beyond what the purpose needs *are* the
+data-minimisation overreach the DPDP rule penalises. Cost and compliance turn out
+to be the same underlying quantity viewed from two directions, which lets the paper
+make a sharper claim than "compliance is affordable" — namely that **on this axis,
+the compliant technique is the cheap one, and the overreach the baseline pays for
+is exactly the overreach the law objects to.**
 
-**Named limitation, to state in the deck rather than have found:** a self-authored
-portal is friendlier than a real one — clean markup, no bot defences, no vendor
-quirks. It validates that the pipeline works, not that it is robust in the wild.
+That argument does not depend on any particular number coming out a particular way,
+which is the point.
 
-## 4. Completion ledger
+## 4. Data situation
+
+**Expected by Review-II: a large dataset from the hospital**, and possibly live
+access. This is a change from the previous "assume nothing arrives" stance, and it
+reshapes what each data source is for:
+
+| Source | Role |
+|---|---|
+| Synthetic generator | Development, tests, reproducible benchmark runs for the paper |
+| **Hospital dataset (expected)** | Volume and realism for the compliance benchmark |
+| Rough mock portal | Demonstrating the *scraping* mechanism |
+| Live HIS (may not arrive) | Upside only; nothing depends on it |
+
+The adapter boundary already absorbs this: the dataset arrives as a
+`DatasetHISDataSource` (W2) beside the existing mock, and no downstream code
+changes. **Do not delay other work waiting for it**, and do not design anything
+that breaks if it never comes.
+
+### Handling requirement — flagged deliberately
+
+A large hospital dataset is, in all likelihood, **real personal data of real
+patients**. A project whose entire contribution is data-protection compliance
+cannot be careless with it. Before any such dataset is used:
+
+- Confirm it is **de-identified at source**, or de-identify it on receipt before it
+  touches the repository.
+- **Never commit it to git** — add the data path to `.gitignore` first, not after.
+- Record its **provenance and the basis on which it was shared** with us; the report
+  will need to state this, and a reviewer is entitled to ask.
+- Check whether institutional ethics approval is required for handling it.
+
+This is not bureaucratic caution — being non-compliant with the Act we are
+benchmarking against would be a serious and highly visible problem.
+
+## 5. Completion ledger
 
 Component weights are our own judgement, recorded so that any percentage we claim
-is arithmetic rather than assertion. They sum to the 100% defined in §1.
+is arithmetic rather than assertion. They sum to the 100% defined in §1, and they
+are weighted toward the contribution described in §2.
 
 | # | Component | Weight | Now | At Review-II |
 |---|---|---:|---:|---:|
 | 1 | DPDP compliance framework (7 rules, policy, scoring, report) | 15 | 15 | 15 |
-| 2 | Synthetic data: catalogue, generator, per-layer schemas | 10 | 6 | 9 |
-| 3 | Extraction: adapter interface + three techniques | 10 | 10 | 10 |
-| 4 | Mock HIS portal fixture | 8 | 0 | 8 |
-| 5 | Tier 2 browser extraction (Playwright) | 12 | 0 | 12 |
-| 6 | Benchmark harness, including per-technique timing | 10 | 8 | 10 |
-| 7 | Interop normalisation wired into a live run | 5 | 2 | 5 |
-| 8 | Agent A — extraction agent as a scored technique | 8 | 0 | 2 |
-| 9 | Agent B — role- and task-aware staff guidance | 12 | 0 | 7 |
-| 10 | Role x task compliance policy | 5 | 0 | 5 |
-| 11 | End-to-end pipeline demonstration | 5 | 0 | 5 |
-| | **Total** | **100** | **41** | **88** |
+| 2 | Benchmark harness + cost profile (§3) | 12 | 8 | 12 |
+| 3 | Role × task DPDP policy (gates the agent) | 7 | 0 | 7 |
+| 4 | Extraction: adapter interface + three techniques | 10 | 10 | 10 |
+| 5 | Tier 2 browser extraction (Playwright) | 12 | 0 | 10 |
+| 6 | Synthetic data: catalogue, generator, schemas | 8 | 6 | 8 |
+| 7 | Dataset adapter for the hospital export | 5 | 0 | 4 |
+| 8 | Rough mock HIS portal | 5 | 0 | 5 |
+| 9 | Interop normalisation wired into a run | 5 | 2 | 5 |
+| 10 | Rule-based staff-guidance agent | 10 | 0 | 7 |
+| 11 | End-to-end demonstration | 5 | 0 | 5 |
+| 12 | Project report + manuscript (compliance-focused) | 6 | 0 | 1 |
+| | **Total** | **100** | **41** | **89** |
 
-Review-II's floor is ~75%. The plan below targets 88 so that slippage on any one
-workstream still clears it. Treat the margin as insurance, not as spare capacity.
+Review-II's floor is ~75%; this targets 89, so slippage on any one workstream still
+clears it. The residual 11 points to Review-III are almost entirely the report and
+the manuscript — which is exactly what Review-III is for.
 
-## 5. Workstreams
+## 6. Workstreams
 
-Acceptance criteria are written so that "done" is observable, not a matter of
-opinion.
+Acceptance criteria are written so that "done" is observable rather than a matter
+of opinion.
 
-### W1 — Mock HIS portal *(component 4)*
+### W1 — Rough mock HIS portal *(component 8)*
 
-A small Flask application serving the **existing** synthetic generator as HTML, so
-portal data and `MockHISDataSource` data agree by construction.
+**Deliberately minimal.** Not a simulation of a hospital system — just enough
+structure for a browser to log into, navigate, and scrape. A small Flask app:
 
-- Login page, session cookie, logout.
-- Module navigation mirroring the five layers.
-- Paginated patient list; per-patient detail page; labs view; billing view.
-- At least one field reachable **only** via detail-page navigation — this is what
-  makes different techniques cost different amounts, and without it the timing
-  numbers in W3 are meaningless.
-- Modest artificial latency, so timing is dominated by navigation rather than noise.
+- Login page and session cookie.
+- A handful of pages mapped to the five layers.
+- A paginated patient list and a per-patient detail page.
+- At least one field reachable **only** via the detail page, so that techniques
+  differ in `pages_fetched` and the cost profile has something to measure.
 
-**Done when:** one command serves a portal a human can log into and browse, and no
-real hospital system is involved.
+Resist adding realism. Its only jobs are to exercise the browser layer and to
+produce cost differences.
 
-### W2 — Tier 2 Playwright extraction *(component 5)*
+**Done when:** one command serves a portal a human can log into and browse.
 
-Fills `src/extraction/tier2/` and adds `src/extraction/adapters/portal_his.py`
-implementing `HISDataSource` over it: browser session, login, navigation, list and
-detail parsing, pagination.
+### W2 — Data sources: Tier 2 scraping and the hospital dataset *(components 5, 7)*
 
-Additionally, and importantly for W5: emit a **navigation map artifact** — the
-portal structure the crawler discovered, as layers to pages to fields. This is the
-artifact that later grounds the agent's understanding of the HIS.
+Two adapters behind the existing `HISDataSource` interface.
 
-**Done when:** all three existing techniques run unchanged against
-`PortalHISDataSource` and produce the same shape of output they produce against
-`MockHISDataSource`. Unchanged is the point — it is the proof the adapter boundary
-was designed correctly, and the demonstration of the heterogeneity answer.
+**Tier 2 (Playwright)** — fills `src/extraction/tier2/` and adds
+`adapters/portal_his.py`: browser session, login, navigation, list and detail
+parsing, pagination. Also emits a **navigation map** — layers → pages → fields —
+which W4 reuses.
 
-### W3 — Per-technique processing time *(component 6)*
+**Dataset adapter** — `adapters/dataset_his.py`, reading the hospital export
+(CSV/Excel via pandas, most likely) and mapping its columns onto the field
+catalogue's layers and DPDP categories. Write it against the synthetic generator's
+output shape now, so that when the real export lands the work is a column mapping
+rather than new code. See §4 before pointing it at real data.
 
-The Review-I panel's suggestion. Extend `TechniqueScore` with `mean_elapsed_ms`,
-`ms_per_record` and `page_fetches`; add a time column to `render_table` and
-`render_markdown`; rewrite `BenchmarkResult._takeaway()` to state the trade-off
-rather than dismissing speed as it currently does.
+**Done when:** all three existing techniques run unchanged against both adapters
+and produce the same shape of output they produce against `MockHISDataSource`.
+Unchanged is the point — it is what proves the adapter boundary was designed right,
+and it is the demonstration of the answer to the panel's heterogeneity doubt.
 
-Report the **median of n>=3 runs**, not a single sample. Report timings measured
-against the portal; in-memory timings are microsecond noise and should be labelled
-as such if shown at all.
+### W3 — Cost profile in the benchmark *(component 2)*
 
-**Do not predict the result.** The compliance-aware technique will most likely be
-*faster*, since it fetches fewer pages — but manifest construction adds overhead,
-and the honest move is to measure and report whichever way it falls. Quantifying a
-compliance premium is more credible than not measuring one.
+Implements §3. Extend `TechniqueScore` with `fields_pulled`, `pages_fetched`,
+`excess_ratio` and `elapsed_ms`; add the columns to `render_table` and
+`render_markdown`; rewrite `BenchmarkResult._takeaway()` to state the
+compliance-versus-cost relationship rather than dismissing speed as it does today.
+
+`excess_ratio` needs a denominator — the field count the task declares as needed,
+which `ExtractionTask.needed` already carries. Little new machinery is required.
 
 **Done when:** the headline table carries compliance **and** cost, and the takeaway
-line states the trade-off in measured numbers.
+states the relationship between them.
 
-### W4 — Agent A: extraction agent *(component 8, deliberately deprioritised)*
+### W4 — Staff-guidance agent *(component 10)*
 
-AXE-inspired: Claude via the Anthropic API, given tools to inspect layers and
-fields, proposing an `ExtractionTask` plus compliance manifest from a
-natural-language request. It then enters the benchmark as a fourth technique,
-scored by the same seven rules.
+Rule-based, deterministic, no LLM. Four parts:
 
-This serves the **paper** — an LLM technique scored on identical terms is a genuine
-contribution. It does **not** serve the §1 demonstration. Scaffold it for
-Review-II; complete it for Review-III.
+1. **Function registry** — pre-defined staff functions, each declaring: an id and
+   label, the roles permitted to perform it, the HIS layers and field categories it
+   touches, its required inputs, and its instruction-step template. Roughly:
+   - reception — register a patient, book or reschedule an appointment, check in an
+     arrival, verify insurance eligibility;
+   - nurse — record vitals, view the active medication list, request a lab, prepare
+     a discharge checklist;
+   - administrator — allocate a bed, generate a bill, reconcile a claim, run a census.
+2. **Recognition** — match user input against function labels and a synonym list by
+   token overlap; ask the user to choose when the match is ambiguous. No new
+   dependency needed, and nothing here can hallucinate.
+3. **Slot filling** — ask for each required input in turn until the function's
+   inputs are satisfied.
+4. **DPDP gate** — before returning anything, check role × function against the
+   role policy (W5). If the role is not permitted, **decline and cite the rule**.
 
-### W5 — Agent B: role- and task-aware staff guidance *(component 9 — the headline)*
+Output is a `StaffGuidance` artifact: numbered steps, the HIS layer and portal page
+each step touches, and a DPDP note wherever a step touches a sensitive category.
+Steps reference the navigation map from W2, so the instructions correspond to pages
+that actually exist.
 
-The deliverable §1.3 names. Given a **staff role** and a **task**, return short,
-numbered operating instructions for the HIS.
-
-New types:
-
-- `StaffRole` — `RECEPTION`, `NURSE`, `ADMINISTRATOR` (extensible; three is enough
-  to demonstrate differentiation).
-- `TaskType` — grounded in the five layers, roughly:
-  - reception: register a patient, book or reschedule an appointment, check in an
-    arrival, verify insurance eligibility;
-  - nurse: record vitals, view the active medication list, request a lab, prepare a
-    discharge checklist;
-  - administrator: allocate a bed, generate a bill, reconcile a claim, run a census.
-- `StaffGuidance` — the returned artifact: numbered steps, the HIS layer and portal
-  page each step touches, the data categories involved, and a DPDP note wherever a
-  step touches a sensitive category.
-
-The agent's understanding of the HIS comes from real artifacts, not from prose we
-hand it: the `HISLayer` enum, the field catalogue, the interop mappings, and the
-navigation map W2 discovered. Guidance is therefore **checkable** — see W5-eval.
-
-**W5-eval (what makes this research rather than a chatbot).** Two measurable
-properties, both reusing machinery we already have:
-
-- **Groundedness** — the proportion of generated steps that reference a page or
-  field actually present in the discovered navigation map. Catches hallucinated
-  instructions, which in a hospital setting are the failure mode that matters.
-- **Guidance compliance** — the proportion of guidance that stays inside the
-  requesting role's DPDP-allowed categories, scored by the existing rule set.
-
-**Done when:** the same task asked by three different roles yields three
+**Done when:** the same request from three different roles yields three
 appropriately different answers, and an out-of-role request is declined with the
-rule cited. That decline is the single most demonstrable moment in the project —
-build toward it deliberately.
+rule cited. **That decline is the most demonstrable moment in the project** — it is
+where the compliance layer visibly does work outside the benchmark. Build toward it
+deliberately.
 
-### W6 — Role x task compliance policy *(component 10)*
+Being rule-based makes the whole thing unit-testable with no network and no API
+key, which also means it cannot fail in the review room.
+
+### W5 — Role × task DPDP policy *(component 3)*
 
 Extends `src/compliance/policy.py` with a role-aware envelope: which field
 categories and layers each `StaffRole` may be instructed to access, for a given
-task and purpose. Declarative table, same as `PURPOSE_POLICY` — the "what is
-allowed" stays inspectable in one place, which is itself an artifact for the paper.
+task and purpose. A declarative table, like `PURPOSE_POLICY` — "what is allowed"
+stays inspectable in one place, which is itself an artifact the report can show.
 
-This is what W5's decline behaviour is enforced by. Build it before W5 finishes.
+This is compliance work, not agent work, and it is weighted and sequenced as such.
+It must precede W4's decline behaviour.
 
-### W7 — Widen synthetic data *(component 2)*
+### W6 — Widen the compliance surface *(components 6, 9)*
 
-Per-layer pydantic schemas; fields for the fifth layer; and **a second processing
-purpose** (`billing_settlement` is the natural candidate). The second purpose is
-cheap and matters more than it looks: with only one purpose modelled, the
-purpose-limitation rule has nothing to discriminate between, which quietly weakens
-one of the seven.
+Per-layer pydantic schemas; fields for the fifth layer; interop normalisation wired
+into an actual run rather than sitting unused; and **a second processing purpose**
+(`billing_settlement` is the natural candidate).
+
+The second purpose matters more than its size suggests: with only one purpose
+modelled, the purpose-limitation rule has nothing to discriminate between, which
+quietly weakens one of the seven. This is contribution work — treat it as such.
+
+### W7 — Cut: LLM extraction agent
+
+Dropped per §2. AXE stays in the literature survey as related work.
+
+Consequence to action: the `anthropic` dependency in `requirements.txt` becomes
+unused and should be removed once this is confirmed.
 
 ### W8 — Real baseline technique *(Review-III)*
 
-An AutoScraper-style learn-by-example scraper implemented against the portal,
-replacing the hand-written `unconstrained` stand-in.
+An AutoScraper-style learn-by-example scraper against the portal, replacing the
+hand-written `unconstrained` stand-in.
 
-**Risk being managed here:** the current baseline is written by us, which makes it a
-strawman an examiner can push on at Review-III. Scheduling it late is acceptable;
-leaving it undone is not.
+**Risk being managed:** our baseline is currently written by us, which makes it a
+strawman an examiner can push on — and since the benchmark *is* the contribution,
+that is the most damaging single objection available to a reviewer. Scheduling it
+late is acceptable; leaving it undone is not.
 
-### W9 — End-to-end pipeline demonstration *(component 11)*
+### W9 — End-to-end demonstration *(component 11)*
 
-`scripts/run_pipeline.py` — one command: start the portal, log in, run every
-technique, normalise to FHIR/HL7, score, write the ranked table with timings, then
-ask the agent for staff guidance on a task per role and show the out-of-role
-decline. This is what gets demoed and screenshotted.
+`scripts/run_pipeline.py` — one command: start the portal, log in, scrape, run every
+technique, normalise, score, print the ranked table with compliance and cost, then
+run the agent through one task per role and show the out-of-role decline.
 
-Build it **early and rough**, then thicken. Review-II rewards a complete chain over
+Build it **early and rough**, then thicken. A complete chain demonstrates more than
 a polished fragment.
 
-## 6. Sequence
+## 7. Sequence
 
 Close the chain first; thicken it second.
 
 | Order | Work | Rationale |
 |---|---|---|
-| 1 | W3 (against current mock) | Small, self-contained, visibly actions the panel's feedback even if everything else slips |
-| 2 | W1 | Unblocks W2 and W5; nothing else moves without it |
-| 3 | W2 | The spine — and produces the navigation map W5 needs |
+| 1 | W3 | Small and self-contained; actions the panel's feedback immediately |
+| 2 | W1 | Unblocks W2; nothing else moves without it |
+| 3 | W2 (Tier 2) | The spine — and produces the navigation map W4 needs |
 | 4 | W9 (rough) | Chain closed end to end, early |
-| 5 | W6 | Must precede W5's decline behaviour |
-| 6 | W5 | The headline deliverable |
-| 7 | W7, W3 re-run against portal | Real timing numbers; stronger rule discrimination |
-| 8 | W4 scaffold, W9 polish | Review-II presentation state |
-| — | W8, W4 complete, report, manuscript | Review-III |
+| 5 | W5 | Compliance work, and must precede W4's decline behaviour |
+| 6 | W4 | The completeness deliverable; keep it small |
+| 7 | W6 | Contribution work — strengthens the rule set |
+| 8 | W2 (dataset adapter), W3 re-run | Whenever the hospital export lands |
+| 9 | W9 polish, screenshots | Review-II presentation state |
+| — | W8, report, manuscript | Review-III |
 
-## 7. Open decisions and external requirements
+## 8. Open decisions and external requirements
 
-Items we cannot resolve alone, roughly in the order they block work.
+Roughly in the order they block work.
 
-1. **Sign-off on the mock portal (W1).** Load-bearing for everything downstream.
-2. **New dependency: Flask.** `CLAUDE.md` requires confirmation before adding one.
-   Flask over FastAPI here — it is a fixture, and synchronous with no ASGI server is
-   less machinery to explain.
-3. **Anthropic API key** for W4/W5, plus a decision on live-versus-cached for the
-   review demo. Recommendation: cached transcripts, live as backup. A network
-   failure in the review room should not cost us the demo.
-4. **`playwright install chromium`** on whichever machine presents — roughly 150 MB
-   of browser binaries that `pip install` does not fetch.
-5. **Review-II date.** Not yet recorded anywhere; the sequence above is ordered but
-   not calendared.
-6. **Guide input — login-gated versus public-documentation priority.** Formally
-   still open. The mock portal presumes login-gated, so W1 quietly settles a
-   methodology question. Confirm with Dr. Manoj Kumar before it does.
-7. **Staff task list.** The `TaskType` set in W5 is our reconstruction of hospital
-   workflow, not sourced from a real hospital. Worth a sanity check with anyone with
-   ward-level experience; wrong task names would be visible to a clinical reviewer.
+1. **Sign-off on the rough mock portal (W1)** and on **Flask** as a dependency —
+   `CLAUDE.md` requires confirmation before adding one. Flask over FastAPI: it is a
+   fixture, and synchronous with no ASGI server is less machinery to explain.
+2. **`playwright install chromium`** on whichever machine demos — roughly 150 MB of
+   browser binaries that `pip install` does not fetch.
+3. **Hospital dataset: format, size, and de-identification status** (§4). The
+   de-identification question should be settled *before* the data arrives, not after.
+4. **Confirm W7** — dropping the LLM agent, and removing `anthropic` from
+   `requirements.txt`.
+5. **Review-II date.** Not recorded anywhere; the sequence above is ordered but not
+   calendared.
+6. **Guide input — login-gated versus public-documentation priority.** Formally still
+   open; W1 quietly settles it in favour of login-gated. Worth confirming with
+   Dr. Manoj Kumar before it does.
+7. **Staff function list (W4).** Our reconstruction of hospital workflow, not sourced
+   from a real hospital. Wrong task names are visible to a clinical reviewer in a way
+   wrong code is not — worth a short sanity check with anyone with ward experience.
 
-## 8. Known risks
+## 9. Known risks
 
 | Risk | Consequence | Mitigation |
 |---|---|---|
-| Live access never arrives | None to the plan | Already assumed; §3 |
-| Self-authored portal is unrealistically clean | Robustness claims overstated | State the limitation in the deck (§3) |
-| Hand-written baseline reads as a strawman | Examiner pushback at Review-III | W8 |
-| Agent hallucinates HIS steps | Guidance is unsafe and indefensible | W5-eval groundedness metric; ground in the discovered navigation map, not prose |
-| Agent demo depends on a live API call | Demo fails in the room | Cached transcripts (§7.3) |
-| W5 slips | The §1.3 deliverable is the one that cannot be cut | Sequenced before polish work; W4 sacrificed first if time is short |
+| Hand-written baseline reads as a strawman | Attacks the contribution itself | W8 — the highest-value risk to close |
+| Real patient data mishandled | Serious, and acutely embarrassing for this project specifically | §4 — settle de-identification before arrival |
+| Hospital dataset never arrives | Benchmark rests on synthetic data only | Nothing depends on it; synthetic path stays complete |
+| Portal is unrealistically clean | Robustness claims overstated | State the limitation in the deck; it demonstrates the mechanism, not robustness |
+| Agent scope creeps | Effort drains from the contribution | §2 — it is a completeness deliverable; keep it rule-based and small |
+| Wall-clock timings wobble between runs | Benchmark looks unreliable | §3 — deterministic metrics lead, wall-clock is secondary |

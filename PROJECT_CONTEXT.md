@@ -8,7 +8,9 @@ Hospital Information Systems (HIS) hold high-value, high-sensitivity data. Exist
 
 The applied use case — an AI agent that helps hospital staff operate the HIS — was originally the long-term motivating vision, justifying *why* extraction matters without itself being graded. **As of 2026-09-12 that changed: it is now part of the team's definition of 100%** (`PLAN.md` §1). The project is complete when we can show, in one run, data scraped from a portal, carried through the DPDP compliance pipeline, and an agent that understands the HIS structure well enough to return simple operating instructions differentiated by staff role (administrator / nurse / reception) and by task type.
 
-That shift improves the project's coherence rather than diluting it. Role-based guidance and DPDP purpose limitation turn out to be the same mechanism: a receptionist has no clinical-category access under the purpose policy, so the agent declines and cites the rule. The compliance layer therefore does two jobs with one rule set — it scores extraction runs, and it gates agent guidance. The scraper discovers the HIS architecture; that discovered structure grounds the agent; the compliance layer constrains both.
+**The compliance work remains the contribution.** The agent is a completeness deliverable — deliberately simple, rule-based, no LLM: it recognises a pre-defined function from user input, asks for the details that function needs, and returns templated instructions. The paper and the report stay focused on compliance throughout.
+
+What keeps the agent from being decoration is a single property: role-based guidance and DPDP purpose limitation are **the same mechanism**. A receptionist has no clinical-category access under the purpose policy, so the agent declines and cites the rule. The compliance layer therefore does two jobs with one rule set — it scores extraction runs, and it gates staff guidance. The scraper discovers the HIS structure; that structure grounds the instructions; the compliance layer constrains both.
 
 ## Review Structure
 
@@ -27,7 +29,7 @@ The suggestion reads as a small table column, but it changes what the benchmark 
 
 - **Five-layer HIS architecture** — a functional decomposition (Patient Administration / Clinical-EHR / Ancillary-Departmental / Administrative-Financial / Infrastructure-Integration), now canonical in code as the `HISLayer` enum in `src/interop/layers.py`. Everything downstream imports it rather than re-declaring layers. The Review-1 deck's technical tiers were conceptual and are superseded by this. Not flattened into a single schema.
 - **Four interoperability standards:** HL7, FHIR, DICOM, ISO/IEEE 11073 — mapped per layer in `src/interop/mapping.py`. Synthetic data and extraction outputs should be structurable into at least HL7/FHIR-shaped records; hand-rolled lightweight shapers, HL7/FHIR prioritised.
-- **AXE method (Cairo University)** — LLM-based agentic extraction technique; conceptual basis for the `/agent` module's *extraction* role (not yet built). The module's *staff-guidance* role, added to scope 2026-09-12, is our own contribution and has no direct antecedent in the surveyed literature — which is worth saying plainly in the manuscript.
+- **AXE method (Cairo University)** — LLM-based agentic extraction technique. **Related work only.** The plan to implement an AXE-inspired extraction agent was cut on 2026-09-12; AXE keeps its place in the literature survey but we do not build against it.
 - **AutoScraper (EMNLP 2024)** — comparison baseline technique. Venue confirmed. Currently represented by a generic "coverage-optimised baseline" technique in the benchmark; a real implementation is Review-II work.
 
 ## Scraping Tier Decision
@@ -39,7 +41,11 @@ Tiering (as established pre-build):
 
 ## Data Access Status
 
-Credentialed access to a live hospital HIS was secured as the intended primary data source but is **still not usable** as of 2026-09-12 — it did not arrive before Review-I and there is no committed date. **The working position is now that it does not arrive at all.** Every remaining deliverable must be reachable without it; live access, if it lands, is folded in through the adapter boundary as an improvement to results, never as a prerequisite.
+Credentialed live access was secured as the intended primary data source but is **still not usable** as of 2026-09-12 — it did not arrive before Review-I and there is no committed date. **What is expected by Review-II is a large dataset from the hospital**, with live access possible but not assumed.
+
+Four sources, with distinct jobs: the **synthetic generator** (development, tests, reproducible benchmark runs for the paper), the **hospital dataset** (volume and realism for the benchmark), the **rough mock portal** (demonstrating the scraping mechanism), and **live HIS** (upside only). The adapter boundary absorbs all four. Nothing may *depend* on the dataset or on live access arriving; the synthetic path stays complete on its own.
+
+**Handling requirement:** a real hospital dataset is almost certainly real patient data. Confirm de-identification, `.gitignore` the path before it lands, record provenance and the basis for sharing, and check whether ethics approval applies. Being non-compliant with the Act we benchmark against would be a serious and highly visible problem. See `PLAN.md` section 4.
 
 The workaround proposed for the Review-II end-to-end demonstration (2026-09-12, not yet confirmed) is a **locally served mock HIS portal**: a login-gated web application we author, serving synthetic records as HTML pages organised by the five-layer module structure (pagination, a search form, per-patient detail pages, a session cookie). Playwright drives it exactly as it would drive a real portal. This is the piece that converts "the browser layer is stubbed" into "the browser layer works, just not yet pointed at a hospital" — a materially different thing to present, and it makes the swap to a real portal a matter of selectors and credentials rather than unwritten code.
 
@@ -60,7 +66,7 @@ Framed as a comparative advantage over existing scraping literature, not a compl
 
 - **Done:** repo scaffolding; the 7-rule DPDP compliance framework + policy + scored `ComplianceReport`; the benchmarking harness (`run_benchmark`) with a three-technique comparison; the hand-rolled HL7 / FHIR / DICOM / ISO-IEEE-11073 shapers and the five-layer mapping.
 - **Slice done:** synthetic data generator (field catalogue covering four of the five layers + Faker generator); extraction adapter (`MockHISDataSource`) + technique layer.
-- **Not started:** LLM agent (`src/agent/` is a docstring); real Tier 2 browser code (`src/extraction/tier2/` is empty); the mock HIS portal; per-technique timing in the benchmark; full per-layer pydantic schemas; a real AutoScraper baseline.
+- **Not started:** the rule-based staff-guidance agent (`src/agent/` is a docstring); real Tier 2 browser code (`src/extraction/tier2/` is empty); the rough mock portal; the dataset adapter; the benchmark cost profile; role × task policy; full per-layer pydantic schemas; a real AutoScraper baseline.
 - Five runnable scripts, ~90 passing tests, a browsable result at `docs/benchmark_results/benchmark.md`. See `DEMO_GUIDE.md` and `docs/compliance/approach.md`.
 
 ## Known Loose Ends

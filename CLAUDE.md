@@ -31,11 +31,15 @@ We're building a system that scrapes and interfaces with Hospital Information Sy
 
 **Scope change, 2026-09-12:** layer 3 was previously described here as a long-term vision "beyond this project's scope". It is now inside the graded scope and is part of the team's definition of 100% — see `PLAN.md` §1. Do not treat the staff-guidance agent as optional or future work.
 
+**Where the contribution lies — read before prioritising anything.** The **DPDP compliance work is the novelty**; the paper and the report are about it. The agent is a deliverable that makes the project look complete, not a research contribution. Effort follows the contribution: compliance components get finished, the agent gets built small and left alone. Do not benchmark the agent, do not make it clever, and do not spend a session on it that a compliance component needed.
+
 The two halves join through one mechanism: **role-based guidance and DPDP purpose limitation are the same check.** The compliance layer does not only score extraction runs after the fact — it also gates what the agent may instruct a given role to do (reception asking for clinical data is declined, with the rule cited). See `PLAN.md` §2.
 
 ## Current Phase Constraint — READ THIS FIRST
 
-**We still do NOT have live HIS data access.** Unchanged as of 2026-09-12: credentialed access exists on paper but has not become usable, and has now failed to materialise across a full review cycle. **Plan the rest of the build as though it never arrives.** If it unblocks, that is upside folded in via the adapter boundary — it is not a dependency any remaining deliverable rests on.
+**We still do NOT have live HIS data access.** Credentialed access exists on paper but has not become usable and has now missed a full review cycle. **Expected by Review-II, however: a large dataset from the hospital**, and possibly live access. Plan for the dataset; treat live access as upside. Nothing built may *depend* on either arriving — the synthetic path must stay complete and runnable on its own.
+
+**If a real hospital dataset arrives it is almost certainly real patient data.** A project whose whole contribution is data-protection compliance cannot be careless with it: confirm it is de-identified (or de-identify on receipt), `.gitignore` the data path *before* it lands, record its provenance and the basis on which it was shared, and check whether ethics approval is needed. See `PLAN.md` section 4.
 
 This means, until told otherwise:
 - Do NOT build against a real HIS endpoint.
@@ -54,7 +58,7 @@ Status as of 2026-09-12, re-baselined against the Review-II target.
 3. **Thin slice done; Review-II work remains.** Synthetic HIS data generator — a field catalogue (name → HIS layer → DPDP category) and a Faker-seeded record generator (`src/data_synthetic/`). Still to do: per-layer pydantic schemas, the fifth layer's fields, and volume/variety wide enough to make timing differences legible.
 4. **Substantially done; browser layer is the Review-II gap.** `HISDataSource` adapter interface, a working `MockHISDataSource`, and three techniques (compliance-aware, minimising, coverage-optimised baseline). `src/extraction/tier2/` is still empty — it is now unblocked by the local mock portal (see "Current Phase Constraint") and is the single highest-value remaining item.
 5. **Working; needs the timing axis.** `run_benchmark` scores every technique against every task with the same rule set and emits a ranked comparison table (`src/compliance/benchmark.py`). This is the paper's core evidence. Review-I feedback adds **per-technique processing time** to it.
-6. **Not started — now a headline deliverable, not scaffolding.** The agent has two roles: **(A)** an AXE-inspired extraction assistant that enters the benchmark as a further scored technique, and **(B)** the **role- and task-aware staff-guidance agent** that the 100% definition names. B outranks A — if time is short, sacrifice A. Both use off-the-shelf Claude via the Anthropic API, driven agentically — no fine-tuning, and the deck must say so. B is grounded in real artifacts (the `HISLayer` enum, the field catalogue, the navigation map the Tier 2 crawler discovers), never in hand-written prose, so its output is checkable rather than merely plausible.
+6. **Not started — the staff-guidance agent. Deliberately simple: NO LLM.** It recognises a **pre-defined function** from what the user types, asks for the input details that function needs, and replies with templated instructions. Rule-based, deterministic, no model, no training, no API key. The AXE-inspired *LLM extraction* agent is **cut** — AXE stays a literature citation only. The agent is a completeness deliverable, not a research contribution (see "Where the contribution lies" above); build it to work, keep it small, do not let it grow. Its one research-relevant property is that the function registry is **DPDP-gated per role** — reception asking for clinical data is declined with the rule cited.
 7. **Blocked until data access; assume it stays blocked.** Swap synthetic source for live HIS, re-run benchmarks, tune.
 
 Do not skip ahead to step 7 work. Do not silently substitute real HIS assumptions into steps 1–6 — keep the data source pluggable. The local mock portal is explicitly *not* step 7: it is a fixture that exercises step 4's browser code.
@@ -66,7 +70,7 @@ Three runnable demos exist: `scripts/run_benchmark.py` (headline — technique c
 - **Language:** Python 3.10+ (primary — scraping, compliance logic, data handling)
 - **Schema modelling:** pydantic v2 — DPDP compliance rules, the extraction manifest, and HIS record shapes
 - **Scraping:** Playwright (Tier 2, headless browser automation) — chosen over Selenium; machinery stubbed until data access
-- **LLM integration:** Anthropic API (Claude) for agentic extraction logic (AXE-method inspired) — not yet built
+- **Agent:** rule-based function recognition + slot filling + templated instructions — plain Python, no LLM, no ML, no external API. (The `anthropic` pin in `requirements.txt` is now unused and should be removed.)
 - **Data handling:** pandas for structured records; synthetic data via Faker, generators shaped to the five-layer HIS model
 - **Interoperability:** hand-rolled lightweight HL7 / FHIR / DICOM / ISO-IEEE-11073 shapers — no external interop libraries, no HIS vendor names
 - **Testing:** pytest (`pytest.ini` sets `pythonpath = src`)
@@ -90,7 +94,7 @@ Confirm before introducing a new major dependency or language — don't assume.
   /data_synthetic     # catalogue (field → layer → DPDP category), generators/
   /extraction         # base (HISDataSource), adapters/ (mock_his, live_his stub),
                       #   technique + techniques/ (compliant, minimising, unconstrained), tier2/ stub
-  /agent              # LLM-based extraction agent (AXE-inspired) — stub
+  /agent              # rule-based staff-guidance agent (function registry, slots) — stub
   /interop            # layers (five-layer HIS enum), mapping, hand-rolled hl7/fhir/dicom/iso_ieee_11073
 /scripts              # run_benchmark, run_synthetic_extraction, score_extraction_run
 /tests
