@@ -28,7 +28,7 @@ The suggestion reads as a small table column, but it changes what the benchmark 
 ## Technical Foundations Already Established
 
 - **Five-layer HIS architecture** — a functional decomposition (Patient Administration / Clinical-EHR / Ancillary-Departmental / Administrative-Financial / Infrastructure-Integration), now canonical in code as the `HISLayer` enum in `src/interop/layers.py`. Everything downstream imports it rather than re-declaring layers. The Review-1 deck's technical tiers were conceptual and are superseded by this. Not flattened into a single schema.
-- **Four interoperability standards:** HL7, FHIR, DICOM, ISO/IEEE 11073 — mapped per layer in `src/interop/mapping.py`. Synthetic data and extraction outputs should be structurable into at least HL7/FHIR-shaped records; hand-rolled lightweight shapers, HL7/FHIR prioritised.
+- **Four interoperability standards:** HL7, FHIR, DICOM, ISO/IEEE 11073 — mapped per layer in `src/interop/mapping.py`. HL7 v2 and FHIR shaping of extracted rows is implemented (`src/interop/hl7`, `fhir`, `normalise`); DICOM and 11073 remain stubs. Shaping adds nothing that was not extracted, applies pseudonymisation when the run's manifest declares it, and the export is audited for raw identifiers.
 - **AXE method (Cairo University)** — LLM-based agentic extraction technique. **Related work only.** The plan to implement an AXE-inspired extraction agent was cut on 2026-09-12; AXE keeps its place in the literature survey but we do not build against it.
 - **AutoScraper (EMNLP 2024)** — comparison baseline technique. Venue confirmed. Currently represented by a generic "coverage-optimised baseline" technique in the benchmark; a real implementation is Review-II work.
 
@@ -68,6 +68,7 @@ Framed as a comparative advantage over existing scraping literature, not a compl
 - **Slice done:** synthetic data generator (field catalogue covering four of the five layers + Faker generator); extraction adapter (`MockHISDataSource`) + technique layer.
 - **Done (fixture):** the mock HIS portal (`tools/mock_portal/`, Flask) — login-gated, paginated, built as a black box the scraper does not control.
 - **Done:** Tier 2 browser extraction (`src/extraction/tier2/` + `adapters/portal_his.py`) — real Playwright login, crawl-based navigation map with layers inferred from field names, techniques run unchanged, page loads metered as cost; `scripts/run_pipeline.py` runs every stage end to end.
+- **Done:** HL7 v2 / FHIR shaping with pseudonymisation-on-export and an export audit (`src/interop/normalise.py`, `src/compliance/pseudonymise.py`); the pipeline now has all six stages.
 - **Not started:** the dataset adapter (waiting on the export's format); full per-layer pydantic schemas; a real AutoScraper baseline.
 - Five runnable scripts, ~90 passing tests, a browsable result at `docs/benchmark_results/benchmark.md`. See `DEMO_GUIDE.md` and `docs/compliance/approach.md`.
 

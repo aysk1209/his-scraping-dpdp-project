@@ -22,9 +22,11 @@ class UnconstrainedExtractionTechnique(ExtractionTechnique):
 
     def extract(self, source: HISDataSource, task: ExtractionTask) -> TechniqueOutput:
         records: list[ExtractedRecord] = []
+        rows: dict[str, list[dict]] = {}
         for layer in source.layers():
             all_fields = fields_for(layer)
             for row in source.fetch(layer, fields=all_fields):
+                rows.setdefault(layer.value, []).append(row)
                 records.append(
                     ExtractedRecord(
                         source_layer=layer.value,
@@ -38,4 +40,4 @@ class UnconstrainedExtractionTechnique(ExtractionTechnique):
             purpose_specified=False,  # the scraper has no declared purpose of its own
             security=SecurityPosture(transport_encrypted=True),
         )
-        return TechniqueOutput(run=run, records=records)
+        return TechniqueOutput(run=run, records=records, rows=rows)

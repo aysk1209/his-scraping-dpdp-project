@@ -10,6 +10,7 @@ technique's output with the same DPDP rule set.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -53,10 +54,17 @@ class ExtractionTask(BaseModel):
 
 
 class TechniqueOutput(BaseModel):
-    """A technique's run manifest plus the records it produced."""
+    """A technique's run manifest plus the records it produced.
+
+    ``records`` carry categories only and are what the compliance rules score;
+    they are safe to write into benchmark artifacts. ``rows`` are the raw values,
+    keyed by layer, kept so the interop stage can shape them into HL7 / FHIR --
+    they are never serialised into a compliance artifact.
+    """
 
     run: ExtractionRun
     records: list[ExtractedRecord]
+    rows: dict[str, list[dict[str, Any]]] = Field(default_factory=dict)
 
 
 class ExtractionTechnique(ABC):

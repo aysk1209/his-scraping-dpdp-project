@@ -97,7 +97,7 @@ python scripts/run_pipeline.py --show        # watch the browser do it
 python scripts/run_pipeline.py --records 200 # a longer, larger run
 ```
 
-About 30–40 seconds. Five stages print in turn:
+About 30–40 seconds. Six stages print in turn:
 
 1. **Portal** — a login-gated hospital portal starts on your machine.
 2. **Discover** — a headless browser signs in, crawls it, and prints a map of what
@@ -108,15 +108,22 @@ About 30–40 seconds. Five stages print in turn:
    from the in-memory version, and are scored on the same seven rules. The cost
    table now has a **pages** column with real page loads: the compliant method
    loads roughly a quarter of what the baseline does, at identical coverage.
-4. **Purpose** — one of those pulls is re-judged under every purpose.
-5. **Assist** — the assistant answers one question per role, and each step now
+4. **Normalise** — the compliant pull is shaped into HL7 v2 messages and FHIR
+   resources, the way a downstream system would receive it, with the patient's
+   identifiers replaced by tokens. The baseline's pull is shaped too. An **audit**
+   then searches both exports for the real identifiers: the compliant export has
+   none; the baseline's has all of them. A sample ADT message and Patient resource
+   are printed so you can see the tokens.
+5. **Purpose** — the compliant pull is re-judged under every purpose.
+6. **Assist** — the assistant answers one question per role, and each step now
    carries the portal page it happens on, taken from stage 2. The last request is
    declined.
 
 The point to make out loud: **nothing is staged.** The browser really logs in; the
 scraper is never told how the portal is laid out; the methods that ran against
-fake in-memory data run against a website with no changes; the assistant's page
-references come from what the crawler found ten seconds earlier. That is the
+fake in-memory data run against a website with no changes; the export audit
+checks what actually left rather than what the method claimed; the assistant's
+page references come from what the crawler found ten seconds earlier. That is the
 adapter boundary and the compliance layer doing what they were designed to do.
 
 First run on a new machine needs the browser: `python -m playwright install chromium`.

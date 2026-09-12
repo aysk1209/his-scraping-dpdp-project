@@ -1,12 +1,12 @@
 {
-  "base_url": "http://127.0.0.1:63652",
-  "discovered_at": "2026-09-12T13:25:14.787893Z",
+  "base_url": "http://127.0.0.1:55532",
+  "discovered_at": "2026-09-12T15:59:19.310226Z",
   "login_path": "/login",
   "page_loads": 9,
   "modules": [
     {
       "title": "Patient Registration",
-      "list_url": "http://127.0.0.1:63652/m/registration/",
+      "list_url": "http://127.0.0.1:55532/m/registration/",
       "list_path": "/m/registration/",
       "columns": [
         "mrn",
@@ -27,13 +27,13 @@
         "admission_datetime"
       ],
       "page_count": 2,
-      "record_count": 30,
+      "record_count": 10,
       "inferred_layer": "patient_administration",
       "layer_confidence": 1.0
     },
     {
       "title": "Clinical Records",
-      "list_url": "http://127.0.0.1:63652/m/clinical/",
+      "list_url": "http://127.0.0.1:55532/m/clinical/",
       "list_path": "/m/clinical/",
       "columns": [
         "encounter_datetime",
@@ -49,13 +49,13 @@
         "attending_clinician"
       ],
       "page_count": 2,
-      "record_count": 30,
+      "record_count": 10,
       "inferred_layer": "clinical_ehr",
       "layer_confidence": 1.0
     },
     {
       "title": "Departmental Orders",
-      "list_url": "http://127.0.0.1:63652/m/departments/",
+      "list_url": "http://127.0.0.1:55532/m/departments/",
       "list_path": "/m/departments/",
       "columns": [
         "order_id",
@@ -70,13 +70,13 @@
         "report_text"
       ],
       "page_count": 2,
-      "record_count": 30,
+      "record_count": 10,
       "inferred_layer": "ancillary_departmental",
       "layer_confidence": 1.0
     },
     {
       "title": "Billing & Accounts",
-      "list_url": "http://127.0.0.1:63652/m/billing/",
+      "list_url": "http://127.0.0.1:55532/m/billing/",
       "list_path": "/m/billing/",
       "columns": [
         "invoice_id",
@@ -90,7 +90,7 @@
         "payer_name"
       ],
       "page_count": 2,
-      "record_count": 30,
+      "record_count": 10,
       "inferred_layer": "administrative_financial",
       "layer_confidence": 1.0
     }

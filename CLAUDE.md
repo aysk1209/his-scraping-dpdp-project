@@ -8,7 +8,7 @@ This file gives Claude Code persistent context for this repository. Read it full
 **Institution:** VIT, SENSE department — final-year research project
 **Team:** Avanindra (23BLC1089), Ananya (23BLC1017)
 **Guide:** Dr. Manoj Kumar
-**Stage:** Review-I cleared 02.09.2026 (outcome satisfactory). Building toward **Review-II**, which is the current focus. **The pipeline runs end to end** (`python scripts/run_pipeline.py`): a served login-gated portal, a real browser that logs in and crawls it, three techniques scored on the same seven DPDP rules with real page loads as cost, one pull judged under every purpose, and the staff-guidance assistant placing its steps on the pages the crawler found. Ledger 81% (`PLAN.md` §5). Two reviews remain (as of 2026-09-12).
+**Stage:** Review-I cleared 02.09.2026 (outcome satisfactory). Building toward **Review-II**, which is the current focus. **The pipeline runs end to end** (`python scripts/run_pipeline.py`): a served login-gated portal, a real browser that logs in and crawls it, three techniques scored on the same seven DPDP rules with real page loads as cost, exports shaped to HL7 v2 / FHIR with identifiers pseudonymised and audited, one pull judged under every purpose, and the staff-guidance assistant placing its steps on the pages the crawler found. Ledger 85% (`PLAN.md` §5). Two reviews remain (as of 2026-09-12).
 
 For full background, methodology, and research framing, see `PROJECT_CONTEXT.md` in this same directory — read it before starting any non-trivial task. For the definition of 100%, the completion ledger, and the sequenced workstreams to Review-II/III, see `PLAN.md`.
 
@@ -57,7 +57,7 @@ Status as of 2026-09-12, re-baselined against the Review-II target.
 
 1. **Done.** Repo scaffolding + project structure.
 2. **Done.** DPDP compliance framework — 7 criteria as code-checkable pydantic rules (`src/compliance/rules/`), a declarative purpose policy, and a scored `ComplianceReport` artifact.
-3. **Thin slice done; Review-II work remains.** Synthetic HIS data generator — a field catalogue (name → HIS layer → DPDP category) and a Faker-seeded record generator (`src/data_synthetic/`). Still to do: per-layer pydantic schemas, the fifth layer's fields, and volume/variety wide enough to make timing differences legible.
+3. **Thin slice done; HL7/FHIR shaping done.** Synthetic HIS data generator — a field catalogue (name → HIS layer → DPDP category) and a Faker-seeded record generator (`src/data_synthetic/`); HL7 v2 and FHIR shaping of extracted rows (`src/interop/`). Still to do: per-layer pydantic schemas and the fifth layer's fields — better done once the hospital dataset shows the real structure.
 4. **Done.** `HISDataSource` interface; `MockHISDataSource`; three techniques; the mock portal (`tools/mock_portal/`); and **Tier 2 for real** — `src/extraction/tier2/` (Playwright: form login, table/detail parsing, "Next" following, page-load counting; `navigation.discover()` crawls from the home page and **infers each module's HIS layer from the field names it finds**, never from the URL) behind `adapters/portal_his.PortalHISDataSource`. The three techniques run against it **unchanged** — the proof the adapter boundary holds. Detail pages are opened only when a requested field is not in the list table, so over-asking costs real page loads. Still to do here: a label→field mapping when a real portal's headers are display labels rather than field names (it belongs in the adapter), and the hospital-dataset adapter once its format is known.
 5. **Done, on two axes.** `run_benchmark` scores every technique against every task with the same rule set and emits a ranked comparison table (`src/compliance/benchmark.py`) with a **cost profile** (`extraction/metering.py`: fields pulled, fetches, excess ratio, coverage, wall-clock, and **real page loads** when the source is the portal). Against the portal the compliant technique loads ~1/4 the pages the baseline does at identical coverage. Portal runs write `benchmark-portal.{json,md}`; in-memory runs write `benchmark.{json,md}`.
 6. **Done (`src/agent/`) — the staff-guidance agent, on top of `compliance/roles.py`, with its steps placed on the crawler's pages via `Session(role, navigation=nav.agent_pages())`. Deliberately simple: NO LLM.** It recognises a **pre-defined function** from what the user types, asks for the input details that function needs, and replies with templated instructions. Rule-based, deterministic, no model, no training, no API key. The AXE-inspired *LLM extraction* agent is **cut** — AXE stays a literature citation only. The agent is a completeness deliverable, not a research contribution (see "Where the contribution lies" above); build it to work, keep it small, do not let it grow. Its one research-relevant property is that the function registry is **DPDP-gated per role** — reception asking for clinical data is declined with the rule cited.
@@ -75,7 +75,7 @@ Runnable demos: `scripts/run_benchmark.py` (headline — technique comparison on
 - **Mock portal fixture:** Flask 3 (`tools/mock_portal/`) — one dependency, sync, login sessions and templating built in; approved 2026-09-12
 - **Agent:** rule-based function recognition + slot filling + templated instructions — plain Python, no LLM, no ML, no external API. (`anthropic` removed from `requirements.txt` 2026-09-12.)
 - **Data handling:** pandas for structured records; synthetic data via Faker, generators shaped to the five-layer HIS model
-- **Interoperability:** hand-rolled lightweight HL7 / FHIR / DICOM / ISO-IEEE-11073 shapers — no external interop libraries, no HIS vendor names
+- **Interoperability:** hand-rolled lightweight HL7 v2 / FHIR shapers (`src/interop/`, implemented) with DICOM / ISO-IEEE-11073 as stubs — no external interop libraries, no HIS vendor names. `interop.normalise` shapes a run's rows per the layer↔standard matrix, pseudonymises direct identifiers when the manifest declares it (`compliance.pseudonymise`, keyed tokens), and **audits the export** for raw identifiers — the compliant technique leaks none, the baseline leaks all
 - **Testing:** pytest (`pytest.ini` sets `pythonpath = src .` — the `.` is for `tools/`)
 - **Docs:** Markdown, kept in `/docs`
 
@@ -93,13 +93,13 @@ Confirm before introducing a new major dependency or language — don't assume.
 
 ```
 /src
-  /compliance         # models, policy, roles, rules/, checkers, summary, benchmark, report, purpose_matrix
+  /compliance         # models, policy, roles, pseudonymise, rules/, checkers, summary, benchmark, report, purpose_matrix
   /data_synthetic     # catalogue (field → layer → DPDP category), generators/
   /extraction         # base (HISDataSource), metering, adapters/ (mock_his, portal_his, live_his stub),
                       #   technique + techniques/ (compliant, minimising, unconstrained),
                       #   tier2/ (browser: Playwright session; navigation: crawl + infer layers)
   /agent              # rule-based staff-guidance agent: functions (registry), session (recognise/gate/collect), guidance (output)
-  /interop            # layers (five-layer HIS enum), mapping, hand-rolled hl7/fhir/dicom/iso_ieee_11073
+  /interop            # layers (five-layer HIS enum), mapping, normalise (shape + audit), hl7/ fhir/ (implemented), dicom/ iso_ieee_11073/ (stubs)
 /scripts              # run_pipeline (end to end), run_benchmark, compare_purposes, show_role_access, ask_agent, ...
 /tools
   /mock_portal        # Flask fixture: login-gated HTML portal over any HISDataSource (python -m tools.mock_portal);

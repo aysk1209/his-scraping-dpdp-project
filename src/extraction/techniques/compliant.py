@@ -28,8 +28,10 @@ class CompliantExtractionTechnique(ExtractionTechnique):
 
     def extract(self, source: HISDataSource, task: ExtractionTask) -> TechniqueOutput:
         records: list[ExtractedRecord] = []
+        rows: dict[str, list[dict]] = {}
         for item in task.needed:
             for row in source.fetch(item.layer, fields=item.fields):
+                rows.setdefault(item.layer.value, []).append(row)
                 records.append(
                     ExtractedRecord(
                         source_layer=item.layer.value,
@@ -69,4 +71,4 @@ class CompliantExtractionTechnique(ExtractionTechnique):
                 processing_record_kept=True,
             ),
         )
-        return TechniqueOutput(run=run, records=records)
+        return TechniqueOutput(run=run, records=records, rows=rows)

@@ -135,17 +135,17 @@ are weighted toward the contribution described in §2.
 | 6 | Synthetic data: catalogue, generator, schemas | 8 | 6 | 8 |
 | 7 | Dataset adapter for the hospital export | 5 | 0 | 4 |
 | 8 | Rough mock HIS portal | 5 | 5 | 5 |
-| 9 | Interop normalisation wired into a run | 5 | 2 | 5 |
+| 9 | Interop normalisation wired into a run | 5 | 5 | 5 |
 | 10 | Rule-based staff-guidance agent | 10 | 10 | 10 |
-| 11 | End-to-end demonstration | 5 | 4 | 5 |
+| 11 | End-to-end demonstration | 5 | 5 | 5 |
 | 12 | Project report + manuscript (compliance-focused) | 6 | 0 | 1 |
-| | **Total** | **100** | **81** | **92** |
+| | **Total** | **100** | **85** | **92** |
 
 Review-II's floor is ~75%; this targets 92, so slippage on any one workstream still
 clears it. The residual 11 points to Review-III are almost entirely the report and
 the manuscript — which is exactly what Review-III is for.
 
-*Updated 2026-09-12: W3 complete, component 2 closed — 41 to 45. W5 complete, component 3 closed — 45 to 52. W4 complete, component 10 at 8 of 10 — 52 to 60; the last two points are the navigation-map pages filled in once the portal exists. W1 complete, component 8 closed — 60 to 65. W2 (Tier 2) at 10 of 12 and W9 rough at 4 of 5, agent pages now filled — 65 to 81. **The 75% floor is crossed with a working end-to-end chain.***
+*Updated 2026-09-12: W3 complete, component 2 closed — 41 to 45. W5 complete, component 3 closed — 45 to 52. W4 complete, component 10 at 8 of 10 — 52 to 60; the last two points are the navigation-map pages filled in once the portal exists. W1 complete, component 8 closed — 60 to 65. W2 (Tier 2) at 10 of 12 and W9 rough at 4 of 5, agent pages now filled — 65 to 81. **The 75% floor is crossed with a working end-to-end chain.** Interop shaping + export audit wired in, components 9 and 11 closed — 81 to 85.*
 
 ## 6. Workstreams
 
@@ -317,10 +317,18 @@ onward uses, which was unbuildable with one purpose.
 superset of an existing one collapses the distinction the demonstration rests on —
 which is why claims adjudication is deliberately left unmodelled.
 
-**Still open under W6:** per-layer pydantic schemas; fields for the fifth layer;
-interop normalisation wired into an actual run rather than sitting unused. These
-touch the HIS structure rather than the policy, so they are better done once the
-hospital dataset shows what that structure really looks like.
+**Interop normalisation: DONE 2026-09-12.** `src/interop/hl7` and `fhir` are
+implemented (hand-rolled, per convention); `interop/normalise.py` shapes a run's
+rows per the layer↔standard matrix, applies `compliance/pseudonymise.py` when the
+manifest declares it, and **audits the export** for raw direct identifiers — the
+compliant technique's export leaks none, the baseline's leaks all. That turns
+SS-01's pseudonymisation check from a declaration into a verified property of the
+output. Shaping is tested to add nothing that was not extracted. DICOM and 11073
+stay stubs and are reported as skipped.
+
+**Still open under W6:** per-layer pydantic schemas; fields for the fifth layer.
+These touch the HIS structure rather than the policy, so they are better done once
+the hospital dataset shows what that structure really looks like.
 
 ### W7 — Cut: LLM extraction agent
 
@@ -341,12 +349,12 @@ late is acceptable; leaving it undone is not.
 
 ### W9 — End-to-end demonstration *(component 11)* — **DONE (rough) 2026-09-12**
 
-`scripts/run_pipeline.py` runs five stages in one command, ~30–40 s: serve the
+`scripts/run_pipeline.py` runs six stages in one command, ~30–40 s: serve the
 portal; log in and discover; benchmark the three techniques with real page loads;
+normalise to HL7 v2 / FHIR with identifiers pseudonymised and the export audited;
 re-judge one pull under every purpose; answer one question per role with steps on
-the discovered pages and decline the out-of-role one. The one stage from the
-original spec not in the chain is interop normalisation — the HL7/FHIR shapers are
-still stubs (W6) — hence 4 of 5.
+the discovered pages and decline the out-of-role one. Every stage of the original
+spec is now in the chain.
 
 Original specification: one command: start the portal, log in, scrape, run every
 technique, normalise, score, print the ranked table with compliance and cost, then

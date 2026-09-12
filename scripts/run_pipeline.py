@@ -12,8 +12,11 @@ Five stages, each real:
   3. BENCHMARK  the three techniques scrape it, unchanged from the in-memory
                 version; every run is scored on the same seven DPDP rules and
                 metered for cost, with real page loads
-  4. PURPOSE    one of those runs is re-judged under every purpose
-  5. ASSIST     the staff-guidance assistant answers a question per role, with
+  4. NORMALISE  the compliant run's rows are shaped into HL7 v2 and FHIR with
+                direct identifiers pseudonymised on export; the baseline's are
+                shaped too, and an audit of both exports shows the difference
+  5. PURPOSE    the compliant run is re-judged under every purpose
+  6. ASSIST     the staff-guidance assistant answers a question per role, with
                 each step placed on the page the crawler found -- and declines
                 the one it must
 
@@ -42,7 +45,9 @@ from extraction.adapters.portal_his import PortalHISDataSource
 from extraction.technique import ExtractionTask, LayerFields
 from extraction.techniques import DEFAULT_TECHNIQUES
 from extraction.techniques.compliant import CompliantExtractionTechnique
+from extraction.techniques.unconstrained import UnconstrainedExtractionTechnique
 from interop.layers import HISLayer
+from interop.normalise import audit, normalise
 from tools.mock_portal.serve import BackgroundPortal
 
 TASKS = [
@@ -115,12 +120,24 @@ def main() -> None:
         print(present.wrote(result.to_json_file(name="benchmark-portal")))
         print(present.wrote(result.to_markdown_file(name="benchmark-portal")))
 
-        stage(4, "PURPOSE -- the same pull, judged under every purpose")
+        stage(4, "NORMALISE -- HL7 v2 / FHIR on the way out; identifiers pseudonymised, and audited")
         output = CompliantExtractionTechnique().extract(scraper, TASKS[0])
+        baseline = UnconstrainedExtractionTechnique().extract(scraper, TASKS[0])
+        for label, out in (("compliance-aware", output), ("baseline", baseline)):
+            shaped = normalise(out)
+            print(f"  {label}:")
+            for line in shaped.render_summary().split("\n"):
+                print(f"    {line}")
+            print(f"    audit: {audit(out, shaped).one_line()}")
+            print()
+        print("  one registration record from the compliance-aware export:")
+        print(normalise(output).sample(HISLayer.PATIENT_ADMINISTRATION))
+
+        stage(5, "PURPOSE -- the same pull, judged under every purpose")
         matrix = score_across_purposes(output.run, output.records)
         print(matrix.render_table())
 
-        stage(5, "ASSIST -- one question per role; steps land on the pages found in [2]")
+        stage(6, "ASSIST -- one question per role; steps land on the pages found in [2]")
         pages = scraper.navigation.agent_pages()
         for role, lines in ASSIST:
             session = Session(role, navigation=pages)
@@ -144,7 +161,8 @@ def main() -> None:
         f"Done in {time.perf_counter() - started:.1f}s. Every stage ran for real: a served\n"
         f"portal, a browser that logged in and crawled it, three scrapers scored on\n"
         f"identical rules with real page loads as cost, one pull judged under three\n"
-        f"purposes, and an assistant whose refusals come from the same policy table."
+        f"purposes, exports shaped to HL7 v2 and FHIR with identifiers pseudonymised\n"
+        f"and audited, and an assistant whose refusals come from the same policy table."
     )
 
 
