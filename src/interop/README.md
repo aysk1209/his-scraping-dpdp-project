@@ -27,7 +27,7 @@ standard-structured records out of internal data. No wire transport.
 | 1 | Patient Administration | registration, ADT, demographics, scheduling | HL7 v2 (ADT), FHIR (Patient, Appointment) |
 | 2 | Clinical / EHR | encounters, diagnoses, orders, notes, meds | HL7 v2 (ORM), FHIR (Encounter, Condition, MedicationRequest) |
 | 3 | Ancillary / Departmental | lab, imaging, pharmacy | HL7 v2 (ORU), FHIR (Observation, DiagnosticReport), DICOM, ISO/IEEE 11073 |
-| 4 | Administrative / Financial | billing, claims, inventory, HR | FHIR (Claim, Coverage, Invoice) |
+| 4 | Administrative / Financial | billing, claims, inventory, HR | HL7 v2 (DFT, BAR), FHIR (Coverage, Account, Invoice, ClaimResponse) |
 | 5 | Infrastructure / Integration | interface engine, master patient index, audit | — (hosts interop + compliance instrumentation, not a record schema) |
 
 Priority per PROJECT_CONTEXT.md: HL7 and FHIR shaping first and must be usable;

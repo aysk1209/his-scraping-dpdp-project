@@ -58,12 +58,12 @@ Status as of 2026-09-12, re-baselined against the Review-II target.
 3. **Thin slice done; Review-II work remains.** Synthetic HIS data generator — a field catalogue (name → HIS layer → DPDP category) and a Faker-seeded record generator (`src/data_synthetic/`). Still to do: per-layer pydantic schemas, the fifth layer's fields, and volume/variety wide enough to make timing differences legible.
 4. **Substantially done; browser layer is the Review-II gap.** `HISDataSource` adapter interface, a working `MockHISDataSource`, and three techniques (compliance-aware, minimising, coverage-optimised baseline). `src/extraction/tier2/` is still empty — it is now unblocked by the local mock portal (see "Current Phase Constraint") and is the single highest-value remaining item.
 5. **Working; needs the timing axis.** `run_benchmark` scores every technique against every task with the same rule set and emits a ranked comparison table (`src/compliance/benchmark.py`). This is the paper's core evidence. Review-I feedback adds **per-technique processing time** to it.
-6. **Not started — the staff-guidance agent. Deliberately simple: NO LLM.** It recognises a **pre-defined function** from what the user types, asks for the input details that function needs, and replies with templated instructions. Rule-based, deterministic, no model, no training, no API key. The AXE-inspired *LLM extraction* agent is **cut** — AXE stays a literature citation only. The agent is a completeness deliverable, not a research contribution (see "Where the contribution lies" above); build it to work, keep it small, do not let it grow. Its one research-relevant property is that the function registry is **DPDP-gated per role** — reception asking for clinical data is declined with the rule cited.
+6. **Compliance half done (`compliance/roles.py`, the role × purpose × artefact gate); agent half not started. Deliberately simple: NO LLM.** It recognises a **pre-defined function** from what the user types, asks for the input details that function needs, and replies with templated instructions. Rule-based, deterministic, no model, no training, no API key. The AXE-inspired *LLM extraction* agent is **cut** — AXE stays a literature citation only. The agent is a completeness deliverable, not a research contribution (see "Where the contribution lies" above); build it to work, keep it small, do not let it grow. Its one research-relevant property is that the function registry is **DPDP-gated per role** — reception asking for clinical data is declined with the rule cited.
 7. **Blocked until data access; assume it stays blocked.** Swap synthetic source for live HIS, re-run benchmarks, tune.
 
 Do not skip ahead to step 7 work. Do not silently substitute real HIS assumptions into steps 1–6 — keep the data source pluggable. The local mock portal is explicitly *not* step 7: it is a fixture that exercises step 4's browser code.
 
-Runnable demos: `scripts/run_benchmark.py` (headline — technique comparison on compliance and cost), `scripts/compare_purposes.py` (one extraction, every purpose — the purpose-limitation result), `scripts/run_synthetic_extraction.py` (one technique, three configs), `scripts/score_extraction_run.py` (rules in isolation), plus `scripts/trace_one_patient.py` (single-record walkthrough). `scripts/generate_dataset.py` is still a stub that exits with "not implemented" — it belongs to build step 3, not to the demo set. See `DEMO_GUIDE.md` and `docs/compliance/approach.md`. Review-II wants one further script above these: a single end-to-end pipeline run.
+Runnable demos: `scripts/run_benchmark.py` (headline — technique comparison on compliance and cost), `scripts/compare_purposes.py` (one extraction, every purpose — the purpose-limitation result), `scripts/show_role_access.py` (role scopes derived from purpose × interop artefacts; one request through all three roles), `scripts/run_synthetic_extraction.py` (one technique, three configs), `scripts/score_extraction_run.py` (rules in isolation), plus `scripts/trace_one_patient.py` (single-record walkthrough). `scripts/generate_dataset.py` is still a stub that exits with "not implemented" — it belongs to build step 3, not to the demo set. See `DEMO_GUIDE.md` and `docs/compliance/approach.md`. Review-II wants one further script above these: a single end-to-end pipeline run.
 
 ## Tech Stack
 
@@ -90,13 +90,13 @@ Confirm before introducing a new major dependency or language — don't assume.
 
 ```
 /src
-  /compliance         # models, policy, rules/, checkers, summary, benchmark, report
+  /compliance         # models, policy, roles, rules/, checkers, summary, benchmark, report, purpose_matrix
   /data_synthetic     # catalogue (field → layer → DPDP category), generators/
   /extraction         # base (HISDataSource), adapters/ (mock_his, live_his stub),
                       #   technique + techniques/ (compliant, minimising, unconstrained), tier2/ stub
   /agent              # rule-based staff-guidance agent (function registry, slots) — stub
   /interop            # layers (five-layer HIS enum), mapping, hand-rolled hl7/fhir/dicom/iso_ieee_11073
-/scripts              # run_benchmark, compare_purposes, run_synthetic_extraction, score_extraction_run
+/scripts              # run_benchmark, compare_purposes, show_role_access, run_synthetic_extraction, score_extraction_run
 /tests
 /docs
   /architecture        # five-layer-his.md
@@ -109,7 +109,8 @@ CLAUDE.md   PROJECT_CONTEXT.md   README.md   DEMO_GUIDE.md   requirements.txt
 
 - **Five-layer HIS model** — the functional decomposition in `src/interop/layers.py` is canonical (Patient Administration / Clinical-EHR / Ancillary-Departmental / Administrative-Financial / Infrastructure-Integration). The Review-1 deck's technical tiers were conceptual and are superseded. Reconfigure if real HIS access reveals a different structure.
 - **DPDP citations** — rules name principles, not sections; exact sections finalised at report time.
-- **Processing purposes** — two modelled (`care_coordination`, `billing_settlement`) with a declarative allowed-category policy. They are deliberately **non-nested**: neither one's scope contains the other's, so purposes are not ranked strict-to-lax and "out of scope" means *not necessary for this purpose*. Preserve that property when adding a third — a purpose that is a superset of an existing one collapses the distinction the benchmark rests on. Claims adjudication is deliberately unmodelled for that reason.
+- **Processing purposes** — three modelled (`care_coordination`, `billing_settlement`, `patient_registration`) with a declarative allowed-category policy. They are deliberately **pairwise non-nested**: no purpose's scope contains another's, so purposes are not ranked strict-to-lax and "out of scope" means *not necessary for this purpose*. Preserve that property when adding a fourth — a purpose that is a superset of an existing one collapses the distinction the benchmark rests on; a test asserts it. Claims adjudication is deliberately unmodelled for that reason.
+- **Role access** (`src/compliance/roles.py`) is **derived, not listed**: a role's scope = (categories lawful under its purposes) ∩ (categories carried by the interop artefacts it handles — HL7 v2 / FHIR / DICOM / 11073). Team decision 2026-09-12: assume access follows the interoperability standards. `authorise()` is the gate the agent must call before answering; it denies under PL-01, DM-01 or SS-01 and names the rule. `fhir:Claim` and `dicom:Study` are granted to no role, by design.
 
 ## Open Research Questions (do not resolve unilaterally)
 

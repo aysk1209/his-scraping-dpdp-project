@@ -1,7 +1,7 @@
 """Tests for multi-purpose policy and cross-purpose scoring.
 
-The property under test throughout is that the two modelled purposes are *not*
-nested. A test suite that only checked "billing is stricter than care" would pass
+The property under test throughout is that the modelled purposes are *not*
+nested (pairwise -- see also tests/compliance/test_roles.py). A test suite that only checked "billing is stricter than care" would pass
 against a broken policy that ranked purposes on one axis of permissiveness.
 """
 
@@ -49,8 +49,10 @@ def _verdict_for(matrix, purpose: Purpose):
 
 # --- the policy table itself ------------------------------------------------
 
-def test_both_purposes_are_modelled():
-    assert set(PURPOSE_POLICY) == {Purpose.CARE_COORDINATION, Purpose.BILLING_SETTLEMENT}
+def test_all_three_purposes_are_modelled():
+    assert set(PURPOSE_POLICY) == {
+        Purpose.CARE_COORDINATION, Purpose.BILLING_SETTLEMENT, Purpose.PATIENT_REGISTRATION
+    }
 
 
 def test_neither_purpose_scope_contains_the_other():

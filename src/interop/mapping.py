@@ -42,7 +42,13 @@ LAYER_STANDARDS: dict[HISLayer, tuple[InteropStandard, ...]] = {
         InteropStandard.DICOM,
         InteropStandard.ISO_IEEE_11073,
     ),
-    HISLayer.ADMINISTRATIVE_FINANCIAL: (InteropStandard.FHIR,),
+    # HL7 v2 carries billing too: DFT (detail financial transaction) posts
+    # charges and BAR (billing account record) opens accounts. Added 2026-09-12
+    # when the role-access vocabulary (compliance.roles) referenced them.
+    HISLayer.ADMINISTRATIVE_FINANCIAL: (
+        InteropStandard.HL7_V2,
+        InteropStandard.FHIR,
+    ),
     HISLayer.INFRASTRUCTURE_INTEGRATION: (),
 }
 

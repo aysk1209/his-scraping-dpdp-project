@@ -30,9 +30,16 @@ expressed as data ([`compliance/models.py`](../../src/compliance/models.py)):
 per processing purpose, the field categories that are *necessary for that
 purpose*, the maximum retention, and whether identifiers must be pseudonymised.
 This is the auditable "what is allowed" — tuning the compliance envelope is a
-policy edit, not a rule-code change. Two purposes are modelled,
-`care_coordination` and `billing_settlement`, and neither one's scope contains the
-other's (see *Purpose limitation, demonstrated* below).
+policy edit, not a rule-code change. Three purposes are modelled —
+`care_coordination`, `billing_settlement`, `patient_registration` — and no
+purpose's scope contains another's (see *Purpose limitation, demonstrated* below).
+
+[`compliance/roles.py`](../../src/compliance/roles.py) applies the same table to
+**staff roles**: a role may be instructed to touch a data category only where a
+purpose it acts under makes it necessary *and* an interoperability artefact it
+handles (HL7 v2, FHIR, DICOM, ISO/IEEE 11073) carries it. That intersection is the
+gate the staff-guidance agent calls before it answers — see
+[`dpdp-provision-map.md`](dpdp-provision-map.md#roles).
 
 ## The rules
 
@@ -194,7 +201,7 @@ Three demos:
 - The five-layer HIS model ([`interop/layers.py`](../../src/interop/layers.py)) —
   a working reconstruction; the team has accepted it for now and will reconfigure
   if real HIS access shows a different structure.
-- The `care_coordination` and `billing_settlement` purposes and their allowed-category sets.
+- The three purposes and their allowed-category sets; the role → purpose and role → artefact assignments in `roles.py`.
 - Staff names categorised as `administrative`, not `direct_identifier`.
 - Rules cite DPDP principles by name; exact section numbers are a report-time
   reference task, deliberately not pinned in code.

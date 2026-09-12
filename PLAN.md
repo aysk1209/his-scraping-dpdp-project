@@ -129,7 +129,7 @@ are weighted toward the contribution described in §2.
 |---|---|---:|---:|---:|
 | 1 | DPDP compliance framework (7 rules, policy, scoring, report) | 15 | 15 | 15 |
 | 2 | Benchmark harness + cost profile (§3) | 12 | 12 | 12 |
-| 3 | Role × task DPDP policy (gates the agent) | 7 | 0 | 7 |
+| 3 | Role × task DPDP policy (gates the agent) | 7 | 7 | 7 |
 | 4 | Extraction: adapter interface + three techniques | 10 | 10 | 10 |
 | 5 | Tier 2 browser extraction (Playwright) | 12 | 0 | 10 |
 | 6 | Synthetic data: catalogue, generator, schemas | 8 | 6 | 8 |
@@ -139,13 +139,13 @@ are weighted toward the contribution described in §2.
 | 10 | Rule-based staff-guidance agent | 10 | 0 | 7 |
 | 11 | End-to-end demonstration | 5 | 0 | 5 |
 | 12 | Project report + manuscript (compliance-focused) | 6 | 0 | 1 |
-| | **Total** | **100** | **45** | **89** |
+| | **Total** | **100** | **52** | **89** |
 
 Review-II's floor is ~75%; this targets 89, so slippage on any one workstream still
 clears it. The residual 11 points to Review-III are almost entirely the report and
 the manuscript — which is exactly what Review-III is for.
 
-*Updated 2026-09-12: W3 complete, component 2 closed — 41 to 45.*
+*Updated 2026-09-12: W3 complete, component 2 closed — 41 to 45. W5 complete, component 3 closed — 45 to 52.*
 
 ## 6. Workstreams
 
@@ -242,20 +242,30 @@ deliberately.
 Being rule-based makes the whole thing unit-testable with no network and no API
 key, which also means it cannot fail in the review room.
 
-### W5 — Role × task DPDP policy *(component 3)*
+### W5 — Role × task DPDP policy *(component 3)* — **DONE 2026-09-12**
 
-Extends `src/compliance/policy.py` with a role-aware envelope: which field
-categories and layers each `StaffRole` may be instructed to access, for a given
-task and purpose. A declarative table, like `PURPOSE_POLICY` — "what is allowed"
-stays inspectable in one place, which is itself an artifact the report can show.
+`src/compliance/roles.py`. Role access is **derived, not listed**, from two
+independent sources: the purposes a role acts under (nurse → care; administrator →
+billing + registration; reception → registration + billing for eligibility) and the
+interoperability artefacts it handles — HL7 v2 message types, FHIR resource types,
+DICOM, ISO/IEEE 11073 (team decision: assume access follows the standards). The
+effective scope is the intersection; either source alone over-grants, and tests
+show both cases.
 
-This is compliance work, not agent work, and it is weighted and sequenced as such.
-It must precede W4's decline behaviour.
+`authorise(role, purpose, artefacts)` is the gate W4 will call: three checks, three
+principles — PL-01 (lawful purpose for this role), DM-01 (every category necessary
+for it), SS-01 (role handles these artefacts). Every decline names its rule. A
+third purpose, `patient_registration`, was added for reception, pairwise non-nested
+with the other two. `fhir:Claim` and `dicom:Study` are granted to no role by design.
+The consistency test also corrected a gap in `interop/mapping.py` — HL7 v2 `DFT`
+and `BAR` carry billing, so the Administrative/Financial layer now lists HL7 v2.
+
+`scripts/show_role_access.py` is the visible artifact.
 
 ### W6 — Widen the compliance surface *(components 6, 9)*
 
-**Second processing purpose: DONE 2026-09-12.** `billing_settlement` is modelled
-alongside `care_coordination`, and deliberately **non-nested** — neither scope
+**Second and third processing purposes: DONE 2026-09-12.** `billing_settlement` and
+`patient_registration` are modelled alongside `care_coordination`, pairwise **non-nested** — neither scope
 contains the other, so purposes are not ranked strict-to-lax and "out of scope"
 keeps its proper meaning. Three rules now vary with the purpose (`DM-01` allowed
 categories, `SL-01` retention ceiling, `SS-01` whether pseudonymisation is

@@ -62,7 +62,28 @@ PURPOSE_POLICY: dict[Purpose, PurposePolicy] = {
         requires_pseudonymised_identifiers=False,
         legitimate_use_note="legitimate use -- settlement of amounts due for services provided",
     ),
+    Purpose.PATIENT_REGISTRATION: PurposePolicy(
+        allowed_categories={
+            FieldCategory.DIRECT_IDENTIFIER,   # the person being registered
+            FieldCategory.QUASI_IDENTIFIER,    # date of birth / sex to disambiguate a match
+            FieldCategory.CONTACT,             # how to reach them about the appointment
+            FieldCategory.ADMINISTRATIVE,      # ward, slot, arrival time
+        },
+        # Registration data identifies the patient across visits, so it outlives a
+        # single episode of care; held for the working relationship, not a case.
+        max_retention_days=180,
+        # Identification at the desk is the purpose. Pseudonymising the identity
+        # of the person you are trying to identify is not a safeguard here.
+        requires_pseudonymised_identifiers=False,
+        legitimate_use_note="legitimate use -- registration and scheduling for provision of services",
+    ),
 }
+
+# Non-nesting check, pairwise. Care: {DI, QI, CLIN, ADMIN}. Billing: {DI, CONTACT,
+# FIN, ADMIN}. Registration: {DI, QI, CONTACT, ADMIN}. Each pair differs in both
+# directions -- registration has CONTACT that care lacks and QI that billing
+# lacks; the other two are as before. tests/compliance/test_purpose_matrix.py
+# asserts this for every pair, so it holds structurally rather than by memory.
 
 # Deliberately NOT modelled: claims adjudication. Real insurance adjudication does
 # need coded diagnosis data, so folding it into billing_settlement would quietly

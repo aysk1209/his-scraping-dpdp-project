@@ -182,6 +182,25 @@ requires it. So "out of scope" does not mean "too sensitive" — it means *not
 needed for this particular job*. A scraping method cannot be compliant in the
 abstract, only compliant for a stated purpose.
 
+### Demo A3 — who may be told to do what
+
+```
+python scripts/show_role_access.py
+```
+
+Shows what each staff role (reception, nurse, administrator) may be instructed to
+do, and puts the same request through all three at once. A receptionist asking
+about a diagnosis is declined; a nurse asking to raise an invoice is declined; the
+administrator is declined from a claim that carries diagnosis codes. **Every
+refusal names the DPDP rule that produced it.**
+
+The point to make out loud: a role's access is not a list someone typed. It is
+*derived* — from the purposes the role lawfully acts under, and from the HL7 /
+FHIR / DICOM / ISO-IEEE-11073 artefacts it handles under the standards. The same
+policy table that scores the scraping benchmark decides what the assistant may say
+to whom. This is the compliance half of the staff-guidance agent; the agent itself
+sits on top of it.
+
 ### Demo B — one method, three configurations
 
 ```

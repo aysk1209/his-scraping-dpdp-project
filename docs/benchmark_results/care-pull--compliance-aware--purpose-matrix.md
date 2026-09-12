@@ -10,3 +10,4 @@ For any purpose other than the declared one, the privacy notice is treated as no
 |---|---|---|---|---|
 | `care_coordination` | yes | 1.000 | 7/7 | lawful for this purpose |
 | `billing_settlement` | no | 0.857 | 5/7 | out of scope: clinical, quasi_identifier |
+| `patient_registration` | no | 0.893 | 5/7 | out of scope: clinical |
