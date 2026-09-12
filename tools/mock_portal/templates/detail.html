@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} record - HIS Portal{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('module_list', slug=slug) }}">&laquo; Back to {{ title }}</a></p>
+<h1>{{ title }} &mdash; record</h1>
+<table>
+  <tbody>
+  {% for name, value in record.items() %}
+  <tr><th>{{ name }}</th><td>{{ value }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p class="pager">
+  {% if prev_id is not none %}<a href="{{ url_for('module_detail', slug=slug, rid=prev_id) }}">&laquo; Previous record</a>{% endif %}
+  {% if next_id is not none %}<a href="{{ url_for('module_detail', slug=slug, rid=next_id) }}">Next record &raquo;</a>{% endif %}
+</p>
+{% endblock %}

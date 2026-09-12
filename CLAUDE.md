@@ -47,7 +47,9 @@ This means, until told otherwise:
 - Any scraping module should be built against **mock/synthetic HIS data** we generate ourselves, with a clean interface boundary so the real HIS can be swapped in later without refactoring.
 - If a task seems to require live data, stop and flag it rather than assuming/fabricating a workaround.
 
-**The proposed workaround (Review-II — proposed 2026-09-12, confirm with the team before building):** a **locally served mock HIS portal** — a login-gated web application we author ourselves, rendering synthetic records as HTML across the five-layer module structure. The Tier 2 Playwright machinery then scrapes it *for real*: real browser, real authentication, real DOM traversal, real pagination, real latency. This unblocks build step 4's browser layer and makes per-technique processing time a meaningful measurement rather than a microsecond artefact of in-memory dict access — without touching any real hospital system. The portal is a test fixture, not a product: it gets its own `HISDataSource` adapter, and `LiveHISDataSource` stays a stub.
+**The workaround (approved and built 2026-09-12): a locally served mock HIS portal** — `tools/mock_portal/`, Flask, login-gated, server-rendered HTML over any `HISDataSource`. The Tier 2 Playwright machinery scrapes it *for real*: real browser, real authentication, real DOM traversal, real pagination, real latency. It is a test fixture, not a product, and it is built on one rule the team set: **assume we do not control it.** The scraper holds a username and password and nothing else — no JSON endpoint, no data attributes, no hooks for the scraper's convenience; module URLs use portal vocabulary (`/m/registration/`, `/m/billing/`), not our layer names. If the adapter can read it, it is because it does what it would do against a real portal. It must scale to a **large dataset** (pagination is real, `--records 5000` pages for a while) and it serves the hospital dataset unchanged when that arrives. `LiveHISDataSource` stays a stub.
+
+Run it: `python -m tools.mock_portal --records 500 --seed 42 --port 8765` (account `frontdesk` / `letmein`).
 
 ## Build Order (with current status)
 
@@ -56,7 +58,7 @@ Status as of 2026-09-12, re-baselined against the Review-II target.
 1. **Done.** Repo scaffolding + project structure.
 2. **Done.** DPDP compliance framework — 7 criteria as code-checkable pydantic rules (`src/compliance/rules/`), a declarative purpose policy, and a scored `ComplianceReport` artifact.
 3. **Thin slice done; Review-II work remains.** Synthetic HIS data generator — a field catalogue (name → HIS layer → DPDP category) and a Faker-seeded record generator (`src/data_synthetic/`). Still to do: per-layer pydantic schemas, the fifth layer's fields, and volume/variety wide enough to make timing differences legible.
-4. **Substantially done; browser layer is the Review-II gap.** `HISDataSource` adapter interface, a working `MockHISDataSource`, and three techniques (compliance-aware, minimising, coverage-optimised baseline). `src/extraction/tier2/` is still empty — it is now unblocked by the local mock portal (see "Current Phase Constraint") and is the single highest-value remaining item.
+4. **Adapter + techniques done; mock portal done (`tools/mock_portal/`); the Playwright adapter is the Review-II gap.** `HISDataSource` interface, a working `MockHISDataSource`, three techniques (compliance-aware, minimising, coverage-optimised baseline), and a login-gated portal to scrape. `src/extraction/tier2/` is still empty and is the single highest-value remaining item — it must treat the portal as a black box (form login, cookie, links, pagination, table parsing) and emit a navigation map.
 5. **Working; needs the timing axis.** `run_benchmark` scores every technique against every task with the same rule set and emits a ranked comparison table (`src/compliance/benchmark.py`). This is the paper's core evidence. Review-I feedback adds **per-technique processing time** to it.
 6. **Done (`src/agent/`) — the staff-guidance agent, on top of `compliance/roles.py`. Deliberately simple: NO LLM.** It recognises a **pre-defined function** from what the user types, asks for the input details that function needs, and replies with templated instructions. Rule-based, deterministic, no model, no training, no API key. The AXE-inspired *LLM extraction* agent is **cut** — AXE stays a literature citation only. The agent is a completeness deliverable, not a research contribution (see "Where the contribution lies" above); build it to work, keep it small, do not let it grow. Its one research-relevant property is that the function registry is **DPDP-gated per role** — reception asking for clinical data is declined with the rule cited.
 7. **Blocked until data access; assume it stays blocked.** Swap synthetic source for live HIS, re-run benchmarks, tune.
@@ -69,11 +71,12 @@ Runnable demos: `scripts/run_benchmark.py` (headline — technique comparison on
 
 - **Language:** Python 3.10+ (primary — scraping, compliance logic, data handling)
 - **Schema modelling:** pydantic v2 — DPDP compliance rules, the extraction manifest, and HIS record shapes
-- **Scraping:** Playwright (Tier 2, headless browser automation) — chosen over Selenium; machinery stubbed until data access
-- **Agent:** rule-based function recognition + slot filling + templated instructions — plain Python, no LLM, no ML, no external API. (The `anthropic` pin in `requirements.txt` is now unused and should be removed.)
+- **Scraping:** Playwright (Tier 2, headless browser automation) — chosen over Selenium; scrapes the mock portal
+- **Mock portal fixture:** Flask 3 (`tools/mock_portal/`) — one dependency, sync, login sessions and templating built in; approved 2026-09-12
+- **Agent:** rule-based function recognition + slot filling + templated instructions — plain Python, no LLM, no ML, no external API. (`anthropic` removed from `requirements.txt` 2026-09-12.)
 - **Data handling:** pandas for structured records; synthetic data via Faker, generators shaped to the five-layer HIS model
 - **Interoperability:** hand-rolled lightweight HL7 / FHIR / DICOM / ISO-IEEE-11073 shapers — no external interop libraries, no HIS vendor names
-- **Testing:** pytest (`pytest.ini` sets `pythonpath = src`)
+- **Testing:** pytest (`pytest.ini` sets `pythonpath = src .` — the `.` is for `tools/`)
 - **Docs:** Markdown, kept in `/docs`
 
 Confirm before introducing a new major dependency or language — don't assume.
@@ -97,6 +100,8 @@ Confirm before introducing a new major dependency or language — don't assume.
   /agent              # rule-based staff-guidance agent: functions (registry), session (recognise/gate/collect), guidance (output)
   /interop            # layers (five-layer HIS enum), mapping, hand-rolled hl7/fhir/dicom/iso_ieee_11073
 /scripts              # run_benchmark, compare_purposes, show_role_access, ask_agent, run_synthetic_extraction, score_extraction_run
+/tools
+  /mock_portal        # Flask fixture: login-gated HTML portal over any HISDataSource (python -m tools.mock_portal)
 /tests
 /docs
   /architecture        # five-layer-his.md

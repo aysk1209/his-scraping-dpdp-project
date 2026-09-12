@@ -35,7 +35,7 @@ The suggestion reads as a small table column, but it changes what the benchmark 
 ## Scraping Tier Decision
 
 Tiering (as established pre-build):
-- **Tier 2 — headless browser automation (Playwright):** chosen primary methodology, for credentialed portal scraping. Playwright chosen over Selenium. The machinery is still unwritten, but is **no longer blocked** — it is now built and exercised against our own locally served mock portal (see "Data Access Status"), with the live portal as a later re-targeting.
+- **Tier 2 — headless browser automation (Playwright):** chosen primary methodology, for credentialed portal scraping. Playwright chosen over Selenium. The machinery is still unwritten but **no longer blocked**: the mock portal exists (`tools/mock_portal/`) and is deliberately built as a system we do not control, so the adapter written against it transfers to a real portal as selectors and credentials rather than new code.
 - **Public-documentation scraping:** retained as an undocumented fallback, not the primary path.
 - **Open question:** whether to prioritize login-gated portal scraping vs public-documentation scraping determines which Tier 3/4 techniques get developed further downstream. Still unresolved; should go to Dr. Manoj Kumar before Review-II implementation locks in. The mock portal is login-gated, which implicitly leans toward the first path — worth confirming rather than letting the fixture decide the methodology.
 
@@ -66,7 +66,8 @@ Framed as a comparative advantage over existing scraping literature, not a compl
 
 - **Done:** repo scaffolding; the 7-rule DPDP compliance framework + policy + scored `ComplianceReport`; the benchmarking harness (`run_benchmark`) with a three-technique comparison on two axes, compliance and cost (`extraction/metering.py`); the hand-rolled HL7 / FHIR / DICOM / ISO-IEEE-11073 shapers and the five-layer mapping; three non-nested purposes and the cross-purpose matrix; role access derived from purposes × interop artefacts (`compliance/roles.py`) with a three-principle gate; the rule-based staff-guidance agent (`src/agent/`, 13 functions across three roles, gate-before-collect, groundedness-tested).
 - **Slice done:** synthetic data generator (field catalogue covering four of the five layers + Faker generator); extraction adapter (`MockHISDataSource`) + technique layer.
-- **Not started:** real Tier 2 browser code (`src/extraction/tier2/` is empty); the rough mock portal; the dataset adapter; full per-layer pydantic schemas; a real AutoScraper baseline.
+- **Done (fixture):** the mock HIS portal (`tools/mock_portal/`, Flask) — login-gated, paginated, built as a black box the scraper does not control.
+- **Not started:** real Tier 2 browser code (`src/extraction/tier2/` is empty); the dataset adapter; full per-layer pydantic schemas; a real AutoScraper baseline.
 - Five runnable scripts, ~90 passing tests, a browsable result at `docs/benchmark_results/benchmark.md`. See `DEMO_GUIDE.md` and `docs/compliance/approach.md`.
 
 ## Known Loose Ends

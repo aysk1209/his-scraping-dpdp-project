@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - HIS Portal{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<form class="search" method="get" action="{{ url_for('module_list', slug=slug) }}">
+  <input type="text" name="q" value="{{ query }}" placeholder="Search">
+  <button type="submit">Search</button>
+  {% if query %}<a href="{{ url_for('module_list', slug=slug) }}">Clear</a>{% endif %}
+</form>
+<p>{{ total }} record{{ '' if total == 1 else 's' }}{% if query %} matching "{{ query }}"{% endif %} &middot; page {{ page }} of {{ pages }}</p>
+<table>
+  <thead><tr>{% for c in columns %}<th>{{ c }}</th>{% endfor %}<th></th></tr></thead>
+  <tbody>
+  {% for rid, row in rows %}
+  <tr>
+    {% for c in columns %}<td>{{ row.get(c, '') }}</td>{% endfor %}
+    <td><a href="{{ url_for('module_detail', slug=slug, rid=rid) }}">Open</a></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p class="pager">
+  {% if page > 1 %}<a href="{{ url_for('module_list', slug=slug, page=page-1, q=query or None) }}">&laquo; Previous</a>{% endif %}
+  <span>Page {{ page }} / {{ pages }}</span>
+  {% if page < pages %}<a href="{{ url_for('module_list', slug=slug, page=page+1, q=query or None) }}">Next &raquo;</a>{% endif %}
+</p>
+{% endblock %}

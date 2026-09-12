@@ -134,28 +134,40 @@ are weighted toward the contribution described in §2.
 | 5 | Tier 2 browser extraction (Playwright) | 12 | 0 | 10 |
 | 6 | Synthetic data: catalogue, generator, schemas | 8 | 6 | 8 |
 | 7 | Dataset adapter for the hospital export | 5 | 0 | 4 |
-| 8 | Rough mock HIS portal | 5 | 0 | 5 |
+| 8 | Rough mock HIS portal | 5 | 5 | 5 |
 | 9 | Interop normalisation wired into a run | 5 | 2 | 5 |
 | 10 | Rule-based staff-guidance agent | 10 | 8 | 8 |
 | 11 | End-to-end demonstration | 5 | 0 | 5 |
 | 12 | Project report + manuscript (compliance-focused) | 6 | 0 | 1 |
-| | **Total** | **100** | **60** | **90** |
+| | **Total** | **100** | **65** | **90** |
 
 Review-II's floor is ~75%; this targets 90, so slippage on any one workstream still
 clears it. The residual 11 points to Review-III are almost entirely the report and
 the manuscript — which is exactly what Review-III is for.
 
-*Updated 2026-09-12: W3 complete, component 2 closed — 41 to 45. W5 complete, component 3 closed — 45 to 52. W4 complete, component 10 at 8 of 10 — 52 to 60; the last two points are the navigation-map pages filled in once the portal exists.*
+*Updated 2026-09-12: W3 complete, component 2 closed — 41 to 45. W5 complete, component 3 closed — 45 to 52. W4 complete, component 10 at 8 of 10 — 52 to 60; the last two points are the navigation-map pages filled in once the portal exists. W1 complete, component 8 closed — 60 to 65.*
 
 ## 6. Workstreams
 
 Acceptance criteria are written so that "done" is observable rather than a matter
 of opinion.
 
-### W1 — Rough mock HIS portal *(component 8)*
+### W1 — Rough mock HIS portal *(component 8)* — **DONE 2026-09-12**
 
-**Deliberately minimal.** Not a simulation of a hospital system — just enough
-structure for a browser to log into, navigate, and scrape. A small Flask app:
+`tools/mock_portal/`, Flask 3. Built to two constraints the team set after the
+original spec below: **assume we do not control it** (no JSON endpoint, no scraper
+hooks, portal vocabulary in URLs, a per-session login token, `robots.txt`
+disallowing all — the adapter must earn its data as it would against a real
+system) and **it may have to serve a large dataset** (records snapshotted from the
+`HISDataSource` once at start-up, pagination real, `--records 5000` gives 200
+pages per module). Fields on the list page are a subset; the rest are only on the
+detail page. It serves the hospital dataset unchanged when that arrives.
+`python -m tools.mock_portal`; account `frontdesk / letmein`. Tests drive it
+through Flask's test client; it has also been driven over real HTTP.
+
+Original spec, kept for the record. **Deliberately minimal.** Not a simulation of a
+hospital system — just enough structure for a browser to log into, navigate, and
+scrape. A small Flask app:
 
 - Login page and session cookie.
 - A handful of pages mapped to the five layers.
@@ -341,15 +353,12 @@ Close the chain first; thicken it second.
 
 Roughly in the order they block work.
 
-1. **Sign-off on the rough mock portal (W1)** and on **Flask** as a dependency —
-   `CLAUDE.md` requires confirmation before adding one. Flask over FastAPI: it is a
-   fixture, and synchronous with no ASGI server is less machinery to explain.
+1. ~~Sign-off on the rough mock portal (W1) and on Flask~~ — **approved and built 2026-09-12.**
 2. **`playwright install chromium`** on whichever machine demos — roughly 150 MB of
    browser binaries that `pip install` does not fetch.
 3. **Hospital dataset: format, size, and de-identification status** (§4). The
    de-identification question should be settled *before* the data arrives, not after.
-4. **Confirm W7** — dropping the LLM agent, and removing `anthropic` from
-   `requirements.txt`.
+4. ~~Confirm W7~~ — **done**; the LLM agent is dropped and `anthropic` is removed from `requirements.txt`.
 5. **Review-II date.** Not recorded anywhere; the sequence above is ordered but not
    calendared.
 6. **Guide input — login-gated versus public-documentation priority.** Formally still

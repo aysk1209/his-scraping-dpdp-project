@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Home - HIS Portal{% endblock %}
+{% block content %}
+<h1>Modules</h1>
+{% for slug, title, description, count in cards %}
+<div class="card">
+  <h2><a href="{{ url_for('module_list', slug=slug) }}">{{ title }}</a></h2>
+  <p>{{ description }}</p>
+  <p><small>{{ count }} records</small></p>
+</div>
+{% endfor %}
+{% endblock %}

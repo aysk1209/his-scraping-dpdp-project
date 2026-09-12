@@ -226,6 +226,25 @@ design.
 
 Use `--interactive` if a reviewer wants to type their own request.
 
+### The mock hospital portal (what the scraper will point at)
+
+```
+python -m tools.mock_portal --records 500
+```
+
+Then open <http://127.0.0.1:8765/> in a browser and sign in as **frontdesk /
+letmein**. You will see a plain hospital-style portal: four modules (Registration,
+Clinical Records, Departmental Orders, Billing & Accounts), each a paginated table
+with a search box and an "Open" link per record that shows the fields the table
+does not.
+
+It is deliberately built as a system **we do not control**: a login form with a
+token, a session cookie, a redirect if you are not signed in, no API, and a
+`robots.txt` that disallows everything. The point is that the scraper has to do
+what it would do against a real hospital portal — nothing here is arranged for its
+convenience. Use `--records 5000` to make it page for a long time, and
+`--latency-ms 40` to make it feel remote. Stop it with Ctrl-C.
+
 ### Demo B — one method, three configurations
 
 ```

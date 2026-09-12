@@ -11,11 +11,13 @@ pydantic>=2.9,<3.0
 # --- synthetic HIS data generation ---
 Faker>=30.0,<40.0
 
-# --- LLM-based extraction agent (build step 6, AXE-method inspired) ---
-anthropic>=0.40,<1.0
-
 # --- testing ---
 pytest>=8.0,<9.0
+
+# --- mock HIS portal (test fixture, tools/mock_portal) ---
+# A login-gated, server-rendered portal over a HISDataSource so the Tier 2
+# browser layer has something real to scrape. Team sign-off 2026-09-12.
+flask>=3.0,<4.0
 
 # --- Tier 2 headless browser automation ---
 # Installed now so the extraction skeleton can be written; exercised only once
