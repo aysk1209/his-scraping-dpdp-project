@@ -7,9 +7,10 @@ an evaluation that yields a status + 0–1 score against an extraction run
 (`compliance.models.ExtractionRun` + sampled `ExtractedRecord`s).
 
 Rules cite the DPDP Act 2023 **principle** by name (in `provision` and in a code
-comment at the point of the check). Exact section numbers are a report-time
-reference task — deliberately not pinned in code, so the rules stay readable and
-don't rot against a mis-transcribed clause.
+comment at the point of the check). Exact section numbers are deliberately not
+pinned in code, so the rules stay readable and don't rot against a mis-transcribed
+clause; they are drafted below for the report and must be verified against the
+enacted text before use.
 
 ## Rules
 
@@ -24,6 +25,41 @@ don't rot against a mis-transcribed clause.
 | `AC-01` | Accountability — Data Fiduciary can demonstrate compliance | Fraction of governance controls (audit log, named accountable party, record of processing) in place | **implemented** |
 
 All seven principles are now covered. The rule set is `compliance.rules.ALL_RULES`.
+
+## Section mapping (report-time task — drafted 2026-09-13, to be verified against the Gazette text)
+
+The rules name principles; the report cites sections. The mapping below is our
+reading of the Digital Personal Data Protection Act, 2023 (Act No. 22 of 2023).
+**Every row must be checked against the enacted text before it goes into the
+report or manuscript** — clause letters within s.7 and sub-sections within s.8 are
+the places a transcription error is most likely. Where the Act has no standalone
+principle (India's Act, unlike the GDPR, has no free-standing "data minimisation"
+article), the row says which provision the principle is derived from.
+
+| Rule | Principle | Provision(s) relied on | How the text supports the rule | Verify |
+|------|-----------|------------------------|-------------------------------|--------|
+| `DM-01` | Data minimisation | **s.6(1)** — consent is "limited to such personal data as is necessary for such specified purpose"; read with **s.4(1)** (processing only for a lawful purpose) | The Act ties the *extent* of data to the *specified purpose*; `DM-01` checks extracted categories against the purpose's envelope — the machine-checkable form of "necessary for the purpose" | ☐ |
+| `LB-01` | Lawful basis | **s.4(1)(a)–(b)** — consent, or a "certain legitimate use"; **s.6** (consent) and **s.7** (legitimate uses, incl. voluntary provision (a), medical emergency (e), epidemic / public-health treatment (f)) | A run must declare which of the two grounds it rests on and reference it; `care_coordination` and `patient_registration` rely on s.7 legitimate uses for provision of medical services; `billing_settlement` on the purpose for which data was voluntarily provided | ☐ clause letters |
+| `SL-01` | Storage limitation | **s.8(7)** — erase personal data on withdrawal of consent or "as soon as it is reasonable to assume that the specified purpose is no longer being served", unless retention is required by law; **s.8(7)(b)**-style retention for legal obligation supports billing's longer ceiling | Per-purpose retention ceilings and a declared deletion mechanism; the audit-driven 365-day ceiling for billing is the "required by law" carve-out | ☐ sub-section |
+| `SS-01` | Security safeguards | **s.8(4)** — "appropriate technical and organisational measures"; **s.8(5)** — "reasonable security safeguards to prevent personal data breach" | TLS, encryption at rest, access control, and pseudonymisation on export are the concrete safeguards; the export audit (`interop.normalise.audit`) verifies the last against output | ☐ |
+| `PL-01` | Purpose limitation | **s.4(1)** — processing "only for a lawful purpose"; **s.5(1)(i)** — notice of "the personal data and the purpose"; **s.6(1)** — consent "for the specified purpose" | A run declares one specified purpose; onward uses are assessed against other recognised purposes' envelopes rather than merely flagged | ☐ |
+| `NT-01` | Transparency / notice | **s.5(1)–(2)** — notice accompanying or preceding the request for consent, stating the personal data, the purpose, the manner of exercising rights and of complaint to the Board | A notice artefact is recorded and covers the run's purpose; the purpose matrix treats a notice as not covering a purpose it did not name | ☐ |
+| `AC-01` | Accountability | **s.8(1)** — the Data Fiduciary "shall be responsible for complying … irrespective of any agreement to the contrary"; **s.8(8)** — publish contact of the person able to answer questions; **s.10(2)** (for Significant Data Fiduciaries) — Data Protection Officer, independent audit, DPIA | Audit log, a named accountable party, and a record of processing are the demonstrable-compliance controls; the fifth HIS layer's audit events are the evidence | ☐ s.10 applicability |
+
+Related provisions to cite in the report's background, not tied to a rule:
+**s.2** (definitions — "personal data", "processing", "Data Fiduciary", "Data
+Principal", "personal data breach"), **s.3** (application — digital personal data
+within India), **s.11–s.14** (Data Principal's rights: access, correction and
+erasure, grievance redressal, nomination), **s.17** (exemptions — research and
+statistical purposes under prescribed standards, which the *synthetic-data*
+methodology deliberately avoids needing).
+
+Two caveats for the write-up. First, the Act's Rules (subordinate legislation)
+prescribe much of the operational detail — notice format, breach timelines,
+retention for specified classes of fiduciary — and their status at the time of
+writing should be stated. Second, the Act does not use the term "data
+minimisation"; the report should say the principle is *derived* from s.6(1) and
+s.4(1) rather than named in the statute.
 
 ## Policy
 

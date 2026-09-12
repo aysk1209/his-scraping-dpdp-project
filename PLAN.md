@@ -143,14 +143,14 @@ are weighted toward the contribution described in §2.
 | 9 | Interop normalisation wired into a run | 5 | 5 | 5 |
 | 10 | Rule-based staff-guidance agent | 10 | 10 | 10 |
 | 11 | End-to-end demonstration | 5 | 5 | 5 |
-| 12 | Project report + manuscript (compliance-focused) | 6 | 0 | 1 |
-| | **Total** | **100** | **94** | **94** |
+| 12 | Project report + manuscript (compliance-focused) | 6 | 1 | 1 |
+| | **Total** | **100** | **95** | **95** |
 
 Review-II's floor is ~75%; the build stands at 94. The residual 6 points are the
 report and the manuscript — Review-III work by definition. The residual 11 points to Review-III are almost entirely the report and
 the manuscript — which is exactly what Review-III is for.
 
-*Updated 2026-09-12: W3 complete, component 2 closed — 41 to 45. W5 complete, component 3 closed — 45 to 52. W4 complete, component 10 at 8 of 10 — 52 to 60; the last two points are the navigation-map pages filled in once the portal exists. W1 complete, component 8 closed — 60 to 65. W2 (Tier 2) at 10 of 12 and W9 rough at 4 of 5, agent pages now filled — 65 to 81. **The 75% floor is crossed with a working end-to-end chain.** Interop shaping + export audit wired in, components 9 and 11 closed — 81 to 85. 2026-09-13: fifth-layer fields + schemas, dataset adapter against a synthetic export, label→field mapping — components 5, 6, 7 closed — 85 to 94. **Everything not requiring live access is built; the remaining 6 points are the report and manuscript.***
+*Updated 2026-09-12: W3 complete, component 2 closed — 41 to 45. W5 complete, component 3 closed — 45 to 52. W4 complete, component 10 at 8 of 10 — 52 to 60; the last two points are the navigation-map pages filled in once the portal exists. W1 complete, component 8 closed — 60 to 65. W2 (Tier 2) at 10 of 12 and W9 rough at 4 of 5, agent pages now filled — 65 to 81. **The 75% floor is crossed with a working end-to-end chain.** Interop shaping + export audit wired in, components 9 and 11 closed — 81 to 85. 2026-09-13: fifth-layer fields + schemas, dataset adapter against a synthetic export, label→field mapping — components 5, 6, 7 closed — 85 to 94. **Everything not requiring live access is built; the remaining points are the report and manuscript.** 2026-09-13 later: report outline with chapter→artefact mapping (`docs/report/outline.md`) and the DPDP section mapping drafted for verification — 94 to 95.*
 
 ## 6. Workstreams
 
