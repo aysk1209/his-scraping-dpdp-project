@@ -39,7 +39,7 @@ The two halves join through one mechanism: **role-based guidance and DPDP purpos
 
 **We still do NOT have live HIS data access.** Credentialed access exists on paper but has not become usable and has now missed a full review cycle. **Expected by Review-II, however: a large dataset from the hospital**, and possibly live access. Plan for the dataset; treat live access as upside. Nothing built may *depend* on either arriving — the synthetic path must stay complete and runnable on its own.
 
-**If a real hospital dataset arrives it is almost certainly real patient data.** A project whose whole contribution is data-protection compliance cannot be careless with it: confirm it is de-identified (or de-identify on receipt), `.gitignore` the data path *before* it lands, record its provenance and the basis on which it was shared, and check whether ethics approval is needed. See `PLAN.md` section 4.
+**If a real hospital dataset arrives it is almost certainly real patient data.** A project whose whole contribution is data-protection compliance cannot be careless with it. The checklist is now **enforced in code** (`src/compliance/handling.py`): `DatasetHISDataSource` refuses to read a non-synthetic directory unless it is under `data/`, git actually ignores it, and a `PROVENANCE.md` beside it states who supplied it and its de-identification status. Day-one procedure: `docs/access/when-access-lands.md` — `scripts/check_source.py` first (reports what was understood, writes the mapping template), then `run_pipeline.py --dataset … --column-map …` or `--portal … --aliases …`.
 
 This means, until told otherwise:
 - Do NOT build against a real HIS endpoint.
@@ -93,14 +93,14 @@ Confirm before introducing a new major dependency or language — don't assume.
 
 ```
 /src
-  /compliance         # models, policy, roles, pseudonymise, rules/, checkers, summary, benchmark, report, purpose_matrix
+  /compliance         # models, policy, roles, pseudonymise, handling (real-data gate), rules/, checkers, summary, benchmark, report, purpose_matrix
   /data_synthetic     # catalogue (field → layer → DPDP category, infer_layer), generators/, schemas/, export
   /extraction         # base (HISDataSource), metering, adapters/ (mock_his, portal_his, dataset_his, live_his stub),
                       #   technique + techniques/ (compliant, morality, unconstrained),
                       #   tier2/ (browser: Playwright session; navigation: crawl + infer layers)
   /agent              # rule-based staff-guidance agent: functions (registry), session (recognise/gate/collect), guidance (output)
   /interop            # layers (five-layer HIS enum), mapping, normalise (shape + audit), hl7/ fhir/ (implemented), dicom/ iso_ieee_11073/ (stubs)
-/scripts              # run_pipeline (end to end), run_benchmark, compare_purposes, show_role_access, ask_agent, ...
+/scripts              # run_pipeline (end to end; --dataset / --portal for real sources), check_source (day-one diagnostic), run_benchmark, ...
 /tools
   /mock_portal        # Flask fixture: login-gated HTML portal over any HISDataSource (python -m tools.mock_portal);
                       #   serve.BackgroundPortal runs it in a thread for tests and scripts
@@ -108,6 +108,8 @@ Confirm before introducing a new major dependency or language — don't assume.
 /docs
   /architecture        # five-layer-his.md
   /compliance          # approach.md, dpdp-provision-map.md
+  /access              # when-access-lands.md — the day-one procedure for real data
+  /review              # review-ii-flow.md — presenter script
   /benchmark_results    # tracked: benchmark.md, benchmark-portal.md, navigation-map.json, two purpose matrices; other runs git-ignored
 CLAUDE.md   PROJECT_CONTEXT.md   README.md   DEMO_GUIDE.md   requirements.txt
 ```

@@ -22,7 +22,10 @@ against ``data_synthetic.export.write_export``, which writes files of the right
 shape.
 
 Handling note: a real export is real personal data. PLAN.md section 4 governs
-where it may live (``data/``, git-ignored) and what must be confirmed first.
+where it may live (``data/``, git-ignored) and what must be confirmed first --
+and ``compliance.handling`` enforces it: unless the directory is a synthetic
+export, the adapter refuses to read it until the checks pass. ``enforce_handling``
+exists for tests that build throwaway files; do not turn it off for real data.
 """
 
 from __future__ import annotations
@@ -32,6 +35,8 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+
+from compliance.handling import require_safe_to_read
 
 from data_synthetic.catalogue import FIELD_CATALOGUE, infer_layer
 from extraction.base import HISDataSource
@@ -49,8 +54,13 @@ class DatasetHISDataSource(HISDataSource):
         *,
         column_map: dict[str, str] | None = None,
         min_confidence: float = 0.5,
+        enforce_handling: bool = True,
     ) -> None:
         self.directory = Path(directory)
+        if enforce_handling:
+            # Refuses real data that is not under data/, not ignored, or has no
+            # provenance note. Synthetic exports pass by their manifest.
+            require_safe_to_read(self.directory)
         self.column_map = dict(column_map or {})
         self.min_confidence = min_confidence
         self.files: dict[HISLayer, Path] = {}

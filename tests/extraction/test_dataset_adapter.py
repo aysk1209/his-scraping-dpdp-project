@@ -58,10 +58,10 @@ def test_a_hospital_named_file_with_hospital_named_columns_needs_only_a_column_m
         w = csv.writer(fh)
         w.writerow(["Patient ID", "Patient Name", "DOB", "Gender", "Ward", "Internal Flag"])
         w.writerow(["H001", "A Person", "1990-01-01", "F", "Ward A", "x"])
-    src = DatasetHISDataSource(tmp_path, column_map={
+    src = DatasetHISDataSource(tmp_path, enforce_handling=False, column_map={
         "Patient ID": "mrn", "Patient Name": "full_name", "DOB": "date_of_birth",
         "Gender": "sex", "Ward": "admission_ward",
-    })
+    })   # throwaway test file, not real data -- hence enforce_handling=False
     assert src.layers() == (HISLayer.PATIENT_ADMINISTRATION,)
     (row,) = src.fetch(HISLayer.PATIENT_ADMINISTRATION)
     assert row == {"mrn": "H001", "full_name": "A Person", "date_of_birth": "1990-01-01",
@@ -72,14 +72,22 @@ def test_a_hospital_named_file_with_hospital_named_columns_needs_only_a_column_m
 
 def test_unrecognisable_file_is_skipped_and_reported(tmp_path):
     (tmp_path / "notes.csv").write_text("colour,shape\nred,round\n", encoding="utf-8")
-    src = DatasetHISDataSource(tmp_path)
+    src = DatasetHISDataSource(tmp_path, enforce_handling=False)
     assert src.layers() == ()
     assert src.unclassified == ["notes.csv"]
 
 
 def test_missing_directory_is_an_error(tmp_path):
     with pytest.raises(FileNotFoundError):
-        DatasetHISDataSource(tmp_path / "nowhere")
+        DatasetHISDataSource(tmp_path / "nowhere", enforce_handling=False)
+
+
+def test_real_looking_data_outside_data_dir_is_refused(tmp_path):
+    from compliance.handling import UnsafeDataset
+    (tmp_path / "PatientMaster.csv").write_text("mrn,sex\nH1,F\n", encoding="utf-8")
+    with pytest.raises(UnsafeDataset) as exc:
+        DatasetHISDataSource(tmp_path)
+    assert "under data/" in str(exc.value) and "provenance" in str(exc.value)
 
 
 def test_techniques_and_benchmark_run_unchanged_against_the_export(source):

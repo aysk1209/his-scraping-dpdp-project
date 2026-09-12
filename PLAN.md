@@ -103,7 +103,12 @@ The adapter boundary already absorbs this: the dataset arrives as a
 changes. **Do not delay other work waiting for it**, and do not design anything
 that breaks if it never comes.
 
-### Handling requirement — flagged deliberately
+### Handling requirement — flagged deliberately, and enforced
+
+*2026-09-13: `src/compliance/handling.py` turns this list into a gate the dataset
+adapter applies before reading anything non-synthetic; `scripts/check_source.py`
+reports and writes the mapping template; `docs/access/when-access-lands.md` is the
+day-one procedure.*
 
 A large hospital dataset is, in all likelihood, **real personal data of real
 patients**. A project whose entire contribution is data-protection compliance

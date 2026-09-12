@@ -2,7 +2,7 @@
 
 _compliance-aware (ours) scores 1.000; unconstrained (baseline) scores 0.135 on the same 7 rules -- a 0.865 gap. It also pulls 1.00x the fields the purpose requires, against 7.15x for the baseline, at full coverage. That surplus is exactly what the data-minimisation rule penalises, so on this workload compliance and extraction cost move together rather than trading off against each other. morality (privacy by instinct) obtained only 85% of the fields the tasks require: it refused data the purpose lawfully needed. Privacy by instinct fails in both directions._
 
-Synthetic data: portal, 30 records/module, seed 42. 3 extraction tasks, identical DPDP rule set for every technique. Generated 2026-09-12 in 104348 ms.
+Synthetic data: portal, 8 records/module, seed 42. 3 extraction tasks, identical DPDP rule set for every technique. Generated 2026-09-12 in 28414 ms.
 
 | Technique | Compliance score | Rules passed | DM-01 | LB-01 | SL-01 | SS-01 | PL-01 | NT-01 | AC-01 |
 |---|---|---|---|---|---|---|---|---|---|
@@ -16,9 +16,9 @@ Synthetic data: portal, 30 records/module, seed 42. 3 extraction tasks, identica
 
 | Technique | Compliance | Excess ratio | Coverage | Fields pulled | Fetches | Pages loaded | Records | Wall-clock (ms) |
 |---|---|---|---|---|---|---|---|---|
-| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 390 | 5 | 100 | 150 | 16435.0 |
-| morality (privacy by instinct) | 0.484 | 0.85 | 0.85 | 330 | 5 | 100 | 150 | 16738.8 |
-| unconstrained (baseline) | 0.135 | 7.15 | 1.00 | 2790 | 15 | 480 | 450 | 71168.6 |
+| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 104 | 5 | 34 | 40 | 4815.9 |
+| morality (privacy by instinct) | 0.484 | 0.85 | 0.85 | 88 | 5 | 34 | 40 | 5035.4 |
+| unconstrained (baseline) | 0.135 | 7.15 | 1.00 | 744 | 15 | 150 | 120 | 18558.8 |
 
 **Per task**
 
@@ -36,9 +36,9 @@ Synthetic data: portal, 30 records/module, seed 42. 3 extraction tasks, identica
 
 **What each technique pulled** (total over the 3-task workload)
 
-- **compliance-aware** — 150 records across 2 layer(s); fields by category: administrative (90), clinical (30), direct_identifier (90), quasi_identifier (30); out-of-scope: none
-- **morality** — 150 records across 2 layer(s); fields by category: administrative (90), clinical (30), direct_identifier (90), quasi_identifier (30); out-of-scope: none
-- **unconstrained** — 450 records across 5 layer(s); fields by category: administrative (360), clinical (180), contact (90), direct_identifier (180), financial (90), quasi_identifier (90); out-of-scope: clinical, contact, financial
+- **compliance-aware** — 40 records across 2 layer(s); fields by category: administrative (24), clinical (8), direct_identifier (24), quasi_identifier (8); out-of-scope: none
+- **morality** — 40 records across 2 layer(s); fields by category: administrative (24), clinical (8), direct_identifier (24), quasi_identifier (8); out-of-scope: none
+- **unconstrained** — 120 records across 5 layer(s); fields by category: administrative (96), clinical (48), contact (24), direct_identifier (48), financial (24), quasi_identifier (24); out-of-scope: clinical, contact, financial
 
 **Rules**
 
