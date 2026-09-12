@@ -1,12 +1,18 @@
 # Review-II — presentation flow, executables, and the code behind them
 
 A presenter's script: what to run, in what order, what to say at each point,
-and which Python files and functions each moment rests on. The deck follows the
-mandatory VIT/SENSE template; this document is about the *live* part and the
-explanation, which is where the marks are.
+and which Python files and functions each moment rests on. The deck
+(`Review-II.pptx`, built by `tools/build_review_deck.py` on the institution's
+Review-2 template) carries the fixed slide sequence; this document is about the
+*live* part and the explanation.
 
-Total live time budget: about 5 minutes of the slot. Everything below is sized to
-that. The rest is slides.
+**From the template:** Review-II is 30.09.2026, 40 marks (40%), 12–15 minutes,
+focus "75% work completion & implementation progress". Marks: technical depth 15,
+implementation quality 15, results analysis 5, presentation 3, Q&A 2. The two
+15-mark items are exactly what the live run and the code walk-through show, so
+budget **6–7 minutes live** out of the slot and keep the slides brisk. The
+literature review must list **at least 15 papers**; we have 12 — three to add
+before the day.
 
 ---
 
@@ -28,7 +34,8 @@ the open tabs carry the real-page-load numbers. Say so plainly and move on.
 
 ## 1. The flow
 
-Six beats. Slides carry beats 1, 2 and 6; the terminal carries 3, 4 and 5.
+Six beats. Slides carry beats 1, 2 and 6 (template slides 4, 7 and 12); the
+terminal carries 3, 4 and 5, with template slides 8–11 as the fallback tables.
 
 ### Beat 1 — the thesis (slide, 45 s)
 
