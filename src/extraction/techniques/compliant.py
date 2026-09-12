@@ -45,7 +45,10 @@ class CompliantExtractionTechnique(ExtractionTechnique):
             secondary_uses=[],
             lawful_basis=LawfulBasis(
                 type=LawfulBasisType.LEGITIMATE_USE,
-                reference="legitimate use -- provision of medical services",
+                # Read from the policy table rather than hard-coded: the basis a
+                # run relies on is a property of its purpose, and the technique
+                # should not carry per-purpose knowledge of its own.
+                reference=policy.legitimate_use_note,
             ),
             retention_days=min(30, policy.max_retention_days),
             deletion_mechanism="scheduled purge on purpose completion, audited",

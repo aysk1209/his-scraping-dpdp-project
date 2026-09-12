@@ -193,12 +193,44 @@ def test_no_declared_purpose_fails_pl01():
     assert pl01.score == 0.0
 
 
-def test_secondary_use_is_partial_pl01():
+def test_unassessable_secondary_use_scores_worse_than_a_compatible_one_pl01():
+    """An onward use the policy cannot evaluate is not a safe one.
+
+    With two purposes modelled, PL-01 can distinguish an onward use that names a
+    recognised purpose the data would fit from one it cannot assess at all.
+    """
+
     run, records = _fully_compliant()
     run.secondary_uses = ["analytics dashboard for hospital management"]
     pl01 = _result(run_all(run, records), "PL-01")
     assert pl01.status == RuleStatus.FAIL
+    assert pl01.score == pytest.approx(0.25)
+    assert any("not a recognised processing purpose" in f for f in pl01.findings)
+
+
+def test_incompatible_recognised_secondary_use_is_named_pl01():
+    run, records = _fully_compliant()
+    # A care-coordination pull carries clinical data, which billing may not see.
+    run.secondary_uses = [Purpose.BILLING_SETTLEMENT.value]
+    pl01 = _result(run_all(run, records), "PL-01")
+    assert pl01.score == pytest.approx(0.25)
+    assert any("outside its own purpose scope" in f for f in pl01.findings)
+    assert any("clinical" in f for f in pl01.findings)
+
+
+def test_compatible_secondary_use_is_still_a_finding_but_scores_higher_pl01():
+    run, records = _fully_compliant()
+    # Strip the pull back to categories both purposes allow, then declare the
+    # other purpose as an onward use: compatible, but still undeclared paperwork.
+    records = [
+        r.model_copy(update={"field_categories": {FieldCategory.ADMINISTRATIVE}})
+        for r in records
+    ]
+    run.secondary_uses = [Purpose.BILLING_SETTLEMENT.value]
+    pl01 = _result(run_all(run, records), "PL-01")
+    assert pl01.status == RuleStatus.FAIL
     assert pl01.score == pytest.approx(0.5)
+    assert any("compatible" in f for f in pl01.findings)
 
 
 def test_missing_notice_fails_nt01():

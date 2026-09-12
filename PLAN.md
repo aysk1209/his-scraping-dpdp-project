@@ -254,13 +254,24 @@ It must precede W4's decline behaviour.
 
 ### W6 — Widen the compliance surface *(components 6, 9)*
 
-Per-layer pydantic schemas; fields for the fifth layer; interop normalisation wired
-into an actual run rather than sitting unused; and **a second processing purpose**
-(`billing_settlement` is the natural candidate).
+**Second processing purpose: DONE 2026-09-12.** `billing_settlement` is modelled
+alongside `care_coordination`, and deliberately **non-nested** — neither scope
+contains the other, so purposes are not ranked strict-to-lax and "out of scope"
+keeps its proper meaning. Three rules now vary with the purpose (`DM-01` allowed
+categories, `SL-01` retention ceiling, `SS-01` whether pseudonymisation is
+required at all). `compliance/purpose_matrix.py` scores one unchanged extraction
+against every purpose, and `scripts/compare_purposes.py` shows the failure running
+in both directions. PL-01 gained a real compatibility assessment for declared
+onward uses, which was unbuildable with one purpose.
 
-The second purpose matters more than its size suggests: with only one purpose
-modelled, the purpose-limitation rule has nothing to discriminate between, which
-quietly weakens one of the seven. This is contribution work — treat it as such.
+*Preserve the non-nesting when adding a third purpose.* A purpose whose scope is a
+superset of an existing one collapses the distinction the demonstration rests on —
+which is why claims adjudication is deliberately left unmodelled.
+
+**Still open under W6:** per-layer pydantic schemas; fields for the fifth layer;
+interop normalisation wired into an actual run rather than sitting unused. These
+touch the HIS structure rather than the policy, so they are better done once the
+hospital dataset shows what that structure really looks like.
 
 ### W7 — Cut: LLM extraction agent
 

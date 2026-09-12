@@ -34,12 +34,18 @@ class FieldCategory(str, Enum):
 class Purpose(str, Enum):
     """Processing purposes recognised by the compliance policy.
 
-    Modelled with a single member for this slice. Kept as an enum so the rules
-    and the policy table already have the shape for a multi-purpose taxonomy
-    without pretending one has been designed.
+    Two are modelled, and deliberately so: **neither one's scope contains the
+    other's**. Care coordination may see clinical data but not financial or
+    contact data; billing settlement may see financial and contact data but not
+    clinical data. That non-nesting is the point. It makes "out of scope" mean
+    *not necessary for this purpose* rather than *more sensitive in general*,
+    which is what the DPDP purpose-limitation principle actually says, and it
+    lets the rules discriminate in both directions instead of ranking purposes
+    on a single axis of permissiveness.
     """
 
     CARE_COORDINATION = "care_coordination"
+    BILLING_SETTLEMENT = "billing_settlement"
 
 
 class LawfulBasisType(str, Enum):

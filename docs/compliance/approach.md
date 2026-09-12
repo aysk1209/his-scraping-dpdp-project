@@ -30,8 +30,9 @@ expressed as data ([`compliance/models.py`](../../src/compliance/models.py)):
 per processing purpose, the field categories that are *necessary for that
 purpose*, the maximum retention, and whether identifiers must be pseudonymised.
 This is the auditable "what is allowed" — tuning the compliance envelope is a
-policy edit, not a rule-code change. One purpose is modelled so far:
-`care_coordination`.
+policy edit, not a rule-code change. Two purposes are modelled,
+`care_coordination` and `billing_settlement`, and neither one's scope contains the
+other's (see *Purpose limitation, demonstrated* below).
 
 ## The rules
 
@@ -131,6 +132,41 @@ This table is the paper's central claim made concrete: compliance discriminates
 between *techniques*, and it is produced by one harness that will later score
 real baseline implementations on equal terms.
 
+
+## Purpose limitation, demonstrated
+
+The benchmark varies the *technique* and holds the purpose fixed.
+[`compliance.purpose_matrix`](../../src/compliance/purpose_matrix.py) does the
+reverse: it takes one unchanged extraction and scores it against every purpose in
+the policy. `python scripts/compare_purposes.py` runs it in both directions.
+
+| Extraction | under `care_coordination` | under `billing_settlement` |
+|------------|--------------------------:|---------------------------:|
+| care pull (identifiers + clinical) | **1.000** | 0.857 — out of scope: clinical, quasi_identifier |
+| billing pull (identifiers + financial + contact) | 0.857 — out of scope: contact, financial | **1.000** |
+| billing pull, retained 365 days | 0.786 — also breaches the 90-day ceiling | **1.000** |
+
+The records, the manifest and the seven rules are identical down each column.
+Only the purpose changed. Two things follow that a single-purpose policy could not
+show:
+
+**Compliance is not a property of a data pull.** It is a property of a pull
+together with the purpose it was made for. The same records are lawful and
+unlawful at once, depending on what they are for.
+
+**The failure runs in both directions, for different reasons.** Care coordination
+may not see financial or contact data; billing may not see clinical data. Neither
+purpose is a relaxation of the other, so "out of scope" means *not necessary for
+this purpose*, not *more sensitive*. The third row adds a second axis to the same
+point: billing may hold data for a year against its audit obligation, which is a
+different necessity rather than a laxer one.
+
+One honest caveat, stated in the code as well: when an extraction is re-scored
+under a purpose it did not declare, its privacy notice is treated as not covering
+that purpose — because a notice describes a specific purpose to the Data
+Principal. That is a consequence of the substitution, not an adjustment made to
+produce the result.
+
 ## End to end, on synthetic data
 
 Live HIS access is not usable, so the pipeline runs against self-generated data:
@@ -158,7 +194,7 @@ Three demos:
 - The five-layer HIS model ([`interop/layers.py`](../../src/interop/layers.py)) —
   a working reconstruction; the team has accepted it for now and will reconfigure
   if real HIS access shows a different structure.
-- The `care_coordination` purpose and its allowed-category set.
+- The `care_coordination` and `billing_settlement` purposes and their allowed-category sets.
 - Staff names categorised as `administrative`, not `direct_identifier`.
 - Rules cite DPDP principles by name; exact section numbers are a report-time
   reference task, deliberately not pinned in code.

@@ -16,7 +16,7 @@ Synthetic data: 50 records/layer x 4 layers, seed 42. 3 extraction tasks, identi
 
 | Technique | Compliance | Excess ratio | Coverage | Fields pulled | Fetches | Records | Wall-clock (ms) |
 |---|---|---|---|---|---|---|---|
-| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 750 | 6 | 300 | 0.9 |
+| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 750 | 6 | 300 | 0.8 |
 | minimising, undocumented | 0.500 | 1.00 | 1.00 | 750 | 6 | 300 | 0.7 |
 | unconstrained (baseline) | 0.131 | 5.00 | 1.00 | 3750 | 12 | 600 | 2.1 |
 

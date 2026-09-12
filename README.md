@@ -64,8 +64,9 @@ Plain-language run instructions: [`DEMO_GUIDE.md`](DEMO_GUIDE.md). Method
 walkthrough: [`docs/compliance/approach.md`](docs/compliance/approach.md).
 
 Working assumptions (accepted as the working set): the five-layer HIS model, the
-`care_coordination` purpose, and citing DPDP Act 2023 principles by name rather
-than pinned section numbers. Revisit if/when real HIS access lands.
+`care_coordination` and `billing_settlement` purposes, and citing DPDP Act 2023
+principles by name rather than pinned section numbers. Revisit if/when real HIS
+access lands.
 
 ## Repository layout
 

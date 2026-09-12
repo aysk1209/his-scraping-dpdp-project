@@ -152,6 +152,36 @@ option.
 **This is the main thing to show** — the core argument: compliance is a number
 that separates good methods from bad ones.
 
+### Demo A2 — the same data pull, judged two ways
+
+```
+python scripts/compare_purposes.py
+```
+
+Demo A changes the *method* and keeps the job the same. This one does the
+opposite: it keeps the data pull exactly the same and changes only **what the
+data is for**.
+
+A hospital does two entirely legitimate things. A clinician needs a patient's
+diagnosis and medication. The accounts office needs the invoice and an address to
+send it to. Both pulls are done properly, by the same careful method. Then each is
+scored against *both* jobs:
+
+| The data pulled | Judged as care coordination | Judged as billing |
+|-----------------|----------------------------:|------------------:|
+| diagnosis + medication | **1.000** — fine | 0.857 — clinical data is none of billing's business |
+| invoice + address | 0.857 — billing data is none of care's business | **1.000** — fine |
+
+**Nothing about the extraction changed between the columns. Only the reason for it
+did.** That is the whole idea of purpose limitation, shown rather than asserted.
+
+The point to make out loud: **neither job is "stricter" than the other.** Care may
+see clinical data and not billing data; billing may see billing data and not
+clinical data, and may keep it for a year rather than 90 days because an audit
+requires it. So "out of scope" does not mean "too sensitive" — it means *not
+needed for this particular job*. A scraping method cannot be compliant in the
+abstract, only compliant for a stated purpose.
+
 ### Demo B — one method, three configurations
 
 ```
@@ -211,12 +241,19 @@ environment activated.
    panel's request to show processing time; wall-clock is in the table too, but
    the excess ratio is the number that reproduces on any machine.)
 
-4. **Run Demo B** if asked why a score moves:
+4. **Run Demo A2** — `python scripts/compare_purposes.py`. This is the second
+   result to show, and the one that is hardest to argue with: the same records,
+   the same paperwork, the same seven rules, lawful for one purpose and not for
+   another — in both directions. It is the DPDP purpose-limitation principle
+   turned into an experiment.
+
+5. **Run Demo B** if asked why a score moves:
    `python scripts/run_synthetic_extraction.py` — same method, three
    configurations, each rule failing with a stated reason.
 
-5. **Show a saved artifact.** Open `docs/benchmark_results/benchmark.md` — the
-   comparison table as a file. This is the evidence the research paper is built on.
+6. **Show a saved artifact.** Open `docs/benchmark_results/benchmark.md` and
+   `docs/benchmark_results/care-pull--compliance-aware--purpose-matrix.md` — both
+   results as files. This is the evidence the research paper is built on.
 
 6. **Run the tests:** `python -m pytest -q` → `91 passed`. Shows the work is
    real, checked code, not slideware.

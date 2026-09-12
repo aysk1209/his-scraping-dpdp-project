@@ -63,7 +63,7 @@ Status as of 2026-09-12, re-baselined against the Review-II target.
 
 Do not skip ahead to step 7 work. Do not silently substitute real HIS assumptions into steps 1–6 — keep the data source pluggable. The local mock portal is explicitly *not* step 7: it is a fixture that exercises step 4's browser code.
 
-Three runnable demos exist: `scripts/run_benchmark.py` (headline — technique comparison), `scripts/run_synthetic_extraction.py` (one technique, three configs), `scripts/score_extraction_run.py` (rules in isolation), plus `scripts/trace_one_patient.py` and `scripts/generate_dataset.py`. See `DEMO_GUIDE.md` and `docs/compliance/approach.md`. Review-II wants one further script above these: a single end-to-end pipeline run.
+Runnable demos: `scripts/run_benchmark.py` (headline — technique comparison on compliance and cost), `scripts/compare_purposes.py` (one extraction, every purpose — the purpose-limitation result), `scripts/run_synthetic_extraction.py` (one technique, three configs), `scripts/score_extraction_run.py` (rules in isolation), plus `scripts/trace_one_patient.py` (single-record walkthrough). `scripts/generate_dataset.py` is still a stub that exits with "not implemented" — it belongs to build step 3, not to the demo set. See `DEMO_GUIDE.md` and `docs/compliance/approach.md`. Review-II wants one further script above these: a single end-to-end pipeline run.
 
 ## Tech Stack
 
@@ -96,7 +96,7 @@ Confirm before introducing a new major dependency or language — don't assume.
                       #   technique + techniques/ (compliant, minimising, unconstrained), tier2/ stub
   /agent              # rule-based staff-guidance agent (function registry, slots) — stub
   /interop            # layers (five-layer HIS enum), mapping, hand-rolled hl7/fhir/dicom/iso_ieee_11073
-/scripts              # run_benchmark, run_synthetic_extraction, score_extraction_run
+/scripts              # run_benchmark, compare_purposes, run_synthetic_extraction, score_extraction_run
 /tests
 /docs
   /architecture        # five-layer-his.md
@@ -109,7 +109,7 @@ CLAUDE.md   PROJECT_CONTEXT.md   README.md   DEMO_GUIDE.md   requirements.txt
 
 - **Five-layer HIS model** — the functional decomposition in `src/interop/layers.py` is canonical (Patient Administration / Clinical-EHR / Ancillary-Departmental / Administrative-Financial / Infrastructure-Integration). The Review-1 deck's technical tiers were conceptual and are superseded. Reconfigure if real HIS access reveals a different structure.
 - **DPDP citations** — rules name principles, not sections; exact sections finalised at report time.
-- **Processing purpose** — one modelled so far (`care_coordination`) with a declarative allowed-category policy.
+- **Processing purposes** — two modelled (`care_coordination`, `billing_settlement`) with a declarative allowed-category policy. They are deliberately **non-nested**: neither one's scope contains the other's, so purposes are not ranked strict-to-lax and "out of scope" means *not necessary for this purpose*. Preserve that property when adding a third — a purpose that is a superset of an existing one collapses the distinction the benchmark rests on. Claims adjudication is deliberately unmodelled for that reason.
 
 ## Open Research Questions (do not resolve unilaterally)
 
