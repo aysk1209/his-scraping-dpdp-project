@@ -64,9 +64,9 @@ Framed as a comparative advantage over existing scraping literature, not a compl
 
 ## Current Implementation State (2026-09-12)
 
-- **Done:** repo scaffolding; the 7-rule DPDP compliance framework + policy + scored `ComplianceReport`; the benchmarking harness (`run_benchmark`) with a three-technique comparison; the hand-rolled HL7 / FHIR / DICOM / ISO-IEEE-11073 shapers and the five-layer mapping.
+- **Done:** repo scaffolding; the 7-rule DPDP compliance framework + policy + scored `ComplianceReport`; the benchmarking harness (`run_benchmark`) with a three-technique comparison on two axes, compliance and cost (`extraction/metering.py`); the hand-rolled HL7 / FHIR / DICOM / ISO-IEEE-11073 shapers and the five-layer mapping.
 - **Slice done:** synthetic data generator (field catalogue covering four of the five layers + Faker generator); extraction adapter (`MockHISDataSource`) + technique layer.
-- **Not started:** the rule-based staff-guidance agent (`src/agent/` is a docstring); real Tier 2 browser code (`src/extraction/tier2/` is empty); the rough mock portal; the dataset adapter; the benchmark cost profile; role × task policy; full per-layer pydantic schemas; a real AutoScraper baseline.
+- **Not started:** the rule-based staff-guidance agent (`src/agent/` is a docstring); real Tier 2 browser code (`src/extraction/tier2/` is empty); the rough mock portal; the dataset adapter; role × task policy; full per-layer pydantic schemas; a real AutoScraper baseline.
 - Five runnable scripts, ~90 passing tests, a browsable result at `docs/benchmark_results/benchmark.md`. See `DEMO_GUIDE.md` and `docs/compliance/approach.md`.
 
 ## Known Loose Ends

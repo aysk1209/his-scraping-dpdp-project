@@ -37,6 +37,20 @@ class ExtractionTask(BaseModel):
     purpose: Purpose
     needed: list[LayerFields] = Field(default_factory=list)
 
+    def field_refs(self) -> set[tuple[str, str]]:
+        """The (layer, field) pairs this task declares as minimum necessary.
+
+        The denominator for the benchmark's ``excess_ratio`` and ``coverage``
+        (see ``extraction.metering``): what the purpose actually requires, which
+        is what a technique's pull is measured against.
+        """
+
+        return {
+            (item.layer.value, field)
+            for item in self.needed
+            for field in item.fields
+        }
+
 
 class TechniqueOutput(BaseModel):
     """A technique's run manifest plus the records it produced."""

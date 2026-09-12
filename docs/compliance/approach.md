@@ -96,6 +96,37 @@ records across 4 layers* including 150 *contact* and 150 *financial* fields it
 was never asked for, while the compliance-aware technique pulls *300 records
 across 2 layers*, nothing out-of-scope.
 
+### The second axis: cost
+
+Ranking techniques on compliance alone invites the obvious question — *and what
+does that compliance cost?* The harness answers it by metering every technique
+identically at the adapter boundary
+([`extraction.metering`](../../src/extraction/metering.py)), so no technique
+cooperates in its own measurement or could game it.
+
+| Technique | Compliance | Excess ratio | Coverage | Fields pulled | Fetches |
+|-----------|-----------:|-------------:|---------:|--------------:|--------:|
+| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 750 | 6 |
+| minimising, undocumented | 0.500 | 1.00 | 1.00 | 750 | 6 |
+| unconstrained (baseline) | 0.131 | 5.00 | 1.00 | 3750 | 12 |
+
+**`excess_ratio`** is distinct fields pulled divided by the fields the task's
+purpose requires. It is a cost measure and a compliance measure at once, because
+fields pulled beyond the purpose *are* the overreach the data-minimisation rule
+penalises — which is what lets the benchmark claim that here compliance and cost
+move together rather than trading off. **`coverage`** is the guard rail: without
+it, a technique could score perfectly by pulling nothing.
+
+Both are deterministic — they reproduce on any machine and do not drift with
+dataset size, which is what a published benchmark needs. Wall-clock time is
+reported beside them (median of three runs) but is hardware-dependent and is not
+what any claim rests on.
+
+Note that the two axes are complementary rather than redundant: compliance
+separates all three techniques, while cost separates the baseline from the other
+two and leaves the first two identical — they pull the same data and differ only
+in their paperwork. Neither axis alone tells the whole story.
+
 This table is the paper's central claim made concrete: compliance discriminates
 between *techniques*, and it is produced by one harness that will later score
 real baseline implementations on equal terms.

@@ -2,10 +2,17 @@
 
 Runs each extraction technique against each task, scores every run with the same
 DPDP rule set, and aggregates per technique. The output -- techniques ranked by
-compliance score, a per-principle breakdown, a per-task breakdown, and a note of
-what each technique actually pulled -- is the project's core piece of evidence:
-it shows compliance discriminating between *techniques*, not just between careful
-and careless configurations of one.
+compliance score, a per-principle breakdown, a per-task breakdown, a note of what
+each technique actually pulled, and what each one cost -- is the project's core
+piece of evidence: it shows compliance discriminating between *techniques*, not
+just between careful and careless configurations of one.
+
+The comparison runs on two axes. Compliance comes from the rule set; cost comes
+from ``extraction.metering``, which meters every technique identically at the
+adapter boundary. The two are not independent: ``excess_ratio`` (fields pulled
+over fields the purpose requires) is both a cost measure and a restatement of the
+data-minimisation principle, so the table can say how compliance and cost move
+relative to each other instead of asserting that compliance is affordable.
 """
 
 from __future__ import annotations
@@ -13,7 +20,7 @@ from __future__ import annotations
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from statistics import mean
+from statistics import mean, median
 
 from pydantic import BaseModel, Field
 
@@ -22,6 +29,7 @@ from compliance.rules import ALL_RULES
 from compliance.rules.base import RuleStatus
 from compliance.summary import merge
 from extraction.base import HISDataSource
+from extraction.metering import ExtractionCost, MeteredSource, combine
 from extraction.technique import ExtractionTask, ExtractionTechnique
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -44,6 +52,7 @@ class TechniqueScore(BaseModel):
     pulled_note: str                        # ExtractionSummary.one_line() across all tasks
     per_rule_mean: dict[str, float | None]
     per_task: dict[str, float]
+    cost: ExtractionCost = Field(default_factory=ExtractionCost)
 
 
 class TaskDetail(BaseModel):
@@ -66,13 +75,41 @@ class BenchmarkResult(BaseModel):
         return "  n/a" if value is None else f"{value:.2f}"
 
     def _takeaway(self) -> str:
+        """State the compliance gap, then what it cost -- measured, not assumed."""
+
         best, worst = self.scores[0], self.scores[-1]
         gap = round(best.mean_compliance_score - worst.mean_compliance_score, 3)
-        return (
+        line = (
             f"{best.technique} scores {best.mean_compliance_score:.3f}; "
             f"{worst.technique} scores {worst.mean_compliance_score:.3f} on the "
-            f"same {len(self.rule_ids)} rules -- a {gap:.3f} gap that is purely a "
-            f"compliance difference, not coverage or speed."
+            f"same {len(self.rule_ids)} rules -- a {gap:.3f} gap."
+        )
+
+        cheap, dear = best.cost.excess_ratio, worst.cost.excess_ratio
+        if cheap is None or dear is None:
+            return line
+
+        # Coverage first: a technique that pulled less than the task needs has
+        # not bought its compliance score honestly, and the line must say so.
+        if best.cost.coverage is not None and best.cost.coverage < 1.0:
+            return (
+                f"{line} Note that it obtained only {best.cost.coverage:.0%} of the "
+                f"fields the tasks require, so its score is not directly comparable "
+                f"-- under-coverage, not efficiency."
+            )
+
+        if dear > cheap:
+            return (
+                f"{line} It also pulls {cheap:.2f}x the fields the purpose requires, "
+                f"against {dear:.2f}x for the baseline, at full coverage. That surplus "
+                f"is exactly what the data-minimisation rule penalises, so on this "
+                f"workload compliance and extraction cost move together rather than "
+                f"trading off against each other."
+            )
+        return (
+            f"{line} It pulls {cheap:.2f}x the fields the purpose requires against the "
+            f"baseline's {dear:.2f}x -- a measured compliance premium on this workload, "
+            f"not an assumed one."
         )
 
     def render_table(self) -> str:
@@ -98,6 +135,24 @@ class BenchmarkResult(BaseModel):
                 + " ".join(f"{self._fmt(score.per_rule_mean.get(rid)):>6}" for rid in self.rule_ids)
             )
             lines.append(row)
+
+        lines += ["", "cost profile (deterministic metrics lead; wall-clock is hardware-dependent):"]
+        cost_head = (
+            f"  {'technique':<24} {'excess':>7} {'cover':>6} {'fields':>8} "
+            f"{'fetches':>8} {'records':>8} {'ms':>8}"
+        )
+        lines += [cost_head, "  " + "-" * (len(cost_head) - 2)]
+        for score in self.scores:
+            cost = score.cost
+            lines.append(
+                f"  {score.technique:<24} {self._fmt(cost.excess_ratio):>7} "
+                f"{self._fmt(cost.coverage):>6} {cost.fields_pulled:>8} "
+                f"{cost.fetches:>8} {cost.records:>8} {cost.elapsed_ms:>8.1f}"
+            )
+        lines.append(
+            "  excess = distinct fields pulled / fields the purpose requires; "
+            "cover = how much of that requirement was met."
+        )
 
         lines += ["", "per task (scores key on data category and manifest, not record volume):"]
         task_head = f"  {'task':<22}" + "".join(f"{s.short:>16}" for s in self.scores)
@@ -136,6 +191,30 @@ class BenchmarkResult(BaseModel):
             lines.append(
                 f"| {score.technique} | {score.mean_compliance_score:.3f} | "
                 f"{score.rules_passed} | {cells} |"
+            )
+
+        lines += [
+            "",
+            "**Compliance versus cost**",
+            "",
+            "`excess ratio` is distinct fields pulled divided by the fields the task's "
+            "purpose requires. It is a cost measure and a compliance measure at once: "
+            "fields pulled beyond the purpose are precisely the overreach the "
+            "data-minimisation rule penalises. `coverage` is the guard rail -- it stops a "
+            "technique scoring well by pulling nothing. Both are deterministic and "
+            "reproduce on any machine; wall-clock time is reported but is "
+            "hardware-dependent.",
+            "",
+            "| Technique | Compliance | Excess ratio | Coverage | Fields pulled | Fetches | Records | Wall-clock (ms) |",
+            "|---|---|---|---|---|---|---|---|",
+        ]
+        for score in self.scores:
+            cost = score.cost
+            lines.append(
+                f"| {score.technique} | {score.mean_compliance_score:.3f} | "
+                f"{self._fmt(cost.excess_ratio)} | {self._fmt(cost.coverage)} | "
+                f"{cost.fields_pulled} | {cost.fetches} | {cost.records} | "
+                f"{cost.elapsed_ms:.1f} |"
             )
 
         lines += ["", "**Per task**", "",
@@ -184,12 +263,36 @@ def _task_detail(task: ExtractionTask) -> TaskDetail:
     return TaskDetail(task_id=task.task_id, purpose=task.purpose.value, needs=needs)
 
 
+def _run_task(
+    technique: ExtractionTechnique,
+    task: ExtractionTask,
+    source: HISDataSource,
+    repeats: int,
+):
+    """Run one technique against one task, metered. Returns (output, cost).
+
+    With ``repeats`` above 1 the run is repeated and the *median* wall-clock is
+    kept, which is the only way a hardware-dependent number is worth reporting.
+    The deterministic counts are identical across repeats, so the last run's
+    meter is used for them.
+    """
+
+    elapsed: list[float] = []
+    for _ in range(max(1, repeats)):
+        metered = MeteredSource(source)
+        started = time.perf_counter()
+        output = technique.extract(metered, task)
+        elapsed.append((time.perf_counter() - started) * 1000)
+    return output, metered.cost(task.field_refs(), median(elapsed))
+
+
 def run_benchmark(
     techniques: list[ExtractionTechnique],
     tasks: list[ExtractionTask],
     source: HISDataSource,
     *,
     dataset_note: str = "",
+    repeats: int = 1,
 ) -> BenchmarkResult:
     """Score every technique against every task; aggregate per technique."""
 
@@ -201,9 +304,11 @@ def run_benchmark(
         passed_counts: list[int] = []
         rule_scores: dict[str, list[float]] = {rid: [] for rid in _RULE_IDS}
         summaries = []
+        costs: list[ExtractionCost] = []
 
         for task in tasks:
-            output = technique.extract(source, task)
+            output, cost = _run_task(technique, task, source, repeats)
+            costs.append(cost)
             report = run_all(output.run, output.records)
             per_task[task.task_id] = round(report.compliance_score, 3)
             pass_rates.append(report.pass_rate)
@@ -229,6 +334,7 @@ def run_benchmark(
                     for rid, vals in rule_scores.items()
                 },
                 per_task=per_task,
+                cost=combine(costs),
             )
         )
 

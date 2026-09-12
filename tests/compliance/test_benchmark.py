@@ -93,3 +93,46 @@ def test_baseline_pulled_note_reports_out_of_scope_categories():
     scores = {s.short: s for s in _result().scores}
     assert "out-of-scope: contact, financial" in scores["unconstrained"].pulled_note
     assert "out-of-scope: none" in scores["compliance-aware"].pulled_note
+
+
+def test_every_technique_carries_a_cost_profile():
+    for score in _result().scores:
+        cost = score.cost
+        assert cost.fetches > 0 and cost.records > 0
+        assert cost.fields_pulled > 0
+        assert cost.elapsed_ms >= 0
+        assert cost.coverage == 1.0          # all three obtain what the tasks need
+
+
+def test_baseline_costs_more_than_the_compliant_technique():
+    scores = {s.short: s for s in _result().scores}
+    compliant, baseline = scores["compliance-aware"].cost, scores["unconstrained"].cost
+    assert compliant.excess_ratio == 1.0     # pulls exactly the purpose's requirement
+    assert baseline.excess_ratio > compliant.excess_ratio
+    assert baseline.fields_pulled > compliant.fields_pulled
+    assert baseline.fetches > compliant.fetches
+
+
+def test_repeats_do_not_inflate_the_deterministic_counts():
+    source = MockHISDataSource(records_per_layer=5, seed=42)
+    once = run_benchmark(DEFAULT_TECHNIQUES, TASKS, source)
+    thrice = run_benchmark(DEFAULT_TECHNIQUES, TASKS, source, repeats=3)
+    for a, b in zip(once.scores, thrice.scores):
+        assert a.cost.fields_pulled == b.cost.fields_pulled
+        assert a.cost.fetches == b.cost.fetches
+        assert a.cost.excess_ratio == b.cost.excess_ratio
+
+
+def test_takeaway_reports_cost_alongside_the_compliance_gap():
+    takeaway = _result().render_table()
+    assert "x the fields the purpose requires" in takeaway
+    # The old line asserted the gap was "not coverage or speed"; that claim is
+    # now measured rather than asserted, so it must not reappear.
+    assert "not coverage or speed" not in takeaway
+
+
+def test_renderers_include_the_cost_profile():
+    result = _result()
+    assert "cost profile" in result.render_table()
+    assert "Compliance versus cost" in result.render_markdown()
+    assert "Excess ratio" in result.render_markdown()

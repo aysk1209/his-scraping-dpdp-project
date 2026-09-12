@@ -60,16 +60,17 @@ scores. Precise numbers matter less than a metric that holds up.
 dataset size, and network conditions, so it is not reproducible by a reader of the
 paper — which is exactly what a published benchmark needs to be.
 
-**Proposed: an extraction cost profile, reported alongside the compliance score.**
+**An extraction cost profile, reported alongside the compliance score.** Implemented 2026-09-12 in `src/extraction/metering.py`; `coverage` was added to the set below as a guard rail, since without it a technique could score perfectly by pulling nothing.
 
 | Metric | Deterministic | What it captures |
 |---|---|---|
 | `fields_pulled` | yes | Total field-values extracted |
-| `pages_fetched` | yes | Navigation actions — the real driver of browser-scraping cost |
+| `fetches` | yes | Fetch calls — page loads once the Tier 2 adapter is in place |
 | `excess_ratio` | yes | Fields pulled ÷ fields the purpose actually needs (≥ 1.0) |
+| `coverage` | yes | Needed fields actually obtained ÷ fields needed — the guard rail |
 | `elapsed_ms` | no | Wall-clock, median of n runs — answers the panel's literal question |
 
-The first three are reproducible on any machine and independent of dataset size,
+All but the last are reproducible on any machine and independent of dataset size,
 so they are what the paper leans on. Wall-clock is reported as a secondary,
 labelled as hardware-dependent.
 
@@ -127,7 +128,7 @@ are weighted toward the contribution described in §2.
 | # | Component | Weight | Now | At Review-II |
 |---|---|---:|---:|---:|
 | 1 | DPDP compliance framework (7 rules, policy, scoring, report) | 15 | 15 | 15 |
-| 2 | Benchmark harness + cost profile (§3) | 12 | 8 | 12 |
+| 2 | Benchmark harness + cost profile (§3) | 12 | 12 | 12 |
 | 3 | Role × task DPDP policy (gates the agent) | 7 | 0 | 7 |
 | 4 | Extraction: adapter interface + three techniques | 10 | 10 | 10 |
 | 5 | Tier 2 browser extraction (Playwright) | 12 | 0 | 10 |
@@ -138,11 +139,13 @@ are weighted toward the contribution described in §2.
 | 10 | Rule-based staff-guidance agent | 10 | 0 | 7 |
 | 11 | End-to-end demonstration | 5 | 0 | 5 |
 | 12 | Project report + manuscript (compliance-focused) | 6 | 0 | 1 |
-| | **Total** | **100** | **41** | **89** |
+| | **Total** | **100** | **45** | **89** |
 
 Review-II's floor is ~75%; this targets 89, so slippage on any one workstream still
 clears it. The residual 11 points to Review-III are almost entirely the report and
 the manuscript — which is exactly what Review-III is for.
+
+*Updated 2026-09-12: W3 complete, component 2 closed — 41 to 45.*
 
 ## 6. Workstreams
 
@@ -185,18 +188,25 @@ and produce the same shape of output they produce against `MockHISDataSource`.
 Unchanged is the point — it is what proves the adapter boundary was designed right,
 and it is the demonstration of the answer to the panel's heterogeneity doubt.
 
-### W3 — Cost profile in the benchmark *(component 2)*
+### W3 — Cost profile in the benchmark *(component 2)* — **DONE 2026-09-12**
 
-Implements §3. Extend `TechniqueScore` with `fields_pulled`, `pages_fetched`,
-`excess_ratio` and `elapsed_ms`; add the columns to `render_table` and
-`render_markdown`; rewrite `BenchmarkResult._takeaway()` to state the
-compliance-versus-cost relationship rather than dismissing speed as it does today.
+Implements §3. `extraction/metering.py` meters every technique identically at the
+adapter boundary (`MeteredSource`), so no technique cooperates in its own
+measurement. `TechniqueScore.cost` carries fetches, records, fields pulled,
+coverage, excess ratio and wall-clock; both renderers show a cost block; and
+`_takeaway()` now states the compliance-versus-cost relationship from the measured
+numbers instead of asserting that the gap is "not coverage or speed".
 
-`excess_ratio` needs a denominator — the field count the task declares as needed,
-which `ExtractionTask.needed` already carries. Little new machinery is required.
+`coverage` was added beyond the original design as a guard rail — without it a
+technique could score perfectly by pulling nothing, which would make the whole
+cost axis gameable.
 
-**Done when:** the headline table carries compliance **and** cost, and the takeaway
-states the relationship between them.
+**Result on the synthetic workload:** the compliant technique and the minimising
+one both pull exactly what the purpose requires (excess 1.00); the baseline pulls
+5.00x at the same coverage. Compliance and cost move together here rather than
+trading off. The two axes turn out to be complementary — compliance separates all
+three techniques, cost separates the baseline from the other two — so both are
+needed to tell the whole story.
 
 ### W4 — Staff-guidance agent *(component 10)*
 

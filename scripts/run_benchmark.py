@@ -5,11 +5,13 @@
 Runs three techniques -- a compliance-aware method (ours), a minimising-but-
 undocumented method, and an unconstrained coverage-optimised baseline -- against
 a set of extraction tasks over synthetic HIS data, scoring every run with the
-same DPDP rule set. Prints the comparison table and writes
-docs/benchmark_results/benchmark.{json,md}.
+same DPDP rule set and metering every run for cost on the same terms. Prints the
+comparison table and writes docs/benchmark_results/benchmark.{json,md}.
 
-The table is the project's core evidence: compliance distinguishes techniques,
-not just careful vs careless configurations of one.
+The table is the project's core evidence, on two axes. Compliance distinguishes
+techniques, not just careful vs careless configurations of one. Cost then says
+what that compliance was worth: the baseline's surplus over what the purpose
+requires is the same surplus the data-minimisation rule penalises.
 """
 
 from __future__ import annotations
@@ -76,7 +78,8 @@ Three extraction tasks are defined; three techniques attempt them:
   - compliance-aware (ours)  : pulls only what a task needs, files a full manifest
   - minimising, undocumented : pulls only what a task needs, files no paperwork
   - unconstrained (baseline)  : ignores the task, scrapes every field it can reach
-Each run is scored against the same seven DPDP Act 2023 rules."""
+Each run is scored against the same seven DPDP Act 2023 rules, and metered for
+what it cost: fields pulled, fetches, and how far past the purpose it reached."""
 
 
 def main() -> None:
@@ -87,6 +90,9 @@ def main() -> None:
         TASKS,
         source,
         dataset_note=f"{records_per_layer} records/layer x 4 layers, seed {seed}",
+        # Wall-clock is the one non-reproducible number in the table; take the
+        # median of three runs so it is at least stable between invocations.
+        repeats=3,
     )
 
     print(present.banner("DPDP compliance benchmark - extraction techniques compared"))
