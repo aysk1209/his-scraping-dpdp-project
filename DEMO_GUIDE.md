@@ -329,6 +329,10 @@ comparison harness all behave as intended.
 
 ## 4. What to show the reviewers
 
+For Review-II specifically, the presenter's script — beats, what to run, what to
+say, anticipated questions, and the code behind each moment — is
+[`docs/review/review-ii-flow.md`](docs/review/review-ii-flow.md).
+
 A five-minute walkthrough. Have a terminal open in the project folder with the
 environment activated.
 
