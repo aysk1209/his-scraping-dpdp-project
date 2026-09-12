@@ -43,7 +43,8 @@ def _ratio(numerator: int, denominator: int) -> float | None:
 class ExtractionCost(BaseModel):
     """What one extraction run cost, in reproducible terms plus wall-clock."""
 
-    fetches: int = 0              # fetch() calls -- page loads under a Tier 2 adapter
+    fetches: int = 0              # fetch() calls (one per layer requested)
+    page_loads: int | None = None # browser pages loaded, when the source is a portal
     records: int = 0              # rows returned
     fields_pulled: int = 0        # total field values returned (with repetition)
     distinct_fields: int = 0      # distinct (layer, field) pairs touched
@@ -63,10 +64,12 @@ class ExtractionCost(BaseModel):
         pulled: set[FieldRef],
         needed: set[FieldRef],
         elapsed_ms: float,
+        page_loads: int | None = None,
     ) -> "ExtractionCost":
         matched = len(pulled & needed)
         return cls(
             fetches=fetches,
+            page_loads=page_loads,
             records=records,
             fields_pulled=fields_pulled,
             distinct_fields=len(pulled),
@@ -92,8 +95,10 @@ def combine(costs: list[ExtractionCost]) -> ExtractionCost:
     needed = sum(c.needed_fields for c in costs)
     matched = sum(c.matched_fields for c in costs)
     distinct = sum(c.distinct_fields for c in costs)
+    loads = [c.page_loads for c in costs if c.page_loads is not None]
     return ExtractionCost(
         fetches=sum(c.fetches for c in costs),
+        page_loads=sum(loads) if loads else None,
         records=sum(c.records for c in costs),
         fields_pulled=sum(c.fields_pulled for c in costs),
         distinct_fields=distinct,
@@ -117,6 +122,9 @@ class MeteredSource(HISDataSource):
 
     def __init__(self, inner: HISDataSource) -> None:
         self._inner = inner
+        # A portal adapter exposes how many pages its browser has loaded; the
+        # meter reports the delta. An in-memory source has no such thing.
+        self._loads_at_start: int | None = getattr(inner, "page_loads", None)
         self.fetches = 0
         self.records = 0
         self.fields_pulled = 0
@@ -144,6 +152,9 @@ class MeteredSource(HISDataSource):
     def cost(self, needed: set[FieldRef], elapsed_ms: float) -> ExtractionCost:
         """Freeze what was metered into an ``ExtractionCost``."""
 
+        loads = None
+        if self._loads_at_start is not None:
+            loads = getattr(self._inner, "page_loads", self._loads_at_start) - self._loads_at_start
         return ExtractionCost.build(
             fetches=self.fetches,
             records=self.records,
@@ -151,4 +162,5 @@ class MeteredSource(HISDataSource):
             pulled=self.pulled,
             needed=needed,
             elapsed_ms=elapsed_ms,
+            page_loads=loads,
         )

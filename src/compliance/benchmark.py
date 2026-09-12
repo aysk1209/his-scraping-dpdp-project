@@ -137,17 +137,20 @@ class BenchmarkResult(BaseModel):
             lines.append(row)
 
         lines += ["", "cost profile (deterministic metrics lead; wall-clock is hardware-dependent):"]
+        show_loads = any(s.cost.page_loads is not None for s in self.scores)
         cost_head = (
             f"  {'technique':<24} {'excess':>7} {'cover':>6} {'fields':>8} "
-            f"{'fetches':>8} {'records':>8} {'ms':>8}"
+            f"{'fetches':>8}" + (f" {'pages':>7}" if show_loads else "")
+            + f" {'records':>8} {'ms':>8}"
         )
         lines += [cost_head, "  " + "-" * (len(cost_head) - 2)]
         for score in self.scores:
             cost = score.cost
+            loads = f" {cost.page_loads if cost.page_loads is not None else '-':>7}" if show_loads else ""
             lines.append(
                 f"  {score.technique:<24} {self._fmt(cost.excess_ratio):>7} "
                 f"{self._fmt(cost.coverage):>6} {cost.fields_pulled:>8} "
-                f"{cost.fetches:>8} {cost.records:>8} {cost.elapsed_ms:>8.1f}"
+                f"{cost.fetches:>8}{loads} {cost.records:>8} {cost.elapsed_ms:>8.1f}"
             )
         lines.append(
             "  excess = distinct fields pulled / fields the purpose requires; "
@@ -205,15 +208,16 @@ class BenchmarkResult(BaseModel):
             "reproduce on any machine; wall-clock time is reported but is "
             "hardware-dependent.",
             "",
-            "| Technique | Compliance | Excess ratio | Coverage | Fields pulled | Fetches | Records | Wall-clock (ms) |",
-            "|---|---|---|---|---|---|---|---|",
+            "| Technique | Compliance | Excess ratio | Coverage | Fields pulled | Fetches | Pages loaded | Records | Wall-clock (ms) |",
+            "|---|---|---|---|---|---|---|---|---|",
         ]
         for score in self.scores:
             cost = score.cost
+            loads = cost.page_loads if cost.page_loads is not None else "n/a"
             lines.append(
                 f"| {score.technique} | {score.mean_compliance_score:.3f} | "
                 f"{self._fmt(cost.excess_ratio)} | {self._fmt(cost.coverage)} | "
-                f"{cost.fields_pulled} | {cost.fetches} | {cost.records} | "
+                f"{cost.fields_pulled} | {cost.fetches} | {loads} | {cost.records} | "
                 f"{cost.elapsed_ms:.1f} |"
             )
 
@@ -241,17 +245,17 @@ class BenchmarkResult(BaseModel):
             lines.append(f"- `{rid}` — {_RULE_TITLES.get(rid, rid)}")
         return "\n".join(lines)
 
-    def to_json_file(self, directory: Path | None = None) -> Path:
+    def to_json_file(self, directory: Path | None = None, *, name: str = "benchmark") -> Path:
         directory = directory or ARTIFACT_DIR
         directory.mkdir(parents=True, exist_ok=True)
-        path = directory / "benchmark.json"
+        path = directory / f"{name}.json"
         path.write_text(self.model_dump_json(indent=2), encoding="utf-8")
         return path
 
-    def to_markdown_file(self, directory: Path | None = None) -> Path:
+    def to_markdown_file(self, directory: Path | None = None, *, name: str = "benchmark") -> Path:
         directory = directory or ARTIFACT_DIR
         directory.mkdir(parents=True, exist_ok=True)
-        path = directory / "benchmark.md"
+        path = directory / f"{name}.md"
         path.write_text(self.render_markdown(), encoding="utf-8")
         return path
 

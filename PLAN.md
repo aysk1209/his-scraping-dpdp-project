@@ -131,21 +131,21 @@ are weighted toward the contribution described in §2.
 | 2 | Benchmark harness + cost profile (§3) | 12 | 12 | 12 |
 | 3 | Role × task DPDP policy (gates the agent) | 7 | 7 | 7 |
 | 4 | Extraction: adapter interface + three techniques | 10 | 10 | 10 |
-| 5 | Tier 2 browser extraction (Playwright) | 12 | 0 | 10 |
+| 5 | Tier 2 browser extraction (Playwright) | 12 | 10 | 10 |
 | 6 | Synthetic data: catalogue, generator, schemas | 8 | 6 | 8 |
 | 7 | Dataset adapter for the hospital export | 5 | 0 | 4 |
 | 8 | Rough mock HIS portal | 5 | 5 | 5 |
 | 9 | Interop normalisation wired into a run | 5 | 2 | 5 |
-| 10 | Rule-based staff-guidance agent | 10 | 8 | 8 |
-| 11 | End-to-end demonstration | 5 | 0 | 5 |
+| 10 | Rule-based staff-guidance agent | 10 | 10 | 10 |
+| 11 | End-to-end demonstration | 5 | 4 | 5 |
 | 12 | Project report + manuscript (compliance-focused) | 6 | 0 | 1 |
-| | **Total** | **100** | **65** | **90** |
+| | **Total** | **100** | **81** | **92** |
 
-Review-II's floor is ~75%; this targets 90, so slippage on any one workstream still
+Review-II's floor is ~75%; this targets 92, so slippage on any one workstream still
 clears it. The residual 11 points to Review-III are almost entirely the report and
 the manuscript — which is exactly what Review-III is for.
 
-*Updated 2026-09-12: W3 complete, component 2 closed — 41 to 45. W5 complete, component 3 closed — 45 to 52. W4 complete, component 10 at 8 of 10 — 52 to 60; the last two points are the navigation-map pages filled in once the portal exists. W1 complete, component 8 closed — 60 to 65.*
+*Updated 2026-09-12: W3 complete, component 2 closed — 41 to 45. W5 complete, component 3 closed — 45 to 52. W4 complete, component 10 at 8 of 10 — 52 to 60; the last two points are the navigation-map pages filled in once the portal exists. W1 complete, component 8 closed — 60 to 65. W2 (Tier 2) at 10 of 12 and W9 rough at 4 of 5, agent pages now filled — 65 to 81. **The 75% floor is crossed with a working end-to-end chain.***
 
 ## 6. Workstreams
 
@@ -180,9 +180,25 @@ produce cost differences.
 
 **Done when:** one command serves a portal a human can log into and browse.
 
-### W2 — Data sources: Tier 2 scraping and the hospital dataset *(components 5, 7)*
+### W2 — Data sources: Tier 2 scraping and the hospital dataset *(components 5, 7)* — **Tier 2 DONE 2026-09-12; dataset adapter pending the export's format**
 
-Two adapters behind the existing `HISDataSource` interface.
+Tier 2 is built exactly as the black-box rule demands. `tier2/browser.py` logs in
+through the form (the browser carries the token and cookie), parses tables by
+header text, opens records by the link in the actions column, follows "Next" until
+it stops, and counts every page load. `tier2/navigation.py` crawls from the home
+page and **infers each module's HIS layer from the field names it finds**, matched
+against the catalogue — the URL says `/m/registration/`, the scraper concludes
+"patient administration" from `mrn`, `full_name`, `date_of_birth`. That is the
+heterogeneity answer as code. `adapters/portal_his.py` puts it behind
+`HISDataSource`; the three techniques run against it unchanged (tested). Detail
+pages are opened only when a requested field is absent from the list table, so
+over-asking costs real page loads, and `extraction/metering.py` now reports them:
+on a 30-record portal the compliant technique loads ~88 pages to the baseline's
+~336 at identical coverage. Remaining 2 points: a label→field mapping for a real
+portal whose headers are display labels, which belongs in the adapter.
+
+Original specification, kept for the record. Two adapters behind the existing
+`HISDataSource` interface.
 
 **Tier 2 (Playwright)** — fills `src/extraction/tier2/` and adds
 `adapters/portal_his.py`: browser session, login, navigation, list and detail
@@ -323,9 +339,16 @@ strawman an examiner can push on — and since the benchmark *is* the contributi
 that is the most damaging single objection available to a reviewer. Scheduling it
 late is acceptable; leaving it undone is not.
 
-### W9 — End-to-end demonstration *(component 11)*
+### W9 — End-to-end demonstration *(component 11)* — **DONE (rough) 2026-09-12**
 
-`scripts/run_pipeline.py` — one command: start the portal, log in, scrape, run every
+`scripts/run_pipeline.py` runs five stages in one command, ~30–40 s: serve the
+portal; log in and discover; benchmark the three techniques with real page loads;
+re-judge one pull under every purpose; answer one question per role with steps on
+the discovered pages and decline the out-of-role one. The one stage from the
+original spec not in the chain is interop normalisation — the HL7/FHIR shapers are
+still stubs (W6) — hence 4 of 5.
+
+Original specification: one command: start the portal, log in, scrape, run every
 technique, normalise, score, print the ranked table with compliance and cost, then
 run the agent through one task per role and show the out-of-role decline.
 
@@ -355,7 +378,8 @@ Roughly in the order they block work.
 
 1. ~~Sign-off on the rough mock portal (W1) and on Flask~~ — **approved and built 2026-09-12.**
 2. **`playwright install chromium`** on whichever machine demos — roughly 150 MB of
-   browser binaries that `pip install` does not fetch.
+   browser binaries that `pip install` does not fetch. Done on the development machine
+   2026-09-12; still needed on any other machine that presents.
 3. **Hospital dataset: format, size, and de-identification status** (§4). The
    de-identification question should be settled *before* the data arrives, not after.
 4. ~~Confirm W7~~ — **done**; the LLM agent is dropped and `anthropic` is removed from `requirements.txt`.

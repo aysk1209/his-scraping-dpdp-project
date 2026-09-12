@@ -89,6 +89,38 @@ You will know it worked when your prompt shows `(.venv)` at the start.
 
 There are **four demo programs**. Each prints a scorecard and saves report files.
 
+### Demo E — the whole pipeline in one command (the Review-II demo)
+
+```
+python scripts/run_pipeline.py
+python scripts/run_pipeline.py --show        # watch the browser do it
+python scripts/run_pipeline.py --records 200 # a longer, larger run
+```
+
+About 30–40 seconds. Five stages print in turn:
+
+1. **Portal** — a login-gated hospital portal starts on your machine.
+2. **Discover** — a headless browser signs in, crawls it, and prints a map of what
+   it found: four modules, how many pages each has, which fields are in the list
+   and which only on a record's page — and **which HIS layer each module is, worked
+   out from the field names**, not read from the URL.
+3. **Benchmark** — the three scraping methods run against the portal, unchanged
+   from the in-memory version, and are scored on the same seven rules. The cost
+   table now has a **pages** column with real page loads: the compliant method
+   loads roughly a quarter of what the baseline does, at identical coverage.
+4. **Purpose** — one of those pulls is re-judged under every purpose.
+5. **Assist** — the assistant answers one question per role, and each step now
+   carries the portal page it happens on, taken from stage 2. The last request is
+   declined.
+
+The point to make out loud: **nothing is staged.** The browser really logs in; the
+scraper is never told how the portal is laid out; the methods that ran against
+fake in-memory data run against a website with no changes; the assistant's page
+references come from what the crawler found ten seconds earlier. That is the
+adapter boundary and the compliance layer doing what they were designed to do.
+
+First run on a new machine needs the browser: `python -m playwright install chromium`.
+
 ### Demo 0 — one patient, end to end (show this first)
 
 ```

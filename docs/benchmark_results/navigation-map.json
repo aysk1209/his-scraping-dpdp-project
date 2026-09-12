@@ -1,0 +1,98 @@
+{
+  "base_url": "http://127.0.0.1:63652",
+  "discovered_at": "2026-09-12T13:25:14.787893Z",
+  "login_path": "/login",
+  "page_loads": 9,
+  "modules": [
+    {
+      "title": "Patient Registration",
+      "list_url": "http://127.0.0.1:63652/m/registration/",
+      "list_path": "/m/registration/",
+      "columns": [
+        "mrn",
+        "full_name",
+        "sex",
+        "admission_ward"
+      ],
+      "detail_fields": [
+        "mrn",
+        "full_name",
+        "phone",
+        "email",
+        "street_address",
+        "date_of_birth",
+        "sex",
+        "pincode",
+        "admission_ward",
+        "admission_datetime"
+      ],
+      "page_count": 2,
+      "record_count": 30,
+      "inferred_layer": "patient_administration",
+      "layer_confidence": 1.0
+    },
+    {
+      "title": "Clinical Records",
+      "list_url": "http://127.0.0.1:63652/m/clinical/",
+      "list_path": "/m/clinical/",
+      "columns": [
+        "encounter_datetime",
+        "primary_diagnosis",
+        "attending_clinician"
+      ],
+      "detail_fields": [
+        "primary_diagnosis",
+        "medication",
+        "lab_result",
+        "allergy",
+        "encounter_datetime",
+        "attending_clinician"
+      ],
+      "page_count": 2,
+      "record_count": 30,
+      "inferred_layer": "clinical_ehr",
+      "layer_confidence": 1.0
+    },
+    {
+      "title": "Departmental Orders",
+      "list_url": "http://127.0.0.1:63652/m/departments/",
+      "list_path": "/m/departments/",
+      "columns": [
+        "order_id",
+        "specimen_type",
+        "imaging_modality"
+      ],
+      "detail_fields": [
+        "order_id",
+        "specimen_type",
+        "result_value",
+        "imaging_modality",
+        "report_text"
+      ],
+      "page_count": 2,
+      "record_count": 30,
+      "inferred_layer": "ancillary_departmental",
+      "layer_confidence": 1.0
+    },
+    {
+      "title": "Billing & Accounts",
+      "list_url": "http://127.0.0.1:63652/m/billing/",
+      "list_path": "/m/billing/",
+      "columns": [
+        "invoice_id",
+        "billed_amount",
+        "payer_name"
+      ],
+      "detail_fields": [
+        "invoice_id",
+        "billed_amount",
+        "insurance_policy_no",
+        "payer_name"
+      ],
+      "page_count": 2,
+      "record_count": 30,
+      "inferred_layer": "administrative_financial",
+      "layer_confidence": 1.0
+    }
+  ]
+}

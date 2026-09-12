@@ -8,7 +8,7 @@ This file gives Claude Code persistent context for this repository. Read it full
 **Institution:** VIT, SENSE department — final-year research project
 **Team:** Avanindra (23BLC1089), Ananya (23BLC1017)
 **Guide:** Dr. Manoj Kumar
-**Stage:** Review-I cleared 02.09.2026 (outcome satisfactory). Building toward **Review-II**, which is the current focus. Implemented and demoable today: repo scaffolding, the full DPDP compliance framework (7 rules), the synthetic-data + extraction slice, and the benchmarking harness. Two reviews remain (as of 2026-09-12).
+**Stage:** Review-I cleared 02.09.2026 (outcome satisfactory). Building toward **Review-II**, which is the current focus. **The pipeline runs end to end** (`python scripts/run_pipeline.py`): a served login-gated portal, a real browser that logs in and crawls it, three techniques scored on the same seven DPDP rules with real page loads as cost, one pull judged under every purpose, and the staff-guidance assistant placing its steps on the pages the crawler found. Ledger 81% (`PLAN.md` §5). Two reviews remain (as of 2026-09-12).
 
 For full background, methodology, and research framing, see `PROJECT_CONTEXT.md` in this same directory — read it before starting any non-trivial task. For the definition of 100%, the completion ledger, and the sequenced workstreams to Review-II/III, see `PLAN.md`.
 
@@ -58,20 +58,20 @@ Status as of 2026-09-12, re-baselined against the Review-II target.
 1. **Done.** Repo scaffolding + project structure.
 2. **Done.** DPDP compliance framework — 7 criteria as code-checkable pydantic rules (`src/compliance/rules/`), a declarative purpose policy, and a scored `ComplianceReport` artifact.
 3. **Thin slice done; Review-II work remains.** Synthetic HIS data generator — a field catalogue (name → HIS layer → DPDP category) and a Faker-seeded record generator (`src/data_synthetic/`). Still to do: per-layer pydantic schemas, the fifth layer's fields, and volume/variety wide enough to make timing differences legible.
-4. **Adapter + techniques done; mock portal done (`tools/mock_portal/`); the Playwright adapter is the Review-II gap.** `HISDataSource` interface, a working `MockHISDataSource`, three techniques (compliance-aware, minimising, coverage-optimised baseline), and a login-gated portal to scrape. `src/extraction/tier2/` is still empty and is the single highest-value remaining item — it must treat the portal as a black box (form login, cookie, links, pagination, table parsing) and emit a navigation map.
-5. **Working; needs the timing axis.** `run_benchmark` scores every technique against every task with the same rule set and emits a ranked comparison table (`src/compliance/benchmark.py`). This is the paper's core evidence. Review-I feedback adds **per-technique processing time** to it.
-6. **Done (`src/agent/`) — the staff-guidance agent, on top of `compliance/roles.py`. Deliberately simple: NO LLM.** It recognises a **pre-defined function** from what the user types, asks for the input details that function needs, and replies with templated instructions. Rule-based, deterministic, no model, no training, no API key. The AXE-inspired *LLM extraction* agent is **cut** — AXE stays a literature citation only. The agent is a completeness deliverable, not a research contribution (see "Where the contribution lies" above); build it to work, keep it small, do not let it grow. Its one research-relevant property is that the function registry is **DPDP-gated per role** — reception asking for clinical data is declined with the rule cited.
+4. **Done.** `HISDataSource` interface; `MockHISDataSource`; three techniques; the mock portal (`tools/mock_portal/`); and **Tier 2 for real** — `src/extraction/tier2/` (Playwright: form login, table/detail parsing, "Next" following, page-load counting; `navigation.discover()` crawls from the home page and **infers each module's HIS layer from the field names it finds**, never from the URL) behind `adapters/portal_his.PortalHISDataSource`. The three techniques run against it **unchanged** — the proof the adapter boundary holds. Detail pages are opened only when a requested field is not in the list table, so over-asking costs real page loads. Still to do here: a label→field mapping when a real portal's headers are display labels rather than field names (it belongs in the adapter), and the hospital-dataset adapter once its format is known.
+5. **Done, on two axes.** `run_benchmark` scores every technique against every task with the same rule set and emits a ranked comparison table (`src/compliance/benchmark.py`) with a **cost profile** (`extraction/metering.py`: fields pulled, fetches, excess ratio, coverage, wall-clock, and **real page loads** when the source is the portal). Against the portal the compliant technique loads ~1/4 the pages the baseline does at identical coverage. Portal runs write `benchmark-portal.{json,md}`; in-memory runs write `benchmark.{json,md}`.
+6. **Done (`src/agent/`) — the staff-guidance agent, on top of `compliance/roles.py`, with its steps placed on the crawler's pages via `Session(role, navigation=nav.agent_pages())`. Deliberately simple: NO LLM.** It recognises a **pre-defined function** from what the user types, asks for the input details that function needs, and replies with templated instructions. Rule-based, deterministic, no model, no training, no API key. The AXE-inspired *LLM extraction* agent is **cut** — AXE stays a literature citation only. The agent is a completeness deliverable, not a research contribution (see "Where the contribution lies" above); build it to work, keep it small, do not let it grow. Its one research-relevant property is that the function registry is **DPDP-gated per role** — reception asking for clinical data is declined with the rule cited.
 7. **Blocked until data access; assume it stays blocked.** Swap synthetic source for live HIS, re-run benchmarks, tune.
 
 Do not skip ahead to step 7 work. Do not silently substitute real HIS assumptions into steps 1–6 — keep the data source pluggable. The local mock portal is explicitly *not* step 7: it is a fixture that exercises step 4's browser code.
 
-Runnable demos: `scripts/run_benchmark.py` (headline — technique comparison on compliance and cost), `scripts/compare_purposes.py` (one extraction, every purpose — the purpose-limitation result), `scripts/show_role_access.py` (role scopes derived from purpose × interop artefacts; one request through all three roles), `scripts/ask_agent.py` (the assistant in conversation — four scenes, or `--interactive`), `scripts/run_synthetic_extraction.py` (one technique, three configs), `scripts/score_extraction_run.py` (rules in isolation), plus `scripts/trace_one_patient.py` (single-record walkthrough). `scripts/generate_dataset.py` is still a stub that exits with "not implemented" — it belongs to build step 3, not to the demo set. See `DEMO_GUIDE.md` and `docs/compliance/approach.md`. Review-II wants one further script above these: a single end-to-end pipeline run.
+Runnable demos: `scripts/run_benchmark.py` (headline — technique comparison on compliance and cost), `scripts/compare_purposes.py` (one extraction, every purpose — the purpose-limitation result), `scripts/show_role_access.py` (role scopes derived from purpose × interop artefacts; one request through all three roles), `scripts/ask_agent.py` (the assistant in conversation — four scenes, or `--interactive`), `scripts/run_synthetic_extraction.py` (one technique, three configs), `scripts/score_extraction_run.py` (rules in isolation), plus `scripts/trace_one_patient.py` (single-record walkthrough). `scripts/generate_dataset.py` is still a stub that exits with "not implemented" — it belongs to build step 3, not to the demo set. **`scripts/run_pipeline.py` is the Review-II demo** — the whole chain in one command (~30–40 s at the default size; `--show` runs the browser visibly; `--records 200` pages for longer). See `DEMO_GUIDE.md` and `docs/compliance/approach.md`.
 
 ## Tech Stack
 
 - **Language:** Python 3.10+ (primary — scraping, compliance logic, data handling)
 - **Schema modelling:** pydantic v2 — DPDP compliance rules, the extraction manifest, and HIS record shapes
-- **Scraping:** Playwright (Tier 2, headless browser automation) — chosen over Selenium; scrapes the mock portal
+- **Scraping:** Playwright (Tier 2, headless browser automation) — chosen over Selenium; scrapes the mock portal. Browser binaries are a one-time `python -m playwright install chromium` on each machine (installed here 2026-09-12). Tier 2 tests skip cleanly where they are absent.
 - **Mock portal fixture:** Flask 3 (`tools/mock_portal/`) — one dependency, sync, login sessions and templating built in; approved 2026-09-12
 - **Agent:** rule-based function recognition + slot filling + templated instructions — plain Python, no LLM, no ML, no external API. (`anthropic` removed from `requirements.txt` 2026-09-12.)
 - **Data handling:** pandas for structured records; synthetic data via Faker, generators shaped to the five-layer HIS model
@@ -95,18 +95,20 @@ Confirm before introducing a new major dependency or language — don't assume.
 /src
   /compliance         # models, policy, roles, rules/, checkers, summary, benchmark, report, purpose_matrix
   /data_synthetic     # catalogue (field → layer → DPDP category), generators/
-  /extraction         # base (HISDataSource), adapters/ (mock_his, live_his stub),
-                      #   technique + techniques/ (compliant, minimising, unconstrained), tier2/ stub
+  /extraction         # base (HISDataSource), metering, adapters/ (mock_his, portal_his, live_his stub),
+                      #   technique + techniques/ (compliant, minimising, unconstrained),
+                      #   tier2/ (browser: Playwright session; navigation: crawl + infer layers)
   /agent              # rule-based staff-guidance agent: functions (registry), session (recognise/gate/collect), guidance (output)
   /interop            # layers (five-layer HIS enum), mapping, hand-rolled hl7/fhir/dicom/iso_ieee_11073
-/scripts              # run_benchmark, compare_purposes, show_role_access, ask_agent, run_synthetic_extraction, score_extraction_run
+/scripts              # run_pipeline (end to end), run_benchmark, compare_purposes, show_role_access, ask_agent, ...
 /tools
-  /mock_portal        # Flask fixture: login-gated HTML portal over any HISDataSource (python -m tools.mock_portal)
+  /mock_portal        # Flask fixture: login-gated HTML portal over any HISDataSource (python -m tools.mock_portal);
+                      #   serve.BackgroundPortal runs it in a thread for tests and scripts
 /tests
 /docs
   /architecture        # five-layer-his.md
   /compliance          # approach.md, dpdp-provision-map.md
-  /benchmark_results    # benchmark.md tracked; per-run artifacts git-ignored
+  /benchmark_results    # tracked: benchmark.md, benchmark-portal.md, navigation-map.json, two purpose matrices; other runs git-ignored
 CLAUDE.md   PROJECT_CONTEXT.md   README.md   DEMO_GUIDE.md   requirements.txt
 ```
 

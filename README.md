@@ -52,7 +52,9 @@ techniques scored on DPDP compliance by one harness. Concrete:
   a Faker-seeded record generator.
 - `src/interop/` — five-layer HIS enum + layer → interoperability-standard map.
 
-Headline demo — `python scripts/run_benchmark.py`:
+End-to-end demo — `python scripts/run_pipeline.py` (a served portal, a real browser,
+three techniques scored and costed, one pull judged under every purpose, and the
+staff assistant). Headline table — `python scripts/run_benchmark.py`:
 
 | Technique | Compliance score | Pass rate |
 |-----------|-----------------|-----------|
