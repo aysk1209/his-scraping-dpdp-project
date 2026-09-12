@@ -1,14 +1,14 @@
 ### Compliance benchmark
 
-_compliance-aware (ours) scores 1.000; unconstrained (baseline) scores 0.131 on the same 7 rules -- a 0.869 gap. It also pulls 1.00x the fields the purpose requires, against 6.89x for the baseline, at full coverage. That surplus is exactly what the data-minimisation rule penalises, so on this workload compliance and extraction cost move together rather than trading off against each other._
+_compliance-aware (ours) scores 1.000; unconstrained (baseline) scores 0.135 on the same 7 rules -- a 0.865 gap. It also pulls 1.00x the fields the purpose requires, against 7.15x for the baseline, at full coverage. That surplus is exactly what the data-minimisation rule penalises, so on this workload compliance and extraction cost move together rather than trading off against each other. morality (privacy by instinct) obtained only 85% of the fields the tasks require: it refused data the purpose lawfully needed. Privacy by instinct fails in both directions._
 
-Synthetic data: portal, 30 records/module, seed 42. 2 extraction tasks, identical DPDP rule set for every technique. Generated 2026-09-12 in 65940 ms.
+Synthetic data: portal, 30 records/module, seed 42. 3 extraction tasks, identical DPDP rule set for every technique. Generated 2026-09-12 in 104348 ms.
 
 | Technique | Compliance score | Rules passed | DM-01 | LB-01 | SL-01 | SS-01 | PL-01 | NT-01 | AC-01 |
 |---|---|---|---|---|---|---|---|---|---|
 | compliance-aware (ours) | 1.000 | 7/7 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
-| minimising, undocumented | 0.500 | 2/7 | 1.00 | 0.50 | 0.50 | 0.50 | 1.00 | 0.00 | 0.00 |
-| unconstrained (baseline) | 0.131 | 0/7 | 0.67 | 0.00 | 0.00 | 0.25 | 0.00 | 0.00 | 0.00 |
+| morality (privacy by instinct) | 0.484 | 2/7 | 1.00 | 0.50 | 0.00 | 0.56 | 1.00 | 0.00 | 0.33 |
+| unconstrained (baseline) | 0.135 | 0/7 | 0.67 | 0.00 | 0.00 | 0.28 | 0.00 | 0.00 | 0.00 |
 
 **Compliance versus cost**
 
@@ -16,27 +16,29 @@ Synthetic data: portal, 30 records/module, seed 42. 2 extraction tasks, identica
 
 | Technique | Compliance | Excess ratio | Coverage | Fields pulled | Fetches | Pages loaded | Records | Wall-clock (ms) |
 |---|---|---|---|---|---|---|---|---|
-| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 270 | 4 | 68 | 120 | 11102.4 |
-| minimising, undocumented | 0.500 | 1.00 | 1.00 | 270 | 4 | 68 | 120 | 10978.6 |
-| unconstrained (baseline) | 0.131 | 6.89 | 1.00 | 1860 | 10 | 320 | 300 | 43855.2 |
+| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 390 | 5 | 100 | 150 | 16435.0 |
+| morality (privacy by instinct) | 0.484 | 0.85 | 0.85 | 330 | 5 | 100 | 150 | 16738.8 |
+| unconstrained (baseline) | 0.135 | 7.15 | 1.00 | 2790 | 15 | 480 | 450 | 71168.6 |
 
 **Per task**
 
-| Task | compliance-aware | minimising | unconstrained |
+| Task | compliance-aware | morality | unconstrained |
 |---|---|---|---|
-| `patient-summary` | 1.000 | 0.500 | 0.131 |
-| `ward-census` | 1.000 | 0.500 | 0.131 |
+| `patient-summary` | 1.000 | 0.476 | 0.131 |
+| `ward-census` | 1.000 | 0.476 | 0.131 |
+| `appointment-reminder` | 1.000 | 0.500 | 0.143 |
 
 **What each task needs**
 
 - `patient-summary` (*care_coordination*): mrn, date_of_birth, sex @ patient_administration; primary_diagnosis, medication, allergy @ clinical_ehr
 - `ward-census` (*care_coordination*): mrn, admission_ward @ patient_administration; encounter_datetime @ clinical_ehr
+- `appointment-reminder` (*patient_registration*): mrn, full_name, phone, admission_datetime @ patient_administration
 
-**What each technique pulled** (total over the 2-task workload)
+**What each technique pulled** (total over the 3-task workload)
 
-- **compliance-aware** — 120 records across 2 layer(s); fields by category: administrative (60), clinical (30), direct_identifier (60), quasi_identifier (30); out-of-scope: none
-- **minimising** — 120 records across 2 layer(s); fields by category: administrative (60), clinical (30), direct_identifier (60), quasi_identifier (30); out-of-scope: none
-- **unconstrained** — 300 records across 5 layer(s); fields by category: administrative (240), clinical (120), contact (60), direct_identifier (120), financial (60), quasi_identifier (60); out-of-scope: contact, financial
+- **compliance-aware** — 150 records across 2 layer(s); fields by category: administrative (90), clinical (30), direct_identifier (90), quasi_identifier (30); out-of-scope: none
+- **morality** — 150 records across 2 layer(s); fields by category: administrative (90), clinical (30), direct_identifier (90), quasi_identifier (30); out-of-scope: none
+- **unconstrained** — 450 records across 5 layer(s); fields by category: administrative (360), clinical (180), contact (90), direct_identifier (180), financial (90), quasi_identifier (90); out-of-scope: clinical, contact, financial
 
 **Rules**
 

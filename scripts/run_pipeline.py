@@ -4,7 +4,7 @@
     python scripts/run_pipeline.py --records 200    # more pages, longer run
     python scripts/run_pipeline.py --show           # watch the browser work
 
-Five stages, each real:
+Six stages, each real:
 
   1. PORTAL     a login-gated HIS portal is served locally over HTTP
   2. DISCOVER   a headless browser logs in, crawls it, and infers what each
@@ -65,6 +65,16 @@ TASKS = [
         needed=[
             LayerFields(layer=HISLayer.PATIENT_ADMINISTRATION, fields=["mrn", "admission_ward"]),
             LayerFields(layer=HISLayer.CLINICAL_EHR, fields=["encounter_datetime"]),
+        ],
+    ),
+    ExtractionTask(
+        task_id="appointment-reminder",
+        purpose=Purpose.PATIENT_REGISTRATION,
+        needed=[
+            LayerFields(
+                layer=HISLayer.PATIENT_ADMINISTRATION,
+                fields=["mrn", "full_name", "phone", "admission_datetime"],
+            ),
         ],
     ),
 ]

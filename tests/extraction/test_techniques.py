@@ -10,7 +10,7 @@ from extraction.technique import ExtractionTask, LayerFields, TechniqueOutput
 from extraction.techniques import (
     DEFAULT_TECHNIQUES,
     CompliantExtractionTechnique,
-    MinimisingUndocumentedTechnique,
+    MoralityTechnique,
     UnconstrainedExtractionTechnique,
 )
 from interop.layers import HISLayer
@@ -57,13 +57,36 @@ def test_unconstrained_technique_pulls_every_layer_and_leaks_categories():
     assert run_all(out.run, out.records).compliance_score < 0.4
 
 
-def test_minimising_technique_passes_dm01_but_not_the_rest():
-    out = MinimisingUndocumentedTechnique().extract(_source(), _task())
+def test_morality_model_gets_instinct_right_and_law_wrong():
+    out = MoralityTechnique().extract(_source(), _task())
     report = run_all(out.run, out.records)
     by_id = {r.rule_id: r for r in report.results}
+    # Nothing it pulled for care coordination is out of scope -- instinct happens
+    # to agree with the purpose here -- so minimisation passes...
     assert by_id["DM-01"].status.value == "pass"
-    assert by_id["LB-01"].status.value == "fail"
-    assert 0.5 <= report.compliance_score <= 0.75
+    # ...but the legal artefacts intuition never thinks of all fail.
+    assert by_id["LB-01"].status.value == "fail"       # consent asserted, not recorded
+    assert by_id["NT-01"].status.value == "fail"       # no notice
+    assert by_id["SL-01"].status.value == "fail"       # no retention, no mechanism
+    assert 0.3 <= report.compliance_score <= 0.75
+
+
+def test_morality_model_refuses_what_feels_private_even_when_the_purpose_needs_it():
+    from compliance.models import Purpose as P
+    from extraction.techniques.morality import FEELS_PRIVATE
+    task = ExtractionTask(
+        task_id="reminder", purpose=P.PATIENT_REGISTRATION,
+        needed=[LayerFields(layer=HISLayer.PATIENT_ADMINISTRATION,
+                            fields=["mrn", "full_name", "phone", "admission_datetime"])],
+    )
+    out = MoralityTechnique().extract(_source(), task)
+    pulled = {k for row in out.rows[HISLayer.PATIENT_ADMINISTRATION.value] for k in row}
+    assert "full_name" in FEELS_PRIVATE and "phone" in FEELS_PRIVATE
+    assert pulled == {"mrn", "admission_datetime"}     # the lawful, needed fields were refused
+    # ...while the compliance-aware technique pulls exactly what the purpose needs.
+    lawful = CompliantExtractionTechnique().extract(_source(), task)
+    assert {k for row in lawful.rows[HISLayer.PATIENT_ADMINISTRATION.value] for k in row} == {
+        "mrn", "full_name", "phone", "admission_datetime"}
 
 
 def test_unconstrained_ignores_task_needed_list():

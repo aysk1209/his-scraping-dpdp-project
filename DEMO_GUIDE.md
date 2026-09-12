@@ -153,13 +153,21 @@ python scripts/run_benchmark.py
 ```
 
 This runs **three different scraping methods** against the same fake hospital
-(three extraction tasks each) and scores every run on compliance:
+(four extraction tasks each) and scores every run on compliance:
 
 | Method | What it does | Score you'll see |
 |--------|--------------|------------------|
-| compliance-aware (ours) | takes only the data the job needs, does the paperwork | **1.000** |
-| minimising, undocumented | takes only what it needs, but skips paperwork/security | **~0.500** |
-| unconstrained (baseline) | grabs everything on the page, documents nothing | **~0.131** |
+| compliance-aware (ours) | takes what the stated purpose makes necessary, does the paperwork | **1.000** |
+| morality model | takes what does not *feel* private, refuses what does — whatever the purpose; declares by instinct | **~0.48** |
+| unconstrained (baseline) | grabs everything on the page, documents nothing | **~0.13** |
+
+The **morality model** is the one to explain. It is what a general AI model — or a
+well-meaning engineer — does when it reads a column header and asks "is this
+private?". It refuses names, phone numbers, addresses and money; it happily takes
+dates of birth, sex, postcodes and the MRN ("just an ID"). It has no concept of
+*purpose*, so it is wrong in both directions: it over-collects what does not feel
+private and refuses what the job lawfully needs. The panel accepted that most real
+systems sit at the baseline; this is the model in between.
 
 The output also shows: a few sample (fake) patient records, a per-task score
 table, what each task actually needs, and **what each method pulled** — e.g. the
@@ -172,17 +180,19 @@ layers* for the compliance-aware method.
 A second table reports what each method **cost**, which answers the obvious
 question a score alone invites — *what do you give up to be compliant?*
 
-| Method | Excess ratio | Fields pulled | Fetches |
-|--------|-------------:|--------------:|--------:|
-| compliance-aware (ours) | 1.00 | 750 | 6 |
-| minimising, undocumented | 1.00 | 750 | 6 |
-| unconstrained (baseline) | 6.20 | 4650 | 15 |
+| Method | Excess ratio | Coverage | Fields pulled | Fetches |
+|--------|-------------:|---------:|--------------:|--------:|
+| compliance-aware (ours) | 1.00 | 1.00 | 950 | 7 |
+| morality model | 0.90 | 0.90 | 850 | 7 |
+| unconstrained (baseline) | 6.53 | 1.00 | 6200 | 20 |
 
 **Excess ratio** is the number to point at: how many fields a method pulled for
 every one the job actually required. The compliant method pulls exactly what is
-needed (1.00); the baseline pulls six times that. All three obtain everything
-the tasks require, so nobody is winning by doing less work — the "coverage"
-column in the real output is 1.00 across the board.
+needed (1.00); the baseline pulls six and a half times that. **Coverage** is the
+guard rail — and here it catches the morality model: it obtained only 90% of what
+the tasks required, because the appointment-reminder task lawfully needs a name
+and a phone number and instinct refused both. The takeaway line prints exactly
+that sentence.
 
 The point to make out loud: **the baseline's surplus is not just waste, it is
 precisely the overreach the law objects to.** Here, compliance is the cheap
@@ -292,7 +302,7 @@ python scripts/run_synthetic_extraction.py
 
 Takes a single method and runs it carefully, half-carefully, and carelessly,
 using fake patient records generated on the spot. Expected:
-**1.000 / ~0.500 / ~0.131**. Useful for showing *why* a score moves.
+**1.000 / ~0.500 / ~0.131** (careful / half-careful / careless configurations of one method). Useful for showing *why* a score moves.
 
 ### Demo C — the rules on their own
 

@@ -46,7 +46,7 @@ def test_compliance_aware_wins_and_baseline_loses():
     scores = {s.technique: s for s in _result().scores}
     assert scores["compliance-aware (ours)"].mean_compliance_score == 1.0
     assert scores["unconstrained (baseline)"].mean_compliance_score < 0.4
-    mid = scores["minimising, undocumented"].mean_compliance_score
+    mid = scores["morality (privacy by instinct)"].mean_compliance_score
     assert 0.4 < mid < 1.0
 
 

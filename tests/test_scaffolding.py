@@ -25,7 +25,7 @@ MODULES = [
     "extraction.technique",
     "extraction.techniques",
     "extraction.techniques.compliant",
-    "extraction.techniques.minimising",
+    "extraction.techniques.morality",
     "extraction.techniques.unconstrained",
     "extraction.adapters",
     "extraction.adapters.mock_his",

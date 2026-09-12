@@ -245,12 +245,13 @@ numbers instead of asserting that the gap is "not coverage or speed".
 technique could score perfectly by pulling nothing, which would make the whole
 cost axis gameable.
 
-**Result on the synthetic workload:** the compliant technique and the minimising
-one both pull exactly what the purpose requires (excess 1.00); the baseline pulls
-6.20x at the same coverage (five layers now). Compliance and cost move together here rather than
-trading off. The two axes turn out to be complementary — compliance separates all
-three techniques, cost separates the baseline from the other two — so both are
-needed to tell the whole story.
+**Result on the synthetic workload (four tasks, five layers):** the compliant
+technique pulls exactly what each purpose requires (excess 1.00, coverage 1.00);
+the baseline pulls 6.53x at the same coverage; the morality model pulls 0.90x at
+coverage 0.90 — cheaper because it refused a name and a phone number the
+appointment-reminder task lawfully needed. Compliance and cost move together for
+the baseline; for the morality model, low cost *is* the failure. Both axes are
+needed to tell the story.
 
 ### W4 — Staff-guidance agent *(component 10)* — **DONE 2026-09-12** (8 of 10)
 
@@ -358,15 +359,21 @@ Dropped per §2. AXE stays in the literature survey as related work.
 Consequence to action: the `anthropic` dependency in `requirements.txt` becomes
 unused and should be removed once this is confirmed.
 
-### W8 — Real baseline technique *(Review-III)*
+### W8 — Real baseline technique — **DROPPED 2026-09-13**
 
-An AutoScraper-style learn-by-example scraper against the portal, replacing the
-hand-written `unconstrained` stand-in.
+The panel accepts the hand-written `unconstrained` baseline: they agree that the
+majority of real systems have very little compliance, so a coverage-optimised
+scraper with no manifest is a fair stand-in and a literature-faithful AutoScraper
+implementation adds nothing the argument needs. AutoScraper stays a citation in the
+survey. The effort goes to the report instead.
 
-**Risk being managed:** our baseline is currently written by us, which makes it a
-strawman an examiner can push on — and since the benchmark *is* the contribution,
-that is the most damaging single objection available to a reviewer. Scheduling it
-late is acceptable; leaving it undone is not.
+The middle technique is renamed and redesigned at the same time: the **morality
+model** (`techniques/morality.py`) judges privacy by instinct — what a general AI
+model would consider private from a field's name — rather than by purpose. It is
+deliberately not DPDP-compliant. Its intuition table is explicit so the comparison
+stays fair, and the benchmark gained an appointment-reminder task where instinct
+and law disagree, so the model's second failure mode (refusing lawfully needed
+data) is visible as coverage < 1.
 
 ### W9 — End-to-end demonstration *(component 11)* — **DONE (rough) 2026-09-12**
 
@@ -399,7 +406,7 @@ Close the chain first; thicken it second.
 | 7 | W6 | Contribution work — strengthens the rule set |
 | 8 | W2 (dataset adapter), W3 re-run | Whenever the hospital export lands |
 | 9 | W9 polish, screenshots | Review-II presentation state |
-| — | W8, report, manuscript | Review-III |
+| — | report, manuscript | Review-III |
 
 ## 8. Open decisions and external requirements
 
@@ -425,7 +432,7 @@ Roughly in the order they block work.
 
 | Risk | Consequence | Mitigation |
 |---|---|---|
-| Hand-written baseline reads as a strawman | Attacks the contribution itself | W8 — the highest-value risk to close |
+| ~~Hand-written baseline reads as a strawman~~ | Closed: the panel accepts the baseline (2026-09-13) | — |
 | Real patient data mishandled | Serious, and acutely embarrassing for this project specifically | §4 — settle de-identification before arrival |
 | Hospital dataset never arrives | Benchmark rests on synthetic data only | Nothing depends on it; synthetic path stays complete |
 | Portal is unrealistically clean | Robustness claims overstated | State the limitation in the deck; it demonstrates the mechanism, not robustness |

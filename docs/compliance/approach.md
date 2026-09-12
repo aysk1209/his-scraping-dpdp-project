@@ -84,18 +84,18 @@ label added afterwards. Three are implemented
 | Technique | Behaviour |
 |-----------|-----------|
 | compliance-aware (ours) | pulls exactly the task's needed fields; full manifest |
-| minimising, undocumented | pulls only needed fields, but no paperwork / partial safeguards |
+| morality (privacy by instinct) | judges each field by whether it *feels* private — refuses names, contact details and money whatever the purpose, takes identifiers and demographics freely; declares by instinct (consent assumed, no notice, no retention). Not DPDP-compliant and not trying to be: the model in between |
 | unconstrained (baseline) | ignores the task, grabs every field of every layer; no manifest. Stands in for a coverage-optimised scraper (cf. AutoScraper, EMNLP 2024) |
 
 [`compliance.benchmark.run_benchmark`](../../src/compliance/benchmark.py) runs
-every technique against every task (three, currently), scores each run with the
+every technique against every task (four, currently), scores each run with the
 **same** seven-rule set, and aggregates. `python scripts/run_benchmark.py`:
 
 | Technique | Compliance score | Rules passed |
 |-----------|-----------------|--------------|
 | compliance-aware (ours) | 1.000 | 7/7 |
-| minimising, undocumented | 0.500 | 2/7 |
-| unconstrained (baseline) | 0.131 | 0/7 |
+| morality (privacy by instinct) | 0.482 | 2/7 |
+| unconstrained (baseline) | 0.134 | 0/7 |
 
 The full artifact (`docs/benchmark_results/benchmark.md`) also carries the
 per-rule breakdown, a per-task table, what each task needs, and what each
@@ -114,9 +114,9 @@ cooperates in its own measurement or could game it.
 
 | Technique | Compliance | Excess ratio | Coverage | Fields pulled | Fetches |
 |-----------|-----------:|-------------:|---------:|--------------:|--------:|
-| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 750 | 6 |
-| minimising, undocumented | 0.500 | 1.00 | 1.00 | 750 | 6 |
-| unconstrained (baseline) | 0.131 | 6.20 | 1.00 | 4650 | 15 |
+| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 950 | 7 |
+| morality (privacy by instinct) | 0.482 | 0.90 | 0.90 | 850 | 7 |
+| unconstrained (baseline) | 0.134 | 6.53 | 1.00 | 6200 | 20 |
 
 **`excess_ratio`** is distinct fields pulled divided by the fields the task's
 purpose requires. It is a cost measure and a compliance measure at once, because
@@ -130,10 +130,13 @@ dataset size, which is what a published benchmark needs. Wall-clock time is
 reported beside them (median of three runs) but is hardware-dependent and is not
 what any claim rests on.
 
-Note that the two axes are complementary rather than redundant: compliance
-separates all three techniques, while cost separates the baseline from the other
-two and leaves the first two identical — they pull the same data and differ only
-in their paperwork. Neither axis alone tells the whole story.
+The two axes are complementary rather than redundant, and the morality model is
+why. On compliance it sits between the other two. On cost it is the *cheapest*
+technique — and the cheapness is a failure: coverage 0.90 means it refused a name
+and a phone number that the appointment-reminder task lawfully required under the
+registration purpose. Privacy by instinct over-collects what does not feel private
+(MRN, date of birth, sex) and under-delivers what does. Only a purpose-bound
+technique gets both right, and only the two axes together show it.
 
 This table is the paper's central claim made concrete: compliance discriminates
 between *techniques*, and it is produced by one harness that will later score

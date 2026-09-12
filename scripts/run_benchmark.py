@@ -2,8 +2,8 @@
 
     python scripts/run_benchmark.py
 
-Runs three techniques -- a compliance-aware method (ours), a minimising-but-
-undocumented method, and an unconstrained coverage-optimised baseline -- against
+Runs three techniques -- a compliance-aware method (ours), a morality model that
+judges privacy by instinct, and an unconstrained coverage-optimised baseline -- against
 a set of extraction tasks over synthetic HIS data, scoring every run with the
 same DPDP rule set and metering every run for cost on the same terms. Prints the
 comparison table and writes docs/benchmark_results/benchmark.{json,md}.
@@ -70,14 +70,29 @@ TASKS = [
             ),
         ],
     ),
+    # A task where instinct and law part ways: confirming an appointment needs a
+    # name and a phone number, lawfully, under registration. The morality model
+    # refuses both because they feel private; the compliance-aware technique
+    # pulls exactly them because the purpose requires them.
+    ExtractionTask(
+        task_id="appointment-reminder",
+        purpose=Purpose.PATIENT_REGISTRATION,
+        needed=[
+            LayerFields(
+                layer=HISLayer.PATIENT_ADMINISTRATION,
+                fields=["mrn", "full_name", "phone", "admission_datetime"],
+            ),
+        ],
+    ),
 ]
 
 _SCENARIO = """\
-Scenario: a care-coordination assistant reads patient data from the HIS.
-Three extraction tasks are defined; three techniques attempt them:
-  - compliance-aware (ours)  : pulls only what a task needs, files a full manifest
-  - minimising, undocumented : pulls only what a task needs, files no paperwork
-  - unconstrained (baseline)  : ignores the task, scrapes every field it can reach
+Scenario: hospital staff read patient data from the HIS for stated purposes.
+Four extraction tasks are defined; three techniques attempt them:
+  - compliance-aware (ours) : pulls what the purpose makes necessary, files a full manifest
+  - morality model          : pulls what does not *feel* private; refuses what does,
+                              whatever the purpose; declares by instinct, not by law
+  - unconstrained (baseline): ignores the task, scrapes every field it can reach
 Each run is scored against the same seven DPDP Act 2023 rules, and metered for
 what it cost: fields pulled, fetches, and how far past the purpose it reached."""
 

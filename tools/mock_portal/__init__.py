@@ -50,7 +50,7 @@ from interop.layers import LAYER_DESCRIPTIONS, HISLayer
 
 # Columns shown on the list page, per layer. Everything else is only on the detail
 # page -- which is what makes a coverage-optimised scraper open more pages than a
-# minimising one, and so what gives the benchmark's ``fetches`` column something
+# purpose-bound one, and so what gives the benchmark's ``fetches`` column something
 # to measure. The choice is what a portal would plausibly show in a table, not a
 # choice made for the benchmark's sake.
 LIST_COLUMNS: dict[HISLayer, list[str]] = {

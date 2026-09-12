@@ -16,7 +16,7 @@ For full background, methodology, and research framing, see `PROJECT_CONTEXT.md`
 
 **Review-I is done (02.09.2026) and the outcome was satisfactory.** Two reviews remain (as of 2026-09-12).
 
-**Feedback carried forward from Review-I.** The panel's one substantive suggestion: **report processing time alongside the compliance score, for all three benchmarked techniques** (compliance-aware, minimising, coverage-optimised baseline). The harness currently times the benchmark as a whole (`BenchmarkResult.elapsed_ms`) but not each technique. Per-technique timing is now a required column in the headline table — it lets us answer "what does compliance cost you?" with a measured number rather than an assertion, and it turns the comparison into a genuine two-axis benchmark (compliance × cost) instead of a single-axis one.
+**Feedback carried forward from Review-I.** The panel's one substantive suggestion: **report processing time alongside the compliance score, for all three benchmarked techniques** (compliance-aware, the morality model, coverage-optimised baseline). Done: the cost profile (`extraction/metering.py`) gives every technique fields pulled, fetches, page loads, excess ratio, coverage and wall-clock. **Panel stance recorded 2026-09-13:** the hand-written baseline is accepted — the panel agrees most real systems have very little compliance — so a real AutoScraper-style baseline is *not* required. The middle technique is the **morality model**: it judges privacy by instinct (what a general AI model would consider private from a field's name), not by DPDP — it refuses names/contact/money whatever the purpose and takes identifiers and demographics freely. It is deliberately non-compliant; it is the model in between.
 
 - **Review-II — the immediate priority.** Floor: **~75% completion**. The stronger recommendation on top of that floor: **show that the entire pipeline runs end to end**, minor shortcomings accepted. A complete-but-rough pipeline demonstrates more than polished fragments. Concretely: one command that goes portal → extraction → normalisation → compliance scoring → ranked benchmark with per-technique timings, plus an agent layer that actually runs rather than a stub. Deck continues to use the mandatory VIT/SENSE Project-I 2026 template.
 - **Review-III — everything, including the full project report and a publication-ready manuscript.** Deployment is explicitly **not** required — the graded contribution is the extraction + compliance-benchmarking work and its write-up.
@@ -96,7 +96,7 @@ Confirm before introducing a new major dependency or language — don't assume.
   /compliance         # models, policy, roles, pseudonymise, rules/, checkers, summary, benchmark, report, purpose_matrix
   /data_synthetic     # catalogue (field → layer → DPDP category, infer_layer), generators/, schemas/, export
   /extraction         # base (HISDataSource), metering, adapters/ (mock_his, portal_his, dataset_his, live_his stub),
-                      #   technique + techniques/ (compliant, minimising, unconstrained),
+                      #   technique + techniques/ (compliant, morality, unconstrained),
                       #   tier2/ (browser: Playwright session; navigation: crawl + infer layers)
   /agent              # rule-based staff-guidance agent: functions (registry), session (recognise/gate/collect), guidance (output)
   /interop            # layers (five-layer HIS enum), mapping, normalise (shape + audit), hl7/ fhir/ (implemented), dicom/ iso_ieee_11073/ (stubs)

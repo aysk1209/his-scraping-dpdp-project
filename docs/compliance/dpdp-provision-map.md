@@ -106,5 +106,5 @@ python scripts/run_synthetic_extraction.py    # 1 technique, 3 configurations
 python scripts/score_extraction_run.py        # hand-built records, rules in isolation
 ```
 
-`run_benchmark.py` output (compliance-aware / minimising / baseline):
-**1.000 / 0.500 / 0.131**.
+`run_benchmark.py` output (compliance-aware / morality model / baseline):
+**1.000 / 0.482 / 0.134**.

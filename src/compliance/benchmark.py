@@ -99,18 +99,34 @@ class BenchmarkResult(BaseModel):
             )
 
         if dear > cheap:
-            return (
+            line = (
                 f"{line} It also pulls {cheap:.2f}x the fields the purpose requires, "
                 f"against {dear:.2f}x for the baseline, at full coverage. That surplus "
                 f"is exactly what the data-minimisation rule penalises, so on this "
                 f"workload compliance and extraction cost move together rather than "
                 f"trading off against each other."
             )
-        return (
-            f"{line} It pulls {cheap:.2f}x the fields the purpose requires against the "
-            f"baseline's {dear:.2f}x -- a measured compliance premium on this workload, "
-            f"not an assumed one."
-        )
+        else:
+            line = (
+                f"{line} It pulls {cheap:.2f}x the fields the purpose requires against the "
+                f"baseline's {dear:.2f}x -- a measured compliance premium on this workload, "
+                f"not an assumed one."
+            )
+
+        # A technique that did not obtain what the tasks need has a different
+        # failure from over-collection, and the line should name it.
+        short = [
+            s for s in self.scores[1:]
+            if s.cost.coverage is not None and s.cost.coverage < 1.0
+        ]
+        if short:
+            s = short[0]
+            line += (
+                f" {s.technique} obtained only {s.cost.coverage:.0%} of the fields the "
+                f"tasks require: it refused data the purpose lawfully needed. Privacy by "
+                f"instinct fails in both directions."
+            )
+        return line
 
     def render_table(self) -> str:
         lines: list[str] = []
@@ -124,13 +140,13 @@ class BenchmarkResult(BaseModel):
         lines.append("")
 
         head = (
-            f"{'technique':<26} {'score':>6} {'pass':>7}  "
+            f"{'technique':<32} {'score':>6} {'pass':>7}  "
             + " ".join(f"{rid:>6}" for rid in self.rule_ids)
         )
         lines += [head, "-" * len(head)]
         for score in self.scores:
             row = (
-                f"{score.technique:<26} {score.mean_compliance_score:>6.3f} "
+                f"{score.technique:<32} {score.mean_compliance_score:>6.3f} "
                 f"{score.rules_passed:>7}  "
                 + " ".join(f"{self._fmt(score.per_rule_mean.get(rid)):>6}" for rid in self.rule_ids)
             )
@@ -139,7 +155,7 @@ class BenchmarkResult(BaseModel):
         lines += ["", "cost profile (deterministic metrics lead; wall-clock is hardware-dependent):"]
         show_loads = any(s.cost.page_loads is not None for s in self.scores)
         cost_head = (
-            f"  {'technique':<24} {'excess':>7} {'cover':>6} {'fields':>8} "
+            f"  {'technique':<30} {'excess':>7} {'cover':>6} {'fields':>8} "
             f"{'fetches':>8}" + (f" {'pages':>7}" if show_loads else "")
             + f" {'records':>8} {'ms':>8}"
         )
@@ -148,7 +164,7 @@ class BenchmarkResult(BaseModel):
             cost = score.cost
             loads = f" {cost.page_loads if cost.page_loads is not None else '-':>7}" if show_loads else ""
             lines.append(
-                f"  {score.technique:<24} {self._fmt(cost.excess_ratio):>7} "
+                f"  {score.technique:<30} {self._fmt(cost.excess_ratio):>7} "
                 f"{self._fmt(cost.coverage):>6} {cost.fields_pulled:>8} "
                 f"{cost.fetches:>8}{loads} {cost.records:>8} {cost.elapsed_ms:>8.1f}"
             )

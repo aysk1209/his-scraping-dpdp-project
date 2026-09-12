@@ -4,18 +4,18 @@
 """
 
 from extraction.techniques.compliant import CompliantExtractionTechnique
-from extraction.techniques.minimising import MinimisingUndocumentedTechnique
+from extraction.techniques.morality import MoralityTechnique
 from extraction.techniques.unconstrained import UnconstrainedExtractionTechnique
 
 DEFAULT_TECHNIQUES = [
     CompliantExtractionTechnique(),
-    MinimisingUndocumentedTechnique(),
+    MoralityTechnique(),
     UnconstrainedExtractionTechnique(),
 ]
 
 __all__ = [
     "CompliantExtractionTechnique",
-    "MinimisingUndocumentedTechnique",
+    "MoralityTechnique",
     "UnconstrainedExtractionTechnique",
     "DEFAULT_TECHNIQUES",
 ]
