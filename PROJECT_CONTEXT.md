@@ -76,4 +76,3 @@ Framed as a comparative advantage over existing scraping literature, not a compl
 - Login-gated vs public-documentation prioritization — pending guide input; the mock portal quietly presumes login-gated, so confirm it.
 - Live HIS access — no committed date; **treated as never arriving** for planning purposes.
 - Five-layer model and the modelled purposes are working assumptions, not sourced from Review-1 artifacts — accepted for now, reconfigure if real HIS access differs.
-- **Review-II date is not yet recorded** — everything downstream of it is sequenced but not calendared.

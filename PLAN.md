@@ -383,8 +383,8 @@ Roughly in the order they block work.
 3. **Hospital dataset: format, size, and de-identification status** (§4). The
    de-identification question should be settled *before* the data arrives, not after.
 4. ~~Confirm W7~~ — **done**; the LLM agent is dropped and `anthropic` is removed from `requirements.txt`.
-5. **Review-II date.** Not recorded anywhere; the sequence above is ordered but not
-   calendared.
+5. ~~Review-II date~~ — the team tracks dates and timeline; the plan is ordered, not
+   calendared, and that is by design.
 6. **Guide input — login-gated versus public-documentation priority.** Formally still
    open; W1 quietly settles it in favour of login-gated. Worth confirming with
    Dr. Manoj Kumar before it does.
