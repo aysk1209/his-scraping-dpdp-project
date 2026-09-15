@@ -2,7 +2,7 @@
 
 _compliance-aware (ours) scores 1.000; unconstrained (baseline) scores 0.135 on the same 7 rules -- a 0.865 gap. It also pulls 1.00x the fields the purpose requires, against 7.15x for unconstrained (baseline) at full coverage. That surplus is exactly what the data-minimisation rule penalises, so on this workload compliance and extraction cost move together rather than trading off against each other. morality (privacy by instinct) obtained only 85% of the fields the tasks require: it refused data the purpose lawfully needed. Privacy by instinct fails in both directions._
 
-Source: portal, 20 records/module, seed 42. 3 extraction tasks, identical DPDP rule set for every technique. Generated 2026-09-15 in 77063 ms (wall-clock, hardware-dependent).
+Source: portal, 20 records/module, seed 42. 3 extraction tasks, identical DPDP rule set for every technique. Generated 2026-09-15 in 28802 ms (wall-clock, hardware-dependent).
 
 | Technique | Compliance score | Rules passed | DM-01 | LB-01 | SL-01 | SS-01 | PL-01 | NT-01 | AC-01 |
 |---|---|---|---|---|---|---|---|---|---|
@@ -16,9 +16,9 @@ Source: portal, 20 records/module, seed 42. 3 extraction tasks, identical DPDP r
 
 | Technique | Compliance | Excess ratio | Coverage | Distinct fields / needed | Fields pulled | Fetches | Pages loaded | Records | Wall-clock (ms) |
 |---|---|---|---|---|---|---|---|---|---|
-| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 13 / 13 | 260 | 5 | 70 | 100 | 12108.5 |
-| morality (privacy by instinct) | 0.484 | 0.85 | 0.85 | 11 / 13 | 220 | 5 | 70 | 100 | 12788.0 |
-| unconstrained (baseline) | 0.135 | 7.15 | 1.00 | 93 / 13 | 1860 | 15 | 330 | 300 | 52162.2 |
+| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 13 / 13 | 260 | 5 | 70 | 100 | 4485.5 |
+| morality (privacy by instinct) | 0.484 | 0.85 | 0.85 | 11 / 13 | 220 | 5 | 70 | 100 | 4508.4 |
+| unconstrained (baseline) | 0.135 | 7.15 | 1.00 | 93 / 13 | 1860 | 15 | 330 | 300 | 19805.4 |
 
 **Per task**
 

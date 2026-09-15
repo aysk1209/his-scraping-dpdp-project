@@ -52,6 +52,10 @@ and memory `axe-autoscraper-citations`); `docs/architecture/five-layer-his.md`;
 
 ## 3. The compliance framework *(~2500 words — draft now; the core chapter)*
 
+**Status: draft 1 written 2026-09-15 — `ch3-compliance-framework.md`.** Section
+references carry `— unverified` tags pending the Gazette check; over length by
+~a quarter, trimming notes in the file header.
+
 **Argues.** Seven DPDP principles can be written as executable rules over a
 structured declaration of an extraction run, and a policy table makes "necessary
 for the purpose" machine-checkable.
