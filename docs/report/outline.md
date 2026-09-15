@@ -134,6 +134,9 @@ content rather than labels — which is the heterogeneity answer.
 
 ## 6. Export and the staff assistant *(~1400 words — draft now)*
 
+**Status: draft 1 written 2026-09-15 — `ch6-export-and-assistant.md`.** The
+technical body (chapters 3–7) is now drafted; 1, 2, 8 and the appendices remain.
+
 **Argues.** The same policy table gates two more things: what leaves as HL7/FHIR,
 and what a member of staff may be told.
 
