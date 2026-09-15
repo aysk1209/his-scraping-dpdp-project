@@ -187,6 +187,9 @@ separates declared from actual.
 
 ## 8. Conclusion *(~700 words — draft now)*
 
+**Status: draft 1 written 2026-09-15 — `ch8-conclusion.md`.** The six-item
+contribution list is the one to reuse in chapter 1 and the abstract.
+
 Contributions, numbered: (1) a DPDP compliance framework as executable rules over
 an extraction manifest; (2) a two-axis benchmark with a cost measure that is also
 a compliance measure; (3) the purpose matrix — compliance as a property of pull
