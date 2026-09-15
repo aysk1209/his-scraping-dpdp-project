@@ -3,10 +3,11 @@
 *Draft 1, 2026-09-15. Target ~1800 words; this draft runs ~2400. Reference
 numbers are those of the deck's IEEE list (`tools/build_review_deck.py`,
 `REFERENCES`): [1]–[12] from the Review-I survey pool, [13] the Act, [14]–[16]
-added 2026-09-15 with DOIs verified. Four of the inherited entries — [7], [9],
-[10], [11] — still lack author names in the list and must be completed before
-submission. Section references to the Act are tagged `[s.N — unverified]` as in
-Chapter 3.*
+added 2026-09-15 with DOIs verified. The inherited entries [7], [10], [11] were
+completed with full author lists via Crossref on 2026-09-15; [9], which existed
+only as an unverifiable repository upload, was replaced by Vorisek et al. 2022
+(JMIR Medical Informatics), a systematic review serving the same role. Section
+references to the Act are tagged `[s.N — unverified]` as in Chapter 3.*
 
 ---
 
@@ -46,27 +47,29 @@ Our decomposition is a working reconstruction rather than a standard; if a real
 system's structure differs, the field catalogue of Chapter 5 is the one place
 that changes.
 
-**Heterogeneity as the standing obstacle.** The same review [8] and the
-interoperability literature [9] agree on the practical problem: no two
-hospitals' systems are alike, vendors' data models differ, and integration
-projects spend most of their effort on mapping. It was the objection put to us
+**Heterogeneity as the standing obstacle.** The enterprise-architecture view
+[8] and the FHIR-in-research literature [9] agree on the practical problem: no
+two hospitals' systems are alike, vendors' data models differ, and integration
+projects spend most of their effort on mapping — Vorisek et al. [9] find data
+mapping and the variability of local implementations among the most-reported
+limitations across 49 studies. It was the objection put to us
 at our first review — that a method built against one system would not
 transfer — and it shapes Chapter 5's answer: discover structure rather than
 declare it, and classify by content rather than by label.
 
 **Interoperability standards.** Four standards carry HIS data between systems,
-and each carries different layers. HL7 version 2 [9] is the message standard of
+and each carries different layers. HL7 version 2 is the message standard of
 the hospital interior: `ADT` messages for admissions and registrations, `ORM`
 and `ORU` for orders and results, `SIU` for scheduling, `DFT` and `BAR` for
-charges and accounts. FHIR [9], the resource-and-REST standard, carries the
-same content as typed resources — `Patient`, `Encounter`, `Condition`,
-`MedicationRequest`, `Observation`, `Invoice`, `Coverage`, `Claim` — and
-additionally defines `AuditEvent` for the record of who did what, which has no
-HL7 v2 counterpart. DICOM carries imaging studies and their metadata; ISO/IEEE
-11073 carries point-of-care device observations. The review [9] is explicit
-that these standards address *exchange*, not *lawfulness*: they say how a
-diagnosis is encoded and transported, and nothing about whether the party
-receiving it should have it. We use the standards twice — once as the shape of
+charges and accounts. FHIR, the resource-and-REST standard reviewed in [9],
+carries the same content as typed resources — `Patient`, `Encounter`,
+`Condition`, `MedicationRequest`, `Observation`, `Invoice`, `Coverage`, `Claim`
+— and additionally defines `AuditEvent` for the record of who did what, which
+has no HL7 v2 counterpart. DICOM carries imaging studies and their metadata;
+ISO/IEEE 11073 carries point-of-care device observations. The standards, and
+the literature that studies their adoption [9], address *exchange*, not
+*lawfulness*: they say how a diagnosis is encoded and transported, and nothing
+about whether the party receiving it should have it. We use the standards twice — once as the shape of
 our exports (Chapter 6), and once, less conventionally, as the vocabulary in
 which staff access is expressed: a role may touch a data category only where a
 standard-defined artefact it legitimately handles carries it.

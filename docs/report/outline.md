@@ -37,8 +37,8 @@ which frames why extraction matters) · thesis · contributions (numbered — se
 
 **Status: draft 1 written 2026-09-15 — `ch2-background.md`.** Sixteen references:
 [1]–[12] inherited, [13] the Act, [14]–[16] added and DOI-verified 2026-09-15.
-Entries [7], [9], [10], [11] still lack author names in the list. **All eight
-chapters are now drafted.**
+Entries [7], [10], [11] completed via Crossref; [9] replaced by a verifiable
+systematic review (Vorisek et al. 2022). **All eight chapters are now drafted.**
 
 **Argues.** Three literatures meet here and none measures compliance.
 

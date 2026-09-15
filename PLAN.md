@@ -436,8 +436,9 @@ Roughly in the order they block work.
    (tokenisation of health identifiers), [15] de Carvalho Jr. & Bandiera-Paiva 2018
    (RBAC in HIS), [16] Rule, Chiang & Hribar 2020 (EHR audit logs), each with a DOI
    verified against the publisher's page; the deck's literature review now runs
-   fifteen rows over three slides. Still open: author names for the inherited
-   entries [7], [9], [10], [11].
+   fifteen rows over three slides. Author lists for [7], [10], [11] completed via
+   Crossref the same day; [9] existed only as a repository upload and was replaced
+   by Vorisek et al. 2022 (JMIR Med. Inform.). All sixteen entries now verifiable.
 9. **Deck finishing.** `Review-II.pptx` is built on the institution's Review-2
    template by `tools/build_review_deck.py`; slide 1 must be replaced by the
    guide-signed scan, and the deck opened once to check fit (no renderer here).
