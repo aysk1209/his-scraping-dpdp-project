@@ -81,6 +81,10 @@ mapping, once verified).
 
 ## 4. Extraction techniques and the cost axis *(~1800 words — draft now)*
 
+**Status: draft 1 written 2026-09-15 — `ch4-techniques-and-cost.md`.** Over
+length by ~a quarter; numbers are illustrations from the tracked artefacts, with
+the tables left to chapter 7.
+
 **Argues.** Techniques differ in what they pull *and* what they declare; cost can
 be measured in reproducible units; excess ratio is simultaneously a cost measure
 and the minimisation overreach.
