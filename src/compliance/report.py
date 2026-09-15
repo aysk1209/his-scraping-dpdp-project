@@ -31,6 +31,20 @@ class ComplianceReport(BaseModel):
     pass_rate: float
     results: list[RuleResult]
     extraction: ExtractionSummary | None = None
+    # The manifest facts a reader needs to interpret the score without opening
+    # the findings: what the pull was for, on what basis, and for how long.
+    purpose: str | None = None
+    lawful_basis: str | None = None
+    retention_days: int | None = None
+
+    def _manifest_line(self) -> str:
+        parts = [f"purpose {self.purpose or 'not declared'}"]
+        parts.append(f"basis {self.lawful_basis or 'not declared'}")
+        parts.append(
+            f"retention {self.retention_days}d" if self.retention_days is not None
+            else "retention not declared"
+        )
+        return "; ".join(parts)
 
     @property
     def rules_passed(self) -> int:
@@ -70,7 +84,10 @@ class ComplianceReport(BaseModel):
 
     def render_table(self) -> str:
         total = len(self.results)
-        lines = [f"Compliance report -- run '{self.run_id}'"]
+        lines = [
+            f"Compliance report -- run '{self.run_id}'",
+            f"  manifest  : {self._manifest_line()}",
+        ]
         if self.extraction is not None:
             lines.append(f"  extracted : {self.extraction.one_line()}")
         lines += [
@@ -97,6 +114,9 @@ class ComplianceReport(BaseModel):
             f"**Overall score:** {self.compliance_score:.3f} &nbsp;&nbsp; "
             f"**Rules passed:** {self.rules_passed}/{total} &nbsp;&nbsp; "
             f"**Pass rate:** {self.pass_rate:.0%}",
+            "",
+            f"**Manifest:** {self._manifest_line()} &nbsp;&nbsp; "
+            f"*generated {self.generated_at:%Y-%m-%d}*",
         ]
         if self.extraction is not None:
             lines += ["", f"**Extracted:** {self.extraction.one_line()}"]

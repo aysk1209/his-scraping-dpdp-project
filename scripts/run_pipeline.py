@@ -1,6 +1,6 @@
 """The whole pipeline, end to end, in one command.
 
-    python scripts/run_pipeline.py                  # 30 records/layer, ~40 s
+    python scripts/run_pipeline.py                  # 20 records/module, ~1.5 min
     python scripts/run_pipeline.py --records 200    # more pages, longer run
     python scripts/run_pipeline.py --show           # watch the browser work
 
@@ -125,6 +125,7 @@ def run_downstream(scraper, pages: dict[str, str], dataset_note: str) -> None:
     stage(4, "NORMALISE -- HL7 v2 / FHIR on the way out; identifiers pseudonymised, and audited")
     output = CompliantExtractionTechnique().extract(scraper, TASKS[0])
     baseline = UnconstrainedExtractionTechnique().extract(scraper, TASKS[0])
+    shaped_compliant = None
     for label, out in (("compliance-aware", output), ("baseline", baseline)):
         shaped = normalise(out)
         print(f"  {label}:")
@@ -132,8 +133,16 @@ def run_downstream(scraper, pages: dict[str, str], dataset_note: str) -> None:
             print(f"    {line}")
         print(f"    audit: {audit(out, shaped).one_line()}")
         print()
+        if label == "compliance-aware":
+            shaped_compliant = shaped
     print("  one registration record from the compliance-aware export:")
-    print(normalise(output).sample(HISLayer.PATIENT_ADMINISTRATION))
+    print(shaped_compliant.sample(HISLayer.PATIENT_ADMINISTRATION))
+    # Only the pseudonymised export is written to disk. The baseline's carries
+    # raw identifiers, and against a real source that file would itself be the
+    # leak the audit just reported -- so it is shown, counted, and not kept.
+    # DPDP Act 2023 -- security safeguards: identifiers do not leave the run raw.
+    for path in shaped_compliant.to_files():
+        print(present.wrote(path))
 
     stage(5, "PURPOSE -- the same pull, judged under every purpose")
     matrix = score_across_purposes(output.run, output.records)
@@ -195,6 +204,7 @@ def main() -> None:
         print(scraper.navigation.render_table())
         print()
         print(present.wrote(scraper.navigation.to_json_file()))
+        print(present.wrote(scraper.navigation.to_markdown_file()))
         run_downstream(scraper, scraper.navigation.agent_pages(), f"portal {args.portal}")
         scraper.close()
 
@@ -213,13 +223,16 @@ def main() -> None:
             print(scraper.navigation.render_table())
             print()
             print(present.wrote(scraper.navigation.to_json_file()))
+            print(present.wrote(scraper.navigation.to_markdown_file()))
             run_downstream(scraper, scraper.navigation.agent_pages(),
                            f"portal, {args.records} records/module, seed {args.seed}")
             scraper.close()
 
+    elapsed = time.perf_counter() - started
+    took = f"{elapsed:.1f}s" if elapsed >= 1 else f"{elapsed * 1000:.0f} ms"
     print(present.rule())
     print(
-        f"Done in {time.perf_counter() - started:.1f}s. Every stage ran for real: a source that was\n"
+        f"Done in {took}. Every stage ran for real: a source that was\n"
         f"read as a stranger would read it, three scrapers scored on identical rules with\n"
         f"measured cost, exports shaped to HL7 v2 and FHIR with identifiers pseudonymised\n"
         f"and audited, one pull judged under three purposes, and an assistant whose\n"

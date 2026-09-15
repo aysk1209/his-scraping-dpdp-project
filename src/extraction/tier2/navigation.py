@@ -115,6 +115,52 @@ class NavigationMap(BaseModel):
         path.write_text(self.model_dump_json(indent=2), encoding="utf-8")
         return path
 
+    def render_markdown(self) -> str:
+        """The map as a report table. Paths only: the host and port are the
+        fixture's business, and the layer inference is the point."""
+
+        lines = [
+            "### Navigation map",
+            "",
+            f"Discovered by the browser in {self.page_loads} page loads, starting from "
+            f"the home page after login. The HIS layer of each module is **inferred "
+            f"from the field names found on its pages**, matched against the field "
+            f"catalogue -- never from the URL. Confidence is the share of the fields "
+            f"seen that the inferred layer's catalogue explains.",
+            "",
+            "| Module | Path | Pages | Records | Inferred layer | Confidence |",
+            "|---|---|---|---|---|---|",
+        ]
+        for m in self.modules:
+            layer = f"`{m.inferred_layer.value}`" if m.inferred_layer else "?"
+            conf = f"{m.layer_confidence:.0%}" if m.inferred_layer else "-"
+            lines.append(
+                f"| {m.title} | `{m.list_path}` | {m.page_count or '?'} | "
+                f"{m.record_count or '?'} | {layer} | {conf} |"
+            )
+        lines += [
+            "",
+            "**Where each field lives.** Fields on the list page cost one load per "
+            "page; fields only on the record page cost one load per record. That "
+            "difference is what makes over-asking visible in the cost profile.",
+            "",
+            "| Module | In the list table | Only on the record page |",
+            "|---|---|---|",
+        ]
+        for m in self.modules:
+            in_list = ", ".join(f"`{f}`" for f in m.columns) or "-"
+            detail = ", ".join(f"`{f}`" for f in m.detail_only()) or "-"
+            lines.append(f"| {m.title} | {in_list} | {detail} |")
+        lines += ["", f"*Discovered {self.discovered_at:%Y-%m-%d}.*"]
+        return "\n".join(lines)
+
+    def to_markdown_file(self, directory: Path | None = None) -> Path:
+        directory = directory or ARTIFACT_DIR
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / "navigation-map.md"
+        path.write_text(self.render_markdown(), encoding="utf-8")
+        return path
+
 
 def discover(browser: PortalBrowser, *, home_path: str = "/") -> NavigationMap:
     """Crawl from the home page and build the map. The browser must be logged in."""

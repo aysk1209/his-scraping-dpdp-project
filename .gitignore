@@ -40,3 +40,4 @@ htmlcov/
 !/docs/benchmark_results/billing-pull--compliance-aware--purpose-matrix.md
 !/docs/benchmark_results/benchmark-portal.md
 !/docs/benchmark_results/navigation-map.json
+!/docs/benchmark_results/navigation-map.md

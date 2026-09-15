@@ -136,3 +136,63 @@ def test_renderers_include_the_cost_profile():
     assert "cost profile" in result.render_table()
     assert "Compliance versus cost" in result.render_markdown()
     assert "Excess ratio" in result.render_markdown()
+
+
+def _scored(short: str, score: float, *, coverage: float, excess: float) -> "TechniqueScore":
+    from compliance.benchmark import TechniqueScore
+    from extraction.metering import ExtractionCost
+
+    return TechniqueScore(
+        technique=short, short=short, mean_compliance_score=score, mean_pass_rate=score,
+        rules_passed="0/7", record_count=1, pulled_note="1 records", per_rule_mean={},
+        per_task={}, cost=ExtractionCost(
+            needed_fields=10, matched_fields=round(coverage * 10),
+            distinct_fields=round(excess * 10), coverage=coverage, excess_ratio=excess,
+        ),
+    )
+
+
+def _result_with(*scores) -> BenchmarkResult:
+    return BenchmarkResult(task_ids=["t"], rule_ids=["DM-01"], scores=list(scores))
+
+
+def test_takeaway_blames_the_source_when_every_technique_hits_the_same_ceiling():
+    # A hospital export missing a column caps the widest-pulling technique too;
+    # that is a fact about the data, and the line must not read as under-coverage
+    # by the compliant technique.
+    result = _result_with(
+        _scored("compliance-aware", 1.0, coverage=0.8, excess=0.8),
+        _scored("morality", 0.5, coverage=0.8, excess=0.8),
+        _scored("unconstrained", 0.1, coverage=0.8, excess=6.0),
+    )
+    assert result.source_ceiling() == 0.8
+    text = result._takeaway()
+    assert "the source itself lacks 2 of the 10" in text
+    assert "not directly comparable" not in text
+    assert "for unconstrained" in text          # the last-ranked technique is named, not assumed
+
+
+def test_takeaway_still_flags_a_technique_that_refused_needed_fields():
+    result = _result_with(
+        _scored("compliance-aware", 1.0, coverage=1.0, excess=1.0),
+        _scored("morality", 0.5, coverage=0.85, excess=0.85),
+        _scored("unconstrained", 0.1, coverage=1.0, excess=6.0),
+    )
+    assert result.source_ceiling() is None
+    assert "morality obtained only 85%" in result._takeaway()
+
+
+def test_takeaway_flags_under_coverage_when_only_the_best_technique_falls_short():
+    result = _result_with(
+        _scored("compliance-aware", 1.0, coverage=0.6, excess=0.6),
+        _scored("unconstrained", 0.1, coverage=1.0, excess=6.0),
+    )
+    assert result.source_ceiling() is None
+    assert "not directly comparable" in result._takeaway()
+
+
+def test_markdown_labels_the_source_rather_than_assuming_synthetic_data():
+    md = _result().render_markdown()
+    assert "Source:" in md
+    assert "Synthetic data:" not in md
+    assert "Distinct fields / needed" in md

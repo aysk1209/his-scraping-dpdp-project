@@ -166,3 +166,15 @@ def test_benchmark_runs_all_three_techniques_against_the_portal(scraper):
     assert scores["unconstrained"].cost.page_loads > scores["compliance-aware"].cost.page_loads
     assert scores["unconstrained"].cost.excess_ratio > 1.0
     assert "pages" in result.render_table()
+
+
+def test_navigation_markdown_is_pasteable_and_carries_no_host(scraper, tmp_path):
+    nav = scraper.navigation
+    md = nav.render_markdown()
+    assert md.startswith("### Navigation map")
+    assert nav.base_url not in md                    # paths only; the port is ephemeral
+    for module in nav.modules:
+        assert f"`{module.list_path}`" in md
+        assert f"`{module.inferred_layer.value}`" in md
+    path = nav.to_markdown_file(tmp_path)
+    assert path.name == "navigation-map.md" and path.read_text(encoding="utf-8") == md

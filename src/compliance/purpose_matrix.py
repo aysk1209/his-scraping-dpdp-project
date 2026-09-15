@@ -142,15 +142,22 @@ class PurposeMatrix(BaseModel):
             "named the declared purpose. That is a consequence of changing the "
             "purpose, not an adjustment made to produce a result.",
             "",
-            "| Purpose | Declared | Compliance | Rules passed | Verdict |",
-            "|---|---|---|---|---|",
+            "| Purpose | Declared | Compliance | Rules passed | Rules failed | Verdict |",
+            "|---|---|---|---|---|---|",
         ]
         for verdict in self.verdicts:
+            failed = ", ".join(f"`{r}`" for r in verdict.failed_rules) or "—"
             lines.append(
                 f"| `{verdict.purpose}` | {'yes' if verdict.is_declared_purpose else 'no'} | "
                 f"{verdict.compliance_score:.3f} | "
-                f"{verdict.rules_passed}/{verdict.rules_total} | {verdict.verdict()} |"
+                f"{verdict.rules_passed}/{verdict.rules_total} | {failed} | {verdict.verdict()} |"
             )
+        lines += [
+            "",
+            "`NT-01` fails for every undeclared purpose by construction (see above); "
+            "the rules that vary with the purpose itself are `DM-01` (scope), "
+            "`PL-01` (specification) and `SL-01` (retention ceiling).",
+        ]
         return "\n".join(lines)
 
     def to_json_file(self, directory: Path | None = None) -> Path:

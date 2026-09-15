@@ -162,3 +162,27 @@ def test_summary_and_sample_render():
     sample = shaped.sample(PA)
     assert "MSH|" in sample and '"resourceType": "Patient"' in sample
     json.loads(json.dumps(shaped.fhir))            # serialisable
+
+
+def test_export_files_carry_the_shaped_artefacts_and_no_raw_identifier(tmp_path):
+    outs = _outputs()
+    out = outs["compliance-aware (ours)"]
+    shaped = normalise(out, key="k")
+    written = shaped.to_files(tmp_path)
+    names = {p.name for p in written}
+    assert names == {f"{shaped.run_id}.hl7", f"{shaped.run_id}.fhir.json"}
+
+    hl7_text = (tmp_path / f"{shaped.run_id}.hl7").read_text(encoding="utf-8")
+    assert hl7_text.startswith("MSH|")
+    assert "\r" not in hl7_text                       # readable form, segments on lines
+    assert hl7_text.count("MSH|") == shaped.counts()["hl7_messages"]
+
+    bundle = json.loads((tmp_path / f"{shaped.run_id}.fhir.json").read_text(encoding="utf-8"))
+    assert bundle["resourceType"] == "Bundle" and bundle["type"] == "collection"
+    assert len(bundle["entry"]) == shaped.counts()["fhir_resources"]
+    assert all("resource" in e for e in bundle["entry"])
+
+    raw_mrns = {row["mrn"] for row in out.rows.get(PA.value, []) if "mrn" in row}
+    assert raw_mrns                                    # the check is not vacuous
+    for mrn in raw_mrns:
+        assert mrn not in hl7_text and mrn not in json.dumps(bundle)

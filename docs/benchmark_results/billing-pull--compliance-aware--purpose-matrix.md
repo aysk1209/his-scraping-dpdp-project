@@ -6,8 +6,10 @@ One extraction (50 records; categories `administrative`, `contact`, `direct_iden
 
 For any purpose other than the declared one, the privacy notice is treated as not covering it — the notice given to the Data Principal named the declared purpose. That is a consequence of changing the purpose, not an adjustment made to produce a result.
 
-| Purpose | Declared | Compliance | Rules passed | Verdict |
-|---|---|---|---|---|
-| `billing_settlement` | yes | 1.000 | 7/7 | lawful for this purpose |
-| `care_coordination` | no | 0.857 | 5/7 | out of scope: contact, financial |
-| `patient_registration` | no | 0.893 | 5/7 | out of scope: financial |
+| Purpose | Declared | Compliance | Rules passed | Rules failed | Verdict |
+|---|---|---|---|---|---|
+| `billing_settlement` | yes | 1.000 | 7/7 | — | lawful for this purpose |
+| `care_coordination` | no | 0.857 | 5/7 | `DM-01`, `NT-01` | out of scope: contact, financial |
+| `patient_registration` | no | 0.893 | 5/7 | `DM-01`, `NT-01` | out of scope: financial |
+
+`NT-01` fails for every undeclared purpose by construction (see above); the rules that vary with the purpose itself are `DM-01` (scope), `PL-01` (specification) and `SL-01` (retention ceiling).

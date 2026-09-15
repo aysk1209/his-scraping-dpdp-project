@@ -89,9 +89,23 @@ class BenchmarkResult(BaseModel):
         if cheap is None or dear is None:
             return line
 
-        # Coverage first: a technique that pulled less than the task needs has
-        # not bought its compliance score honestly, and the line must say so.
-        if best.cost.coverage is not None and best.cost.coverage < 1.0:
+        # Coverage first. Two different things put coverage below 1.0 and they
+        # must not be confused: a technique that *refused* fields the task needs
+        # (the morality model's second failure mode), and a source that simply
+        # does not carry them -- a hospital export missing a column caps every
+        # technique at the same ceiling, and that is a fact about the data, not
+        # about any technique's compliance.
+        ceiling = self.source_ceiling()
+        at_ceiling = " at full coverage" if ceiling is None else ""
+        if ceiling is not None:
+            missing = best.cost.needed_fields - best.cost.matched_fields
+            line += (
+                f" Every technique obtained the same {ceiling:.0%} of the fields the "
+                f"tasks require -- the source itself lacks {missing} of the "
+                f"{best.cost.needed_fields}, so coverage is a property of this "
+                f"dataset and the comparison holds on what it does carry."
+            )
+        elif best.cost.coverage is not None and best.cost.coverage < 1.0:
             return (
                 f"{line} Note that it obtained only {best.cost.coverage:.0%} of the "
                 f"fields the tasks require, so its score is not directly comparable "
@@ -99,25 +113,27 @@ class BenchmarkResult(BaseModel):
             )
 
         if dear > cheap:
-            line = (
-                f"{line} It also pulls {cheap:.2f}x the fields the purpose requires, "
-                f"against {dear:.2f}x for the baseline, at full coverage. That surplus "
+            line += (
+                f" It also pulls {cheap:.2f}x the fields the purpose requires, "
+                f"against {dear:.2f}x for {worst.technique}{at_ceiling}. That surplus "
                 f"is exactly what the data-minimisation rule penalises, so on this "
                 f"workload compliance and extraction cost move together rather than "
                 f"trading off against each other."
             )
         else:
-            line = (
-                f"{line} It pulls {cheap:.2f}x the fields the purpose requires against the "
-                f"baseline's {dear:.2f}x -- a measured compliance premium on this workload, "
-                f"not an assumed one."
+            line += (
+                f" It pulls {cheap:.2f}x the fields the purpose requires against "
+                f"{dear:.2f}x for {worst.technique} -- a measured compliance premium on "
+                f"this workload, not an assumed one."
             )
 
-        # A technique that did not obtain what the tasks need has a different
-        # failure from over-collection, and the line should name it.
+        # A technique that did not obtain what the tasks need -- below the
+        # source's ceiling, if there is one -- has a different failure from
+        # over-collection, and the line should name it.
+        floor = ceiling if ceiling is not None else 1.0
         short = [
             s for s in self.scores[1:]
-            if s.cost.coverage is not None and s.cost.coverage < 1.0
+            if s.cost.coverage is not None and s.cost.coverage < floor
         ]
         if short:
             s = short[0]
@@ -127,6 +143,24 @@ class BenchmarkResult(BaseModel):
                 f"instinct fails in both directions."
             )
         return line
+
+    def source_ceiling(self) -> float | None:
+        """Coverage the source caps every technique at, or None when it caps none.
+
+        When the best-covering technique still misses needed fields *and* the
+        widest-pulling technique (the one that takes everything it can see)
+        covers no more, the fields are absent from the source, not withheld by
+        a technique.
+        """
+
+        covered = [s for s in self.scores if s.cost.coverage is not None]
+        if not covered:
+            return None
+        top = max(covered, key=lambda s: s.cost.coverage)
+        if top.cost.coverage >= 1.0:
+            return None
+        widest = max(covered, key=lambda s: s.cost.excess_ratio or 0.0)
+        return top.cost.coverage if widest.cost.coverage == top.cost.coverage else None
 
     def render_table(self) -> str:
         lines: list[str] = []
@@ -155,7 +189,7 @@ class BenchmarkResult(BaseModel):
         lines += ["", "cost profile (deterministic metrics lead; wall-clock is hardware-dependent):"]
         show_loads = any(s.cost.page_loads is not None for s in self.scores)
         cost_head = (
-            f"  {'technique':<30} {'excess':>7} {'cover':>6} {'fields':>8} "
+            f"  {'technique':<30} {'excess':>7} {'cover':>6} {'distinct':>9} {'fields':>8} "
             f"{'fetches':>8}" + (f" {'pages':>7}" if show_loads else "")
             + f" {'records':>8} {'ms':>8}"
         )
@@ -163,14 +197,15 @@ class BenchmarkResult(BaseModel):
         for score in self.scores:
             cost = score.cost
             loads = f" {cost.page_loads if cost.page_loads is not None else '-':>7}" if show_loads else ""
+            distinct = f"{cost.distinct_fields}/{cost.needed_fields}"
             lines.append(
                 f"  {score.technique:<30} {self._fmt(cost.excess_ratio):>7} "
-                f"{self._fmt(cost.coverage):>6} {cost.fields_pulled:>8} "
+                f"{self._fmt(cost.coverage):>6} {distinct:>9} {cost.fields_pulled:>8} "
                 f"{cost.fetches:>8}{loads} {cost.records:>8} {cost.elapsed_ms:>8.1f}"
             )
         lines.append(
-            "  excess = distinct fields pulled / fields the purpose requires; "
-            "cover = how much of that requirement was met."
+            "  distinct = distinct fields pulled / fields the purpose requires "
+            "(excess is that ratio); cover = how much of the requirement was met."
         )
 
         lines += ["", "per task (scores key on data category and manifest, not record volume):"]
@@ -197,10 +232,11 @@ class BenchmarkResult(BaseModel):
             "",
             f"_{self._takeaway()}_",
             "",
-            f"Synthetic data: {self.dataset_note or 'n/a'}. "
+            f"Source: {self.dataset_note or 'n/a'}. "
             f"{len(self.task_ids)} extraction tasks, identical DPDP rule set for every "
             f"technique. Generated {self.generated_at:%Y-%m-%d}"
-            + (f" in {self.elapsed_ms:.0f} ms." if self.elapsed_ms is not None else "."),
+            + (f" in {self.elapsed_ms:.0f} ms" if self.elapsed_ms is not None else "")
+            + " (wall-clock, hardware-dependent).",
             "",
             header,
             sep,
@@ -224,8 +260,8 @@ class BenchmarkResult(BaseModel):
             "reproduce on any machine; wall-clock time is reported but is "
             "hardware-dependent.",
             "",
-            "| Technique | Compliance | Excess ratio | Coverage | Fields pulled | Fetches | Pages loaded | Records | Wall-clock (ms) |",
-            "|---|---|---|---|---|---|---|---|---|",
+            "| Technique | Compliance | Excess ratio | Coverage | Distinct fields / needed | Fields pulled | Fetches | Pages loaded | Records | Wall-clock (ms) |",
+            "|---|---|---|---|---|---|---|---|---|---|",
         ]
         for score in self.scores:
             cost = score.cost
@@ -233,6 +269,7 @@ class BenchmarkResult(BaseModel):
             lines.append(
                 f"| {score.technique} | {score.mean_compliance_score:.3f} | "
                 f"{self._fmt(cost.excess_ratio)} | {self._fmt(cost.coverage)} | "
+                f"{cost.distinct_fields} / {cost.needed_fields} | "
                 f"{cost.fields_pulled} | {cost.fetches} | {loads} | {cost.records} | "
                 f"{cost.elapsed_ms:.1f} |"
             )
@@ -256,7 +293,7 @@ class BenchmarkResult(BaseModel):
         for score in self.scores:
             lines.append(f"- **{score.short}** — {score.pulled_note}")
 
-        lines += ["", "**Rules**", ""]
+        lines += ["", "**Rules** (each scores 0–1 per run; the table shows the mean over tasks)", ""]
         for rid in self.rule_ids:
             lines.append(f"- `{rid}` — {_RULE_TITLES.get(rid, rid)}")
         return "\n".join(lines)

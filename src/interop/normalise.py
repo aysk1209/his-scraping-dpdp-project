@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import json
 import secrets
+from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -36,6 +37,9 @@ from interop.fhir.resources import shape_fhir
 from interop.hl7.messages import shape_hl7
 from interop.layers import HISLayer
 from interop.mapping import InteropStandard, standards_for
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+ARTIFACT_DIR = _REPO_ROOT / "docs" / "benchmark_results"
 
 
 class ExportAudit(BaseModel):
@@ -84,6 +88,43 @@ class NormalisedOutput(BaseModel):
             lines.append("  FHIR:")
             lines += ["    " + l for l in json.dumps(res[0], indent=2).split("\n")]
         return "\n".join(lines) if lines else "  (nothing shaped for this layer)"
+
+    def to_files(self, directory: Path | None = None) -> list[Path]:
+        """Write the export: one ``.hl7`` file of messages and one FHIR Bundle.
+
+        Segments are newline-separated in the ``.hl7`` file so a reader can open
+        it; an interface engine would expect ``\\r``. The FHIR side is a
+        ``collection`` Bundle -- the resources exactly as shaped, wrapped in the
+        standard container.
+
+        Write only exports whose identifiers are pseudonymised when the source
+        may be real: the caller decides, and the audit says which is which.
+        """
+
+        directory = directory or ARTIFACT_DIR
+        directory.mkdir(parents=True, exist_ok=True)
+        written: list[Path] = []
+
+        messages = [m for msgs in self.hl7.values() for m in msgs]
+        if messages:
+            hl7_path = directory / f"{self.run_id}.hl7"
+            hl7_path.write_text(
+                "\n\n".join(m.replace("\r", "\n") for m in messages) + "\n",
+                encoding="utf-8",
+            )
+            written.append(hl7_path)
+
+        resources = [r for rs in self.fhir.values() for r in rs]
+        if resources:
+            bundle = {
+                "resourceType": "Bundle",
+                "type": "collection",
+                "entry": [{"resource": r} for r in resources],
+            }
+            fhir_path = directory / f"{self.run_id}.fhir.json"
+            fhir_path.write_text(json.dumps(bundle, indent=2), encoding="utf-8")
+            written.append(fhir_path)
+        return written
 
     def render_summary(self) -> str:
         c = self.counts()

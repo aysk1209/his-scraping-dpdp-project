@@ -22,4 +22,7 @@ def run_all(run: ExtractionRun, records: list[ExtractedRecord]) -> ComplianceRep
         run_id=run.run_id, results=results, weights=weights
     )
     report.extraction = summarise(run, records)
+    report.purpose = run.purpose.value if run.purpose_specified else None
+    report.lawful_basis = run.lawful_basis.type.value if run.lawful_basis else None
+    report.retention_days = run.retention_days
     return report
