@@ -149,6 +149,9 @@ and what a member of staff may be told.
 
 ## 7. Evaluation *(~2200 words — draft on synthetic now; add real-data tables when available)*
 
+**Status: draft 1 written 2026-09-15 — `ch7-evaluation.md`.** Six tables from
+the tracked artefacts; §7.7 is the real-data slot with its contents fixed.
+
 **Argues.** Compliance discriminates between techniques; purpose changes the
 verdict for an unchanged extraction; cost and compliance move together for the
 baseline and low cost is the morality model's failure; the export audit
