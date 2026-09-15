@@ -24,7 +24,7 @@ before the day.
 | `python scripts/run_pipeline.py` once, discard output | Warms Chromium and the Python imports; the first run is slowest |
 | Open in browser tabs: `docs/benchmark_results/benchmark-portal.md`, `care-pull--compliance-aware--purpose-matrix.md`, `billing-pull--compliance-aware--purpose-matrix.md`, `navigation-map.json` | These are the same tables the live run prints — the fallback if anything fails |
 | Terminal: dark theme, font ≥ 16 pt, window at least 100 columns wide | The benchmark tables are wide |
-| `python scripts/run_pipeline.py --records 20 --page-size 10` as the live command | ~30 s; enough pages to show pagination, not enough to bore |
+| `python scripts/run_pipeline.py` as the live command (defaults are 20 records, 10 per page) | ~1½ min; enough pages to show pagination, and the baseline's ~330 page loads are the visible cost |
 
 If the browser cannot launch in the room: `python scripts/run_benchmark.py` runs
 the same three techniques in memory in two seconds, and the portal artefacts in
@@ -59,7 +59,7 @@ Guidance} ← Policy.** The sentence that matters:
 ### Beat 3 — the pipeline, live (terminal, ~3 min)
 
 ```
-python scripts/run_pipeline.py --records 20 --page-size 10
+python scripts/run_pipeline.py
 ```
 
 Talk over it stage by stage. Each stage has exactly one thing to point at.
@@ -164,7 +164,7 @@ Then next: the report, the manuscript, the real data when it lands.
 
 | Script | Shows | Time |
 |---|---|---|
-| `scripts/run_pipeline.py` | **The whole chain**: portal → discover → benchmark → normalise + audit → purpose → assistant | 30–40 s |
+| `scripts/run_pipeline.py` | **The whole chain**: portal → discover → benchmark → normalise + audit → purpose → assistant | ~1½ min |
 | `scripts/run_benchmark.py` | The three techniques on in-memory data, compliance × cost | 2 s |
 | `scripts/compare_purposes.py` | One pull judged under every purpose, both directions, plus the retention case | 2 s |
 | `scripts/show_role_access.py` | Each role's derived scope; one request through all three roles | 1 s |

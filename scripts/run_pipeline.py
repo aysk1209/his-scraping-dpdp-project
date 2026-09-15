@@ -158,9 +158,9 @@ def run_downstream(scraper, pages: dict[str, str], dataset_note: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--records", type=int, default=30)
+    parser.add_argument("--records", type=int, default=20)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--page-size", type=int, default=15)
+    parser.add_argument("--page-size", type=int, default=10)
     parser.add_argument("--latency-ms", type=int, default=0)
     parser.add_argument("--show", action="store_true", help="run the browser visibly")
     parser.add_argument("--dataset", help="directory of exported CSV/Excel files (real or synthetic)")

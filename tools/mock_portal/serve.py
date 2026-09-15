@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import logging
 import socket
 import threading
 from typing import Any
@@ -37,6 +38,9 @@ class BackgroundPortal:
         self.app = create_app(source, users=self.users, **app_kwargs)
         self.port = port or free_port()
         self.url = f"http://127.0.0.1:{self.port}"
+        # The per-request access log would drown the demo output; the portal is a
+        # fixture, so the browser's page-load count is the record of what was fetched.
+        logging.getLogger("werkzeug").setLevel(logging.ERROR)
         self._server = make_server("127.0.0.1", self.port, self.app, threaded=True)
         self._thread = threading.Thread(target=self._server.serve_forever, daemon=True)
 

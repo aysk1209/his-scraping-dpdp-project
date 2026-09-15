@@ -97,11 +97,12 @@ python scripts/run_pipeline.py --show        # watch the browser do it
 python scripts/run_pipeline.py --records 200 # a longer, larger run
 ```
 
-About 30–40 seconds. Six stages print in turn:
+About a minute and a half on a laptop — most of it is the baseline technique
+loading several hundred pages, which is the point. Six stages print in turn:
 
 1. **Portal** — a login-gated hospital portal starts on your machine.
 2. **Discover** — a headless browser signs in, crawls it, and prints a map of what
-   it found: four modules, how many pages each has, which fields are in the list
+   it found: five modules, how many pages each has, which fields are in the list
    and which only on a record's page — and **which HIS layer each module is, worked
    out from the field names**, not read from the URL.
 3. **Benchmark** — the three scraping methods run against the portal, unchanged
@@ -282,8 +283,8 @@ python -m tools.mock_portal --records 500
 ```
 
 Then open <http://127.0.0.1:8765/> in a browser and sign in as **frontdesk /
-letmein**. You will see a plain hospital-style portal: four modules (Registration,
-Clinical Records, Departmental Orders, Billing & Accounts), each a paginated table
+letmein**. You will see a plain hospital-style portal: five modules (Registration,
+Clinical Records, Departmental Orders, Billing & Accounts, Audit Log), each a paginated table
 with a search box and an "Open" link per record that shows the fields the table
 does not.
 

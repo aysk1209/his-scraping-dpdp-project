@@ -1,9 +1,15 @@
 """A concrete summary of what an extraction run actually pulled.
 
 The compliance rules score *categories*; this adds the human-facing detail --
-how many records, which layers, how many fields of each category, and how many
-of them fall outside the purpose policy. It turns an abstract 0-1 score into a
-report a reviewer can read.
+how many records, which layers, how many records carry each category, and which
+categories fall outside the purpose policy. It turns an abstract 0-1 score into
+a report a reviewer can read.
+
+Counts are per *record*, not per field: an ``ExtractedRecord`` deliberately
+carries only the set of categories it touched, never field names or values, so
+that scored data holds no personal data. Field totals live in the cost profile
+(``extraction.metering``), which is why two techniques can show identical
+category counts here and different ``fields_pulled`` there.
 """
 
 from __future__ import annotations
@@ -19,8 +25,8 @@ from compliance.policy import PURPOSE_POLICY
 class ExtractionSummary(BaseModel):
     record_count: int
     layers: list[str]
-    category_counts: dict[str, int]        # FieldCategory value -> field occurrences
-    field_slots: int                       # total tagged field occurrences
+    category_counts: dict[str, int]        # FieldCategory value -> records carrying it
+    field_slots: int                       # total record x category occurrences
     out_of_scope_categories: list[str]     # categories outside the purpose policy
 
     def one_line(self) -> str:
@@ -30,7 +36,7 @@ class ExtractionSummary(BaseModel):
         oos = ", ".join(self.out_of_scope_categories) or "none"
         return (
             f"{self.record_count} records across {len(self.layers)} layer(s); "
-            f"fields by category: {cats}; out-of-scope: {oos}"
+            f"records carrying each category: {cats}; out-of-scope: {oos}"
         )
 
 

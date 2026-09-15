@@ -382,7 +382,7 @@ data) is visible as coverage < 1.
 
 ### W9 — End-to-end demonstration *(component 11)* — **DONE (rough) 2026-09-12**
 
-`scripts/run_pipeline.py` runs six stages in one command, ~30–40 s: serve the
+`scripts/run_pipeline.py` runs six stages in one command, ~1½ min: serve the
 portal; log in and discover; benchmark the three techniques with real page loads;
 normalise to HL7 v2 / FHIR with identifiers pseudonymised and the export audited;
 re-judge one pull under every purpose; answer one question per role with steps on
