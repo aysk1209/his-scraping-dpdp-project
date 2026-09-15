@@ -108,6 +108,9 @@ and the minimisation overreach.
 
 ## 5. Acquisition: portal, browser, dataset *(~1600 words — draft now; extend with real data)*
 
+**Status: draft 1 written 2026-09-15 — `ch5-acquisition.md`.** §5.4 carries the
+real-data slot with its contents fixed.
+
 **Argues.** Structure can be discovered rather than declared, and classified from
 content rather than labels — which is the heterogeneity answer.
 
