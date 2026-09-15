@@ -50,9 +50,10 @@ that changes.
 **Heterogeneity as the standing obstacle.** The enterprise-architecture view
 [8] and the FHIR-in-research literature [9] agree on the practical problem: no
 two hospitals' systems are alike, vendors' data models differ, and integration
-projects spend most of their effort on mapping — Vorisek et al. [9] find data
-mapping and the variability of local implementations among the most-reported
-limitations across 49 studies. It was the objection put to us
+projects spend most of their effort on mapping — across the 49 studies Vorisek
+et al. [9] review, the limitations reported include extra mapping effort where
+data come from multiple sources, changes in resource content between FHIR
+versions, and platforms implementing only a subset of the resources. It was the objection put to us
 at our first review — that a method built against one system would not
 transfer — and it shapes Chapter 5's answer: discover structure rather than
 declare it, and classify by content rather than by label.
@@ -69,7 +70,10 @@ has no HL7 v2 counterpart. DICOM carries imaging studies and their metadata;
 ISO/IEEE 11073 carries point-of-care device observations. The standards, and
 the literature that studies their adoption [9], address *exchange*, not
 *lawfulness*: they say how a diagnosis is encoded and transported, and nothing
-about whether the party receiving it should have it. We use the standards twice — once as the shape of
+about whether the party receiving it should have it — the same review notes
+that safety and legal matters were major concerns in the studies it covers,
+and that a de-identification protocol was needed where patient data were used,
+without either being part of what the standard specifies. We use the standards twice — once as the shape of
 our exports (Chapter 6), and once, less conventionally, as the vocabulary in
 which staff access is expressed: a role may touch a data category only where a
 standard-defined artefact it legitimately handles carries it.
