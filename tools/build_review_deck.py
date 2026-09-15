@@ -485,17 +485,17 @@ def build() -> Path:
     res = s[9]
     add_text(res, 0.7, 1.35, 11.9, 0.95, [
         "Three techniques, three extraction tasks, the same login-gated portal scraped by a real browser "
-        "(30 records per module); every run scored on the identical seven rules; cost measured as real page loads. "
+        "(20 records per module, 10 per page); every run scored on the identical seven rules; cost measured as real page loads. "
         "The techniques differ only in how they treat personal data.",
     ], size=12.5)
     add_table(res, 0.6, 2.4, 12.13, 2.55, [
         ["Technique", "Compliance", "Cost (excess · coverage · pages)", "Behaviour"],
-        ["compliance-aware (ours)", "1.000  ·  7 / 7 rules", "1.00 · 1.00 · ~100",
+        ["compliance-aware (ours)", "1.000  ·  7 / 7 rules", "1.00 · 1.00 · 70",
          "Pulls what the purpose makes necessary; full manifest; identifiers pseudonymised on export."],
-        ["morality (privacy by instinct)", "0.484  ·  2 / 7 rules", "0.85 · 0.85 · ~100",
+        ["morality (privacy by instinct)", "0.484  ·  2 / 7 rules", "0.85 · 0.85 · 70",
          "Refuses what feels private (names, contact, money) whatever the purpose; takes MRN and DOB freely; "
          "consent assumed, no notice, no retention."],
-        ["unconstrained (baseline)", "0.135  ·  0 / 7 rules", "7.15 · 1.00 · ~480",
+        ["unconstrained (baseline)", "0.135  ·  0 / 7 rules", "7.15 · 1.00 · 330",
          "Every field of every module; no purpose, no manifest, TLS only."],
     ], [2.9, 2.1, 2.6, 4.53], body_size=11.5)
     add_text(res, 0.7, 5.15, 11.9, 1.7, [
