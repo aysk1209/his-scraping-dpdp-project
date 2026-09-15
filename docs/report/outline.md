@@ -16,6 +16,10 @@ of chapters 3–6 to conference length.
 
 ## 1. Introduction *(~900 words — draft now)*
 
+**Status: draft 1 written 2026-09-15 — `ch1-introduction.md`.** The claim that
+the literature evaluates on speed/robustness/coverage and not compliance must
+be supported by chapter 2's survey.
+
 **Argues.** Hospital Information Systems hold high-sensitivity personal data;
 techniques for extracting data from them are evaluated on speed, robustness and
 coverage, never on data-protection compliance; under the DPDP Act 2023 that gap
