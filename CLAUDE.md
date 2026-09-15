@@ -8,7 +8,7 @@ This file gives Claude Code persistent context for this repository. Read it full
 **Institution:** VIT, SENSE department — final-year research project
 **Team:** Avanindra (23BLC1089), Ananya (23BLC1017)
 **Guide:** Dr. Manoj Kumar
-**Stage:** Review-I cleared 02.09.2026 (outcome satisfactory). Building toward **Review-II**, which is the current focus. **The pipeline runs end to end** (`python scripts/run_pipeline.py`): a served login-gated portal, a real browser that logs in and crawls it, three techniques scored on the same seven DPDP rules with real page loads as cost, exports shaped to HL7 v2 / FHIR with identifiers pseudonymised and audited, one pull judged under every purpose, and the staff-guidance assistant placing its steps on the pages the crawler found. Ledger 94% (`PLAN.md` §5) — everything not requiring live access is built; the rest is the report. Two reviews remain (as of 2026-09-12).
+**Stage:** Review-I cleared 02.09.2026 (outcome satisfactory). Building toward **Review-II**, which is the current focus. **The pipeline runs end to end** (`python scripts/run_pipeline.py`): a served login-gated portal, a real browser that logs in and crawls it, three techniques scored on the same seven DPDP rules with real page loads as cost, exports shaped to HL7 v2 / FHIR with identifiers pseudonymised and audited, one pull judged under every purpose, and the staff-guidance assistant placing its steps on the pages the crawler found. Ledger 98% (`PLAN.md` §5) — everything not requiring live access is built, and all eight report chapters are drafted (`docs/report/`); what remains is the report's second pass and the manuscript. Review-II is 30.09.2026, Review-III 28.10.2026 (as of 2026-09-15).
 
 For full background, methodology, and research framing, see `PROJECT_CONTEXT.md` in this same directory — read it before starting any non-trivial task. For the definition of 100%, the completion ledger, and the sequenced workstreams to Review-II/III, see `PLAN.md`.
 
@@ -109,7 +109,7 @@ Confirm before introducing a new major dependency or language — don't assume.
   /architecture        # five-layer-his.md
   /compliance          # approach.md, dpdp-provision-map.md
   /access              # when-access-lands.md — the day-one procedure for real data
-  /report              # outline.md — chapters mapped to artefacts, drafting order, real-data slots
+  /report              # outline.md (chapters → artefacts, drafting order, status) and ch1–ch8 drafts; section refs tagged '— unverified' until checked against the Gazette
   /review              # review-ii-flow.md — presenter script
   /benchmark_results    # tracked: benchmark.md, benchmark-portal.md, navigation-map.json, two purpose matrices; other runs git-ignored
 CLAUDE.md   PROJECT_CONTEXT.md   README.md   DEMO_GUIDE.md   requirements.txt
