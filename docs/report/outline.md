@@ -35,6 +35,11 @@ which frames why extraction matters) · thesis · contributions (numbered — se
 
 ## 2. Background and related work *(~1800 words — draft now)*
 
+**Status: draft 1 written 2026-09-15 — `ch2-background.md`.** Sixteen references:
+[1]–[12] inherited, [13] the Act, [14]–[16] added and DOI-verified 2026-09-15.
+Entries [7], [9], [10], [11] still lack author names in the list. **All eight
+chapters are now drafted.**
+
 **Argues.** Three literatures meet here and none measures compliance.
 
 **Draws from.** The 12-reference literature-survey pool (Review-I deck slides 3–4

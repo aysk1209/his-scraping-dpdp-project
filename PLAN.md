@@ -432,12 +432,12 @@ Roughly in the order they block work.
 7. **Staff function list (W4).** Our reconstruction of hospital workflow, not sourced
    from a real hospital. Wrong task names are visible to a clinical reviewer in a way
    wrong code is not — worth a short sanity check with anyone with ward experience.
-8. **Three more literature references.** The Review-2 template requires a minimum of
-   15 papers in the detailed literature review; the deck carries 12 (plus the Act
-   itself as [13]). Candidate areas that would strengthen chapter 2 rather than pad
-   it: pseudonymisation / tokenisation of health identifiers; role-based access
-   control in hospital information systems; FHIR AuditEvent or audit-logging for
-   accountability. Real, verifiable citations only — none are to be invented.
+8. ~~Three more literature references~~ — **done 2026-09-15.** [14] Cook 2025
+   (tokenisation of health identifiers), [15] de Carvalho Jr. & Bandiera-Paiva 2018
+   (RBAC in HIS), [16] Rule, Chiang & Hribar 2020 (EHR audit logs), each with a DOI
+   verified against the publisher's page; the deck's literature review now runs
+   fifteen rows over three slides. Still open: author names for the inherited
+   entries [7], [9], [10], [11].
 9. **Deck finishing.** `Review-II.pptx` is built on the institution's Review-2
    template by `tools/build_review_deck.py`; slide 1 must be replaced by the
    guide-signed scan, and the deck opened once to check fit (no renderer here).

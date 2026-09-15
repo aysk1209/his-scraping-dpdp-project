@@ -131,6 +131,8 @@ def set_cell(cell, text, *, size=None):
             tf._txBody.remove(extra._p)
     else:
         tf.text = text
+        if not tf.paragraphs[0].runs:      # blank text makes no run; nothing to size
+            return
         run = tf.paragraphs[0].runs[0]._r
     if size is not None:
         _run_font(run, size=size)
@@ -303,6 +305,15 @@ LIT_ROWS = [
     ["12", "Brown et al., 2025", "Web Scraping for Research: Legal, Ethical, Institutional and Scientific Considerations — Big Data & Society",
      "Multi-dimensional qualitative framework (contract, CFAA, IP, privacy, IRB, validity)",
      "A checklist, not a scored per-technique benchmark"],
+    ["14", "Cook, 2025", "Tokenization Techniques for Privacy-Preserving Healthcare Data — Frontiers in Drug Safety and Regulation",
+     "Deterministic vs referential (keyed, salted) tokenisation of health identifiers; linkage vs re-identification risk",
+     "Mechanism only; no check that an export actually carries tokens — our audit verifies it"],
+    ["15", "de Carvalho Jr. & Bandiera-Paiva, 2018", "HIS Role-Based Access Control: Current Security Trends and Challenges — J. Healthcare Engineering",
+     "Industry-focused review of RBAC in health information systems",
+     "Static role lists both over- and under-grant; no derivation of scope from purpose — ours derives it"],
+    ["16", "Rule, Chiang & Hribar, 2020", "Using EHR Audit Logs to Study Clinical Activity: A Systematic Review — JAMIA",
+     "85 studies using audit logs as the record of who did what in the EHR",
+     "Logs used for workflow research, never to demonstrate compliance; our fifth layer models them for that"],
 ]
 
 REFERENCES = [
@@ -319,6 +330,9 @@ REFERENCES = [
     '[11] "Challenges and Recommendations for Enhancing Digital Data Protection in the Indian Medical Research and Healthcare Sector," npj Digital Medicine, 2025.',
     '[12] M. A. Brown, A. Gruen, G. Maldoff, S. Messing, Z. Sanderson, and M. Zimmer, "Web Scraping for Research: Legal, Ethical, Institutional, and Scientific Considerations," Big Data & Society, 2025.',
     '[13] The Digital Personal Data Protection Act, 2023, Act No. 22 of 2023, The Gazette of India, 11 Aug. 2023.',
+    '[14] C. V. Cook, "Tokenization techniques for privacy-preserving healthcare data: tokenization nuts and bolts," Frontiers in Drug Safety and Regulation, vol. 5, art. 1599217, 2025, doi:10.3389/fdsfr.2025.1599217.',
+    '[15] M. A. de Carvalho Junior and P. Bandiera-Paiva, "Health Information System Role-Based Access Control Current Security Trends and Challenges," Journal of Healthcare Engineering, vol. 2018, art. 6510249, 2018, doi:10.1155/2018/6510249.',
+    '[16] A. Rule, M. F. Chiang, and M. R. Hribar, "Using electronic health record audit logs to study clinical activity: a systematic review of aims, measures, and methods," Journal of the American Medical Informatics Association, vol. 27, no. 3, pp. 480–490, 2020, doi:10.1093/jamia/ocz196.',
 ]
 
 
@@ -364,7 +378,7 @@ def draw_architecture(slide):
         "H scores the extraction (E), gates what leaves (F), and gates what a person may be told (G).",
     ], size=10.5, color=BLACK, bold_first=True)
     add_text(slide, 0.6, 6.45, 12.1, 0.5, [
-        "Runs as one command: scripts/run_pipeline.py — portal → discover → benchmark → normalise + audit → purpose → assistant (30–40 s)."
+        "Runs as one command: scripts/run_pipeline.py — portal → discover → benchmark → normalise + audit → purpose → assistant (~1½ min)."
     ], size=11, color=GREY)
 
 
@@ -406,31 +420,40 @@ def build() -> Path:
         ]),
     ], styles, heading_size=15, bullet_size=12.5)
 
-    # ---- slides 5, 5b: Detailed Literature Review (12 rows over two slides) ----
+    # ---- slides 5, 5b, 5c: Detailed Literature Review (15 rows over three slides) ----
     lit_tbl = [sh for sh in s[4].shapes if getattr(sh, "has_table", False) and sh.has_table][0].table
     header = [c.text for c in lit_tbl.rows[0].cells]
-    fill_table(lit_tbl, [header, *LIT_ROWS[:6]], size=11.5)
+    fill_table(lit_tbl, [header, *LIT_ROWS[:5]], size=11.5)
     rewrite_plain(shape_named(s[4], "Text 2"), [
-        "References [1]–[6] on this slide, [7]–[12] on the next; full IEEE list on the References slide. "
-        "The gap across all twelve: no technique reports a per-technique compliance score."
+        "Fifteen references over three slides; full IEEE list on the References slide. [1]–[5]: scraping "
+        "techniques — evaluated on executability, coverage and cost, never on what they should have taken."
     ], size=11)
     lit2 = duplicate_slide(prs, 4)
     move_slide(prs, lit2, 5)
     rewrite_plain(shape_named(lit2, "Text 1"), ["Detailed Literature Review (contd.)"])
     lit2_tbl = [sh for sh in lit2.shapes if getattr(sh, "has_table", False) and sh.has_table][0].table
-    fill_table(lit2_tbl, [header, *LIT_ROWS[6:12]], size=11.5)
+    fill_table(lit2_tbl, [header, *LIT_ROWS[5:10]], size=11.5)
     rewrite_plain(shape_named(lit2, "Text 2"), [
-        "Research gap: scraping is evaluated on coverage and cost; healthcare-data law is analysed doctrinally; "
-        "nothing between them scores a technique on compliance. [13] is the Act itself."
+        "[6]–[7]: the web-measurement view — compliance observed after the fact. [8]–[9]: HIS structure and "
+        "interoperability standards, silent on lawful extraction. [10]: the Act read for healthcare, doctrinally."
+    ], size=11)
+    lit3 = duplicate_slide(prs, 4)
+    move_slide(prs, lit3, 6)
+    rewrite_plain(shape_named(lit3, "Text 1"), ["Detailed Literature Review (contd.)"])
+    lit3_tbl = [sh for sh in lit3.shapes if getattr(sh, "has_table", False) and sh.has_table][0].table
+    fill_table(lit3_tbl, [header, *LIT_ROWS[10:15]], size=11.5)
+    rewrite_plain(shape_named(lit3, "Text 2"), [
+        "[11]–[12]: recommendations and checklists, not checkable controls. [14]–[16]: the three mechanisms we "
+        "build on — tokenisation, RBAC, audit logs — each described, none used to score a technique. [13] is the Act."
     ], size=11)
 
-    # ---- slide 6 (now index 6): System Design & Architecture ----
-    arch = s[6]
+    # ---- slide 6 (now index 7): System Design & Architecture ----
+    arch = s[7]
     assert shape_named(arch, "Text 1").text_frame.text.startswith("System Design")
     draw_architecture(arch)
 
     # ---- slide 7 (index 7): Implementation Details ----
-    rewrite_body(shape_named(s[7], "Text 2"), [
+    rewrite_body(shape_named(s[8], "Text 2"), [
         ("Modules developed and integrated (src/, 224 tests):", [
             "compliance/ — models (manifest, valueless records), policy (3 purposes), roles (role = purposes ∩ "
             "interop artefacts; authorise()), 7 rules, checkers, benchmark (compliance × cost), purpose_matrix, "
@@ -450,7 +473,7 @@ def build() -> Path:
             "of emitted artefacts for raw identifier values.",
         ]),
     ], styles, heading_size=15, bullet_size=12)
-    add_text(s[7], 0.7, 5.35, 11.9, 1.5, [
+    add_text(s[8], 0.7, 5.35, 11.9, 1.5, [
         "def authorise(role, purpose, artefacts):                       # compliance/roles.py",
         "    if purpose not in role_policy(role).purposes:  return deny(\"PL-01\")   # lawful purpose for this role?",
         "    if categories(artefacts) - policy_for(purpose).allowed_categories:  return deny(\"DM-01\")   # necessary?",
@@ -459,7 +482,7 @@ def build() -> Path:
     ], size=10.5, font="Consolas", color=NAVY)
 
     # ---- slide 8 (index 8): Results & Analysis (75%) — the benchmark ----
-    res = s[8]
+    res = s[9]
     add_text(res, 0.7, 1.35, 11.9, 0.95, [
         "Three techniques, three extraction tasks, the same login-gated portal scraped by a real browser "
         "(30 records per module); every run scored on the identical seven rules; cost measured as real page loads. "
@@ -485,7 +508,7 @@ def build() -> Path:
     ], size=12)
 
     # ---- slide 9 (index 9): Results (contd.) — purpose matrix + export audit ----
-    res2 = s[9]
+    res2 = s[10]
     add_text(res2, 0.7, 1.35, 11.9, 0.95, [
         "The same extraction judged under every purpose — records, manifest and rules identical; only what the data "
         "was for changes. And the export audited, not trusted: the manifest claims pseudonymisation; we searched what "
@@ -510,8 +533,8 @@ def build() -> Path:
     ], size=11.5)
 
     # ---- slide 9b: Results (contd.) — discovery & the assistant ----
-    res3 = duplicate_slide(prs, 9)
-    move_slide(prs, res3, 10)
+    res3 = duplicate_slide(prs, 10)
+    move_slide(prs, res3, 11)
     for sh in list(res3.shapes):
         if sh.name not in ("Text 0", "Text 1", "Image 0"):
             sh._element.getparent().remove(sh._element)
@@ -541,7 +564,7 @@ def build() -> Path:
     ], size=11)
 
     # ---- Challenges & Remaining Work (index 11 after two insertions) ----
-    chal = s[11]
+    chal = s[12]
     assert shape_named(chal, "Text 1").text_frame.text.startswith("Challenges")
     rewrite_body(shape_named(chal, "Text 2"), [
         ("Challenges faced and solutions:", [
@@ -554,9 +577,9 @@ def build() -> Path:
             "in code: a non-synthetic export is refused without provenance, de-identification statement and ignore rule.",
         ]),
         ("Remaining work (25%):", [
-            "Project report and manuscript (compliance chapters need no real data; section mapping drafted, to be "
-            "verified against the Gazette text). Real hospital dataset → one column map, then the same pipeline; "
-            "results reported beside the synthetic ones. Three further literature references to reach fifteen.",
+            "Project report: all eight chapters drafted; second pass for length, and the section mapping to be "
+            "verified against the Gazette text before citations enter it. Manuscript compressed from chapters 3–7. "
+            "Real hospital dataset → one column map, then the same pipeline; results reported beside the synthetic ones.",
         ]),
         ("Timeline for completion by Review-III (28.10.2026):", [
             "Weeks 1–2: report chapters 3–4 (framework, techniques and cost) and 7 on synthetic data. Weeks 2–3: "
@@ -565,11 +588,11 @@ def build() -> Path:
         ]),
     ], styles, heading_size=15, bullet_size=12.5)
 
-    # ---- References (index 12) ----
-    refs = s[12]
+    # ---- References (index 13) ----
+    refs = s[13]
     rewrite_plain(shape_named(refs, "Text 2"), REFERENCES, size=10.5)
     rewrite_plain(shape_named(refs, "Text 3"), [
-        "IEEE format. [1]–[12] are cited on the literature slides; [13] on the problem, methodology and results slides."
+        "IEEE format. [1]–[12] and [14]–[16] are cited on the literature slides; [13] on the problem, methodology and results slides."
     ])
 
     renumber(prs)
@@ -581,4 +604,4 @@ if __name__ == "__main__":
     out = build()
     print(f"wrote {out}")
     print("Slide 1 is the template's instruction slide: replace it with the guide-signed Review-II scan.")
-    print("Literature review has 12 rows; the template requires a minimum of 15 -- three references still to add.")
+    print("Literature review has 15 rows over three slides, meeting the template minimum.")
