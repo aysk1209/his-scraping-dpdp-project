@@ -1,6 +1,7 @@
 # Chapter 4 — Extraction techniques and the cost axis
 
-*Draft 1, 2026-09-15. Target ~1800 words; this draft runs ~2300. Numbers quoted
+*Draft 2, 2026-09-16 — §4.2.2, §4.3 and §4.4 revised for the AI-agent
+comparison the guide asked for. Target ~1800 words; this draft runs ~2600. Numbers quoted
 here are illustrations taken from the tracked artefacts in
 `docs/benchmark_results/`; the full tables and their discussion belong to
 Chapter 7 and are not repeated. No section of the Act is cited in this chapter;
@@ -9,26 +10,19 @@ established in §3.3.1.*
 
 ---
 
-> **Revision pending (2026-09-16).** On the guide's direction the middle technique
-> is no longer the morality model but **real, publicly available AI agents** —
-> Claude, OpenAI and Gemini, each briefed with the job, the purpose and the field
-> names (never a value), unaided and told the Act, recorded and replayed. §4.2.2
-> is to be rewritten around `techniques/ai_agent.py` once recordings exist, and
-> §4.3 gains the determinism metric (`stable runs`). Until then the text below
-> describes the technique as it stood at draft 1.
-
 Chapter 3 established how a run is scored. This chapter establishes what is
 scored: the techniques whose runs the benchmark compares, and the second axis on
 which they are compared — what each one costs. The argument of the chapter is
-that a technique differs from another in two ways at once, in *what it pulls*
-and in *what it declares*; that cost can be measured in units a reader can
-reproduce; and that the cost measure which carries the comparison, the excess
-ratio, is not a separate quantity from the data-minimisation score but the same
-quantity seen from the other side.
+that a technique differs from another in three ways at once — in *what it
+pulls*, in *what it declares*, and in *whether it gives the same answer twice*;
+that all three can be measured in units a reader can reproduce; and that the
+cost measure which carries the comparison, the excess ratio, is not a separate
+quantity from the data-minimisation score but the same quantity seen from the
+other side.
 
 ## 4.1 The adapter boundary
 
-Everything downstream of data acquisition — the three techniques, the meter, the
+Everything downstream of data acquisition — the techniques, the meter, the
 rules, the interoperability shaping, the assistant — is written once, against a
 single abstract interface, `HISDataSource` (`src/extraction/base.py`). The
 interface is two methods: `layers()`, which reports which of the five HIS layers
@@ -47,7 +41,7 @@ a stub.
 The reason to insist on the boundary is not tidiness. It is the answer to a
 doubt raised at our first review — that hospital systems are heterogeneous and a
 method built against one would not transfer. The boundary makes the claim
-testable: the three techniques of §4.2 were written against the in-memory source
+testable: the techniques of §4.2 were written against the in-memory source
 and run against the browser-driven portal **unchanged**, and the test suite
 asserts it. A new hospital system is a new adapter; the compliance layer,
 the benchmark and the assistant do not know which adapter is underneath. The
@@ -58,14 +52,17 @@ One consequence of the boundary matters for this chapter specifically: because
 every technique reaches data only through `fetch`, everything a technique does
 can be *observed at the boundary*. That is where the meter of §4.3 sits.
 
-## 4.2 The three techniques
+## 4.2 The techniques
 
 A technique (`src/extraction/technique.py`) is a strategy that fulfils an
-`ExtractionTask` against a source. A task names its purpose and the *minimum
-necessary* fields for it, per layer — the `needed` list. The technique returns
-the records it produced and, crucially, **its own compliance manifest**. Which
-fields a technique reads and which manifest it emits are both consequences of
-its design, and the three techniques were designed to differ in both.
+`ExtractionTask` against a source. A task names its purpose, the job in words,
+and the *minimum necessary* fields for it, per layer — the `needed` list. The
+technique returns the records it produced and, crucially, **its own compliance
+manifest**. Which fields a technique reads and which manifest it emits are both
+consequences of its design, and the techniques under comparison differ in both:
+ours, which derives both from the purpose policy; the publicly available AI
+agents, which decide both for themselves; and the baseline, which decides
+neither.
 
 ### 4.2.1 Compliance-aware (ours)
 
@@ -81,47 +78,61 @@ the start" looks like as code: the technique cannot over-collect, because the
 only field list it has is the task's necessary one, and it cannot under-declare,
 because the manifest is built from the same policy the rules score against.
 
-### 4.2.2 The morality model (privacy by instinct)
+### 4.2.2 The AI agents (publicly available models)
 
-The middle technique is a different *kind* of thing from the other two, and the
-benchmark needs it for that reason. The compliant technique asks "what does this
-purpose make necessary?" and reads the answer from the policy. The baseline asks
-nothing. The morality model asks **"does this feel private?"** — the judgement a
-general-purpose AI model, or a well-meaning engineer, makes from a field's name
-alone, with no concept of purpose behind it.
+The middle techniques are a different *kind* of thing from the other two, and
+the benchmark needs them for that reason. The compliant technique asks "what
+does this purpose make necessary?" and reads the answer from the policy. The
+baseline asks nothing. An AI agent is *asked* — and decides for itself.
 
-It is named honestly. It is not DPDP-compliant and does not attempt to be; it
-follows base intuitions about what is private, and we made those intuitions an
-explicit, inspectable table so that the comparison stays fair. What feels private
-to a model reading column headers — a full name, a phone number, an e-mail, a
-street address, an insurance policy number, a billed amount, a payer — is refused
-regardless of purpose. What feels harmless — a medical record number ("just an
-ID"), a date of birth, sex, a postal code, a ward, timestamps, order and invoice
-numbers — is pulled freely.
+Concretely, `AIAgentTechnique` (`src/extraction/techniques/ai_agent.py`) hands
+a publicly available model exactly what a developer would hand an extraction
+agent: the job in words ("prepare a clinical summary of a patient for the care
+team"), the purpose it serves, and the field names each module of the system
+exposes. It is *not* shown the task's minimum-necessary list — that list is the
+purpose policy's output, which is the thing under comparison; an agent asked
+for a patient summary should work out what one needs. The model answers with a
+structured decision: the fields to fetch, and every entry of the run manifest
+(§3.1) — basis, retention, deletion, safeguards, notice, governance. The
+pipeline then executes that decision through the same adapter and the same
+seven rules score it. No rule knows an agent produced the manifest.
 
-The model is therefore wrong in both directions at once, and the two directions
-are what the benchmark measures:
+Three properties of the design are held to, and each is asserted by a test.
 
-- It **over-collects** what does not feel private. Date of birth, sex and postal
-  code together re-identify a person; the medical record number it treats as a
-  code is the strongest identifier in the record.
-- It **under-delivers** what does feel private, even where the purpose lawfully
-  requires it. A registration desk cannot confirm an appointment without the
-  patient's name and phone number; the morality model refuses both, and its
-  coverage on that task falls below 1.0. The compliant technique pulls the same
-  two fields lawfully, because the purpose makes them necessary.
+- **The model never sees a patient value.** It decides at schema level — field
+  names, purpose, obligations — and the pipeline performs the fetch. That is
+  how an agent orchestrating a scraper works in any case, and it means the
+  comparison can be run against the hospital dataset with no personal data
+  leaving the machine.
+- **Decisions are recorded and replayed.** Each live decision — field names and
+  manifest choices, nothing else — is written to a recording committed with
+  the repository; the benchmark and the demonstrations replay it, so results
+  reproduce without network access or a key. The recording also holds several
+  answers to the same brief, which is what §4.3's determinism measure reads.
+- **Two briefings.** *Unaided* gets the job, the purpose and the fields. *Told
+  the Act* additionally gets the seven obligations in plain words — the same
+  principles the rules encode, stated as a developer would state them in a
+  system prompt. Whether prompting alone closes the gap to a rule-driven
+  technique is then a measured question rather than an assumed answer.
 
-Its manifest is instinct as well. It knows why it is doing the work (purpose
-specified), assumes consent without recording any (a basis asserted, never
-referenced — LB-01 at 0.5), intends to delete without a mechanism (SL-01 at 0),
-encrypts everything because that much intuition gets right, but reaches for
-neither access control nor pseudonymisation, logs what it does because that
-seems responsible, and never issues a notice, because a notice is a legal
-artefact and not something intuition thinks of (NT-01 at 0). In the results of
-Chapter 7 this reads as a perfect DM-01 beside zeros on SL-01 and NT-01: a
-technique that pulls the right categories for the wrong reasons and declares
-almost nothing. That row is the whole argument for a compliance layer that is
-*derived from the law* rather than from a sense of what is private.
+The provider adapters (`ai_providers.py`) cover three public models behind
+their official SDKs — Claude, OpenAI and Gemini — with the model identifier
+configurable, so the comparison can be re-run against whatever is current. The
+results in Chapter 7 are from `gemini-3.1-flash-lite`, five recorded runs per
+task per briefing; the model tier is stated because it is part of the result.
+
+What the agent actually does is the substance of Chapter 7, but its character
+can be stated here. It is *good at the paperwork*: even unaided it declares a
+lawful basis — citing a section of the Act by number, unprompted — a retention
+period, a deletion mechanism, encryption, a notice and an accountable party,
+and it passes five to six of the seven rules. Where it differs from a
+rule-driven technique is in *which fields it takes* and in *whether it takes
+the same ones twice*. It substitutes the human-readable identifier (the name)
+for the record number the task needs, takes the laboratory result and the
+attending clinician for a summary that did not ask for them, and — put the
+same brief five times — returns a different field set in most of them. Neither
+failure is visible in the compliance score alone; both are visible in the cost
+profile, which is why the benchmark has one.
 
 ### 4.2.3 The unconstrained baseline
 
@@ -143,14 +154,14 @@ and published scrapers of that kind are cited as related work rather than
 reproduced. The comparison the benchmark makes is between design stances, not
 between our code and someone else's.
 
-### 4.2.4 What the three have in common
+### 4.2.4 What they have in common
 
-All three implement the same interface, take the same task, and return the same
-output shape. None of them knows it is being benchmarked, metered or scored. The
-rules of Chapter 3 see three `ExtractionRun` manifests and three lists of
-category-tagged records and cannot tell which technique produced which. That is
-the fairness property the benchmark rests on, and it is a property of the
-interfaces, not of our good intentions.
+All of them implement the same interface, take the same task, and return the
+same output shape. None of them knows it is being benchmarked, metered or
+scored. The rules of Chapter 3 see one `ExtractionRun` manifest and one list of
+category-tagged records per run and cannot tell which technique produced which.
+That is the fairness property the benchmark rests on, and it is a property of
+the interfaces, not of our good intentions.
 
 ## 4.3 Metering at the boundary
 
@@ -177,6 +188,8 @@ technique could game. The meter records:
 | `matched_fields` | yes | Needed pairs the technique actually obtained |
 | `excess_ratio` | yes | `distinct_fields / needed_fields` — how far past the purpose |
 | `coverage` | yes | `matched_fields / needed_fields` — did it do the job |
+| `stable_runs` | yes | Of *k* identical runs, how many reproduced the first run's decision — the same fields *and* the same manifest structure |
+| `stable_fields` | yes | The same, for the field selection alone |
 | `elapsed_ms` | **no** | Wall-clock; the median over repeats when repeated |
 
 All but the last reproduce on any machine and are independent of dataset size
@@ -184,6 +197,18 @@ in the ratios, which is why they lead. Per-task costs are combined into one
 profile per technique by micro-averaging — summed numerators over summed
 denominators — so a task with many needed fields weighs more than a task with
 few, matching how the workload is actually run.
+
+**Determinism is measured, not asserted.** The benchmark runs every technique
+*k* times on identical input and compares each run's decision with the first:
+the set of fields pulled, and the manifest reduced to its structure — whether a
+basis, a notice, a deletion mechanism, an accountable party were declared, not
+how the declaration was worded, so that two runs citing the same section in
+different words count as the same decision. A rule-driven technique reproduces
+itself *k* of *k* times by construction; an agent's figure is whatever it is,
+and it is reported in the same table as its compliance score. The measure was
+added because the guide's question — is a deterministic technique better than
+"just AI"? — is not answerable from a compliance score, which is a property of
+one run, but only from the spread across runs.
 
 **Page loads are real cost.** Against the in-memory source a fetch is a
 dictionary lookup and `page_loads` is not reported. Against the portal the
@@ -220,15 +245,18 @@ dataset with different fields and different counts.
 **Coverage is the guard rail.** Excess ratio alone can be gamed: a technique that
 pulls nothing has an excess ratio of zero and a perfect DM-01, having extracted
 no category outside the purpose. Coverage — needed fields actually obtained over
-needed fields — closes that door, and it is the metric that catches the morality
-model. Its excess ratio on the workload is 0.85, *below* the compliant
-technique's 1.00, which read alone would make it the most economical technique
-of the three. Its coverage is also 0.85: it obtained only 85% of what the tasks
-lawfully required, because it refused the name and phone number a registration
-desk needs. Low cost here is not efficiency; it is the failure. Both metrics are
-needed to tell the story, and the benchmark's own summary line names the two
-cases separately — a technique that pulled more than the purpose needs, and a
-technique that pulled less than the task needs.
+needed fields — closes that door, and it is the metric that catches the AI
+agents. Their compliance scores on the workload are 0.955 and 0.991, within a
+few hundredths of ours, and their excess ratios 1.10 and 1.05 — read alone,
+nearly as economical as the compliant technique. Their coverage is 0.74: they
+obtained under three-quarters of what the tasks lawfully required, because they
+took a name where the task needed a record number, an e-mail where it needed a
+phone, and a visit timestamp where it needed the appointment time. A high
+compliance score on the wrong fields is not the job done; low cost here is
+partly a shortfall, not efficiency. Both metrics are needed to tell the story,
+and the benchmark's own summary line names the two cases separately — a
+technique that pulled more than the purpose needs, and a technique that pulled
+less than the task needs.
 
 A third case exists and the benchmark distinguishes it: a *source* that does not
 carry a needed field caps every technique at the same coverage, including the

@@ -59,7 +59,8 @@ staff assistant). Headline table — `python scripts/run_benchmark.py`:
 | Technique | Compliance score | Pass rate |
 |-----------|-----------------|-----------|
 | compliance-aware (ours) | 1.000 | 100% |
-| ai agent: <provider> (unaided / told the Act) | recorded | — |
+| ai agent: gemini (told the Act) | 0.991 | 86% — coverage 0.74, reproduces its decision 2 of 5 runs |
+| ai agent: gemini (unaided) | 0.955 | 71% — coverage 0.74, reproduces its decision 3 of 5 runs |
 | unconstrained (baseline) | 0.134 | 0% |
 
 Plain-language run instructions: [`DEMO_GUIDE.md`](DEMO_GUIDE.md). Method

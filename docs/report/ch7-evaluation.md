@@ -1,7 +1,7 @@
 # Chapter 7 — Evaluation
 
-*Draft 1, 2026-09-15. Target ~2200 words of prose plus tables; this draft is
-~2600 of prose. Every number is taken from a tracked artefact in
+*Draft 2, 2026-09-16 — §7.1, §7.2 and §7.8 revised with the recorded AI
+agents. Target ~2200 words of prose plus tables; this draft is ~3000 of prose. Every number is taken from a tracked artefact in
 `docs/benchmark_results/` (the file is named beside each table) or from the
 pipeline's own output, and can be regenerated with the command given. Sections
 marked **[real data]** are slots for the hospital dataset and are to be written
@@ -9,27 +9,26 @@ when it arrives; nothing else in the chapter changes when it does.*
 
 ---
 
-> **Revision pending (2026-09-16).** The middle rows of Tables 1 and 2 will be
-> the recorded AI agents (Claude / OpenAI / Gemini, unaided and told the Act)
-> once `scripts/record_ai_agents.py` has been run with the keys; Table 2 gains a
-> *stable runs* column, and §7.2 a paragraph on determinism. The morality-model
-> rows and their reading below are draft-1 text and will be replaced by the real
-> numbers, not edited around.
-
-The evaluation asks four questions of the framework and answers each with an
+The evaluation asks five questions of the framework and answers each with an
 artefact the reader can regenerate. Does compliance, as scored in Chapter 3,
 discriminate between *techniques* rather than merely between careful and
-careless configurations of one? Does the verdict on an unchanged extraction
-change when only its purpose changes? Do compliance and cost trade off, or move
-together? And is what a technique *declares* about its output borne out by what
-is *in* its output? A fifth section reports the properties of the acquisition
+careless configurations of one? How does a rule-driven technique compare with a
+publicly available AI agent given the same job — on compliance, on what it
+takes, and on whether it gives the same answer twice? Does the verdict on an
+unchanged extraction change when only its purpose changes? Do compliance and
+cost trade off, or move together? And is what a technique *declares* about its
+output borne out by what is *in* its output? A fifth section reports the properties of the acquisition
 layer that the benchmark rests on, and a sixth shows the same policy table
 gating the staff assistant.
 
 ## 7.1 Setup
 
-**Techniques.** The three of Chapter 4: compliance-aware, the morality model,
-and the unconstrained baseline.
+**Techniques.** Four, from Chapter 4: compliance-aware (ours); two AI agents —
+a publicly available model, `gemini-3.1-flash-lite`, briefed *unaided* and
+briefed *told the Act*; and the unconstrained baseline. The agents' decisions
+were recorded live on 2026-09-16 (five runs per task per briefing, field names
+and manifest choices only) and are replayed here; the recordings are committed
+with the repository, so every agent figure below reproduces without a key.
 
 **Tasks.** Each task names a purpose and the minimum necessary fields for it.
 The in-memory workload has four; the portal workload has three, omitting
@@ -43,9 +42,10 @@ adds pages without adding information.
 | `medication-review` (in-memory only) | care coordination | mrn, date of birth; primary diagnosis, medication, allergy |
 | `appointment-reminder` | patient registration | mrn, full name, phone, admission time |
 
-The fourth task was added deliberately: it is the one where instinct and law
-disagree. A registration desk lawfully needs a name and a phone number to
-confirm an appointment; the morality model refuses both.
+The fourth task was added deliberately: it is the one where a general sense of
+what is "private" and what the law permits part ways. A registration desk
+lawfully needs a name and a phone number to confirm an appointment; an agent
+judging by feel tends to withhold them, or to reach for an e-mail instead.
 
 **Sources.** Two, and a slot for a third.
 
@@ -69,7 +69,9 @@ day, which is the reason it is not relied upon.
 **Evidence of properties.** Where the chapter claims a structural property —
 that no purpose's scope contains another's, that the assistant's gate runs before
 any input is collected, that every instruction step is grounded in the HIS model
-— the claim is asserted by a test in the 230-test suite, and the test is named.
+— the claim is asserted by a test in the 236-test suite, and the test is named.
+Where the chapter reports a property of an AI agent, it is read off the
+recording, and the recording is the evidence.
 
 ## 7.2 Compliance × cost — the benchmark
 
@@ -79,20 +81,26 @@ tasks; 20 records per module; identical rule set for every technique).
 | Technique | Score | Rules passed | DM-01 | LB-01 | SL-01 | SS-01 | PL-01 | NT-01 | AC-01 |
 |---|---|---|---|---|---|---|---|---|---|
 | compliance-aware (ours) | **1.000** | 7/7 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
-| morality (privacy by instinct) | 0.484 | 2/7 | 1.00 | 0.50 | 0.00 | 0.56 | 1.00 | 0.00 | 0.33 |
+| ai agent: gemini (told the Act) | 0.988 | 6/7 | 1.00 | 1.00 | 1.00 | 0.92 | 1.00 | 1.00 | 1.00 |
+| ai agent: gemini (unaided) | 0.976 | 6/7 | 1.00 | 1.00 | 1.00 | 0.83 | 1.00 | 1.00 | 1.00 |
 | unconstrained (baseline) | 0.135 | 0/7 | 0.67 | 0.00 | 0.00 | 0.28 | 0.00 | 0.00 | 0.00 |
 
 **Table 2.** Cost profile, portal and in-memory workloads. Deterministic
-columns lead; wall-clock is hardware-dependent and is the median of one run.
+columns lead; wall-clock is hardware-dependent. *Stable* is the number of five
+identical runs that reproduced the first run's decision (fields and manifest
+structure), measured in memory where repeating is free; the portal run is a
+single pass.
 
-| Source | Technique | Compliance | Excess ratio | Coverage | Distinct / needed | Fields pulled | Page loads | Wall-clock (ms) |
-|---|---|---|---|---|---|---|---|---|
-| portal | compliance-aware | 1.000 | 1.00 | 1.00 | 13 / 13 | 260 | **70** | 12 108 |
-| portal | morality | 0.484 | 0.85 | 0.85 | 11 / 13 | 220 | 70 | 12 788 |
-| portal | unconstrained | 0.135 | 7.15 | 1.00 | 93 / 13 | 1 860 | **330** | 52 162 |
-| in memory | compliance-aware | 1.000 | 1.00 | 1.00 | 19 / 19 | 950 | n/a | 1.0 |
-| in memory | morality | 0.482 | 0.90 | 0.90 | 17 / 19 | 850 | n/a | 1.0 |
-| in memory | unconstrained | 0.134 | 6.53 | 1.00 | 124 / 19 | 6 200 | n/a | 3.9 |
+| Source | Technique | Compliance | Excess ratio | Coverage | Distinct / needed | Fields pulled | Page loads | Wall-clock (ms) | Stable |
+|---|---|---|---|---|---|---|---|---|---|
+| portal | compliance-aware | 1.000 | 1.00 | 1.00 | 13 / 13 | 260 | **70** | 5 387 | — |
+| portal | gemini, told the Act | 0.988 | 1.31 | 0.77 | 17 / 13 | 340 | 72 | 5 479 | — |
+| portal | gemini, unaided | 0.976 | 1.31 | 0.85 | 17 / 13 | 340 | 70 | 4 954 | — |
+| portal | unconstrained | 0.135 | 7.15 | 1.00 | 93 / 13 | 1 860 | **330** | 23 358 | — |
+| in memory | compliance-aware | 1.000 | 1.00 | 1.00 | 19 / 19 | 950 | n/a | 1.3 | **5 / 5** |
+| in memory | gemini, told the Act | 0.991 | 1.05 | 0.74 | 20 / 19 | 1 000 | n/a | 2.4 | 2 / 5 |
+| in memory | gemini, unaided | 0.955 | 1.10 | 0.74 | 21 / 19 | 1 050 | n/a | 2.3 | 3 / 5 |
+| in memory | unconstrained | 0.134 | 6.53 | 1.00 | 124 / 19 | 6 200 | n/a | 4.0 | 5 / 5 |
 
 **Reading Table 1.** The gap between the compliant technique and the baseline is
 0.865 on the portal and 0.866 in memory, on the same seven rules. The two
@@ -104,14 +112,22 @@ Its DM-01 of 0.67 is the set-containment score: of six categories pulled, three
 of 0.28 is one safeguard of four under care and one of three under registration,
 averaged over tasks.
 
-The morality model is the informative row. It passes DM-01 and PL-01 perfectly:
-it pulls the right categories and knows its purpose. It then scores 0.50 on
-LB-01 (a basis asserted, never referenced), 0.00 on SL-01 (no retention, no
-deletion), 0.00 on NT-01 (no notice), 0.33 on AC-01 (logging only). A technique
-that pulls the right data for the wrong reasons and declares almost nothing lands
-at 0.484 — roughly halfway between the other two, which is where a reader's
-intuition would put "well-meaning but not lawful", and the per-rule columns say
-precisely why.
+The AI agents are the informative rows, and they are not where a reader might
+expect them. On compliance *as scored*, a publicly available model is close to
+ours: 0.976 unaided, 0.988 told the Act on the portal; 0.955 and 0.991 in
+memory. Even unaided it declares a lawful basis — citing a section of the Act
+by number without being asked — a retention period, a deletion mechanism,
+encryption in transit and at rest, a notice and an accountable party; it passes
+DM-01, LB-01, PL-01, NT-01 and AC-01 outright. Its shortfall is SS-01: it does
+not consistently declare access control or pseudonymisation (0.83 unaided), and
+telling it the Act closes most of that (0.92). In memory, the unaided agent
+also drops SL-01 to 0.88 by declining to commit to a retention period in some
+runs. The gap between a rule-driven technique and an AI agent on *paperwork*
+is therefore small, and prompting closes about half of it. That is a genuine
+result and the report states it as one: a current model knows what a
+compliant manifest looks like.
+
+Where the agent differs from ours is not visible in Table 1 at all.
 
 **Reading Table 2.** The baseline touches 93 distinct fields where the tasks
 require 13, an excess ratio of 7.15, at the same coverage as the compliant
@@ -122,15 +138,34 @@ argued for: the fields pulled beyond the purpose are the overreach DM-01
 penalises, so compliance and cost move *together* for the baseline, not against
 each other. The compliant technique is the cheap one.
 
-The morality model's row is the second half of the argument. Its excess ratio,
-0.85, is *lower* than the compliant technique's, and read alone would make it the
-most economical of the three. Its coverage is also 0.85: on the
-`appointment-reminder` task it refused the name and phone number the desk
-lawfully needs, obtaining two of the four fields. Low cost here is the failure,
-not efficiency, and it is coverage — the guard rail — that exposes it. The
-benchmark's own summary line names both cases: the baseline pulled more than the
-purpose needs, the morality model pulled less than the task needs. Privacy by
-instinct fails in both directions.
+The agents' rows are the second half of the argument, and they show two
+things the compliance score cannot. First, **coverage**: 0.74 in memory, 0.77
+and 0.85 on the portal. Given the job in words rather than the field list, the
+agent decides for itself what a ward census or a reminder needs, and it decides
+differently from the purpose policy — a name where the task needs the record
+number (`ward-census`), an e-mail where it needs the phone and a visit
+timestamp where it needs the appointment time (`appointment-reminder`), no date
+of birth for a medication review. Each substitute is a lawful category, so the
+compliance score is untouched; the job is nonetheless not done as specified.
+At the same time it *over*-collects: the laboratory result, the attending
+clinician and the ward for a patient summary that asked for none of them
+(excess 1.31 on the portal, where every extra field on a record page costs a
+load). Coverage is the guard rail that exposes the first; excess ratio the
+second; the compliance score alone exposes neither.
+
+Second, **stability**. Put the same brief to the same model five times and it
+reproduced its own decision — the same fields and the same manifest structure
+— in two of five runs told the Act and three of five unaided; its field
+selection alone in three of five. On the single-patient trace (§7.6 and
+`scripts/trace_one_patient.py`) the unaided agent drops `sex`, a field the
+summary needs, in three of five answers to an identical brief. The compliant
+technique reproduced itself five of five, as did the baseline: neither samples.
+This is the guide's question answered with a column rather than a sentence. A
+rule-driven technique is deterministic by construction; an agent's compliance
+is a sample from a distribution, and a hospital that deploys one is deploying
+the distribution. The benchmark's own summary line names all three cases: the
+baseline pulled more than the purpose needs, the agent pulled less than the
+task needs, and the agent did not agree with itself.
 
 ## 7.3 The purpose matrix
 
@@ -304,6 +339,17 @@ wrote cannot surprise us the way a vendor's can. The portal demonstrates the
 it does not demonstrate robustness against real interfaces. The label-mode
 tests of §7.4 narrow this, and the hospital dataset (§7.7) narrows it further on
 the data side, but only live access closes it.
+
+**One AI agent, one tier, five samples.** The agent results are from a single
+provider's free-tier model (`gemini-3.1-flash-lite`), chosen because its daily
+request allowance permitted a complete recording in one session; the flagship
+model in the same family was capped at twenty requests a day. Five runs per
+task is enough to show that decisions vary, not enough to characterise the
+distribution. The adapters for two further providers exist and record in the
+same format; a second provider and a larger sample are the first things to add
+when keys and quota allow, and the recordings are designed so that adding them
+is a re-run, not a redesign. We do not claim the result generalises across
+models; we claim the measurement does.
 
 **The baseline is hand-written.** It is a coverage-optimised extractor with no
 manifest, standing in for the class of published scrapers, not a

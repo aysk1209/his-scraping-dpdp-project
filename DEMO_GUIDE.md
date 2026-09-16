@@ -159,7 +159,7 @@ This runs **three different scraping methods** against the same fake hospital
 | Method | What it does | Score you'll see |
 |--------|--------------|------------------|
 | compliance-aware (ours) | takes what the stated purpose makes necessary, does the paperwork | **1.000** |
-| ai agent: claude / openai / gemini (unaided, and told the Act) | a real public model is given the job, the purpose and the field names, and decides what to pull and what to declare | recorded — see below |
+| ai agent: claude / openai / gemini (unaided, and told the Act) | a real public model is given the job, the purpose and the field names, and decides what to pull and what to declare | **~0.96–0.99** — but coverage 0.74 and stable 2–3 of 5 |
 | unconstrained (baseline) | grabs everything on the page, documents nothing | **~0.13** |
 
 The **AI agents** are the ones to explain. Each is a publicly available model
@@ -190,7 +190,8 @@ question a score alone invites — *what do you give up to be compliant?*
 | Method | Excess ratio | Coverage | Fields pulled | Fetches |
 |--------|-------------:|---------:|--------------:|--------:|
 | compliance-aware (ours) | 1.00 | 1.00 | 950 | 7 |
-| ai agent: … (recorded) | — | — | — | — |
+| ai agent: gemini (told the Act) | 1.05 | 0.74 | 1000 | 7 |
+| ai agent: gemini (unaided) | 1.10 | 0.74 | 1050 | 7 |
 | unconstrained (baseline) | 6.53 | 1.00 | 6200 | 20 |
 
 **Excess ratio** is the number to point at: how many fields a method pulled for

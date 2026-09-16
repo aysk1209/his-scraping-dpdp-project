@@ -64,8 +64,9 @@ technique's *design* — what it declares and how it constrains itself — rathe
 a label we attach to it.
 
 **The manifest is the same shape for every technique.** Our compliant technique,
-the morality model of Chapter 4, and the unconstrained baseline all emit an
-`ExtractionRun`; the baseline simply leaves most of it empty. This is what allows
+the AI agents of Chapter 4, and the unconstrained baseline all emit an
+`ExtractionRun`; an agent fills it in as it sees fit, the baseline leaves most
+of it empty. This is what allows
 a single rule set to compare them without special cases, and it is the property
 that makes the benchmark of Chapter 7 a fair one — no rule knows which technique
 it is scoring.
@@ -379,11 +380,11 @@ Two properties of the aggregation matter for the benchmark. First, the score is
 **bounded and comparable**: two runs against different purposes, different
 techniques or different data still score on the same [0, 1] scale over the same
 seven rules, so a table of techniques is a like-for-like comparison. Second, the
-score is **decomposable**: a run's 0.484 is not an opaque number but a row of
+score is **decomposable**: a run's 0.976 is not an opaque number but a row of
 seven, each with findings, and the per-rule columns in Chapter 7 are where the
-behaviour of each technique is actually visible — the morality model's perfect
-DM-01 beside its zero on SL-01 and NT-01 is the whole story of that technique in
-one row.
+behaviour of each technique is actually visible — an AI agent's perfect DM-01
+and NT-01 beside its 0.83 on SS-01 says precisely which safeguard it failed to
+declare, in one row.
 
 We do not claim that the weights are the right ones. We claim that they are
 explicit, that changing them is a one-line edit to a rule, and that every number

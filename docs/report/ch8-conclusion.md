@@ -30,7 +30,11 @@ Appendix E.
    overreach expressed as a cost; on our workload the compliant technique is the
    cheap one, and the pages the baseline pays for are exactly the overreach the
    law objects to. Coverage is the guard rail that catches a technique which
-   scores well by pulling less than the task needs.
+   scores well by pulling less than the task needs. Repeated runs give a
+   determinism figure: a publicly available AI agent given the same job
+   matches ours on the manifest it declares but takes different fields from
+   the task's and reproduces its own decision in only two or three of five
+   runs; ours reproduces it in five of five, by construction.
 
 3. **The purpose matrix: compliance as a property of the pull and its purpose
    together.** One unchanged extraction, with a full manifest, is lawful under

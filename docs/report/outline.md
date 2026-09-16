@@ -90,7 +90,7 @@ mapping, once verified).
 
 ## 4. Extraction techniques and the cost axis *(~1800 words — draft now)*
 
-**Status: draft 1 written 2026-09-15 — `ch4-techniques-and-cost.md`; §4.2.2 and §4.3 to be revised for the AI-agent comparison once recordings exist (2026-09-16).** Over
+**Status: draft 2, 2026-09-16 — `ch4-techniques-and-cost.md`; §4.2.2, §4.3, §4.4 rewritten for the AI-agent comparison.** Over
 length by ~a quarter; numbers are illustrations from the tracked artefacts, with
 the tables left to chapter 7.
 
@@ -105,15 +105,16 @@ and the minimisation overreach.
 - 4.1 The adapter boundary (`HISDataSource`) and why every downstream component
   is written once.
 - 4.2 The three techniques: compliance-aware (purpose-bound, full manifest);
-  the **morality model** (privacy by instinct — the explicit intuition table,
-  no concept of purpose, wrong in both directions); the unconstrained baseline.
+  the **AI agents** (publicly available models briefed with the job, purpose and
+  field names — never a value — unaided and told the Act; recorded, replayed,
+  repeated); the unconstrained baseline.
   State plainly that the baseline is hand-written and why that is acceptable
   (most deployed systems sit there).
 - 4.3 Metering at the boundary: fields pulled, fetches, page loads, excess
   ratio, coverage, wall-clock — deterministic metrics lead; wall-clock is
   reported as hardware-dependent.
 - 4.4 Why excess ratio and DM-01 are one quantity seen twice; why coverage is the
-  guard rail that catches the morality model.
+  guard rail that catches the AI agents; determinism as a measured column.
 
 ## 5. Acquisition: portal, browser, dataset *(~1600 words — draft now; extend with real data)*
 
@@ -164,12 +165,13 @@ and what a member of staff may be told.
 
 ## 7. Evaluation *(~2200 words — draft on synthetic now; add real-data tables when available)*
 
-**Status: draft 1 written 2026-09-15 — `ch7-evaluation.md`; Tables 1–2 and §7.2 to be regenerated with the recorded AI agents (2026-09-16).** Six tables from
+**Status: draft 2, 2026-09-16 — `ch7-evaluation.md`; Tables 1–2, §7.2 and §7.8 carry the recorded Gemini agents.** Six tables from
 the tracked artefacts; §7.7 is the real-data slot with its contents fixed.
 
 **Argues.** Compliance discriminates between techniques; purpose changes the
 verdict for an unchanged extraction; cost and compliance move together for the
-baseline and low cost is the morality model's failure; the export audit
+baseline; an AI agent matches ours on paperwork but not on the fields it takes
+or on reproducing its own decision; the export audit
 separates declared from actual.
 
 **Draws from.** `docs/benchmark_results/benchmark.md` (in memory),
@@ -181,7 +183,7 @@ separates declared from actual.
 - 7.1 Setup: tasks, purposes, sources (in-memory / portal / **[dataset]**),
   metrics; what is deterministic and what is not.
 - 7.2 Compliance × cost (Table 1: the benchmark). Reading: the 0.87 gap; the
-  baseline's 6–7× excess at equal coverage; the morality model at 0.48 with
+  baseline's 6–7× excess at equal coverage; the AI agents at 0.96–0.99 with
   coverage 0.85–0.90.
 - 7.3 The purpose matrix (Table 2): one extraction, three verdicts; the retention
   case; the notice caveat, stated.
