@@ -37,6 +37,10 @@ class ExtractionTask(BaseModel):
     task_id: str
     purpose: Purpose
     needed: list[LayerFields] = Field(default_factory=list)
+    # The job in words, as a person would brief an agent. Only the AI-agent
+    # technique reads it: every other technique works from ``needed`` or from
+    # the whole source, and the agent is deliberately not shown ``needed``.
+    description: str = ""
 
     def field_refs(self) -> set[tuple[str, str]]:
         """The (layer, field) pairs this task declares as minimum necessary.

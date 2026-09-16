@@ -17,6 +17,7 @@ relative to each other instead of asserting that compliance is affordable.
 
 from __future__ import annotations
 
+import json
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -53,6 +54,16 @@ class TechniqueScore(BaseModel):
     per_rule_mean: dict[str, float | None]
     per_task: dict[str, float]
     cost: ExtractionCost = Field(default_factory=ExtractionCost)
+    # Over ``repeats`` identical runs, how many reproduced the first run's
+    # decision -- the same fields pulled and the same manifest declared. A
+    # rule-driven technique is stable by construction; an AI agent's decision
+    # can change on identical input, and this is where that shows.
+    repeats: int = 1
+    stable_runs: int = 1
+
+    @property
+    def determinism(self) -> float:
+        return self.stable_runs / self.repeats if self.repeats else 1.0
 
 
 class TaskDetail(BaseModel):
@@ -90,8 +101,8 @@ class BenchmarkResult(BaseModel):
             return line
 
         # Coverage first. Two different things put coverage below 1.0 and they
-        # must not be confused: a technique that *refused* fields the task needs
-        # (the morality model's second failure mode), and a source that simply
+        # must not be confused: a technique that *left out* fields the task needs
+        # (an agent deciding for itself what a job requires), and a source that simply
         # does not carry them -- a hospital export missing a column caps every
         # technique at the same ceiling, and that is a fact about the data, not
         # about any technique's compliance.
@@ -139,8 +150,20 @@ class BenchmarkResult(BaseModel):
             s = short[0]
             line += (
                 f" {s.technique} obtained only {s.cost.coverage:.0%} of the fields the "
-                f"tasks require: it refused data the purpose lawfully needed. Privacy by "
-                f"instinct fails in both directions."
+                f"tasks require: it left out data the purpose lawfully needed, so its "
+                f"low cost is a shortfall, not efficiency."
+            )
+
+        unstable = [
+            s for s in self.scores if s.repeats > 1 and s.stable_runs < s.repeats
+        ]
+        if unstable:
+            s = unstable[0]
+            line += (
+                f" Over {s.repeats} identical runs, {s.technique} reproduced its own "
+                f"decision {s.stable_runs} time(s); {best.technique} reproduced it "
+                f"{best.stable_runs} of {best.repeats}. A rule-driven technique is "
+                f"deterministic by construction; an agent's compliance is a sample."
             )
         return line
 
@@ -188,24 +211,27 @@ class BenchmarkResult(BaseModel):
 
         lines += ["", "cost profile (deterministic metrics lead; wall-clock is hardware-dependent):"]
         show_loads = any(s.cost.page_loads is not None for s in self.scores)
+        show_stable = any(s.repeats > 1 for s in self.scores)
         cost_head = (
             f"  {'technique':<30} {'excess':>7} {'cover':>6} {'distinct':>9} {'fields':>8} "
             f"{'fetches':>8}" + (f" {'pages':>7}" if show_loads else "")
-            + f" {'records':>8} {'ms':>8}"
+            + f" {'records':>8} {'ms':>8}" + (f" {'stable':>8}" if show_stable else "")
         )
         lines += [cost_head, "  " + "-" * (len(cost_head) - 2)]
         for score in self.scores:
             cost = score.cost
             loads = f" {cost.page_loads if cost.page_loads is not None else '-':>7}" if show_loads else ""
             distinct = f"{cost.distinct_fields}/{cost.needed_fields}"
+            stable = f" {f'{score.stable_runs}/{score.repeats}':>8}" if show_stable else ""
             lines.append(
                 f"  {score.technique:<30} {self._fmt(cost.excess_ratio):>7} "
                 f"{self._fmt(cost.coverage):>6} {distinct:>9} {cost.fields_pulled:>8} "
-                f"{cost.fetches:>8}{loads} {cost.records:>8} {cost.elapsed_ms:>8.1f}"
+                f"{cost.fetches:>8}{loads} {cost.records:>8} {cost.elapsed_ms:>8.1f}{stable}"
             )
         lines.append(
             "  distinct = distinct fields pulled / fields the purpose requires "
-            "(excess is that ratio); cover = how much of the requirement was met."
+            "(excess is that ratio); cover = how much of the requirement was met"
+            + ("; stable = runs that reproduced the first run's decision." if show_stable else ".")
         )
 
         lines += ["", "per task (scores key on data category and manifest, not record volume):"]
@@ -258,20 +284,23 @@ class BenchmarkResult(BaseModel):
             "data-minimisation rule penalises. `coverage` is the guard rail -- it stops a "
             "technique scoring well by pulling nothing. Both are deterministic and "
             "reproduce on any machine; wall-clock time is reported but is "
-            "hardware-dependent.",
+            "hardware-dependent. `stable runs` is how many of the repeated runs "
+            "reproduced the first run's decision -- the same fields, the same "
+            "manifest -- on identical input.",
             "",
-            "| Technique | Compliance | Excess ratio | Coverage | Distinct fields / needed | Fields pulled | Fetches | Pages loaded | Records | Wall-clock (ms) |",
-            "|---|---|---|---|---|---|---|---|---|---|",
+            "| Technique | Compliance | Excess ratio | Coverage | Distinct fields / needed | Fields pulled | Fetches | Pages loaded | Records | Wall-clock (ms) | Stable runs |",
+            "|---|---|---|---|---|---|---|---|---|---|---|",
         ]
         for score in self.scores:
             cost = score.cost
             loads = cost.page_loads if cost.page_loads is not None else "n/a"
+            stable = f"{score.stable_runs} / {score.repeats}" if score.repeats > 1 else "n/a"
             lines.append(
                 f"| {score.technique} | {score.mean_compliance_score:.3f} | "
                 f"{self._fmt(cost.excess_ratio)} | {self._fmt(cost.coverage)} | "
                 f"{cost.distinct_fields} / {cost.needed_fields} | "
                 f"{cost.fields_pulled} | {cost.fetches} | {loads} | {cost.records} | "
-                f"{cost.elapsed_ms:.1f} |"
+                f"{cost.elapsed_ms:.1f} | {stable} |"
             )
 
         lines += ["", "**Per task**", "",
@@ -335,12 +364,24 @@ def _run_task(
     """
 
     elapsed: list[float] = []
-    for _ in range(max(1, repeats)):
+    decisions: list[tuple] = []
+    for i in range(max(1, repeats)):
+        if hasattr(technique, "sample"):
+            technique.sample = i               # a recorded agent replays its i-th decision
         metered = MeteredSource(source)
         started = time.perf_counter()
         output = technique.extract(metered, task)
         elapsed.append((time.perf_counter() - started) * 1000)
-    return output, metered.cost(task.field_refs(), median(elapsed))
+        decisions.append(_decision_key(output, metered))
+    stable = sum(1 for d in decisions if d == decisions[0])
+    return output, metered.cost(task.field_refs(), median(elapsed)), stable
+
+
+def _decision_key(output, metered: MeteredSource) -> tuple:
+    """What a run decided, for comparing repeats: fields pulled + manifest."""
+
+    manifest = output.run.model_dump(mode="json", exclude={"run_id", "created_at"})
+    return (tuple(sorted(metered.pulled)), json.dumps(manifest, sort_keys=True))
 
 
 def run_benchmark(
@@ -362,10 +403,12 @@ def run_benchmark(
         rule_scores: dict[str, list[float]] = {rid: [] for rid in _RULE_IDS}
         summaries = []
         costs: list[ExtractionCost] = []
+        stable_total = 0
 
         for task in tasks:
-            output, cost = _run_task(technique, task, source, repeats)
+            output, cost, stable = _run_task(technique, task, source, repeats)
             costs.append(cost)
+            stable_total += stable
             report = run_all(output.run, output.records)
             per_task[task.task_id] = round(report.compliance_score, 3)
             pass_rates.append(report.pass_rate)
@@ -392,6 +435,8 @@ def run_benchmark(
                 },
                 per_task=per_task,
                 cost=combine(costs),
+                repeats=max(1, repeats),
+                stable_runs=round(stable_total / max(1, len(tasks))),
             )
         )
 

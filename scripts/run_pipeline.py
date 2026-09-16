@@ -64,6 +64,7 @@ TASKS = [
     ExtractionTask(
         task_id="patient-summary",
         purpose=Purpose.CARE_COORDINATION,
+        description="Prepare a clinical summary of a patient for the care team",
         needed=[
             LayerFields(layer=HISLayer.PATIENT_ADMINISTRATION, fields=["mrn", "date_of_birth", "sex"]),
             LayerFields(layer=HISLayer.CLINICAL_EHR, fields=["primary_diagnosis", "medication", "allergy"]),
@@ -72,6 +73,7 @@ TASKS = [
     ExtractionTask(
         task_id="ward-census",
         purpose=Purpose.CARE_COORDINATION,
+        description="List who is currently on each ward and when they were last seen",
         needed=[
             LayerFields(layer=HISLayer.PATIENT_ADMINISTRATION, fields=["mrn", "admission_ward"]),
             LayerFields(layer=HISLayer.CLINICAL_EHR, fields=["encounter_datetime"]),
@@ -80,6 +82,7 @@ TASKS = [
     ExtractionTask(
         task_id="appointment-reminder",
         purpose=Purpose.PATIENT_REGISTRATION,
+        description="Send patients a reminder of their upcoming appointment",
         needed=[
             LayerFields(
                 layer=HISLayer.PATIENT_ADMINISTRATION,
@@ -114,7 +117,15 @@ def _load_map(path: str | None) -> dict[str, str]:
 def run_downstream(scraper, pages: dict[str, str], dataset_note: str) -> None:
     """Stages 3-6: identical whatever the source was."""
 
-    stage(3, "BENCHMARK -- three techniques; same seven rules; real cost")
+    n = len(DEFAULT_TECHNIQUES)
+    agents = [t.name for t in DEFAULT_TECHNIQUES if t.name.startswith("ai agent")]
+    stage(3, f"BENCHMARK -- {n} techniques; same seven rules; real cost")
+    if agents:
+        print("  AI agents replaying recorded decisions: " + ", ".join(agents))
+        print()
+    else:
+        print("  (no AI-agent recordings: ours against the baseline only -- see scripts/record_ai_agents.py)")
+        print()
     result = run_benchmark(DEFAULT_TECHNIQUES, TASKS, scraper, dataset_note=dataset_note)
     print(result.render_table())
     print()

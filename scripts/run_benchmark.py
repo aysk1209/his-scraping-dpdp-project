@@ -34,6 +34,7 @@ TASKS = [
     ExtractionTask(
         task_id="patient-summary",
         purpose=Purpose.CARE_COORDINATION,
+        description="Prepare a clinical summary of a patient for the care team",
         needed=[
             LayerFields(
                 layer=HISLayer.PATIENT_ADMINISTRATION,
@@ -48,6 +49,7 @@ TASKS = [
     ExtractionTask(
         task_id="ward-census",
         purpose=Purpose.CARE_COORDINATION,
+        description="List who is currently on each ward and when they were last seen",
         needed=[
             LayerFields(
                 layer=HISLayer.PATIENT_ADMINISTRATION,
@@ -59,6 +61,7 @@ TASKS = [
     ExtractionTask(
         task_id="medication-review",
         purpose=Purpose.CARE_COORDINATION,
+        description="Review a patient's current medication against their diagnosis and allergies",
         needed=[
             LayerFields(
                 layer=HISLayer.PATIENT_ADMINISTRATION,
@@ -71,12 +74,13 @@ TASKS = [
         ],
     ),
     # A task where instinct and law part ways: confirming an appointment needs a
-    # name and a phone number, lawfully, under registration. The morality model
-    # refuses both because they feel private; the compliance-aware technique
-    # pulls exactly them because the purpose requires them.
+    # name and a phone number, lawfully, under registration. An agent judging
+    # by what feels private tends to withhold them; the compliance-aware
+    # technique pulls exactly them because the purpose requires them.
     ExtractionTask(
         task_id="appointment-reminder",
         purpose=Purpose.PATIENT_REGISTRATION,
+        description="Send patients a reminder of their upcoming appointment",
         needed=[
             LayerFields(
                 layer=HISLayer.PATIENT_ADMINISTRATION,
@@ -88,13 +92,24 @@ TASKS = [
 
 _SCENARIO = """\
 Scenario: hospital staff read patient data from the HIS for stated purposes.
-Four extraction tasks are defined; three techniques attempt them:
+Four extraction tasks are defined; the techniques attempt them:
   - compliance-aware (ours) : pulls what the purpose makes necessary, files a full manifest
-  - morality model          : pulls what does not *feel* private; refuses what does,
-                              whatever the purpose; declares by instinct, not by law
+  - ai agent: <provider>    : a publicly available model is given the job, the purpose and
+                              the fields on offer, and decides for itself what to pull and
+                              what to declare -- unaided, or told the Act in plain words
   - unconstrained (baseline): ignores the task, scrapes every field it can reach
-Each run is scored against the same seven DPDP Act 2023 rules, and metered for
-what it cost: fields pulled, fetches, and how far past the purpose it reached."""
+Each run is scored against the same seven DPDP Act 2023 rules, metered for what
+it cost, and repeated to see whether the technique reproduces its own decision."""
+
+
+def _agents_note(techniques) -> str:
+    agents = [t for t in techniques if t.name.startswith("ai agent")]
+    if agents:
+        return "AI agents in this run: " + ", ".join(t.name for t in agents) + \
+               " (recorded decisions replayed; scripts/record_ai_agents.py refreshes them)."
+    return ("No AI-agent recordings found and no provider key set -- this run is ours against "
+            "the baseline only. Set ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY and run "
+            "scripts/record_ai_agents.py once.")
 
 
 def main() -> None:
@@ -105,13 +120,16 @@ def main() -> None:
         TASKS,
         source,
         dataset_note=f"{records_per_layer} records/layer x 5 layers, seed {seed}",
-        # Wall-clock is the one non-reproducible number in the table; take the
-        # median of three runs so it is at least stable between invocations.
-        repeats=3,
+        # Repeats serve two ends: the median wall-clock, and the determinism
+        # column -- how many identical runs reproduced the first run's decision.
+        # In memory this is cheap, so five.
+        repeats=5,
     )
 
     print(present.banner("DPDP compliance benchmark - extraction techniques compared"))
     print(_SCENARIO)
+    print()
+    print(_agents_note(DEFAULT_TECHNIQUES))
     print()
     print(present.sample_records(
         source, [HISLayer.PATIENT_ADMINISTRATION, HISLayer.CLINICAL_EHR]

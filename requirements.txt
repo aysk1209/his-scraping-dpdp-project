@@ -24,6 +24,15 @@ flask>=3.0,<4.0
 # credentialed live-HIS access is usable (build step 7, currently blocked).
 playwright>=1.47,<2.0
 
+# --- AI-agent comparison (guide's request, 2026-09-16) ---
+# The benchmark compares our technique against publicly available AI agents
+# (extraction/techniques/ai_agent.py). Each provider's official SDK is imported
+# lazily and needed only to *record* decisions live (scripts/record_ai_agents.py);
+# the demos and tests replay committed recordings and run without any of these.
+anthropic>=0.125
+openai>=1.0
+google-genai>=1.0
+
 # ------------------------------------------------------------------
 # Deferred, pending team sign-off:
 #   ruff / black   - lint + format

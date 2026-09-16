@@ -9,9 +9,12 @@ techniques, three tasks, one comparison table. This script is the opposite view
     source record -> task -> field selection -> DPDP categorisation
                   -> compliance manifest -> seven rules -> score
 
-The same patient is put through two techniques (ours and the coverage-optimised
-baseline) so the difference between 1.000 and ~0.13 is visible field by field
-rather than asserted.
+The same patient is put through every technique -- ours, each publicly
+available AI agent with a recorded decision, and the coverage-optimised
+baseline -- so the difference between 1.000 and the rest is visible field by
+field rather than asserted. For an AI agent the walkthrough also replays every
+recorded decision for the same brief, so the reader sees whether "just AI"
+gives the same answer twice. Ours does, by construction.
 
 Note on the synthetic set: layers are generated independently and carry no
 cross-layer patient key yet, so "one patient" here means the first record of
@@ -38,11 +41,13 @@ from extraction.techniques import (
     CompliantExtractionTechnique,
     UnconstrainedExtractionTechnique,
 )
+from extraction.techniques.ai_agent import AIAgentTechnique, available_agents
 from interop.layers import HISLayer
 
 TASK = ExtractionTask(
     task_id="patient-summary",
     purpose=Purpose.CARE_COORDINATION,
+    description="Prepare a clinical summary of a patient for the care team",
     needed=[
         LayerFields(
             layer=HISLayer.PATIENT_ADMINISTRATION,
@@ -89,30 +94,45 @@ def step_2_task() -> None:
     print(f"      pseudonymisation   : required={policy.requires_pseudonymised_identifiers}")
 
 
-def step_3_selection(source: MockHISDataSource) -> None:
+def _col(agent: AIAgentTechnique) -> str:
+    return f"{agent.provider_name[:6]}-{'inf' if agent.briefing == 'informed' else 'un'}"
+
+
+def step_3_selection(source: MockHISDataSource, agents: list[AIAgentTechnique]) -> None:
     print(present.banner("STEP 3  field selection + DPDP categorisation"))
     print("Each technique picks fields off the same record. The field catalogue")
     print("(src/data_synthetic/catalogue.py) maps every field name to a DPDP")
-    print("category; the purpose policy says which categories are in scope.\n")
+    print("category; the purpose policy says which categories are in scope.")
+    if agents:
+        print("An AI agent's column is its first recorded decision for this brief;")
+        print("'un' = unaided, 'inf' = told the Act. Ours is read off the purpose policy.")
+    print()
 
     needed = _needed_map(TASK)
     allowed = policy_for(TASK.purpose).allowed_categories
+    picks: dict[str, dict[HISLayer, list[str]]] = {}
+    for agent in agents:
+        agent.sample = 0
+        picks[_col(agent)] = agent.decide(source, TASK).selection()
 
+    cols = ["ours", *picks, "baseline"]
     header = (
         f"  {'field':<22} {'DPDP category':<19} {'in scope':<9} "
-        f"{'ours':<6} {'baseline':<9}"
+        + " ".join(f"{c:<10}" for c in cols)
     )
     for layer in source.layers():
         print(f"  layer: {layer.value}")
         print(header)
-        print(f"  {'-' * 22} {'-' * 19} {'-' * 9} {'-' * 6} {'-' * 9}")
+        print(f"  {'-' * 22} {'-' * 19} {'-' * 9} " + " ".join("-" * 10 for _ in cols))
         for name, category in FIELD_CATALOGUE[layer].items():
-            ours = "take" if name in needed.get(layer, []) else "."
-            base = "take"  # the baseline pulls every field of every layer
             scope = "yes" if category in allowed else "NO"
+            cells = ["take" if name in needed.get(layer, []) else "."]
+            for col in picks:
+                cells.append("take" if name in picks[col].get(layer, []) else ".")
+            cells.append("take")  # the baseline pulls every field of every layer
             print(
                 f"  {name:<22} {category.value:<19} {scope:<9} "
-                f"{ours:<6} {base:<9}"
+                + " ".join(f"{c:<10}" for c in cells)
             )
         print()
 
@@ -157,8 +177,22 @@ def _manifest_lines(run: ExtractionRun) -> list[str]:
 
 
 def run_technique(technique: ExtractionTechnique, source: MockHISDataSource) -> float:
+    if isinstance(technique, AIAgentTechnique):
+        technique.sample = 0
     output = technique.extract(source, TASK)
     print(present.banner(f"STEPS 4-6  technique: {technique.name}"))
+
+    if isinstance(technique, AIAgentTechnique) and technique.last_decision is not None:
+        d = technique.last_decision
+        print(f"The agent was briefed with the job, the purpose and the field names --")
+        print(f"never a value -- and decided ({technique.last_source}):")
+        for layer, names in d.selection().items():
+            print(f"  {layer.value:<26} {', '.join(names)}")
+        if d.unknown_fields():
+            print(f"  (asked for fields that do not exist, dropped: {', '.join(d.unknown_fields())})")
+        if d.rationale.strip():
+            print(f"  its reason: \"{d.rationale.strip()}\"")
+        print()
 
     print("STEP 4  the manifest this technique emits for its own run")
     print("        (the technique declares its own compliance posture -- that is")
@@ -176,7 +210,44 @@ def run_technique(technique: ExtractionTechnique, source: MockHISDataSource) -> 
     print(report.render_table())
     print(present.wrote(report.to_json_file()))
     print(present.wrote(report.to_markdown_file()))
+
+    if isinstance(technique, AIAgentTechnique):
+        _replay_other_samples(technique, source, report.compliance_score)
     return report.compliance_score
+
+
+def _replay_other_samples(agent: AIAgentTechnique, source: MockHISDataSource, first: float) -> None:
+    """Same brief, every recorded decision: does the agent agree with itself?"""
+
+    samples = agent.recorded_samples(TASK.task_id)
+    if len(samples) < 2:
+        print("\n  (one recorded decision for this brief; record more with --repeats to see variance)")
+        return
+    print(f"\nSTEP 6b the same brief was put to {agent.provider_name} {len(samples)} times. Each answer:")
+    base_fields = None
+    base_manifest = None
+    for i in range(len(samples)):
+        agent.sample = i
+        out = agent.extract(source, TASK)
+        fields = {f"{l.value}/{n}" for l, names in agent.last_decision.selection().items() for n in names}
+        manifest = out.run.model_dump(mode="json", exclude={"run_id", "created_at"})
+        score = run_all(out.run, out.records).compliance_score
+        if base_fields is None:
+            base_fields, base_manifest = fields, manifest
+            print(f"  run {i + 1}: {len(fields)} fields, score {score:.3f}   (the run above)")
+            continue
+        added, removed = sorted(fields - base_fields), sorted(base_fields - fields)
+        diff = []
+        if added:
+            diff.append("+" + ", ".join(added))
+        if removed:
+            diff.append("-" + ", ".join(removed))
+        if manifest != base_manifest:
+            changed = sorted(k for k in manifest if manifest[k] != base_manifest.get(k))
+            diff.append("manifest differs: " + ", ".join(changed))
+        print(f"  run {i + 1}: {len(fields)} fields, score {score:.3f}   "
+              + ("identical to run 1" if not diff else "; ".join(diff)))
+    agent.sample = 0
 
 
 def main() -> None:
@@ -186,24 +257,38 @@ def main() -> None:
     print("The benchmark shows the aggregate. This shows the mechanism, on a")
     print("single record, so every number can be checked by hand.")
 
+    agents = available_agents()
+
     step_1_source(source)
     step_2_task()
-    step_3_selection(source)
+    step_3_selection(source, agents)
 
+    techniques = [CompliantExtractionTechnique(), *agents, UnconstrainedExtractionTechnique()]
     scores: dict[str, float] = {}
-    for technique in (
-        CompliantExtractionTechnique(),
-        UnconstrainedExtractionTechnique(),
-    ):
+    for technique in techniques:
         scores[technique.name] = run_technique(technique, source)
 
     print(present.banner("STEP 7  verdict on this one patient"))
-    for name, score in scores.items():
-        print(f"  {name:<30} {score:.3f}")
+    print(f"  {'technique':<40} {'score':>6}  reproduces its own decision?")
+    for technique in techniques:
+        name = technique.name
+        if isinstance(technique, AIAgentTechnique):
+            n = len(technique.recorded_samples(TASK.task_id))
+            distinct = len({__import__('json').dumps(x, sort_keys=True)
+                            for x in technique.recorded_samples(TASK.task_id)})
+            repro = (f"{n - distinct + 1} of {n} runs agreed" if n > 1 else "one run recorded")
+        else:
+            repro = "yes -- rules, not sampling"
+        print(f"  {name:<40} {scores[name]:>6.3f}  {repro}")
     gap = max(scores.values()) - min(scores.values())
+    if not agents:
+        print("\n  No AI-agent recordings yet: set a provider key and run scripts/record_ai_agents.py")
+        print("  to put Claude / GPT / Gemini through this same patient.")
     print(present.takeaway(
         f"Same patient, same source, same seven rules -- a {gap:.3f} gap, "
         "traceable to specific fields taken and specific paperwork missing."
+        + (" The rule-driven technique gives the same answer every time; an agent's is a sample."
+           if agents else "")
     ))
 
 

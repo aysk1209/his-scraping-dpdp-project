@@ -6,8 +6,38 @@ from compliance.benchmark import BenchmarkResult, run_benchmark
 from compliance.models import Purpose
 from extraction.adapters.mock_his import MockHISDataSource
 from extraction.technique import ExtractionTask, LayerFields
-from extraction.techniques import DEFAULT_TECHNIQUES
+from extraction.techniques import CompliantExtractionTechnique, UnconstrainedExtractionTechnique
+from extraction.techniques.ai_agent import AIAgentTechnique
+from extraction.techniques.ai_providers import FakeProvider
 from interop.layers import HISLayer
+
+# A scripted "AI agent": pulls sensible fields, declares little -- the shape a
+# real unaided model produced in development. Lives in the test, not in the
+# recordings directory, so the suite never depends on a live call having run.
+_AGENT_DECISION = {
+    "fields": ["patient_administration/mrn", "patient_administration/sex",
+               "patient_administration/date_of_birth", "clinical_ehr/primary_diagnosis",
+               "clinical_ehr/medication", "patient_administration/admission_ward"],
+    "purpose_specified": True, "secondary_uses": [],
+    "lawful_basis_type": "consent", "lawful_basis_reference": "",
+    "retention_days": 0, "deletion_mechanism": "",
+    "transport_encrypted": True, "at_rest_encrypted": True,
+    "access_controlled": False, "identifiers_pseudonymised": False,
+    "notice_reference": "", "notice_covers_purpose": False, "notice_machine_readable": False,
+    "audit_log_enabled": True, "accountable_party": "", "processing_record_kept": False,
+    "rationale": "test",
+}
+
+
+def _agent(tmp_path, decisions=None):
+    return AIAgentTechnique(
+        FakeProvider(decisions or [_AGENT_DECISION]), briefing="unaided",
+        mode="live", recordings_dir=tmp_path,
+    )
+
+
+def _techniques(tmp_path):
+    return [CompliantExtractionTechnique(), _agent(tmp_path), UnconstrainedExtractionTechnique()]
 
 TASKS = [
     ExtractionTask(
@@ -31,9 +61,15 @@ TASKS = [
 ]
 
 
-def _result() -> BenchmarkResult:
+import tempfile
+from pathlib import Path
+
+_TMP = Path(tempfile.mkdtemp())
+
+
+def _result(repeats: int = 1) -> BenchmarkResult:
     source = MockHISDataSource(records_per_layer=5, seed=42)
-    return run_benchmark(DEFAULT_TECHNIQUES, TASKS, source)
+    return run_benchmark(_techniques(_TMP), TASKS, source, repeats=repeats)
 
 
 def test_result_is_ranked_best_first():
@@ -46,8 +82,8 @@ def test_compliance_aware_wins_and_baseline_loses():
     scores = {s.technique: s for s in _result().scores}
     assert scores["compliance-aware (ours)"].mean_compliance_score == 1.0
     assert scores["unconstrained (baseline)"].mean_compliance_score < 0.4
-    mid = scores["morality (privacy by instinct)"].mean_compliance_score
-    assert 0.4 < mid < 1.0
+    mid = scores["ai agent: fake (unaided)"].mean_compliance_score
+    assert 0.2 < mid < 1.0
 
 
 def test_per_rule_mean_covers_every_rule():
@@ -115,8 +151,8 @@ def test_baseline_costs_more_than_the_compliant_technique():
 
 def test_repeats_do_not_inflate_the_deterministic_counts():
     source = MockHISDataSource(records_per_layer=5, seed=42)
-    once = run_benchmark(DEFAULT_TECHNIQUES, TASKS, source)
-    thrice = run_benchmark(DEFAULT_TECHNIQUES, TASKS, source, repeats=3)
+    once = run_benchmark(_techniques(_TMP), TASKS, source)
+    thrice = run_benchmark(_techniques(_TMP), TASKS, source, repeats=3)
     for a, b in zip(once.scores, thrice.scores):
         assert a.cost.fields_pulled == b.cost.fields_pulled
         assert a.cost.fetches == b.cost.fetches
@@ -162,7 +198,7 @@ def test_takeaway_blames_the_source_when_every_technique_hits_the_same_ceiling()
     # by the compliant technique.
     result = _result_with(
         _scored("compliance-aware", 1.0, coverage=0.8, excess=0.8),
-        _scored("morality", 0.5, coverage=0.8, excess=0.8),
+        _scored("agent", 0.5, coverage=0.8, excess=0.8),
         _scored("unconstrained", 0.1, coverage=0.8, excess=6.0),
     )
     assert result.source_ceiling() == 0.8
@@ -175,11 +211,31 @@ def test_takeaway_blames_the_source_when_every_technique_hits_the_same_ceiling()
 def test_takeaway_still_flags_a_technique_that_refused_needed_fields():
     result = _result_with(
         _scored("compliance-aware", 1.0, coverage=1.0, excess=1.0),
-        _scored("morality", 0.5, coverage=0.85, excess=0.85),
+        _scored("agent", 0.5, coverage=0.85, excess=0.85),
         _scored("unconstrained", 0.1, coverage=1.0, excess=6.0),
     )
     assert result.source_ceiling() is None
-    assert "morality obtained only 85%" in result._takeaway()
+    assert "agent obtained only 85%" in result._takeaway()
+
+
+def test_determinism_is_measured_across_repeats(tmp_path):
+    # An agent whose decision differs between identical runs: two samples that
+    # disagree on one field. Ours reproduces itself every time.
+    other = dict(_AGENT_DECISION, fields=_AGENT_DECISION["fields"][:-1])
+    flaky = AIAgentTechnique(FakeProvider([_AGENT_DECISION, other]), mode="live",
+                             recordings_dir=tmp_path)
+    source = MockHISDataSource(records_per_layer=5, seed=42)
+    result = run_benchmark(
+        [CompliantExtractionTechnique(), flaky, UnconstrainedExtractionTechnique()],
+        TASKS, source, repeats=4,
+    )
+    scores = {s.short: s for s in result.scores}
+    assert scores["compliance-aware"].stable_runs == 4
+    assert scores["unconstrained"].stable_runs == 4
+    assert scores["ai"].stable_runs == 2               # samples alternate: 1st, 3rd match
+    assert "reproduced its own decision 2 time(s)" in result._takeaway()
+    assert "stable" in result.render_table()
+    assert "| 2 / 4 |" in result.render_markdown()
 
 
 def test_takeaway_flags_under_coverage_when_only_the_best_technique_falls_short():
