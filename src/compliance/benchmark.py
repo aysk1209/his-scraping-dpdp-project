@@ -17,11 +17,11 @@ relative to each other instead of asserting that compliance is affordable.
 
 from __future__ import annotations
 
-import json
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 from statistics import mean, median
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -39,8 +39,9 @@ _RULE_IDS = [rule.rule_id for rule in ALL_RULES]
 _RULE_TITLES = {rule.rule_id: rule.title for rule in ALL_RULES}
 
 
-def _short(name: str) -> str:
-    return name.split()[0].rstrip(",")
+def _short(technique) -> str:
+    short = getattr(technique, "short_id", None)
+    return short or technique.name.split()[0].rstrip(",")
 
 
 class TechniqueScore(BaseModel):
@@ -59,7 +60,8 @@ class TechniqueScore(BaseModel):
     # rule-driven technique is stable by construction; an AI agent's decision
     # can change on identical input, and this is where that shows.
     repeats: int = 1
-    stable_runs: int = 1
+    stable_runs: int = 1          # same fields *and* same manifest structure
+    stable_fields: int = 1        # same fields, whatever the manifest said
 
     @property
     def determinism(self) -> float:
@@ -161,7 +163,8 @@ class BenchmarkResult(BaseModel):
             s = unstable[0]
             line += (
                 f" Over {s.repeats} identical runs, {s.technique} reproduced its own "
-                f"decision {s.stable_runs} time(s); {best.technique} reproduced it "
+                f"decision {s.stable_runs} time(s) -- its field selection alone "
+                f"{s.stable_fields} time(s); {best.technique} reproduced it "
                 f"{best.stable_runs} of {best.repeats}. A rule-driven technique is "
                 f"deterministic by construction; an agent's compliance is a sample."
             )
@@ -374,14 +377,43 @@ def _run_task(
         elapsed.append((time.perf_counter() - started) * 1000)
         decisions.append(_decision_key(output, metered))
     stable = sum(1 for d in decisions if d == decisions[0])
-    return output, metered.cost(task.field_refs(), median(elapsed)), stable
+    stable_fields = sum(1 for d in decisions if d[0] == decisions[0][0])
+    return output, metered.cost(task.field_refs(), median(elapsed)), stable, stable_fields
+
+
+def manifest_structure(run) -> dict[str, Any]:
+    """A manifest reduced to the decisions it embodies, for comparing runs.
+
+    Whether a basis, a notice, a deletion mechanism or an accountable party was
+    declared -- not how the declaration was worded. Two runs that cite the same
+    section in different words made the same decision; two runs that disagree
+    on whether identifiers are pseudonymised did not.
+    """
+
+    return {
+        "purpose_specified": run.purpose_specified,
+        "secondary_uses": tuple(sorted(run.secondary_uses)),
+        "lawful_basis": run.lawful_basis.type.value if run.lawful_basis else None,
+        "basis_referenced": bool(run.lawful_basis and run.lawful_basis.reference),
+        "retention_days": run.retention_days,
+        "deletion_mechanism": bool(run.deletion_mechanism),
+        "transport_encrypted": run.security.transport_encrypted,
+        "at_rest_encrypted": run.security.at_rest_encrypted,
+        "access_controlled": run.security.access_controlled,
+        "identifiers_pseudonymised": run.security.identifiers_pseudonymised,
+        "notice": bool(run.notice),
+        "notice_covers_purpose": bool(run.notice and run.notice.covers_purpose),
+        "notice_machine_readable": bool(run.notice and run.notice.machine_readable),
+        "audit_log": run.governance.audit_log_enabled,
+        "accountable_party": bool(run.governance.accountable_party),
+        "processing_record": run.governance.processing_record_kept,
+    }
 
 
 def _decision_key(output, metered: MeteredSource) -> tuple:
-    """What a run decided, for comparing repeats: fields pulled + manifest."""
+    """What a run decided, for comparing repeats: fields pulled + manifest structure."""
 
-    manifest = output.run.model_dump(mode="json", exclude={"run_id", "created_at"})
-    return (tuple(sorted(metered.pulled)), json.dumps(manifest, sort_keys=True))
+    return (tuple(sorted(metered.pulled)), tuple(sorted(manifest_structure(output.run).items())))
 
 
 def run_benchmark(
@@ -404,11 +436,13 @@ def run_benchmark(
         summaries = []
         costs: list[ExtractionCost] = []
         stable_total = 0
+        stable_fields_total = 0
 
         for task in tasks:
-            output, cost, stable = _run_task(technique, task, source, repeats)
+            output, cost, stable, stable_fields = _run_task(technique, task, source, repeats)
             costs.append(cost)
             stable_total += stable
+            stable_fields_total += stable_fields
             report = run_all(output.run, output.records)
             per_task[task.task_id] = round(report.compliance_score, 3)
             pass_rates.append(report.pass_rate)
@@ -423,7 +457,7 @@ def run_benchmark(
         scores.append(
             TechniqueScore(
                 technique=technique.name,
-                short=_short(technique.name),
+                short=_short(technique),
                 mean_compliance_score=round(mean(per_task.values()), 3),
                 mean_pass_rate=round(mean(pass_rates), 3),
                 rules_passed=f"{min(passed_counts)}/{len(_RULE_IDS)}",
@@ -437,6 +471,7 @@ def run_benchmark(
                 cost=combine(costs),
                 repeats=max(1, repeats),
                 stable_runs=round(stable_total / max(1, len(tasks))),
+                stable_fields=round(stable_fields_total / max(1, len(tasks))),
             )
         )
 

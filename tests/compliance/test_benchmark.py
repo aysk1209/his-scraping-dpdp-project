@@ -232,7 +232,8 @@ def test_determinism_is_measured_across_repeats(tmp_path):
     scores = {s.short: s for s in result.scores}
     assert scores["compliance-aware"].stable_runs == 4
     assert scores["unconstrained"].stable_runs == 4
-    assert scores["ai"].stable_runs == 2               # samples alternate: 1st, 3rd match
+    assert scores["fake-unaided"].stable_runs == 2      # samples alternate: 1st, 3rd match
+    assert scores["fake-unaided"].stable_fields == 2
     assert "reproduced its own decision 2 time(s)" in result._takeaway()
     assert "stable" in result.render_table()
     assert "| 2 / 4 |" in result.render_markdown()

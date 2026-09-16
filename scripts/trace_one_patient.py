@@ -31,6 +31,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import _present as present
+from compliance.benchmark import manifest_structure
 from compliance.checkers import run_all
 from compliance.models import ExtractionRun, Purpose
 from compliance.policy import policy_for
@@ -230,7 +231,7 @@ def _replay_other_samples(agent: AIAgentTechnique, source: MockHISDataSource, fi
         agent.sample = i
         out = agent.extract(source, TASK)
         fields = {f"{l.value}/{n}" for l, names in agent.last_decision.selection().items() for n in names}
-        manifest = out.run.model_dump(mode="json", exclude={"run_id", "created_at"})
+        manifest = manifest_structure(out.run)     # decisions, not wording
         score = run_all(out.run, out.records).compliance_score
         if base_fields is None:
             base_fields, base_manifest = fields, manifest
@@ -273,10 +274,16 @@ def main() -> None:
     for technique in techniques:
         name = technique.name
         if isinstance(technique, AIAgentTechnique):
-            n = len(technique.recorded_samples(TASK.task_id))
-            distinct = len({__import__('json').dumps(x, sort_keys=True)
-                            for x in technique.recorded_samples(TASK.task_id)})
-            repro = (f"{n - distinct + 1} of {n} runs agreed" if n > 1 else "one run recorded")
+            keys = []
+            for i in range(len(technique.recorded_samples(TASK.task_id))):
+                technique.sample = i
+                d = technique.decide(source, TASK)
+                keys.append((frozenset(d.fields), tuple(sorted(manifest_structure(
+                    d.manifest("x", TASK.purpose)).items()))))
+            technique.sample = 0
+            n = len(keys)
+            same = sum(1 for k in keys if k == keys[0])
+            repro = (f"{same} of {n} runs matched the first" if n > 1 else "one run recorded")
         else:
             repro = "yes -- rules, not sampling"
         print(f"  {name:<40} {scores[name]:>6.3f}  {repro}")
