@@ -79,6 +79,13 @@ def _with_backoff(call, attempts: int = 6, pause: float = 0.0):
             raise
         except Exception as exc:                                   # noqa: BLE001
             text = f"{type(exc).__name__}: {exc}"
+            # A 429 that means "no credit" is not a rate limit; retrying it
+            # only burns minutes. Surface it once, as what it is.
+            if "insufficient_quota" in text or "check your plan and billing" in text:
+                raise ProviderUnavailable(
+                    "the account has no API credit (insufficient_quota) -- not a rate limit; "
+                    "add credit or use another provider"
+                ) from exc
             transient = any(k in text for k in (
                 "429", "RESOURCE_EXHAUSTED", "rate", "Rate", "quota",
                 "500", "503", "overloaded", "high demand", "UNAVAILABLE", "InternalServer",
