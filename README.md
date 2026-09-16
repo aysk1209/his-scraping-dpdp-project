@@ -1,112 +1,123 @@
 # AI-Driven HIS Management Agent with DPDP-Compliant Web Scraping
 
-A research codebase from VIT (SENSE department, final-year project) exploring how
-data extracted from Hospital Information Systems (HIS) can be scraped and
-interfaced with, while treating **DPDP Act 2023 compliance as a measurable,
-benchmarkable property of each extraction technique** rather than a post-hoc legal
-checkbox.
+A final-year research project (VIT, SENSE) that treats **compliance with India's
+Digital Personal Data Protection Act, 2023 as a measurable, benchmarkable property
+of a data-extraction technique** — not a legal checkbox applied afterwards.
 
-The system has two contribution layers:
+Seven principles of the Act are written as executable rules. Every extraction
+technique declares a manifest of what it pulled and why; the same rules score
+every technique on equal terms, beside a cost profile measured in units that
+reproduce on any machine. The comparison is our purpose-bound technique against
+**publicly available AI agents given the same job**, and against a
+coverage-optimised baseline.
 
-1. **Extraction layer** — techniques for pulling structured data out of HIS
-   portals (Tier 2: credentialed headless-browser automation).
-2. **Compliance layer** — every extraction technique is designed and benchmarked
-   against DPDP Act 2023 criteria. This is the research differentiator.
+Three layers:
 
-The long-term motivating vision — an AI agent that helps hospital staff use and
-adapt to HIS systems without workflow disruption — informs the architecture but
-sits beyond this project's graded scope.
+1. **Extraction** — credentialed, browser-driven scraping of a login-gated HIS
+   portal (Playwright), with each module's HIS layer inferred from the field names
+   found on its pages, never from the URL.
+2. **Compliance** — the research contribution: seven DPDP rules, a declarative
+   purpose policy, a scored report, a two-axis benchmark, pseudonymisation on
+   export verified by audit.
+3. **Staff assistant** — a small rule-based assistant (no model) that explains HIS
+   tasks to reception, nursing and administration, gated by the same policy
+   table: a request outside a role's lawful purpose is declined with the rule cited.
 
-## Project status
+## Status
 
-Post Review-1 (approved). Now in the build phase, targeting Review 2 (~70%
-completion).
+**98% by the completion ledger** (`PLAN.md` §5). Everything that does not need
+live hospital access is built; the pipeline runs end to end in one command; all
+eight chapters of the report are drafted on real numbers. What remains is the
+report's second pass and the manuscript. Review-II is 30 Sep 2026, Review-III
+28 Oct 2026.
 
-**Live HIS data access is not usable yet.** Credentialed access is secured on
-paper but unavailable for building. All current work runs against
-self-generated synthetic HIS data, behind an adapter boundary so a live source
-can be swapped in later without downstream refactoring.
+**No live HIS access yet.** Everything runs against synthetic data of a realistic
+five-layer structure, served through a portal fixture that a real browser scrapes.
+A hospital dataset is expected; the dataset adapter and a handling gate (provenance
+and de-identification recorded before anything is read) are ready for it.
 
-## Build order
+## The result
 
-| Step | Deliverable | State |
-|------|-------------|-------|
-| 1 | Repo scaffolding + project structure | done |
-| 2 | DPDP compliance framework — criteria as code-checkable rules/schema | 7 rules (DM/LB/SL/SS/PL/NT/AC), policy engine, report |
-| 3 | Synthetic HIS data generator — records matching the five-layer HIS architecture | thin slice (field catalogue + generator) |
-| 4 | Extraction module skeleton — Tier 2 adapter interface, first against synthetic data | interface + `MockHISDataSource` + technique layer (3 techniques) |
-| 5 | Compliance benchmarking harness — scores any extraction run against DPDP criteria | working (`run_benchmark`, technique comparison table) |
-| 6 | LLM-agent scaffolding (AXE-method inspired), against synthetic data | pending |
-| 7 | Swap synthetic source for live HIS, re-run benchmarks | blocked (data access) |
+`python scripts/run_benchmark.py` — four tasks, in memory, five repeats:
 
-Do not skip ahead to step 7. Keep the data source pluggable throughout steps 1–6.
+| Technique | Compliance | Coverage | Excess ratio | Reproduced its decision |
+|---|---:|---:|---:|---:|
+| compliance-aware (ours) | **1.000** | 1.00 | 1.00× | **5 / 5** |
+| AI agent — Gemini, told the Act | 0.991 | 0.74 | 1.05× | 2 / 5 |
+| AI agent — Gemini, unaided | 0.955 | 0.74 | 1.10× | 3 / 5 |
+| unconstrained baseline | 0.134 | 1.00 | 6.53× | 5 / 5 |
 
-**Current state:** technique-comparison benchmark working — multiple extraction
-techniques scored on DPDP compliance by one harness. Concrete:
+A current public model nearly matches the rule-driven technique on the *manifest
+it declares* — even unaided it cites a lawful basis, retention, a notice and an
+accountable party. It differs on **what it takes** (a name where the task needs
+the record number; an e-mail where it needs the phone — lawful categories, so the
+score never notices, but 74% of the job) and on **whether it takes the same
+fields twice** (two or three of five identical runs). Ours reproduces itself by
+construction. On the portal the baseline loads 330 pages to our 70 for the same
+coverage; its 7× surplus is exactly the overreach the minimisation rule penalises.
 
-- `src/compliance/` — 7 executable DPDP rules (DM/LB/SL/SS/PL/NT/AC), a
-  declarative purpose policy, a `ComplianceReport`, and `run_benchmark`.
-- `src/extraction/` — `HISDataSource` interface, `MockHISDataSource`, and a
-  technique layer: compliance-aware (ours), publicly available AI agents (Claude / OpenAI / Gemini, recorded and replayed), and the coverage-optimised baseline.
-- `src/data_synthetic/` — field catalogue (name → HIS layer → DPDP category) and
-  a Faker-seeded record generator.
-- `src/interop/` — five-layer HIS enum + layer → interoperability-standard map.
+One-page figure: [`docs/benchmark_results/techniques-compared.html`](docs/benchmark_results/techniques-compared.html).
+Full tables: [`benchmark.md`](docs/benchmark_results/benchmark.md),
+[`benchmark-portal.md`](docs/benchmark_results/benchmark-portal.md).
 
-End-to-end demo — `python scripts/run_pipeline.py` (a served portal, a real browser,
-three techniques scored and costed, one pull judged under every purpose, and the
-staff assistant). Headline table — `python scripts/run_benchmark.py`:
+## Run it
 
-| Technique | Compliance score | Pass rate |
-|-----------|-----------------|-----------|
-| compliance-aware (ours) | 1.000 | 100% |
-| ai agent: gemini (told the Act) | 0.991 | 86% — coverage 0.74, reproduces its decision 2 of 5 runs |
-| ai agent: gemini (unaided) | 0.955 | 71% — coverage 0.74, reproduces its decision 3 of 5 runs |
-| unconstrained (baseline) | 0.134 | 0% |
+```bash
+python -m venv .venv && .venv\Scripts\activate      # POSIX: source .venv/bin/activate
+pip install -r requirements.txt
+python -m playwright install chromium                # once per machine
+pytest                                               # 236 tests, ~30 s
+python scripts/run_pipeline.py                       # the whole chain, ~1.5 min
+```
 
-Plain-language run instructions: [`DEMO_GUIDE.md`](DEMO_GUIDE.md). Method
-walkthrough: [`docs/compliance/approach.md`](docs/compliance/approach.md).
+`run_pipeline.py` serves a login-gated portal, logs a headless browser into it,
+discovers its modules, runs every technique with real page loads as cost, shapes
+the compliant run into HL7 v2 / FHIR with identifiers pseudonymised and audited,
+re-judges one pull under every purpose, and puts one question per role to the
+assistant. No network, no key: the AI agents replay their recorded decisions.
 
-Working assumptions (accepted as the working set): the five-layer HIS model, the
-`care_coordination` and `billing_settlement` purposes, and citing DPDP Act 2023
-principles by name rather than pinned section numbers. Revisit if/when real HIS
-access lands.
+Other demos: `run_benchmark.py` (headline table), `trace_one_patient.py` (one
+record, every technique, field by field, and the agent's five answers to the same
+brief), `compare_purposes.py` (purpose limitation as a result), `show_role_access.py`
+(the role gate), `ask_agent.py` (the assistant). Plain-language guide:
+[`DEMO_GUIDE.md`](DEMO_GUIDE.md).
+
+**Recording the AI agents yourself** (optional — recordings are committed):
+set `GEMINI_API_KEY` / `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` in your own shell,
+then `python scripts/record_ai_agents.py --list-models` and
+`python scripts/record_ai_agents.py --repeats 5`. The model is briefed with field
+*names* and the job; no patient value ever leaves the machine, and the recordings
+hold only field names and manifest choices.
 
 ## Repository layout
 
 ```
 src/
-  compliance/       DPDP rule definitions, checkers, benchmarking harness
-  data_synthetic/   synthetic HIS data generator (schemas + generators per layer)
-  extraction/       scraping/extraction layer (adapter pattern: mock vs live)
-  agent/            LLM-based extraction agent (AXE-inspired)
-  interop/          HL7 / FHIR / DICOM / ISO-IEEE-11073 schema helpers + layer map
-tests/
+  compliance/       seven DPDP rules, purpose policy, roles, report, benchmark, purpose matrix,
+                    pseudonymisation, real-data handling gate
+  extraction/       HISDataSource interface; adapters (in-memory, portal via Playwright, dataset);
+                    techniques (compliance-aware, AI agents + recordings, baseline); metering; tier2 crawler
+  data_synthetic/   field catalogue (field -> layer -> DPDP category), generator, schemas, export
+  interop/          five-layer HIS model, layer <-> standard map, HL7 v2 / FHIR shapers, export audit
+  agent/            rule-based staff assistant: registry, session (recognise -> gate -> collect), guidance
+scripts/            run_pipeline, run_benchmark, trace_one_patient, record_ai_agents, check_source, ...
+tools/mock_portal/  the login-gated portal fixture (Flask); tools/build_review_deck.py
+tests/              236 tests
 docs/
-  architecture/         five-layer HIS architecture notes
-  compliance/           DPDP Act 2023 provision -> rule index
-  benchmark_results/     benchmark run artifacts (gitignored)
-CLAUDE.md               persistent context for Claude Code
-PROJECT_CONTEXT.md      deeper research background
+  compliance/       approach.md, dpdp-provision-map.md (section mapping, to verify against the Gazette)
+  report/           outline.md and chapters 1-8 (drafts)
+  review/           review-ii-flow.md (presenter script)
+  access/           when-access-lands.md (day-one procedure for real data)
+  benchmark_results/ tracked results, the navigation map, the one-page figure
 ```
 
-## Setup
+## Documents
 
-```bash
-python -m venv .venv
-# Windows:  .venv\Scripts\activate
-# POSIX:    source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env      # then fill in ANTHROPIC_API_KEY locally
-pytest
-```
+- [`CLAUDE.md`](CLAUDE.md) — operating rules, build order, conventions
+- [`PLAN.md`](PLAN.md) — definition of done, completion ledger, workstreams, decisions
+- [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — research framing and background
+- [`docs/compliance/approach.md`](docs/compliance/approach.md) — the method in one page
 
 ## Team
 
-- Avanindra (23BLC1089)
-- Ananya (23BLC1017)
-- Guide: Dr. Manoj Kumar
-
-## Further reading
-
-- [`CLAUDE.md`](CLAUDE.md) — build order, conventions, phase constraints
-- [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) — research framing, review structure, technical foundations
+Avanindra (23BLC1089) · Ananya (23BLC1017) · Guide: Dr. Manoj Kumar
