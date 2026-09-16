@@ -58,6 +58,30 @@ def show_models(providers: list[str]) -> None:
             print(f"           ... {len(hint) - 40} more")
 
 
+def _with_backoff(call, attempts: int = 5):
+    """Retry on rate limits and transient server errors; free tiers throttle.
+
+    Waits 10, 20, 40, 80 s between attempts. Anything else is raised at once.
+    """
+
+    import time
+    delay = 10.0
+    for attempt in range(attempts):
+        try:
+            return call()
+        except ProviderUnavailable:
+            raise
+        except Exception as exc:                                   # noqa: BLE001
+            text = f"{type(exc).__name__}: {exc}"
+            transient = any(k in text for k in ("429", "RESOURCE_EXHAUSTED", "rate", "Rate",
+                                                  "503", "overloaded", "UNAVAILABLE", "timed out"))
+            if not transient or attempt == attempts - 1:
+                raise
+            print(f"    throttled ({text[:70]}...) -- waiting {delay:.0f} s")
+            time.sleep(delay)
+            delay *= 2
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--list-models", action="store_true",
@@ -102,12 +126,12 @@ def main() -> None:
             for task in TASKS:
                 for i in range(args.repeats):
                     try:
-                        out = tech.extract(source, task)
+                        out = _with_backoff(lambda: tech.extract(source, task))
                     except ProviderUnavailable as exc:
                         print(f"  {task.task_id:<22} unavailable: {exc}")
                         break
                     except Exception as exc:                       # noqa: BLE001 - report and continue
-                        print(f"  {task.task_id:<22} run {i + 1}: {type(exc).__name__}: {exc}")
+                        print(f"  {task.task_id:<22} run {i + 1}: {type(exc).__name__}: {str(exc)[:160]}")
                         continue
                     d = tech.last_decision
                     report = run_all(out.run, out.records)
