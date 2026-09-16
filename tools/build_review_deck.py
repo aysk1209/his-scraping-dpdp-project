@@ -382,6 +382,37 @@ def draw_architecture(slide):
     ], size=11, color=GREY)
 
 
+_BEHAVIOUR = {
+    "compliance-aware": "Pulls what the purpose makes necessary; full manifest; identifiers pseudonymised on export.",
+    "unconstrained": "Every field of every module; no purpose, no manifest, TLS only.",
+}
+
+
+def benchmark_rows() -> tuple[list[list[str]], int, int]:
+    """Results-slide rows from benchmark-portal.json -- the numbers the demo prints."""
+
+    import json
+    path = ROOT / "docs" / "benchmark_results" / "benchmark-portal.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    rows = []
+    for sc in data["scores"]:
+        cost = sc["cost"]
+        name = sc["technique"]
+        if name.startswith("ai agent"):
+            behaviour = ("A public model decides the pull and the manifest from the job, purpose and field "
+                         "names; recorded and replayed.")
+        else:
+            behaviour = _BEHAVIOUR.get(sc["short"], "")
+        stable = f"  ·  stable {sc['stable_runs']}/{sc['repeats']}" if sc.get("repeats", 1) > 1 else ""
+        rows.append([
+            name,
+            f"{sc['mean_compliance_score']:.3f}  ·  {sc['rules_passed']} rules",
+            f"{cost['excess_ratio']:.2f} · {cost['coverage']:.2f} · {cost['page_loads']}{stable}",
+            behaviour,
+        ])
+    return rows, len(rows), len(data["task_ids"])
+
+
 def build() -> Path:
     shutil.copyfile(TEMPLATE, TARGET)
     prs = Presentation(TARGET)
@@ -411,9 +442,10 @@ def build() -> Path:
         ("Refinements after Review-I feedback:", [
             "Processing time, as asked: a cost profile per technique — fields pulled, fetches, real browser page "
             "loads, excess ratio, coverage, wall-clock (deterministic metrics lead; wall-clock is hardware-dependent).",
-            "The middle technique is now the morality model — privacy judged by instinct from a field's name, no "
-            "concept of purpose — deliberately not DPDP-compliant; the hand-written baseline stands, as the panel "
-            "agreed most deployed systems sit there.",
+            "The comparison is now ours against publicly available AI agents (Claude, GPT, Gemini), each briefed "
+            "with the job, the purpose and the field names — never a value — unaided and told the Act; decisions "
+            "recorded, replayed, and repeated so determinism is a measured column. The hand-written baseline "
+            "stands, as the panel agreed most deployed systems sit there.",
             "The assistant is rule-based: a fixed function registry, no LLM, no training — answering the Review-I "
             "question of how it is trained: it is not. Heterogeneity is answered by discovery: module layers are "
             "inferred from field names, never read from labels.",
@@ -459,7 +491,8 @@ def build() -> Path:
             "interop artefacts; authorise()), 7 rules, checkers, benchmark (compliance × cost), purpose_matrix, "
             "pseudonymise (HMAC tokens), handling (real-data gate).",
             "extraction/ — HISDataSource interface; adapters mock / portal (Playwright) / dataset (pandas, column "
-            "map); techniques compliant / morality / unconstrained; metering; tier2 browser + navigation discovery.",
+            "map); techniques compliant / ai_agent (Claude, OpenAI, Gemini; record + replay) / unconstrained; "
+            "metering incl. determinism; tier2 browser + navigation discovery.",
             "interop/ — HL7 v2 (ADT, ORM, ORU, DFT) and FHIR R4 (10 resources incl. AuditEvent) shapers; normalise + "
             "export audit. agent/ — 13-function registry, session state machine, grounded guidance. "
             "tools/mock_portal — the Flask fixture built as a system we do not control.",
@@ -483,28 +516,23 @@ def build() -> Path:
 
     # ---- slide 8 (index 8): Results & Analysis (75%) — the benchmark ----
     res = s[9]
+    rows, n_tech, n_tasks = benchmark_rows()
     add_text(res, 0.7, 1.35, 11.9, 0.95, [
-        "Three techniques, three extraction tasks, the same login-gated portal scraped by a real browser "
+        f"{n_tech} techniques, {n_tasks} extraction tasks, the same login-gated portal scraped by a real browser "
         "(20 records per module, 10 per page); every run scored on the identical seven rules; cost measured as real page loads. "
         "The techniques differ only in how they treat personal data.",
     ], size=12.5)
     add_table(res, 0.6, 2.4, 12.13, 2.55, [
         ["Technique", "Compliance", "Cost (excess · coverage · pages)", "Behaviour"],
-        ["compliance-aware (ours)", "1.000  ·  7 / 7 rules", "1.00 · 1.00 · 70",
-         "Pulls what the purpose makes necessary; full manifest; identifiers pseudonymised on export."],
-        ["morality (privacy by instinct)", "0.484  ·  2 / 7 rules", "0.85 · 0.85 · 70",
-         "Refuses what feels private (names, contact, money) whatever the purpose; takes MRN and DOB freely; "
-         "consent assumed, no notice, no retention."],
-        ["unconstrained (baseline)", "0.135  ·  0 / 7 rules", "7.15 · 1.00 · 330",
-         "Every field of every module; no purpose, no manifest, TLS only."],
-    ], [2.9, 2.1, 2.6, 4.53], body_size=11.5)
+        *rows,
+    ], [2.9, 2.1, 2.6, 4.53], body_size=11.5 if len(rows) <= 3 else 10)
     add_text(res, 0.7, 5.15, 11.9, 1.7, [
         "Reading the table. The baseline loads about five times the pages for the same coverage; its surplus is "
         "exactly the overreach DM-01 penalises, so compliance and cost move together rather than trading off.",
-        "The morality model is the cheapest — and the cheapness is its failure: coverage 0.85 because it refused a "
-        "name and a phone number an appointment reminder lawfully needs under the registration purpose. Privacy by "
-        "instinct fails in both directions; only a purpose-bound technique gets both right. Per-rule columns "
-        "(DM, LB, SL, SS, PL, NT, AC) are in docs/benchmark_results/benchmark-portal.md.",
+        "The AI agents are real public models briefed with field names, never values, once unaided and once told "
+        "the Act; coverage catches any that left out data the job lawfully needs. Repeated runs give a stable "
+        "column: ours reproduces its decision every time — rules, not sampling; an agent's compliance is a sample. "
+        "Per-rule columns are in docs/benchmark_results/benchmark-portal.md.",
     ], size=12)
 
     # ---- slide 9 (index 9): Results (contd.) — purpose matrix + export audit ----

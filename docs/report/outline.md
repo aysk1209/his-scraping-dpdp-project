@@ -90,7 +90,7 @@ mapping, once verified).
 
 ## 4. Extraction techniques and the cost axis *(~1800 words — draft now)*
 
-**Status: draft 1 written 2026-09-15 — `ch4-techniques-and-cost.md`.** Over
+**Status: draft 1 written 2026-09-15 — `ch4-techniques-and-cost.md`; §4.2.2 and §4.3 to be revised for the AI-agent comparison once recordings exist (2026-09-16).** Over
 length by ~a quarter; numbers are illustrations from the tracked artefacts, with
 the tables left to chapter 7.
 
@@ -164,7 +164,7 @@ and what a member of staff may be told.
 
 ## 7. Evaluation *(~2200 words — draft on synthetic now; add real-data tables when available)*
 
-**Status: draft 1 written 2026-09-15 — `ch7-evaluation.md`.** Six tables from
+**Status: draft 1 written 2026-09-15 — `ch7-evaluation.md`; Tables 1–2 and §7.2 to be regenerated with the recorded AI agents (2026-09-16).** Six tables from
 the tracked artefacts; §7.7 is the real-data slot with its contents fixed.
 
 **Argues.** Compliance discriminates between techniques; purpose changes the

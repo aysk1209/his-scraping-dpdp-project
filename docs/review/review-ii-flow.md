@@ -77,17 +77,20 @@ different names and this map re-derives itself." *(This is the Review-1
 heterogeneity doubt, answered.)*
 
 **[3] BENCHMARK.** Point at the `score` column, then the `pages` column.
-"Three scraping methods ran against that portal — the same code that ran against
+"Every method ran against that portal — the same code that ran against
 in-memory data, unchanged. Same seven DPDP rules. Ours: 1.0. The baseline, which
-grabs everything: 0.13. In the middle, the *morality model* — it decides what's
-private by instinct, the way a general AI model would from a column name. It
-scores 0.48." Then cost: "The baseline loaded four to five times as many pages for
-the same coverage. That surplus is exactly what the minimisation rule penalises —
-compliance and cost move together. And look at coverage: the morality model got
-only 90% of what the tasks required, because it refused a name and a phone number
-that an appointment reminder lawfully needs. Privacy by instinct fails in both
-directions." *(This is the Review-I processing-time request, answered with a
-number that reproduces on any machine.)*
+grabs everything: 0.13. In between, real AI agents — Claude, GPT, Gemini — each
+handed the job, the purpose and the field names, never a value, and left to
+decide what to pull and what to declare. Once unaided, once told the Act in
+plain words. Their scores are whatever they recorded." Then cost: "The baseline
+loaded four to five times as many pages for the same coverage. That surplus is
+exactly what the minimisation rule penalises — compliance and cost move
+together. Coverage catches any agent that left out data the job lawfully needs."
+Then the `stable` column: "We put the same brief to each agent several times.
+Ours reproduces its decision every time — it is rules, not sampling. An agent's
+compliance is a sample." *(This is the Review-I processing-time request answered
+with a number that reproduces on any machine, and the guide's request answered
+with a column: deterministic, and better than just AI.)*
 
 **[4] NORMALISE.** Point at the two `audit:` lines.
 "The compliant run's data went out as HL7 v2 and FHIR with identifiers replaced by
@@ -150,9 +153,9 @@ Then next: the report, the manuscript, the real data when it lands.
 | "How does this cope with different hospital systems?" | Stage [2], the `inferred layer` column | Structure is discovered by crawling and classified from field names; the layer inference is `data_synthetic.catalogue.infer_layer` and is shared by the portal crawler and the dataset adapter |
 | "How is the agent trained?" | Stage [6] | It isn't. `src/agent/functions.py` is a fixed registry; recognition is token overlap; the gate is `compliance.roles.authorise` |
 | "Where's the processing time?" | Stage [3], `pages` and `ms` columns | `extraction/metering.py` counts real page loads; wall-clock is shown but labelled hardware-dependent |
-| "Isn't the baseline a strawman?" | — | The panel has accepted that most real systems sit at the baseline; the model in between is the morality model |
-| "What is the morality model, exactly?" | `FEELS_PRIVATE` in `techniques/morality.py` | An explicit table of what feels private from a field name; deliberately not DPDP; wrong in both directions |
-| "Why is compliance cheaper here — isn't that suspicious?" | `excess_ratio` | Fields pulled beyond the purpose are both the cost and the overreach the minimisation rule penalises — one quantity, two readings; the morality model is cheaper still and that cheapness *is* its failure (coverage 0.90) |
+| "Isn't the baseline a strawman?" | — | The panel has accepted that most real systems sit at the baseline; the models in between are real public AI agents, recorded |
+| "What exactly does the AI agent see?" | `build_user_prompt` in `techniques/ai_agent.py` | The job, the purpose, the field names -- never a value; the recording under `techniques/recordings/` is the literal answer it gave |
+| "Why is compliance cheaper here — isn't that suspicious?" | `excess_ratio` | Fields pulled beyond the purpose are both the cost and the overreach the minimisation rule penalises — one quantity, two readings; the an agent that leaves out needed data is cheaper still and that cheapness *is* its failure (coverage below 1) |
 | "What happens when you get the real data?" | `extraction/adapters/dataset_his.py` | Drop it in `data/`, write a `column_map`, run the same pipeline; tested with hospital-named columns |
 | "And a real portal?" | `PortalHISDataSource(field_aliases=…)` | Display labels map to fields as headers are read; tested against the fixture in label mode |
 | "Is the pseudonymisation real or declared?" | Stage [4], the audit line | `interop.normalise.audit` searches the emitted artefacts for raw identifiers |
@@ -220,7 +223,7 @@ reviewer might ask to see on screen.
 |---|---|
 | `technique.py` | `ExtractionTask` — a purpose plus the minimum fields it needs; `field_refs()` is the denominator for excess ratio and coverage. `TechniqueOutput` — manifest + valueless records + raw rows. |
 | `techniques/compliant.py` | **Ours.** Pulls exactly `task.needed`; writes a full manifest from the policy (basis, retention within ceiling, all safeguards, notice, governance). |
-| `techniques/morality.py` | **The morality model.** `FEELS_PRIVATE` — the intuition table; refuses those fields whatever the purpose, takes the rest; manifest by instinct (consent assumed, no notice, no retention, logs). |
+| `techniques/ai_agent.py` | **The AI agents.** A public model decides the pull and the manifest from field names; recorded, replayed, repeated for determinism. |
 | `techniques/unconstrained.py` | **The baseline.** Every field of every layer; no purpose declared; TLS only. |
 | `metering.py` | **`MeteredSource`** wraps any source and counts fetches, rows, fields, page loads without the technique knowing. `ExtractionCost` — `excess_ratio`, `coverage`, `page_loads`, `elapsed_ms`. |
 

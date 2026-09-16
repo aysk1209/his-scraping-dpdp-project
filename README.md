@@ -47,7 +47,7 @@ techniques scored on DPDP compliance by one harness. Concrete:
 - `src/compliance/` — 7 executable DPDP rules (DM/LB/SL/SS/PL/NT/AC), a
   declarative purpose policy, a `ComplianceReport`, and `run_benchmark`.
 - `src/extraction/` — `HISDataSource` interface, `MockHISDataSource`, and a
-  technique layer with three techniques (compliance-aware, morality model, baseline).
+  technique layer: compliance-aware (ours), publicly available AI agents (Claude / OpenAI / Gemini, recorded and replayed), and the coverage-optimised baseline.
 - `src/data_synthetic/` — field catalogue (name → HIS layer → DPDP category) and
   a Faker-seeded record generator.
 - `src/interop/` — five-layer HIS enum + layer → interoperability-standard map.
@@ -59,7 +59,7 @@ staff assistant). Headline table — `python scripts/run_benchmark.py`:
 | Technique | Compliance score | Pass rate |
 |-----------|-----------------|-----------|
 | compliance-aware (ours) | 1.000 | 100% |
-| morality (privacy by instinct) | 0.482 | 29% |
+| ai agent: <provider> (unaided / told the Act) | recorded | — |
 | unconstrained (baseline) | 0.134 | 0% |
 
 Plain-language run instructions: [`DEMO_GUIDE.md`](DEMO_GUIDE.md). Method

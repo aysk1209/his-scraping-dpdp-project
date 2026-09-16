@@ -9,6 +9,13 @@ when it arrives; nothing else in the chapter changes when it does.*
 
 ---
 
+> **Revision pending (2026-09-16).** The middle rows of Tables 1 and 2 will be
+> the recorded AI agents (Claude / OpenAI / Gemini, unaided and told the Act)
+> once `scripts/record_ai_agents.py` has been run with the keys; Table 2 gains a
+> *stable runs* column, and §7.2 a paragraph on determinism. The morality-model
+> rows and their reading below are draft-1 text and will be replaced by the real
+> numbers, not edited around.
+
 The evaluation asks four questions of the framework and answers each with an
 artefact the reader can regenerate. Does compliance, as scored in Chapter 3,
 discriminate between *techniques* rather than merely between careful and

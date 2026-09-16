@@ -253,10 +253,10 @@ cost axis gameable.
 
 **Result on the synthetic workload (four tasks, five layers):** the compliant
 technique pulls exactly what each purpose requires (excess 1.00, coverage 1.00);
-the baseline pulls 6.53x at the same coverage; the morality model pulls 0.90x at
+the baseline pulls 6.53x at the same coverage; the (since-replaced) morality model pulled 0.90x at
 coverage 0.90 — cheaper because it refused a name and a phone number the
 appointment-reminder task lawfully needed. Compliance and cost move together for
-the baseline; for the morality model, low cost *is* the failure. Both axes are
+the baseline; for an agent that leaves out needed data, low cost *is* the failure. Both axes are
 needed to tell the story.
 
 ### W4 — Staff-guidance agent *(component 10)* — **DONE 2026-09-12** (8 of 10)
@@ -358,12 +358,23 @@ patient record, and not identifier-free, which is why it is worth modelling. It
 shapes to FHIR `AuditEvent`; the artefact is granted to no role. If the hospital
 dataset shows a different structure, the catalogue is the one place to change.
 
-### W7 — Cut: LLM extraction agent
+### W7 — LLM agents *as the comparison* — **REVERSED and BUILT 2026-09-16**
 
-Dropped per §2. AXE stays in the literature survey as related work.
+Originally cut per §2 (an AXE-style agent as a fourth *extraction technique of
+ours* added nothing to the contribution). Reinstated in a different role on the
+guide's direction after seeing the pipeline: the comparison is now **ours versus
+publicly available AI agents**, which is a stronger test of the claim than ours
+versus a proxy we wrote. `techniques/ai_agent.py` + `ai_providers.py`: a real
+model (Claude / OpenAI / Gemini) is briefed with the job, the purpose and the
+field names, decides the pull and the manifest, and is scored by the unchanged
+rules. Two briefings (unaided / told the Act). The model never receives a patient
+value; decisions are recorded and replayed; repeats give a determinism column.
+AXE remains related work; nothing agentic is *ours*.
 
-Consequence to action: the `anthropic` dependency in `requirements.txt` becomes
-unused and should be removed once this is confirmed.
+**Done when:** recordings exist for at least one provider and both briefings
+(`scripts/record_ai_agents.py`, keys from the team), the benchmark and
+`trace_one_patient` replay them, and chapters 4 and 7 carry the real numbers.
+The code and tests are complete; the recordings await the keys.
 
 ### W8 — Real baseline technique — **DROPPED 2026-09-13**
 
@@ -373,13 +384,12 @@ scraper with no manifest is a fair stand-in and a literature-faithful AutoScrape
 implementation adds nothing the argument needs. AutoScraper stays a citation in the
 survey. The effort goes to the report instead.
 
-The middle technique is renamed and redesigned at the same time: the **morality
-model** (`techniques/morality.py`) judges privacy by instinct — what a general AI
-model would consider private from a field's name — rather than by purpose. It is
-deliberately not DPDP-compliant. Its intuition table is explicit so the comparison
-stays fair, and the benchmark gained an appointment-reminder task where instinct
-and law disagree, so the model's second failure mode (refusing lawfully needed
-data) is visible as coverage < 1.
+The middle technique was, from 2026-09-13 to 2026-09-16, a hand-written
+**morality model** — privacy judged by instinct from a field's name, our
+prediction of what a general AI would do. On the guide's direction it is
+replaced by the real thing (W7): actual AI agents, recorded and replayed. The
+appointment-reminder task, where instinct and law disagree, stays in the
+workload for the same reason.
 
 ### W9 — End-to-end demonstration *(component 11)* — **DONE (rough) 2026-09-12**
 

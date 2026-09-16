@@ -159,16 +159,22 @@ This runs **three different scraping methods** against the same fake hospital
 | Method | What it does | Score you'll see |
 |--------|--------------|------------------|
 | compliance-aware (ours) | takes what the stated purpose makes necessary, does the paperwork | **1.000** |
-| morality model | takes what does not *feel* private, refuses what does — whatever the purpose; declares by instinct | **~0.48** |
+| ai agent: claude / openai / gemini (unaided, and told the Act) | a real public model is given the job, the purpose and the field names, and decides what to pull and what to declare | recorded — see below |
 | unconstrained (baseline) | grabs everything on the page, documents nothing | **~0.13** |
 
-The **morality model** is the one to explain. It is what a general AI model — or a
-well-meaning engineer — does when it reads a column header and asks "is this
-private?". It refuses names, phone numbers, addresses and money; it happily takes
-dates of birth, sex, postcodes and the MRN ("just an ID"). It has no concept of
-*purpose*, so it is wrong in both directions: it over-collects what does not feel
-private and refuses what the job lawfully needs. The panel accepted that most real
-systems sit at the baseline; this is the model in between.
+The **AI agents** are the ones to explain. Each is a publicly available model
+(Claude, GPT, Gemini) handed exactly what a developer would hand an extraction
+agent: the job in words, the purpose, and the field names each module exposes —
+never a patient value. It decides which fields to fetch and fills in the run
+manifest; the pipeline executes its decision and the same seven rules score it.
+Each runs twice over: *unaided*, and *told the Act* in plain words, so whether
+prompting alone closes the gap is a measured result. Their decisions are
+**recorded** once (`python scripts/record_ai_agents.py`, with a key set) and
+**replayed** by every demo, so nothing in the room depends on Wi-Fi. Because the
+recording holds several answers to the same brief, the benchmark also reports
+**stable runs** — how often the agent reproduced its own decision. Ours is
+5/5 by construction; an agent's is whatever it is. If no recordings exist yet
+the demos run ours against the baseline and say so.
 
 The output also shows: a few sample (fake) patient records, a per-task score
 table, what each task actually needs, and **what each method pulled** — e.g. the
@@ -184,16 +190,16 @@ question a score alone invites — *what do you give up to be compliant?*
 | Method | Excess ratio | Coverage | Fields pulled | Fetches |
 |--------|-------------:|---------:|--------------:|--------:|
 | compliance-aware (ours) | 1.00 | 1.00 | 950 | 7 |
-| morality model | 0.90 | 0.90 | 850 | 7 |
+| ai agent: … (recorded) | — | — | — | — |
 | unconstrained (baseline) | 6.53 | 1.00 | 6200 | 20 |
 
 **Excess ratio** is the number to point at: how many fields a method pulled for
 every one the job actually required. The compliant method pulls exactly what is
 needed (1.00); the baseline pulls six and a half times that. **Coverage** is the
-guard rail — and here it catches the morality model: it obtained only 90% of what
-the tasks required, because the appointment-reminder task lawfully needs a name
-and a phone number and instinct refused both. The takeaway line prints exactly
-that sentence.
+guard rail — it catches any agent that leaves out data the task lawfully needs
+(the appointment-reminder task needs a name and a phone number; an agent judging
+by what feels private tends to withhold them). A **stable** column follows: runs
+that reproduced the first run's decision. The takeaway line names both.
 
 The point to make out loud: **the baseline's surplus is not just waste, it is
 precisely the overreach the law objects to.** Here, compliance is the cheap

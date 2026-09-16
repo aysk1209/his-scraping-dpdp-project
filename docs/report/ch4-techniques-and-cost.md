@@ -9,6 +9,14 @@ established in §3.3.1.*
 
 ---
 
+> **Revision pending (2026-09-16).** On the guide's direction the middle technique
+> is no longer the morality model but **real, publicly available AI agents** —
+> Claude, OpenAI and Gemini, each briefed with the job, the purpose and the field
+> names (never a value), unaided and told the Act, recorded and replayed. §4.2.2
+> is to be rewritten around `techniques/ai_agent.py` once recordings exist, and
+> §4.3 gains the determinism metric (`stable runs`). Until then the text below
+> describes the technique as it stood at draft 1.
+
 Chapter 3 established how a run is scored. This chapter establishes what is
 scored: the techniques whose runs the benchmark compares, and the second axis on
 which they are compared — what each one costs. The argument of the chapter is

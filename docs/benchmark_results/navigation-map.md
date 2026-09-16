@@ -20,4 +20,4 @@ Discovered by the browser in 11 page loads, starting from the home page after lo
 | Billing & Accounts | `invoice_id`, `billed_amount`, `payer_name` | `insurance_policy_no` |
 | Audit Log | `audit_event_id`, `event_timestamp`, `actor_role`, `action` | `source_system`, `subject_mrn` |
 
-*Discovered 2026-09-15.*
+*Discovered 2026-09-16.*
