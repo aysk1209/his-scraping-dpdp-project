@@ -133,7 +133,7 @@ are weighted toward the contribution described in §2.
 | # | Component | Weight | Now | At Review-II |
 |---|---|---:|---:|---:|
 | 1 | DPDP compliance framework (7 rules, policy, scoring, report) | 15 | 15 | 15 |
-| 2 | Benchmark harness + cost profile (§3) | 12 | 12 | 12 |
+| 2 | Benchmark harness + cost profile (§3) + AI-agent comparison and determinism (W7) | 12 | 12 | 12 |
 | 3 | Role × task DPDP policy (gates the agent) | 7 | 7 | 7 |
 | 4 | Extraction: adapter interface + three techniques | 10 | 10 | 10 |
 | 5 | Tier 2 browser extraction (Playwright) | 12 | 12 | 12 |
@@ -151,7 +151,7 @@ the report's second pass (trim to budget, section references verified against
 the Gazette text, cross-references at assembly) and the manuscript — Review-III
 work by definition, and the manuscript waits on a venue and page budget.
 
-*Updated 2026-09-12: W3 complete, component 2 closed — 41 to 45. W5 complete, component 3 closed — 45 to 52. W4 complete, component 10 at 8 of 10 — 52 to 60; the last two points are the navigation-map pages filled in once the portal exists. W1 complete, component 8 closed — 60 to 65. W2 (Tier 2) at 10 of 12 and W9 rough at 4 of 5, agent pages now filled — 65 to 81. **The 75% floor is crossed with a working end-to-end chain.** Interop shaping + export audit wired in, components 9 and 11 closed — 81 to 85. 2026-09-13: fifth-layer fields + schemas, dataset adapter against a synthetic export, label→field mapping — components 5, 6, 7 closed — 85 to 94. **Everything not requiring live access is built; the remaining points are the report and manuscript.** 2026-09-13 later: report outline with chapter→artefact mapping (`docs/report/outline.md`) and the DPDP section mapping drafted for verification — 94 to 95. 2026-09-15: all eight report chapters drafted (`docs/report/ch1`–`ch8`), sixteen references verified with DOIs, the deck's literature review at the template's fifteen — component 12 at 4 of 6 — 95 to 98. **What remains is the report's second pass and the manuscript.***
+*Updated 2026-09-12: W3 complete, component 2 closed — 41 to 45. W5 complete, component 3 closed — 45 to 52. W4 complete, component 10 at 8 of 10 — 52 to 60; the last two points are the navigation-map pages filled in once the portal exists. W1 complete, component 8 closed — 60 to 65. W2 (Tier 2) at 10 of 12 and W9 rough at 4 of 5, agent pages now filled — 65 to 81. **The 75% floor is crossed with a working end-to-end chain.** Interop shaping + export audit wired in, components 9 and 11 closed — 81 to 85. 2026-09-13: fifth-layer fields + schemas, dataset adapter against a synthetic export, label→field mapping — components 5, 6, 7 closed — 85 to 94. **Everything not requiring live access is built; the remaining points are the report and manuscript.** 2026-09-13 later: report outline with chapter→artefact mapping (`docs/report/outline.md`) and the DPDP section mapping drafted for verification — 94 to 95. 2026-09-15: all eight report chapters drafted (`docs/report/ch1`–`ch8`), sixteen references verified with DOIs, the deck's literature review at the template's fifteen — component 12 at 4 of 6 — 95 to 98. 2026-09-16: on the guide's direction the morality model is replaced by real AI agents (W7 reversed and built): Gemini recorded, both briefings, five runs per task; determinism measured as a column; chapters 4 and 7 rewritten on the real numbers. Component 2 absorbs the comparison at no change to its weight; the ledger stays at 98 because the comparison strengthens work already counted rather than adding a component. **What remains is the report's second pass and the manuscript.***
 
 ## 6. Workstreams
 
@@ -371,10 +371,20 @@ rules. Two briefings (unaided / told the Act). The model never receives a patien
 value; decisions are recorded and replayed; repeats give a determinism column.
 AXE remains related work; nothing agentic is *ours*.
 
-**Done when:** recordings exist for at least one provider and both briefings
-(`scripts/record_ai_agents.py`, keys from the team), the benchmark and
-`trace_one_patient` replay them, and chapters 4 and 7 carry the real numbers.
-The code and tests are complete; the recordings await the keys.
+**Done 2026-09-16.** Recordings exist for Gemini (`gemini-3.1-flash-lite`,
+both briefings, five runs per task); the benchmark, the pipeline and
+`trace_one_patient` replay them; chapters 4 and 7 carry the real numbers.
+Result: the agent is within a few hundredths of ours on the compliance score —
+it declares a near-complete manifest even unaided — but obtains 74% of the
+fields the tasks need (it substitutes a name for the record number, an e-mail
+for the phone) and reproduces its own decision in 2–3 of 5 identical runs;
+ours in 5 of 5. **OpenAI left out by decision (2026-09-16):** the account's
+free tier carries no API credit (`insufficient_quota` on the first call, zero
+requests served), and a second provider is not worth a paid top-up for the
+argument as it stands. The adapter is built and tested against the documented
+surface; a key with credit makes it a five-minute run. The flagship Gemini
+model is capped at 20 requests/day on the free tier and can be added over two
+days if wanted. §7.8 of the report states the single-provider limitation.
 
 ### W8 — Real baseline technique — **DROPPED 2026-09-13**
 
