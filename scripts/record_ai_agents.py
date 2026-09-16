@@ -74,7 +74,8 @@ def _with_backoff(call, attempts: int = 5):
         except Exception as exc:                                   # noqa: BLE001
             text = f"{type(exc).__name__}: {exc}"
             transient = any(k in text for k in ("429", "RESOURCE_EXHAUSTED", "rate", "Rate",
-                                                  "503", "overloaded", "UNAVAILABLE", "timed out"))
+                                                  "503", "overloaded", "UNAVAILABLE", "timed out",
+                                                  "Timeout", "timeout", "ReadTimeout"))
             if not transient or attempt == attempts - 1:
                 raise
             print(f"    throttled ({text[:70]}...) -- waiting {delay:.0f} s")

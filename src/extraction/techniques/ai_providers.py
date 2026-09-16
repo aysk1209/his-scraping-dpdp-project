@@ -30,6 +30,10 @@ from typing import Any, Protocol
 
 PROVIDERS = ("claude", "openai", "gemini")
 
+# One decision is a short structured answer; anything beyond this is a stalled
+# connection, and a stall must surface as an error the recorder can retry.
+REQUEST_TIMEOUT_S = 90.0
+
 DEFAULT_MODELS = {
     "claude": "claude-opus-5",
     "openai": "gpt-6-astra",
@@ -84,7 +88,7 @@ class ClaudeProvider:
         if not key_available("claude"):
             raise ProviderUnavailable("ANTHROPIC_API_KEY is not set")
 
-        client = anthropic.Anthropic()
+        client = anthropic.Anthropic(timeout=REQUEST_TIMEOUT_S)
         response = client.messages.create(
             model=self.model,
             max_tokens=4096,
@@ -114,7 +118,7 @@ class OpenAIProvider:
         if not key_available("openai"):
             raise ProviderUnavailable("OPENAI_API_KEY is not set")
 
-        client = OpenAI()
+        client = OpenAI(timeout=REQUEST_TIMEOUT_S)
         response = client.responses.create(
             model=self.model,
             input=[
@@ -152,6 +156,7 @@ class GeminiProvider:
             input=user,
             system_instruction=system,
             response_format={"type": "text", "mime_type": "application/json", "schema": schema},
+            timeout=REQUEST_TIMEOUT_S,
         )
         return json.loads(interaction.output_text)
 
