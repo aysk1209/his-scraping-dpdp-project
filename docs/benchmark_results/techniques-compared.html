@@ -1,0 +1,301 @@
+<meta charset="utf-8">
+<title>Four Techniques, Seven Rules</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f4f6f8;
+    --surface: #ffffff;
+    --surface-2: #eceff2;
+    --line: #d5dbe1;
+    --ink: #14181c;
+    --ink-2: #4f5a64;
+    --ink-3: #8a949d;
+    --s1: #2a78d6;   /* ours */
+    --s2: #eb6834;   /* gemini, told the Act */
+    --s3: #1baf7a;   /* gemini, unaided */
+    --s4: #eda100;   /* baseline */
+    --seq-1: #cde2fb; --seq-2: #9ec5f4; --seq-3: #6da7ec; --seq-4: #3987e5; --seq-5: #1c5cab; --seq-6: #0d366b;
+    --miss: #e34948;
+    --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+    --mono: "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #15181b; --surface: #1e2226; --surface-2: #272c31; --line: #353c43;
+      --ink: #f1f4f6; --ink-2: #aab3bb; --ink-3: #6f7982;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+      --seq-1: #1f3550; --seq-2: #24497a; --seq-3: #2a5fa3; --seq-4: #3987e5; --seq-5: #6da7ec; --seq-6: #9ec5f4;
+      --miss: #e66767;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #15181b; --surface: #1e2226; --surface-2: #272c31; --line: #353c43;
+    --ink: #f1f4f6; --ink-2: #aab3bb; --ink-3: #6f7982;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+    --seq-1: #1f3550; --seq-2: #24497a; --seq-3: #2a5fa3; --seq-4: #3987e5; --seq-5: #6da7ec; --seq-6: #9ec5f4;
+    --miss: #e66767;
+  }
+
+  body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding-block: 40px 56px; padding-inline: 20px; }
+  h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+  h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 700; line-height: 1.1; }
+  h2 { font-size: 20px; font-weight: 600; }
+  h3 { font-size: 15px; font-weight: 600; color: var(--ink-2); }
+  p { margin: 0; max-width: 68ch; }
+  .lede { color: var(--ink-2); font-size: 17px; margin-top: 10px; }
+  .eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+  .meta { font-family: var(--mono); font-size: 12px; color: var(--ink-3); margin-top: 14px; }
+  .meta b { color: var(--ink-2); font-weight: 500; }
+
+  header { display: grid; gap: 6px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+  section { margin-top: 40px; display: grid; gap: 14px; }
+  section > *, .card, .panel { min-width: 0; }   /* grid items shrink so overflow-x scrolls the card, not the page */
+  .sec-head { display: grid; gap: 4px; }
+  .sec-head p { color: var(--ink-2); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13.5px; color: var(--ink-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+  .multiples { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 14px 10px; display: grid; gap: 6px; }
+  .panel h3 { font-family: var(--body); font-size: 13px; font-weight: 600; color: var(--ink); }
+  .panel .sub { font-size: 12px; color: var(--ink-3); line-height: 1.3; min-height: 2.6em; }
+  .panel svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+  .scroll { overflow-x: auto; }
+  svg text { font-family: var(--body); fill: var(--ink-2); font-size: 12px; }
+  svg .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  svg .grid { stroke: var(--line); stroke-width: 1; }
+  svg .axis { stroke: var(--ink-3); stroke-width: 1; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th, td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: middle; white-space: nowrap; }
+  th { font-family: var(--body); font-weight: 600; color: var(--ink-2); font-size: 12.5px; }
+  td.num, th.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+  .heat td.cell { text-align: center; font-family: var(--mono); font-variant-numeric: tabular-nums; width: 72px; }
+  .heat .cell span { display: inline-block; min-width: 52px; padding: 5px 0; border-radius: 4px; }
+  .heat .cell .lo { color: var(--ink); }
+  .heat .cell .hi { color: #fff; }
+  .tech { display: inline-flex; align-items: center; gap: 8px; }
+
+  .matrix td.dot { text-align: center; width: 92px; }
+  .matrix .d { display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 2px solid transparent; vertical-align: middle; }
+  .matrix .take { border-color: var(--ink-3); background: var(--ink-3); }
+  .matrix .need { border-color: var(--ink-3); background: transparent; }
+  .matrix .extra { background: var(--s4); border-color: var(--s4); }
+  .matrix .missed { background: transparent; border-color: var(--miss); border-style: dashed; }
+  .matrix .cat { color: var(--ink-3); font-size: 12px; }
+  .matrix .oos { color: var(--miss); }
+  .matrix tr.layer td { background: var(--surface-2); font-weight: 600; color: var(--ink-2); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .key { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--ink-2); }
+  .key span { display: inline-flex; align-items: center; gap: 7px; }
+
+  .strips { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 18px 24px; }
+  .strip { display: grid; gap: 8px; min-width: 0; }
+  .strip .row > * { min-width: 0; }
+  .strip .row { display: grid; grid-template-columns: 92px 1fr auto; gap: 10px; align-items: center; font-size: 13px; }
+  .strip .row .lab { color: var(--ink-2); }
+  .runs { display: flex; gap: 6px; }
+  .run { width: 22px; height: 22px; border-radius: 4px; display: grid; place-items: center; font-family: var(--mono); font-size: 11px; border: 1.5px solid var(--line); color: var(--ink-3); }
+  .run.same { color: #fff; border-color: transparent; }
+  .run.diff { background: transparent; border-style: dashed; color: var(--ink-2); }
+  .strip .n { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 12px; color: var(--ink-2); }
+
+  .callouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .callout { border-left: 3px solid var(--s1); padding: 4px 0 4px 14px; display: grid; gap: 4px; }
+  .callout .big { font-family: var(--display); font-size: 30px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+  .callout .what { color: var(--ink-2); font-size: 14px; }
+
+  .tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 12.5px; padding: 6px 9px; border-radius: 5px; transform: translate(-50%, calc(-100% - 10px)); white-space: nowrap; opacity: 0; transition: opacity .08s; z-index: 5; font-family: var(--mono); }
+  .tip.on { opacity: 1; }
+  footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--ink-3); font-size: 13px; display: grid; gap: 6px; }
+  footer code { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+  @media (prefers-reduced-motion: reduce) { .tip { transition: none; } }
+  @media (max-width: 480px) { .strip .row { grid-template-columns: 78px 1fr; } .strip .n { grid-column: 2; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">DPDP compliance benchmark · one workload, four techniques</div>
+    <h1>Four Techniques, Seven Rules</h1>
+    <p class="lede">The same four extraction tasks, the same seven DPDP Act 2023 rules, the same source. The compliance score alone puts a public AI agent within a few hundredths of the rule-driven technique. Two more axes — <em>which fields it took</em> and <em>whether it took the same ones twice</em> — separate them.</p>
+    <div class="meta" id="meta"></div>
+  </header>
+
+  <section>
+    <div class="sec-head">
+      <h2>Five numbers, one technique order</h2>
+      <p>Each panel is one metric; the bars are always in the same order and colour. The compliance score is the first panel; the other four are what it cannot see.</p>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="multiples" id="multiples"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Per rule</h2>
+      <p>Mean rule score over the four tasks, in memory. Where an agent loses points is as informative as where it does not: even unaided it passes five of seven outright.</p>
+    </div>
+    <div class="card scroll"><table class="heat" id="heat"></table></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>What each technique took — <span class="eyebrow" style="font-size:13px;letter-spacing:.04em">patient-summary, care coordination</span></h2>
+      <p>The task in words was <em>“prepare a clinical summary of a patient for the care team.”</em> Ours reads the field list off the purpose policy; the agents decided for themselves (their first recorded run is shown); the baseline takes everything. A dashed red circle is a needed field the technique did not take; an amber dot is a field it took that the task did not need.</p>
+    </div>
+    <div class="key">
+      <span><i class="d take" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--ink-3)"></i> taken</span>
+      <span><i style="display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid var(--ink-3);box-sizing:border-box"></i> needed by the task</span>
+      <span><i style="display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--s4)"></i> taken but not needed</span>
+      <span><i style="display:inline-block;width:14px;height:14px;border-radius:50%;border:2px dashed var(--miss);box-sizing:border-box"></i> needed but not taken</span>
+    </div>
+    <div class="card scroll"><table class="matrix" id="matrix"></table></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>The same brief, five times</h2>
+      <p>Each square is one recorded run of the agent on an identical brief. A filled square reproduced the first run's decision — the same fields and the same manifest structure; a dashed square did not. A rule-driven technique fills every square by construction.</p>
+    </div>
+    <div class="card"><div class="strips" id="strips"></div></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Read together</h2></div>
+    <div class="callouts" id="callouts"></div>
+  </section>
+
+  <footer>
+    <div>Every figure on this page is read from tracked artefacts: <code>docs/benchmark_results/benchmark.json</code> (in memory, 50 records/layer, 5 repeats), <code>benchmark-portal.json</code> (real browser, 20 records/module), and the recordings under <code>src/extraction/techniques/recordings/</code>.</div>
+    <div>Regenerate: <code>python scripts/run_benchmark.py</code> · <code>python scripts/run_pipeline.py</code> · <code>python scripts/trace_one_patient.py</code>. The agent was briefed with field names and the job — never a patient value.</div>
+  </footer>
+</div>
+<div class="tip" id="tip"></div>
+
+<script id="data" type="application/json">{"rules":["DM-01","LB-01","SL-01","SS-01","PL-01","NT-01","AC-01"],"memory":[{"short":"compliance-aware","technique":"compliance-aware (ours)","score":1.0,"rules_passed":"7/7","per_rule":{"DM-01":1.0,"LB-01":1.0,"SL-01":1.0,"SS-01":1.0,"PL-01":1.0,"NT-01":1.0,"AC-01":1.0},"per_task":{"patient-summary":1.0,"ward-census":1.0,"medication-review":1.0,"appointment-reminder":1.0},"repeats":5,"stable":5,"stable_fields":5,"coverage":1.0,"excess":1.0,"pages":null,"distinct":19,"needed":19,"fields":950},{"short":"gemini-informed","technique":"ai agent: gemini (told the Act)","score":0.991,"rules_passed":"6/7","per_rule":{"DM-01":1.0,"LB-01":1.0,"SL-01":1.0,"SS-01":0.938,"PL-01":1.0,"NT-01":1.0,"AC-01":1.0},"per_task":{"patient-summary":0.964,"ward-census":1.0,"medication-review":1.0,"appointment-reminder":1.0},"repeats":5,"stable":2,"stable_fields":3,"coverage":0.737,"excess":1.053,"pages":null,"distinct":20,"needed":19,"fields":1000},{"short":"gemini-unaided","technique":"ai agent: gemini (unaided)","score":0.955,"rules_passed":"5/7","per_rule":{"DM-01":1.0,"LB-01":1.0,"SL-01":0.875,"SS-01":0.812,"PL-01":1.0,"NT-01":1.0,"AC-01":1.0},"per_task":{"patient-summary":0.893,"ward-census":0.964,"medication-review":0.964,"appointment-reminder":1.0},"repeats":5,"stable":3,"stable_fields":3,"coverage":0.737,"excess":1.105,"pages":null,"distinct":21,"needed":19,"fields":1050},{"short":"unconstrained","technique":"unconstrained (baseline)","score":0.134,"rules_passed":"0/7","per_rule":{"DM-01":0.667,"LB-01":0.0,"SL-01":0.0,"SS-01":0.271,"PL-01":0.0,"NT-01":0.0,"AC-01":0.0},"per_task":{"patient-summary":0.131,"ward-census":0.131,"medication-review":0.131,"appointment-reminder":0.143},"repeats":5,"stable":5,"stable_fields":5,"coverage":1.0,"excess":6.526,"pages":null,"distinct":124,"needed":19,"fields":6200}],"portal":[{"short":"compliance-aware","technique":"compliance-aware (ours)","score":1.0,"rules_passed":"7/7","per_rule":{"DM-01":1.0,"LB-01":1.0,"SL-01":1.0,"SS-01":1.0,"PL-01":1.0,"NT-01":1.0,"AC-01":1.0},"per_task":{"patient-summary":1.0,"ward-census":1.0,"appointment-reminder":1.0},"repeats":1,"stable":1,"stable_fields":1,"coverage":1.0,"excess":1.0,"pages":70,"distinct":13,"needed":13,"fields":260},{"short":"gemini-informed","technique":"ai agent: gemini (told the Act)","score":0.988,"rules_passed":"6/7","per_rule":{"DM-01":1.0,"LB-01":1.0,"SL-01":1.0,"SS-01":0.917,"PL-01":1.0,"NT-01":1.0,"AC-01":1.0},"per_task":{"patient-summary":0.964,"ward-census":1.0,"appointment-reminder":1.0},"repeats":1,"stable":1,"stable_fields":1,"coverage":0.769,"excess":1.308,"pages":72,"distinct":17,"needed":13,"fields":340},{"short":"gemini-unaided","technique":"ai agent: gemini (unaided)","score":0.976,"rules_passed":"6/7","per_rule":{"DM-01":1.0,"LB-01":1.0,"SL-01":1.0,"SS-01":0.833,"PL-01":1.0,"NT-01":1.0,"AC-01":1.0},"per_task":{"patient-summary":0.964,"ward-census":0.964,"appointment-reminder":1.0},"repeats":1,"stable":1,"stable_fields":1,"coverage":0.846,"excess":1.308,"pages":70,"distinct":17,"needed":13,"fields":340},{"short":"unconstrained","technique":"unconstrained (baseline)","score":0.135,"rules_passed":"0/7","per_rule":{"DM-01":0.667,"LB-01":0.0,"SL-01":0.0,"SS-01":0.278,"PL-01":0.0,"NT-01":0.0,"AC-01":0.0},"per_task":{"patient-summary":0.131,"ward-census":0.131,"appointment-reminder":0.143},"repeats":1,"stable":1,"stable_fields":1,"coverage":1.0,"excess":7.154,"pages":330,"distinct":93,"needed":13,"fields":1860}],"tasks":{"patient-summary":{"purpose":"care_coordination","description":"Prepare a clinical summary of a patient for the care team","needed":["clinical_ehr/allergy","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/date_of_birth","patient_administration/mrn","patient_administration/sex"],"agent_runs":{"unaided":[["clinical_ehr/allergy","clinical_ehr/attending_clinician","clinical_ehr/lab_result","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/admission_ward","patient_administration/date_of_birth","patient_administration/full_name","patient_administration/mrn","patient_administration/sex"],["clinical_ehr/allergy","clinical_ehr/attending_clinician","clinical_ehr/lab_result","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/admission_ward","patient_administration/date_of_birth","patient_administration/full_name","patient_administration/mrn"],["clinical_ehr/allergy","clinical_ehr/attending_clinician","clinical_ehr/lab_result","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/admission_ward","patient_administration/date_of_birth","patient_administration/full_name","patient_administration/mrn"],["clinical_ehr/allergy","clinical_ehr/attending_clinician","clinical_ehr/lab_result","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/date_of_birth","patient_administration/full_name","patient_administration/mrn","patient_administration/sex"],["clinical_ehr/allergy","clinical_ehr/attending_clinician","clinical_ehr/lab_result","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/admission_ward","patient_administration/date_of_birth","patient_administration/full_name","patient_administration/mrn"]],"informed":[["clinical_ehr/allergy","clinical_ehr/attending_clinician","clinical_ehr/lab_result","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/admission_ward","patient_administration/date_of_birth","patient_administration/full_name","patient_administration/mrn","patient_administration/sex"],["clinical_ehr/allergy","clinical_ehr/attending_clinician","clinical_ehr/lab_result","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/date_of_birth","patient_administration/full_name","patient_administration/mrn"],["clinical_ehr/allergy","clinical_ehr/attending_clinician","clinical_ehr/lab_result","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/date_of_birth","patient_administration/full_name","patient_administration/mrn"],["clinical_ehr/allergy","clinical_ehr/attending_clinician","clinical_ehr/encounter_datetime","clinical_ehr/lab_result","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/date_of_birth","patient_administration/full_name","patient_administration/mrn","patient_administration/sex"],["clinical_ehr/allergy","clinical_ehr/attending_clinician","clinical_ehr/lab_result","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/admission_ward","patient_administration/date_of_birth","patient_administration/full_name","patient_administration/mrn"]]},"allowed":["administrative","clinical","direct_identifier","quasi_identifier"]},"ward-census":{"purpose":"care_coordination","description":"List who is currently on each ward and when they were last seen","needed":["clinical_ehr/encounter_datetime","patient_administration/admission_datetime","patient_administration/admission_ward","patient_administration/mrn"],"agent_runs":{"unaided":[["clinical_ehr/encounter_datetime","patient_administration/admission_ward","patient_administration/full_name"],["clinical_ehr/encounter_datetime","patient_administration/admission_ward","patient_administration/full_name"],["clinical_ehr/encounter_datetime","patient_administration/admission_ward","patient_administration/full_name"],["infrastructure_integration/event_timestamp","patient_administration/admission_ward","patient_administration/full_name"],["clinical_ehr/encounter_datetime","patient_administration/admission_ward","patient_administration/full_name"]],"informed":[["clinical_ehr/encounter_datetime","patient_administration/admission_ward","patient_administration/full_name"],["clinical_ehr/encounter_datetime","patient_administration/admission_ward","patient_administration/full_name","patient_administration/mrn"],["clinical_ehr/encounter_datetime","patient_administration/admission_ward","patient_administration/full_name"],["clinical_ehr/encounter_datetime","patient_administration/admission_ward","patient_administration/full_name"],["clinical_ehr/encounter_datetime","patient_administration/admission_ward","patient_administration/full_name"]]},"allowed":["administrative","clinical","direct_identifier","quasi_identifier"]},"medication-review":{"purpose":"care_coordination","description":"Review a patient's current medication against their diagnosis and allergies","needed":["clinical_ehr/allergy","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/date_of_birth","patient_administration/mrn"],"agent_runs":{"unaided":[["clinical_ehr/allergy","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/mrn"],["clinical_ehr/allergy","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/full_name","patient_administration/mrn"],["clinical_ehr/allergy","clinical_ehr/medication","clinical_ehr/primary_diagnosis"],["clinical_ehr/allergy","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/full_name","patient_administration/mrn"],["clinical_ehr/allergy","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/full_name","patient_administration/mrn"]],"informed":[["clinical_ehr/allergy","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/mrn"],["clinical_ehr/allergy","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/mrn"],["clinical_ehr/allergy","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/mrn"],["clinical_ehr/allergy","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/mrn"],["clinical_ehr/allergy","clinical_ehr/medication","clinical_ehr/primary_diagnosis","patient_administration/mrn"]]},"allowed":["administrative","clinical","direct_identifier","quasi_identifier"]},"appointment-reminder":{"purpose":"patient_registration","description":"Send patients a reminder of their upcoming appointment","needed":["patient_administration/admission_datetime","patient_administration/full_name","patient_administration/mrn","patient_administration/phone"],"agent_runs":{"unaided":[["patient_administration/admission_datetime","patient_administration/email","patient_administration/full_name","patient_administration/phone"],["patient_administration/admission_datetime","patient_administration/email","patient_administration/full_name","patient_administration/phone"],["patient_administration/admission_datetime","patient_administration/email","patient_administration/full_name","patient_administration/phone"],["patient_administration/admission_datetime","patient_administration/email","patient_administration/full_name","patient_administration/phone"],["patient_administration/admission_datetime","patient_administration/email","patient_administration/full_name","patient_administration/phone"]],"informed":[["clinical_ehr/encounter_datetime","patient_administration/email","patient_administration/full_name","patient_administration/phone"],["clinical_ehr/encounter_datetime","patient_administration/email","patient_administration/full_name","patient_administration/phone"],["patient_administration/admission_datetime","patient_administration/email","patient_administration/full_name","patient_administration/phone"],["patient_administration/admission_datetime","patient_administration/email","patient_administration/full_name","patient_administration/phone"],["patient_administration/admission_datetime","patient_administration/email","patient_administration/full_name","patient_administration/phone"]]},"allowed":["administrative","contact","direct_identifier","quasi_identifier"]}},"catalogue":{"patient_administration":{"mrn":"direct_identifier","full_name":"direct_identifier","phone":"direct_identifier","email":"contact","street_address":"contact","date_of_birth":"quasi_identifier","sex":"quasi_identifier","pincode":"quasi_identifier","admission_ward":"administrative","admission_datetime":"administrative"},"clinical_ehr":{"primary_diagnosis":"clinical","medication":"clinical","lab_result":"clinical","allergy":"clinical","encounter_datetime":"administrative","attending_clinician":"administrative"},"ancillary_departmental":{"order_id":"administrative","specimen_type":"clinical","result_value":"clinical","imaging_modality":"clinical","report_text":"clinical"},"administrative_financial":{"invoice_id":"financial","billed_amount":"financial","insurance_policy_no":"financial","payer_name":"financial"},"infrastructure_integration":{"audit_event_id":"administrative","event_timestamp":"administrative","actor_role":"administrative","action":"administrative","source_system":"administrative","subject_mrn":"direct_identifier"}}}</script>
+<script>
+(function () {
+  const D = JSON.parse(document.getElementById('data').textContent);
+  const ORDER = ['compliance-aware', 'gemini-informed', 'gemini-unaided', 'unconstrained'];
+  const LABEL = { 'compliance-aware': 'compliance-aware (ours)', 'gemini-informed': 'Gemini, told the Act', 'gemini-unaided': 'Gemini, unaided', 'unconstrained': 'unconstrained baseline' };
+  const SHORT = { 'compliance-aware': 'ours', 'gemini-informed': 'told the Act', 'gemini-unaided': 'unaided', 'unconstrained': 'baseline' };
+  const COLOR = { 'compliance-aware': 'var(--s1)', 'gemini-informed': 'var(--s2)', 'gemini-unaided': 'var(--s3)', 'unconstrained': 'var(--s4)' };
+  const mem = Object.fromEntries(D.memory.map(s => [s.short, s]));
+  const por = Object.fromEntries(D.portal.map(s => [s.short, s]));
+  const tip = document.getElementById('tip');
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  function hover(el, text) {
+    el.addEventListener('mousemove', e => { tip.textContent = text; tip.style.left = e.clientX + 'px'; tip.style.top = e.clientY + 'px'; tip.classList.add('on'); });
+    el.addEventListener('mouseleave', () => tip.classList.remove('on'));
+  }
+
+  // ---- meta line
+  document.getElementById('meta').innerHTML =
+    `agent model <b>gemini-3.1-flash-lite</b> · recorded 2026-09-16 · <b>${mem['compliance-aware'].repeats}</b> runs per task in memory · portal cost from one real browser pass`;
+
+  // ---- legend
+  document.getElementById('legend').innerHTML = ORDER.map(k =>
+    `<span><i class="sw" style="background:${COLOR[k]}"></i>${esc(LABEL[k])}</span>`).join('');
+
+  // ---- small multiples
+  const metrics = [
+    { title: 'Compliance score', sub: 'mean of seven rules, four tasks, in memory', max: 1, fmt: v => v.toFixed(3), get: k => mem[k].score },
+    { title: 'Coverage', sub: 'needed fields actually obtained ÷ needed', max: 1, fmt: v => v.toFixed(2), get: k => mem[k].coverage },
+    { title: 'Excess ratio', sub: 'distinct fields pulled ÷ fields the purpose requires', max: 7, fmt: v => v.toFixed(2) + '×', get: k => mem[k].excess },
+    { title: 'Page loads', sub: 'real browser, three tasks on the portal', max: 350, fmt: v => String(v), get: k => por[k].pages },
+    { title: 'Reproduced its decision', sub: 'of five identical runs: same fields and manifest', max: 5, fmt: v => v + ' / 5', get: k => mem[k].stable },
+  ];
+  const W = 240, H = 118, padL = 8, padR = 46, rowH = 22, top = 8;
+  document.getElementById('multiples').innerHTML = metrics.map(m => {
+    const bars = ORDER.map((k, i) => {
+      const v = m.get(k); const w = Math.max(2, (W - padL - padR) * v / m.max); const y = top + i * rowH;
+      return `<rect data-k="${k}" data-v="${esc(m.fmt(v))}" x="${padL}" y="${y}" width="${w.toFixed(1)}" height="14" rx="2" fill="${COLOR[k]}"></rect>
+              <text class="num" x="${(padL + w + 6).toFixed(1)}" y="${y + 11}" font-size="11.5">${esc(m.fmt(v))}</text>`;
+    }).join('');
+    const ticks = m.max === 1 ? [0, 0.5, 1] : m.max === 7 ? [0, 1, 3.5, 7] : m.max === 350 ? [0, 175, 350] : [0, 5];
+    const grid = ticks.map(t => { const x = padL + (W - padL - padR) * t / m.max; return `<line class="grid" x1="${x}" x2="${x}" y1="${top - 4}" y2="${top + rowH * 4 - 6}"></line>`; }).join('');
+    return `<div class="panel"><h3>${esc(m.title)}</h3><div class="sub">${esc(m.sub)}</div>
+      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(m.title)}">${grid}<line class="axis" x1="${padL}" x2="${padL}" y1="${top - 4}" y2="${top + rowH * 4 - 6}"></line>${bars}</svg></div>`;
+  }).join('');
+  document.querySelectorAll('.multiples rect').forEach(r => hover(r, `${LABEL[r.dataset.k]} · ${r.dataset.v}`));
+
+  // ---- per-rule heatmap
+  const seq = v => v >= 0.999 ? 6 : v >= 0.9 ? 5 : v >= 0.75 ? 4 : v >= 0.5 ? 3 : v >= 0.25 ? 2 : 1;
+  const RULE = { 'DM-01': 'minimisation', 'LB-01': 'lawful basis', 'SL-01': 'storage', 'SS-01': 'safeguards', 'PL-01': 'purpose', 'NT-01': 'notice', 'AC-01': 'accountability' };
+  let h = '<thead><tr><th>Technique</th>' + D.rules.map(r => `<th class="num" style="text-align:center">${r}<br><span style="font-weight:400;color:var(--ink-3)">${RULE[r]}</span></th>`).join('') + '<th class="num">score</th><th class="num">rules</th></tr></thead><tbody>';
+  ORDER.forEach(k => {
+    const s = mem[k];
+    h += `<tr><td><span class="tech"><i class="sw" style="background:${COLOR[k]}"></i>${esc(LABEL[k])}</span></td>` +
+      D.rules.map(r => { const v = s.per_rule[r]; const st = seq(v); return `<td class="cell"><span class="${st >= 4 ? 'hi' : 'lo'}" style="background:var(--seq-${st})" data-t="${esc(LABEL[k])} · ${r} · ${v.toFixed(2)}">${v.toFixed(2)}</span></td>`; }).join('') +
+      `<td class="num"><b>${s.score.toFixed(3)}</b></td><td class="num">${esc(s.rules_passed)}</td></tr>`;
+  });
+  document.getElementById('heat').innerHTML = h + '</tbody>';
+  document.querySelectorAll('.heat .cell span').forEach(el => hover(el, el.dataset.t));
+
+  // ---- field matrix for patient-summary
+  const task = D.tasks['patient-summary'];
+  const needed = new Set(task.needed);
+  const runs = { 'gemini-unaided': new Set(task.agent_runs.unaided[0]), 'gemini-informed': new Set(task.agent_runs.informed[0]) };
+  const cols = ['compliance-aware', 'gemini-informed', 'gemini-unaided', 'unconstrained'];
+  const takes = (k, ref) => k === 'compliance-aware' ? needed.has(ref) : k === 'unconstrained' ? true : runs[k].has(ref);
+  const layers = ['patient_administration', 'clinical_ehr'];
+  let m = '<thead><tr><th>field</th><th>DPDP category</th>' + cols.map(k => `<th style="text-align:center"><span class="tech"><i class="sw" style="background:${COLOR[k]}"></i>${esc(SHORT[k])}</span></th>`).join('') + '</tr></thead><tbody>';
+  const counts = Object.fromEntries(cols.map(k => [k, { taken: 0, extra: 0, missed: 0 }]));
+  layers.forEach(l => {
+    m += `<tr class="layer"><td colspan="${2 + cols.length}">${l.replace('_', ' ')}</td></tr>`;
+    Object.entries(D.catalogue[l]).forEach(([f, cat]) => {
+      const ref = `${l}/${f}`; const need = needed.has(ref); const inScope = task.allowed.includes(cat);
+      m += `<tr><td>${esc(f)}${need ? ' <span class="cat">· needed</span>' : ''}</td><td class="cat ${inScope ? '' : 'oos'}">${esc(cat.replace('_', ' '))}${inScope ? '' : ' — out of scope'}</td>`;
+      cols.forEach(k => {
+        const t = takes(k, ref);
+        let cls, label;
+        if (t && need) { cls = 'take'; label = 'taken, needed'; counts[k].taken++; }
+        else if (t && !need) { cls = 'extra'; label = 'taken, not needed'; counts[k].extra++; }
+        else if (!t && need) { cls = 'missed'; label = 'needed, not taken'; counts[k].missed++; }
+        else { cls = ''; label = ''; }
+        m += `<td class="dot">${cls ? `<i class="d ${cls}" data-t="${esc(LABEL[k])} · ${esc(f)} · ${label}"></i>` : ''}</td>`;
+      });
+      m += '</tr>';
+    });
+  });
+  m += `<tr><td colspan="2" style="color:var(--ink-3);font-size:12.5px">totals over these two layers · needed ${needed.size}</td>` +
+    cols.map(k => { const c = counts[k]; return `<td class="num" style="text-align:center;font-size:12px;white-space:normal">${c.taken} of ${needed.size} needed<br>${c.extra ? `<span style="color:var(--s4)">+${c.extra} extra</span>` : '—'}${c.missed ? `<br><span style="color:var(--miss)">${c.missed} missed</span>` : ''}</td>`; }).join('') + '</tr>';
+  document.getElementById('matrix').innerHTML = m + '</tbody>';
+  document.querySelectorAll('.matrix .d').forEach(el => hover(el, el.dataset.t));
+
+  // ---- stability strips: per task, per briefing, same-as-first by fields+manifest structure is what the
+  // benchmark measures; here the recording gives field sets per run, so the strip marks field-set agreement,
+  // and the number beside it is the benchmark's fuller figure over all tasks.
+  const tasks = Object.keys(D.tasks);
+  const brief = [['gemini-informed', 'informed'], ['gemini-unaided', 'unaided']];
+  document.getElementById('strips').innerHTML = tasks.map(t => {
+    const rows = brief.map(([k, b]) => {
+      const rs = D.tasks[t].agent_runs[b]; const first = JSON.stringify(rs[0]);
+      const sq = rs.map((r, i) => { const same = JSON.stringify(r) === first; return `<i class="run ${same ? 'same' : 'diff'}" style="${same ? `background:${COLOR[k]}` : ''}" data-t="${esc(LABEL[k])} · ${t} · run ${i + 1} · ${r.length} fields${same ? '' : ' · differs from run 1'}">${r.length}</i>`; }).join('');
+      const n = rs.filter(r => JSON.stringify(r) === first).length;
+      return `<div class="row"><span class="lab"><i class="sw" style="background:${COLOR[k]};margin-right:6px"></i>${esc(SHORT[k])}</span><span class="runs">${sq}</span><span class="n">${n}/${rs.length} same fields</span></div>`;
+    }).join('');
+    const ours = `<div class="row"><span class="lab"><i class="sw" style="background:${COLOR['compliance-aware']};margin-right:6px"></i>ours</span><span class="runs">${[0,1,2,3,4].map(() => `<i class="run same" style="background:${COLOR['compliance-aware']}" data-t="compliance-aware · ${t} · identical every run">${D.tasks[t].needed.length}</i>`).join('')}</span><span class="n">5/5 by construction</span></div>`;
+    return `<div class="strip"><div><h3 style="color:var(--ink)">${esc(t)}</h3><div class="eyebrow" style="text-transform:none;letter-spacing:0">${esc(D.tasks[t].description)} · needs ${D.tasks[t].needed.length} fields</div></div>${ours}${rows}</div>`;
+  }).join('');
+  document.querySelectorAll('.run').forEach(el => hover(el, el.dataset.t));
+
+  // ---- callouts
+  const inf = mem['gemini-informed'], un = mem['gemini-unaided'], ours = mem['compliance-aware'], base = mem['unconstrained'];
+  document.getElementById('callouts').innerHTML = [
+    { big: `${(ours.score - inf.score).toFixed(3)}`, what: `the compliance gap between ours and the agent told the Act. On paperwork, a current model is nearly there — it declares a basis, retention, deletion, a notice and an accountable party unprompted.`, c: 'var(--s2)' },
+    { big: `${Math.round(inf.coverage * 100)}%`, what: `of the fields the tasks need, both agents obtained. A name for the record number; an e-mail for the phone; a visit time for the appointment time. Lawful categories, so the score never notices.`, c: 'var(--s3)' },
+    { big: `${inf.stable}–${un.stable} of 5`, what: `identical runs in which the agent reproduced its own decision. Ours: 5 of 5, and the baseline too — neither samples. Compliance from an agent is a distribution.`, c: 'var(--s1)' },
+    { big: `${por['unconstrained'].pages} vs ${por['compliance-aware'].pages}`, what: `page loads, baseline against ours, at the same coverage. Its ${base.excess.toFixed(2)}× surplus is exactly the overreach the minimisation rule penalises — cost and compliance move together.`, c: 'var(--s4)' },
+  ].map(c => `<div class="callout" style="border-color:${c.c}"><div class="big">${esc(c.big)}</div><div class="what">${esc(c.what)}</div></div>`).join('');
+})();
+</script>

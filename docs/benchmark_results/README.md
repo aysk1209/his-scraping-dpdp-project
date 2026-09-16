@@ -10,6 +10,7 @@ re-running the matching script from the repo root.
 | `care-coordination-*.{json,md}` | `python scripts/score_extraction_run.py` | The rules scored against hand-built runs, no generator involved |
 | `*--purpose-matrix.{json,md}` | `python scripts/compare_purposes.py` | One unchanged extraction scored against every purpose in the policy. **The purpose-limitation result.** |
 | `benchmark-portal.{json,md}` | `python scripts/run_pipeline.py` | The same three techniques scraping the served portal through a real browser; cost includes real page loads. **The end-to-end result.** |
+| `techniques-compared.html` | hand-built from the two benchmark JSONs and the recordings (2026-09-16) | **The one-page figure**: five metrics per technique, per-rule heatmap, the field-selection matrix for `patient-summary`, and the run-to-run stability strips. Open in a browser; also published as an artifact. |
 | `navigation-map.{json,md}` | `python scripts/run_pipeline.py` | What the crawler discovered about the portal and which HIS layer it inferred for each module. The `.md` is the report table (paths only). |
 | `patient-summary--compliance-aware.{hl7,fhir.json}` | `python scripts/run_pipeline.py` | The compliant run's export as shaped: HL7 v2 messages and a FHIR `collection` Bundle, direct identifiers pseudonymised. Only the pseudonymised export is written; the baseline's raw one is audited and discarded. |
 
