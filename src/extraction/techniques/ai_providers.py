@@ -144,15 +144,14 @@ class GeminiProvider:
             raise ProviderUnavailable("GEMINI_API_KEY is not set")
 
         client = genai.Client()
-        # Shape checked against google-genai as installed: the Interactions API
-        # takes the JSON schema as ``response_format`` with the mime type beside
-        # it, and a separate ``system_instruction``.
+        # ``response_format`` is a typed TextResponseFormat: a bare schema dict
+        # matches no member of the union and is silently dropped (the server
+        # then rejects the request as having a mime type but no format).
         interaction = client.interactions.create(
             model=self.model,
             input=user,
             system_instruction=system,
-            response_format=schema,
-            response_mime_type="application/json",
+            response_format={"type": "text", "mime_type": "application/json", "schema": schema},
         )
         return json.loads(interaction.output_text)
 
