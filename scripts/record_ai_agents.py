@@ -29,12 +29,39 @@ import _present as present
 from compliance.checkers import run_all
 from extraction.adapters.mock_his import MockHISDataSource
 from extraction.techniques.ai_agent import BRIEFINGS, AIAgentTechnique
-from extraction.techniques.ai_providers import PROVIDERS, ProviderUnavailable, key_available, model_for
+from extraction.techniques.ai_providers import (
+    PROVIDERS, ProviderUnavailable, key_available, list_models, model_for,
+)
 from run_benchmark import TASKS
+
+
+def show_models(providers: list[str]) -> None:
+    """Print the ids each keyed account can use, so the model choice is not a guess."""
+
+    print(present.banner("Models available to your keys"))
+    for provider in providers:
+        try:
+            ids = list_models(provider)
+        except ProviderUnavailable as exc:
+            print(f"  {provider:<8} unavailable: {exc}")
+            continue
+        except Exception as exc:                                   # noqa: BLE001
+            print(f"  {provider:<8} {type(exc).__name__}: {exc}")
+            continue
+        current = model_for(provider)
+        mark = "ok" if current in ids else "NOT in list -- set AI_AGENT_MODEL_" + provider.upper()
+        print(f"  {provider:<8} default {current}  [{mark}]")
+        hint = [i for i in ids if any(k in i for k in ("gpt", "gemini", "claude"))]
+        for i in hint[:40]:
+            print(f"           {i}")
+        if len(hint) > 40:
+            print(f"           ... {len(hint) - 40} more")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--list-models", action="store_true",
+                        help="show the model ids each keyed account can use, then exit")
     parser.add_argument("--provider", choices=PROVIDERS, action="append",
                         help="repeatable; default: every provider with a key set")
     parser.add_argument("--briefing", choices=BRIEFINGS, action="append",
@@ -49,6 +76,9 @@ def main() -> None:
     briefings = args.briefing or list(BRIEFINGS)
     if not providers:
         sys.exit("No provider key found. Set ANTHROPIC_API_KEY, OPENAI_API_KEY or GEMINI_API_KEY.")
+    if args.list_models:
+        show_models(providers)
+        return
 
     print(present.banner("Recording AI-agent decisions"))
     print(f"  providers : {', '.join(f'{p} ({model_for(p)})' for p in providers)}")

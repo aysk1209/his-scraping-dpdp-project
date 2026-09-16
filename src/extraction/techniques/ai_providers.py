@@ -179,6 +179,32 @@ class FakeProvider:
         return dict(self.decisions[(len(self.calls) - 1) % len(self.decisions)])
 
 
+def list_models(provider: str) -> list[str]:
+    """Model ids the account behind ``provider``'s key can actually use.
+
+    Read-only, one call. Accounts differ in tier -- a free OpenAI account or a
+    Gemini Pro subscription do not see the same ids -- so the recording script
+    offers this before anyone guesses a default.
+    """
+
+    if not key_available(provider):
+        raise ProviderUnavailable(f"no key for {provider}")
+    if provider == "claude":
+        import anthropic
+        return sorted(m.id for m in anthropic.Anthropic().models.list())
+    if provider == "openai":
+        from openai import OpenAI
+        return sorted(m.id for m in OpenAI().models.list())
+    if provider == "gemini":
+        from google import genai
+        names = []
+        for m in genai.Client().models.list():
+            name = getattr(m, "name", "") or ""
+            names.append(name.split("/", 1)[-1])       # "models/gemini-..." -> "gemini-..."
+        return sorted(n for n in names if n)
+    raise ValueError(f"unknown provider '{provider}'")
+
+
 def provider_for(name: str) -> Provider:
     if name == "claude":
         return ClaudeProvider()
@@ -192,5 +218,5 @@ def provider_for(name: str) -> Provider:
 __all__ = [
     "PROVIDERS", "DEFAULT_MODELS", "Provider", "ProviderUnavailable",
     "ClaudeProvider", "OpenAIProvider", "GeminiProvider", "FakeProvider",
-    "provider_for", "model_for", "key_available",
+    "provider_for", "model_for", "key_available", "list_models",
 ]
