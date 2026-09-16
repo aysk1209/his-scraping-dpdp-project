@@ -41,6 +41,10 @@ class ExtractionTask(BaseModel):
     # technique reads it: every other technique works from ``needed`` or from
     # the whole source, and the agent is deliberately not shown ``needed``.
     description: str = ""
+    # Set when the description deliberately tempts a technique past the purpose
+    # -- an out-of-scope field, an onward use, a retention beyond the ceiling.
+    # Names the temptation, for the report; the purpose and ``needed`` stay lawful.
+    trap: str = ""
 
     def field_refs(self) -> set[tuple[str, str]]:
         """The (layer, field) pairs this task declares as minimum necessary.

@@ -17,6 +17,7 @@ from compliance.models import (
     Notice,
     SecurityPosture,
 )
+from compliance.capabilities import DEFAULT_REGISTER, CapabilityRegister
 from compliance.policy import policy_for
 from data_synthetic.catalogue import categories_for_fields
 from extraction.base import HISDataSource
@@ -25,6 +26,9 @@ from extraction.technique import ExtractionTask, ExtractionTechnique, TechniqueO
 
 class CompliantExtractionTechnique(ExtractionTechnique):
     name = "compliance-aware (ours)"
+
+    def __init__(self, register: CapabilityRegister | None = None) -> None:
+        self.register = register or DEFAULT_REGISTER
 
     def extract(self, source: HISDataSource, task: ExtractionTask) -> TechniqueOutput:
         records: list[ExtractedRecord] = []
@@ -40,6 +44,12 @@ class CompliantExtractionTechnique(ExtractionTechnique):
                 )
 
         policy = policy_for(task.purpose)
+        reg = self.register
+        basis = reg.lawful_bases.get(task.purpose)
+        # Every declaration below is a control the register actually provides,
+        # cited by its identifier -- the technique cannot declare a safeguard the
+        # deployment lacks, because it has no other source to declare from.
+        # DPDP Act 2023 -- accountability: declare only what can be demonstrated.
         run = ExtractionRun(
             run_id=f"{task.task_id}--compliance-aware",
             purpose=task.purpose,
@@ -47,28 +57,31 @@ class CompliantExtractionTechnique(ExtractionTechnique):
             secondary_uses=[],
             lawful_basis=LawfulBasis(
                 type=LawfulBasisType.LEGITIMATE_USE,
-                # Read from the policy table rather than hard-coded: the basis a
-                # run relies on is a property of its purpose, and the technique
-                # should not carry per-purpose knowledge of its own.
-                reference=policy.legitimate_use_note,
+                # The basis is a property of the purpose, read from the register
+                # (whose descriptions are the policy's legitimate-use notes). A
+                # deployment with no basis on record gets none cited -- LB-01
+                # then scores it as asserted, not referenced, which is the truth.
+                reference=f"{basis.id} -- {basis.description}" if basis else None,
             ),
             retention_days=min(30, policy.max_retention_days),
-            deletion_mechanism="scheduled purge on purpose completion, audited",
+            deletion_mechanism=f"{reg.deletion_mechanism.id} -- {reg.deletion_mechanism.description}"
+            if reg.deletion_mechanism else None,
             security=SecurityPosture(
-                transport_encrypted=True,
-                at_rest_encrypted=True,
-                access_controlled=True,
-                identifiers_pseudonymised=True,
+                transport_encrypted=reg.transport_encrypted is not None,
+                at_rest_encrypted=reg.at_rest_encrypted is not None,
+                access_controlled=reg.access_controlled is not None,
+                identifiers_pseudonymised=reg.pseudonymisation is not None,
             ),
             notice=Notice(
-                reference="patient privacy notice, acknowledged at registration",
+                reference=f"{reg.notice.id} -- {reg.notice.description}",
                 covers_purpose=True,
-                machine_readable=True,
-            ),
+                machine_readable=reg.notice_machine_readable,
+            ) if reg.notice else None,
             governance=Governance(
-                audit_log_enabled=True,
-                accountable_party="hospital Data Protection Officer",
-                processing_record_kept=True,
+                audit_log_enabled=reg.audit_log is not None,
+                accountable_party=f"{reg.accountable_party.id} -- {reg.accountable_party.description}"
+                if reg.accountable_party else None,
+                processing_record_kept=reg.processing_record is not None,
             ),
         )
         return TechniqueOutput(run=run, records=records, rows=rows)

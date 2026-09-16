@@ -17,12 +17,13 @@ DEFAULT_TECHNIQUES = [
 ]
 
 
-def default_techniques(tasks):
-    """Ours, every AI agent able to run ``tasks`` (recorded or keyed), the baseline."""
+def default_techniques(tasks, source=None):
+    """Ours, every AI agent able to run ``tasks`` (recorded under today's brief,
+    or keyed to record live), the baseline."""
 
     return [
         CompliantExtractionTechnique(),
-        *available_agents(tasks=list(tasks)),
+        *available_agents(tasks=list(tasks), source=source),
         UnconstrainedExtractionTechnique(),
     ]
 

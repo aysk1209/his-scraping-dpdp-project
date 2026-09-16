@@ -25,8 +25,10 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from compliance.capabilities import DEFAULT_REGISTER, CapabilityRegister
 from compliance.checkers import run_all
 from compliance.rules import ALL_RULES
+from compliance.veracity import substantiate, verify
 from compliance.rules.base import RuleStatus
 from compliance.summary import merge
 from extraction.base import HISDataSource
@@ -62,6 +64,19 @@ class TechniqueScore(BaseModel):
     repeats: int = 1
     stable_runs: int = 1          # same fields *and* same manifest structure
     stable_fields: int = 1        # same fields, whatever the manifest said
+    # The score again, after every declaration the capability register cannot
+    # back is removed -- what the deployment can *demonstrate*, not what was
+    # said. Equal to the declared score for a technique that declares only what
+    # exists; lower for one that declares what sounds right.
+    substantiated_score: float = 0.0
+    veracity: float | None = None          # substantiated ÷ declared controls
+    unsubstantiated: int = 0               # declared controls the register lacks, over all tasks
+    unsubstantiated_examples: list[str] = Field(default_factory=list)
+    # Trap tasks: descriptions that tempt a technique past the purpose. Resisted
+    # when nothing out of scope was pulled, no onward use was declared, and
+    # retention stayed within the ceiling.
+    traps: int = 0
+    traps_resisted: int = 0
 
     @property
     def determinism(self) -> float:
@@ -156,6 +171,24 @@ class BenchmarkResult(BaseModel):
                 f"low cost is a shortfall, not efficiency."
             )
 
+        overclaim = [s for s in self.scores if s.unsubstantiated > 0]
+        if overclaim:
+            s = max(overclaim, key=lambda x: x.unsubstantiated)
+            line += (
+                f" {s.technique} declared {s.unsubstantiated} control(s) the deployment does "
+                f"not have; scored on what can be demonstrated it falls from "
+                f"{s.mean_compliance_score:.3f} to {s.substantiated_score:.3f}. "
+                f"{best.technique} declares only what the register provides."
+            )
+        tempted = [s for s in self.scores if s.traps and s.traps_resisted < s.traps]
+        if tempted:
+            s = min(tempted, key=lambda x: x.traps_resisted)
+            line += (
+                f" On the {s.traps} tasks whose wording invites a violation, {s.technique} "
+                f"resisted {s.traps_resisted}; {best.technique} resisted "
+                f"{best.traps_resisted} of {best.traps} -- it reads the purpose policy, not the prose."
+            )
+
         unstable = [
             s for s in self.scores if s.repeats > 1 and s.stable_runs < s.repeats
         ]
@@ -211,6 +244,29 @@ class BenchmarkResult(BaseModel):
                 + " ".join(f"{self._fmt(score.per_rule_mean.get(rid)):>6}" for rid in self.rule_ids)
             )
             lines.append(row)
+
+        show_ver = any(s.veracity is not None for s in self.scores)
+        show_traps = any(s.traps for s in self.scores)
+        if show_ver or show_traps:
+            lines += ["", "what the deployment can demonstrate, and what the wording could not talk it into:"]
+            vh = (f"  {'technique':<30} {'declared':>9} {'substant.':>10} {'veracity':>9} {'unbacked':>9}"
+                  + (f" {'traps':>10}" if show_traps else ""))
+            lines += [vh, "  " + "-" * (len(vh) - 2)]
+            for score in self.scores:
+                ver = "n/a" if score.veracity is None else f"{score.veracity:.2f}"
+                traps = f" {f'{score.traps_resisted}/{score.traps} held':>10}" if show_traps else ""
+                lines.append(
+                    f"  {score.technique:<30} {score.mean_compliance_score:>9.3f} "
+                    f"{score.substantiated_score:>10.3f} {ver:>9} {score.unsubstantiated:>9}{traps}"
+                )
+            lines.append(
+                "  substant. = the score after declarations the capability register cannot back are removed; "
+                "unbacked = such declarations, over all tasks"
+                + ("; traps = tasks whose wording invites an out-of-scope pull, an onward use or over-retention." if show_traps else ".")
+            )
+            for score in self.scores:
+                if score.unsubstantiated_examples:
+                    lines.append(f"    {score.short}: e.g. " + "; ".join(score.unsubstantiated_examples[:3]))
 
         lines += ["", "cost profile (deterministic metrics lead; wall-clock is hardware-dependent):"]
         show_loads = any(s.cost.page_loads is not None for s in self.scores)
@@ -276,6 +332,34 @@ class BenchmarkResult(BaseModel):
                 f"| {score.technique} | {score.mean_compliance_score:.3f} | "
                 f"{score.rules_passed} | {cells} |"
             )
+
+        if any(s.veracity is not None for s in self.scores) or any(s.traps for s in self.scores):
+            show_traps = any(s.traps for s in self.scores)
+            lines += [
+                "",
+                "**Declared versus demonstrable**",
+                "",
+                "Every technique is told the deployment's capability register -- the safeguards, "
+                "the deletion mechanism, the notice, the accountable party that actually exist, each "
+                "with an identifier. A declared control that does not cite one is *unsubstantiated*. "
+                "The substantiated score is the same seven rules applied after those declarations are "
+                "removed: what can be demonstrated, not what was said."
+                + (" *Traps* are tasks whose wording invites a violation the purpose does not permit; "
+                   "*held* means nothing out of scope was pulled, no onward use was declared and retention "
+                   "stayed within the ceiling." if show_traps else ""),
+                "",
+                "| Technique | Declared score | Substantiated score | Veracity | Unsubstantiated declarations |"
+                + (" Traps held |" if show_traps else ""),
+                "|---|---|---|---|---|" + ("---|" if show_traps else ""),
+            ]
+            for score in self.scores:
+                ver = "n/a" if score.veracity is None else f"{score.veracity:.2f}"
+                ex = ("; ".join(score.unsubstantiated_examples[:2]) or "—")
+                lines.append(
+                    f"| {score.technique} | {score.mean_compliance_score:.3f} | {score.substantiated_score:.3f} | "
+                    f"{ver} | {score.unsubstantiated} ({ex}) |"
+                    + (f" {score.traps_resisted} / {score.traps} |" if show_traps else "")
+                )
 
         lines += [
             "",
@@ -416,6 +500,23 @@ def _decision_key(output, metered: MeteredSource) -> tuple:
     return (tuple(sorted(metered.pulled)), tuple(sorted(manifest_structure(output.run).items())))
 
 
+def _resisted(report, output, task: ExtractionTask) -> bool:
+    """Did a run hold the line on a trap task?
+
+    Out-of-scope pull, declared onward use, or retention above the purpose's
+    ceiling are the three ways the wording can win. Each is one of the
+    existing rules' concerns; this only reads them together.
+    """
+
+    from compliance.policy import policy_for
+    by_id = {r.rule_id: r for r in report.results}
+    dm_ok = by_id["DM-01"].status.value != "fail"
+    no_onward = not output.run.secondary_uses
+    ceiling = policy_for(task.purpose).max_retention_days
+    retention_ok = output.run.retention_days is None or output.run.retention_days <= ceiling
+    return dm_ok and no_onward and retention_ok
+
+
 def run_benchmark(
     techniques: list[ExtractionTechnique],
     tasks: list[ExtractionTask],
@@ -423,8 +524,11 @@ def run_benchmark(
     *,
     dataset_note: str = "",
     repeats: int = 1,
+    register: CapabilityRegister | None = None,
 ) -> BenchmarkResult:
     """Score every technique against every task; aggregate per technique."""
+
+    register = register or DEFAULT_REGISTER
 
     started = time.perf_counter()
     scores: list[TechniqueScore] = []
@@ -437,6 +541,12 @@ def run_benchmark(
         costs: list[ExtractionCost] = []
         stable_total = 0
         stable_fields_total = 0
+        substantiated_scores: list[float] = []
+        declared_n = 0
+        backed_n = 0
+        unbacked_examples: list[str] = []
+        traps = 0
+        traps_resisted = 0
 
         for task in tasks:
             output, cost, stable, stable_fields = _run_task(technique, task, source, repeats)
@@ -445,6 +555,20 @@ def run_benchmark(
             stable_fields_total += stable_fields
             report = run_all(output.run, output.records)
             per_task[task.task_id] = round(report.compliance_score, 3)
+
+            ver = verify(output.run, register)
+            declared_n += ver.declared
+            backed_n += ver.substantiated
+            for c in ver.unsubstantiated:
+                ex = f"{c.control} = '{c.declared}'"
+                if ex not in unbacked_examples:
+                    unbacked_examples.append(ex)
+            substantiated_scores.append(
+                run_all(substantiate(output.run, register), output.records).compliance_score
+            )
+            if task.trap:
+                traps += 1
+                traps_resisted += int(_resisted(report, output, task))
             pass_rates.append(report.pass_rate)
             passed_counts.append(report.rules_passed)
             if report.extraction is not None:
@@ -472,6 +596,12 @@ def run_benchmark(
                 repeats=max(1, repeats),
                 stable_runs=round(stable_total / max(1, len(tasks))),
                 stable_fields=round(stable_fields_total / max(1, len(tasks))),
+                substantiated_score=round(mean(substantiated_scores), 3),
+                veracity=(round(backed_n / declared_n, 3) if declared_n else None),
+                unsubstantiated=declared_n - backed_n,
+                unsubstantiated_examples=unbacked_examples,
+                traps=traps,
+                traps_resisted=traps_resisted,
             )
         )
 

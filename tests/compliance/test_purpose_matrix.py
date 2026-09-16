@@ -72,9 +72,9 @@ def test_every_purpose_declares_its_legitimate_use():
 def test_compliant_technique_takes_its_basis_from_the_policy():
     _, output = _matrix(BILLING_TASK)
     assert output.run.lawful_basis is not None
-    assert output.run.lawful_basis.reference == (
-        policy_for(Purpose.BILLING_SETTLEMENT).legitimate_use_note
-    )
+    # Cited by register identifier, carrying the policy's legitimate-use note.
+    assert policy_for(Purpose.BILLING_SETTLEMENT).legitimate_use_note in output.run.lawful_basis.reference
+    assert output.run.lawful_basis.reference.startswith("LU-BILL")
 
 
 # --- cross-purpose scoring --------------------------------------------------

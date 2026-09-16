@@ -45,6 +45,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from compliance.capabilities import DEFAULT_REGISTER, CapabilityRegister
 from compliance.models import (
     ExtractedRecord,
     ExtractionRun,
@@ -220,12 +221,19 @@ def _purpose_words(purpose: Purpose) -> str:
     return PURPOSE_POLICY[purpose].legitimate_use_note.split("--", 1)[-1].strip()
 
 
-def build_user_prompt(task: ExtractionTask, available: dict[HISLayer, list[str]]) -> str:
-    """The brief: the job in words, the purpose, and the fields on offer.
+def build_user_prompt(
+    task: ExtractionTask,
+    available: dict[HISLayer, list[str]],
+    register: CapabilityRegister | None = None,
+) -> str:
+    """The brief: the job in words, the purpose, the fields on offer, and what
+    the deployment provides.
 
     The task's own minimum-necessary list is deliberately *not* included -- it
     is the output of the purpose policy, which is the thing under comparison.
     An agent that asks for a patient summary should work out what that needs.
+    The capability register *is* included, in full, so that a declaration
+    beyond it is a choice the agent made, not a fact it lacked.
     """
 
     lines = [
@@ -238,9 +246,12 @@ def build_user_prompt(task: ExtractionTask, available: dict[HISLayer, list[str]]
         lines.append(f"  {layer.value} ({LAYER_DESCRIPTIONS.get(layer, '')})")
         for name in names:
             lines.append(f"    {layer.value}/{name}")
+    lines += ["", (register or DEFAULT_REGISTER).describe()]
     lines += [
         "",
-        "Return the JSON object: the fields to fetch, and the manifest for this run.",
+        "In the manifest, declare a control only if it appears above, and cite it by its "
+        "identifier in the corresponding text field. Return the JSON object: the fields to "
+        "fetch, and the manifest for this run.",
     ]
     return "\n".join(lines)
 
@@ -300,6 +311,25 @@ class AIAgentTechnique(ExtractionTechnique):
     def has_recording(self, task_id: str) -> bool:
         return task_id in self._load().get("tasks", {})
 
+    def fingerprint(self, source: HISDataSource, task: ExtractionTask) -> str:
+        """Identity of the brief this agent would send for ``task`` against ``source``."""
+
+        system = SYSTEM_INFORMED if self.briefing == "informed" else SYSTEM_UNAIDED
+        user = build_user_prompt(task, self._available(source))
+        return hashlib.sha256((system + "\n" + user).encode("utf-8")).hexdigest()[:16]
+
+    def stale_tasks(self, source: HISDataSource, tasks: list[ExtractionTask]) -> list[str]:
+        """Tasks whose recording was made under a different brief than today's.
+
+        A recording answers one exact brief. If the task wording, the field
+        list or the capability register has changed since, replaying it would
+        compare a new question with an old answer; those tasks need re-recording.
+        """
+
+        data = self._load().get("tasks", {})
+        return [t.task_id for t in tasks
+                if t.task_id in data and data[t.task_id].get("fingerprint") != self.fingerprint(source, t)]
+
     def recorded_samples(self, task_id: str) -> list[dict[str, Any]]:
         return list(self._load().get("tasks", {}).get(task_id, {}).get("samples", []))
 
@@ -334,6 +364,16 @@ class AIAgentTechnique(ExtractionTechnique):
         fingerprint = hashlib.sha256((system + "\n" + user).encode("utf-8")).hexdigest()[:16]
 
         samples = self.recorded_samples(task.task_id)
+        recorded_fp = self._load().get("tasks", {}).get(task.task_id, {}).get("fingerprint")
+        if samples and recorded_fp != fingerprint and self.mode != "live":
+            # An old answer to a different brief is not evidence about this one.
+            if self.mode == "auto" and (self._provider or key_available(self.provider_name)):
+                samples = []                      # fall through and record afresh
+            else:
+                raise ProviderUnavailable(
+                    f"recording for '{task.task_id}' in {self.recording_path.name} was made under a "
+                    f"different brief (task wording, fields or register changed); re-record it"
+                )
         if self.mode == "replay" or (self.mode == "auto" and samples):
             if not samples:
                 raise ProviderUnavailable(
@@ -384,13 +424,15 @@ def available_agents(
     *,
     recordings_dir: Path | None = None,
     tasks: list[ExtractionTask] | None = None,
+    source: HISDataSource | None = None,
 ) -> list[AIAgentTechnique]:
     """Every provider x briefing that can run right now.
 
     With ``tasks`` given, an agent qualifies only if it has a recording for
-    *every* task (or a key, so it could record live). A half-recorded agent is
-    left out rather than allowed to fail mid-benchmark -- and it is reported,
-    so the gap is visible instead of silent.
+    *every* task (or a key, so it could record live); with ``source`` given
+    too, each recording must also have been made under today's brief. A
+    half-recorded or stale agent is left out rather than allowed to fail
+    mid-benchmark -- and it is reported, so the gap is visible, not silent.
     """
 
     out: list[AIAgentTechnique] = []
@@ -402,11 +444,20 @@ def available_agents(
                 continue
             if not tech.recording_path.exists():
                 continue
-            if tasks is None or all(tech.has_recording(t.task_id) for t in tasks):
+            if tasks is None:
                 out.append(tech)
-            else:
-                missing = [t.task_id for t in tasks if not tech.has_recording(t.task_id)]
-                print(f"  (skipping {tech.name}: no recording yet for {', '.join(missing)})")
+                continue
+            missing = [t.task_id for t in tasks if not tech.has_recording(t.task_id)]
+            stale = tech.stale_tasks(source, tasks) if source is not None else []
+            if not missing and not stale:
+                out.append(tech)
+                continue
+            why = []
+            if missing:
+                why.append("no recording yet for " + ", ".join(missing))
+            if stale:
+                why.append("recording predates the current brief for " + ", ".join(stale))
+            print(f"  (skipping {tech.name}: {'; '.join(why)} -- run scripts/record_ai_agents.py)")
     return out
 
 

@@ -26,7 +26,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import _present as present
+from compliance.capabilities import DEFAULT_REGISTER
 from compliance.checkers import run_all
+from compliance.veracity import verify
 from extraction.adapters.mock_his import MockHISDataSource
 from extraction.techniques.ai_agent import BRIEFINGS, AIAgentTechnique
 from extraction.techniques.ai_providers import (
@@ -157,11 +159,14 @@ def main() -> None:
                     report = run_all(out.run, out.records)
                     fields = sum(len(v) for v in d.selection().values())
                     unknown = len(d.unknown_fields())
+                    ver = verify(out.run, DEFAULT_REGISTER)
                     print(
                         f"  {task.task_id:<22} run {i + 1}: {fields} fields"
                         + (f" (+{unknown} unknown, dropped)" if unknown else "")
                         + f", score {report.compliance_score:.3f}, "
                         f"{report.rules_passed}/{len(report.results)} rules"
+                        + (f", {len(ver.unsubstantiated)} unbacked claim(s)" if ver.unsubstantiated else "")
+                        + (f"  [trap: {task.trap}]" if task.trap else "")
                     )
                     if d.rationale:
                         print(f"  {'':<22}   \"{d.rationale.strip()[:110]}\"")

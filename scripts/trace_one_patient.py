@@ -32,6 +32,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import _present as present
 from compliance.benchmark import manifest_structure
+from compliance.capabilities import DEFAULT_REGISTER
+from compliance.veracity import substantiate, verify
 from compliance.checkers import run_all
 from compliance.models import ExtractionRun, Purpose
 from compliance.policy import policy_for
@@ -200,6 +202,11 @@ def run_technique(technique: ExtractionTechnique, source: MockHISDataSource) -> 
     print("         why compliance is a property of the method, not a wrapper)\n")
     for line in _manifest_lines(output.run):
         print(line)
+    ver = verify(output.run, DEFAULT_REGISTER)
+    print(f"  demonstrable      : {ver.one_line()}")
+    if ver.unsubstantiated:
+        sub_score = run_all(substantiate(output.run, DEFAULT_REGISTER), output.records).compliance_score
+        print(f"                      scored on what exists rather than what was said: {sub_score:.3f}")
 
     print("\nSTEP 5  what actually came out")
     for record in output.records:
@@ -258,7 +265,7 @@ def main() -> None:
     print("The benchmark shows the aggregate. This shows the mechanism, on a")
     print("single record, so every number can be checked by hand.")
 
-    agents = available_agents(tasks=[TASK])
+    agents = available_agents(tasks=[TASK], source=source)
 
     step_1_source(source)
     step_2_task()

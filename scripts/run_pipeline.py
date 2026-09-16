@@ -117,7 +117,7 @@ def _load_map(path: str | None) -> dict[str, str]:
 def run_downstream(scraper, pages: dict[str, str], dataset_note: str) -> None:
     """Stages 3-6: identical whatever the source was."""
 
-    techniques = default_techniques(TASKS)
+    techniques = default_techniques(TASKS, scraper)
     n = len(techniques)
     agents = [t.name for t in techniques if t.name.startswith("ai agent")]
     stage(3, f"BENCHMARK -- {n} techniques; same seven rules; real cost")
