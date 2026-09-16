@@ -383,15 +383,30 @@ def available_agents(
     briefings: tuple[str, ...] = BRIEFINGS,
     *,
     recordings_dir: Path | None = None,
+    tasks: list[ExtractionTask] | None = None,
 ) -> list[AIAgentTechnique]:
-    """Every provider x briefing that can run right now: recorded, or keyed."""
+    """Every provider x briefing that can run right now.
+
+    With ``tasks`` given, an agent qualifies only if it has a recording for
+    *every* task (or a key, so it could record live). A half-recorded agent is
+    left out rather than allowed to fail mid-benchmark -- and it is reported,
+    so the gap is visible instead of silent.
+    """
 
     out: list[AIAgentTechnique] = []
     for provider in providers:
         for briefing in briefings:
             tech = AIAgentTechnique(provider, briefing=briefing, recordings_dir=recordings_dir)
-            if tech.recording_path.exists() or key_available(provider):
+            if key_available(provider):
                 out.append(tech)
+                continue
+            if not tech.recording_path.exists():
+                continue
+            if tasks is None or all(tech.has_recording(t.task_id) for t in tasks):
+                out.append(tech)
+            else:
+                missing = [t.task_id for t in tasks if not tech.has_recording(t.task_id)]
+                print(f"  (skipping {tech.name}: no recording yet for {', '.join(missing)})")
     return out
 
 

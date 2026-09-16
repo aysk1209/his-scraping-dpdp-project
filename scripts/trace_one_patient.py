@@ -257,7 +257,7 @@ def main() -> None:
     print("The benchmark shows the aggregate. This shows the mechanism, on a")
     print("single record, so every number can be checked by hand.")
 
-    agents = available_agents()
+    agents = available_agents(tasks=[TASK])
 
     step_1_source(source)
     step_2_task()

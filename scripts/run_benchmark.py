@@ -27,7 +27,7 @@ from compliance.benchmark import run_benchmark
 from compliance.models import Purpose
 from extraction.adapters.mock_his import MockHISDataSource
 from extraction.technique import ExtractionTask, LayerFields
-from extraction.techniques import DEFAULT_TECHNIQUES
+from extraction.techniques import default_techniques
 from interop.layers import HISLayer
 
 TASKS = [
@@ -115,8 +115,9 @@ def _agents_note(techniques) -> str:
 def main() -> None:
     records_per_layer, seed = 50, 42
     source = MockHISDataSource(records_per_layer=records_per_layer, seed=seed)
+    techniques = default_techniques(TASKS)
     result = run_benchmark(
-        DEFAULT_TECHNIQUES,
+        techniques,
         TASKS,
         source,
         dataset_note=f"{records_per_layer} records/layer x 5 layers, seed {seed}",
@@ -129,7 +130,7 @@ def main() -> None:
     print(present.banner("DPDP compliance benchmark - extraction techniques compared"))
     print(_SCENARIO)
     print()
-    print(_agents_note(DEFAULT_TECHNIQUES))
+    print(_agents_note(techniques))
     print()
     print(present.sample_records(
         source, [HISLayer.PATIENT_ADMINISTRATION, HISLayer.CLINICAL_EHR]

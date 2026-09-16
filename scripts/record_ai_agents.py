@@ -58,28 +58,38 @@ def show_models(providers: list[str]) -> None:
             print(f"           ... {len(hint) - 40} more")
 
 
-def _with_backoff(call, attempts: int = 5):
+def _with_backoff(call, attempts: int = 6, pause: float = 0.0):
     """Retry on rate limits and transient server errors; free tiers throttle.
 
-    Waits 10, 20, 40, 80 s between attempts. Anything else is raised at once.
+    Honours the server's own "retry in N s" when it gives one, otherwise waits
+    10, 20, 40, 80, 160 s. Anything else is raised at once. ``pause`` is a fixed
+    gap after every successful call, to stay under a per-minute quota.
     """
 
+    import re
     import time
     delay = 10.0
     for attempt in range(attempts):
         try:
-            return call()
+            result = call()
+            if pause:
+                time.sleep(pause)
+            return result
         except ProviderUnavailable:
             raise
         except Exception as exc:                                   # noqa: BLE001
             text = f"{type(exc).__name__}: {exc}"
-            transient = any(k in text for k in ("429", "RESOURCE_EXHAUSTED", "rate", "Rate",
-                                                  "503", "overloaded", "UNAVAILABLE", "timed out",
-                                                  "Timeout", "timeout", "ReadTimeout"))
+            transient = any(k in text for k in (
+                "429", "RESOURCE_EXHAUSTED", "rate", "Rate", "quota",
+                "500", "503", "overloaded", "high demand", "UNAVAILABLE", "InternalServer",
+                "timed out", "Timeout", "timeout", "ReadTimeout",
+            ))
             if not transient or attempt == attempts - 1:
                 raise
-            print(f"    throttled ({text[:70]}...) -- waiting {delay:.0f} s")
-            time.sleep(delay)
+            m = re.search(r"retry in ([0-9.]+)\s*s", text)
+            wait = float(m.group(1)) + 2.0 if m else delay
+            print(f"    throttled ({text[:60]}...) -- waiting {wait:.0f} s")
+            time.sleep(wait)
             delay *= 2
 
 
@@ -95,6 +105,8 @@ def main() -> None:
                         help="decisions to record per task (the determinism sample)")
     parser.add_argument("--overwrite", action="store_true",
                         help="discard existing samples for these tasks first")
+    parser.add_argument("--pause", type=float, default=4.0,
+                        help="seconds to wait after each call (free tiers cap requests per minute)")
     args = parser.parse_args()
 
     providers = args.provider or [p for p in PROVIDERS if key_available(p)]
@@ -127,7 +139,7 @@ def main() -> None:
             for task in TASKS:
                 for i in range(args.repeats):
                     try:
-                        out = _with_backoff(lambda: tech.extract(source, task))
+                        out = _with_backoff(lambda: tech.extract(source, task), pause=args.pause)
                     except ProviderUnavailable as exc:
                         print(f"  {task.task_id:<22} unavailable: {exc}")
                         break

@@ -53,7 +53,7 @@ from extraction.adapters.dataset_his import DatasetHISDataSource
 from extraction.adapters.mock_his import MockHISDataSource
 from extraction.adapters.portal_his import PortalHISDataSource
 from extraction.technique import ExtractionTask, LayerFields
-from extraction.techniques import DEFAULT_TECHNIQUES
+from extraction.techniques import default_techniques
 from extraction.techniques.compliant import CompliantExtractionTechnique
 from extraction.techniques.unconstrained import UnconstrainedExtractionTechnique
 from interop.layers import HISLayer
@@ -117,8 +117,9 @@ def _load_map(path: str | None) -> dict[str, str]:
 def run_downstream(scraper, pages: dict[str, str], dataset_note: str) -> None:
     """Stages 3-6: identical whatever the source was."""
 
-    n = len(DEFAULT_TECHNIQUES)
-    agents = [t.name for t in DEFAULT_TECHNIQUES if t.name.startswith("ai agent")]
+    techniques = default_techniques(TASKS)
+    n = len(techniques)
+    agents = [t.name for t in techniques if t.name.startswith("ai agent")]
     stage(3, f"BENCHMARK -- {n} techniques; same seven rules; real cost")
     if agents:
         print("  AI agents replaying recorded decisions: " + ", ".join(agents))
@@ -126,7 +127,7 @@ def run_downstream(scraper, pages: dict[str, str], dataset_note: str) -> None:
     else:
         print("  (no AI-agent recordings: ours against the baseline only -- see scripts/record_ai_agents.py)")
         print()
-    result = run_benchmark(DEFAULT_TECHNIQUES, TASKS, scraper, dataset_note=dataset_note)
+    result = run_benchmark(techniques, TASKS, scraper, dataset_note=dataset_note)
     print(result.render_table())
     print()
     name = "benchmark-portal" if isinstance(scraper, PortalHISDataSource) else "benchmark-dataset"

@@ -35,10 +35,45 @@
           "accountable_party": "Clinical Director / Data Protection Officer",
           "processing_record_kept": true,
           "rationale": "Direct patient care requires direct identifiers and vital clinical history while excluding irrelevant contact, billing, and system audit logs."
+        },
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/date_of_birth",
+            "patient_administration/sex",
+            "patient_administration/admission_ward",
+            "patient_administration/admission_datetime",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/medication",
+            "clinical_ehr/lab_result",
+            "clinical_ehr/allergy",
+            "clinical_ehr/encounter_datetime",
+            "clinical_ehr/attending_clinician",
+            "ancillary_departmental/report_text",
+            "ancillary_departmental/result_value"
+          ],
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "Direct patient care and provision of medical treatment",
+          "retention_days": 30,
+          "deletion_mechanism": "Cryptographic purge and secure automated file shredding upon encounter completion",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "HOSP-PRIVACY-NOTICE-SEC-CARE",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "Clinical Care Team Lead / Data Protection Officer",
+          "processing_record_kept": true,
+          "rationale": "Direct identifiers and core clinical records are necessary for the care team to provide coordinated medical services safely. Administrative billing and non-essential contact details are excluded in compliance with data minimization."
         }
       ],
       "fingerprint": "54a1924bb03136e3",
-      "recorded_at": "2026-09-16T04:43:40.580731+00:00"
+      "recorded_at": "2026-09-16T04:46:35.212527+00:00"
     }
   },
   "model": "gemini-3.8-flash"
