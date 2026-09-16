@@ -189,16 +189,21 @@ def list_models(provider: str) -> list[str]:
 
     if not key_available(provider):
         raise ProviderUnavailable(f"no key for {provider}")
+    # Listings paginate lazily, so the client must outlive the iteration --
+    # a temporary ``Client()`` in the loop header is closed before page two.
     if provider == "claude":
         import anthropic
-        return sorted(m.id for m in anthropic.Anthropic().models.list())
+        client = anthropic.Anthropic()
+        return sorted(m.id for m in client.models.list())
     if provider == "openai":
         from openai import OpenAI
-        return sorted(m.id for m in OpenAI().models.list())
+        client = OpenAI()
+        return sorted(m.id for m in client.models.list())
     if provider == "gemini":
         from google import genai
+        client = genai.Client()
         names = []
-        for m in genai.Client().models.list():
+        for m in client.models.list():
             name = getattr(m, "name", "") or ""
             names.append(name.split("/", 1)[-1])       # "models/gemini-..." -> "gemini-..."
         return sorted(n for n in names if n)
