@@ -197,3 +197,34 @@ def test_transport_is_observed_from_the_connection_not_declared(scraper, portal)
     unopened = PortalHISDataSource.__new__(PortalHISDataSource)
     unopened._browser = SimpleNamespace(base_url=plain.url)
     assert unopened.transport_secure is False
+
+
+def test_a_scoped_fetch_uses_the_search_box_and_costs_one_page(scraper, portal):
+    # The patient's own records, found the way a person would: search, match,
+    # read. One page per module instead of every page; DM-01's record axis is
+    # then real cost on the portal too.
+    from compliance.benchmark import bind_subject, first_subject
+    from extraction.technique import ExtractionTask, LayerFields
+    from extraction.techniques import CompliantExtractionTechnique, UnconstrainedExtractionTechnique
+    from compliance.models import Purpose
+
+    subject = first_subject(scraper)
+    assert subject and subject.startswith("MRN")
+    before = scraper.page_loads
+    rows = list(scraper.fetch(HISLayer.CLINICAL_EHR, fields=["mrn", "primary_diagnosis"], where={"mrn": subject}))
+    assert [r["mrn"] for r in rows] == [subject]
+    assert scraper.page_loads - before == 1                 # the search result page, nothing else
+
+    task = ExtractionTask(
+        task_id="one", purpose=Purpose.CARE_COORDINATION, single_subject=True,
+        needed=[LayerFields(layer=HISLayer.PATIENT_ADMINISTRATION, fields=["mrn", "sex"]),
+                LayerFields(layer=HISLayer.CLINICAL_EHR, fields=["primary_diagnosis"])],
+    )
+    [task] = bind_subject([task], scraper, subject)
+    before = scraper.page_loads
+    ours = CompliantExtractionTechnique().extract(scraper, task)
+    ours_pages = scraper.page_loads - before
+    assert len(ours.records) == 2 and ours_pages == 2
+    before = scraper.page_loads
+    UnconstrainedExtractionTechnique().extract(scraper, task)
+    assert scraper.page_loads - before > ours_pages * 3       # every page of every module

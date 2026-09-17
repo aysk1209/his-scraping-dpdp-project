@@ -28,7 +28,10 @@ from pydantic import BaseModel, Field
 from compliance.audit import AuditLog, fields_by_layer
 from compliance.capabilities import DEFAULT_REGISTER, CapabilityRegister
 from compliance.checkers import run_all
+from compliance.models import FieldCategory, RecordScope
+from compliance.policy import policy_for
 from compliance.rules import ALL_RULES
+from data_synthetic.catalogue import subject_key
 from compliance.veracity import substantiate, verify
 from compliance.rules.base import RuleStatus
 from compliance.summary import merge
@@ -206,6 +209,15 @@ class BenchmarkResult(BaseModel):
                 f"low cost is a shortfall, not efficiency."
             )
 
+        wide = [s for s in self.scores if s.cost.record_excess is not None and s.cost.record_excess > 1.0]
+        if wide:
+            s = max(wide, key=lambda x: x.cost.record_excess or 0)
+            line += (
+                f" On the single-patient tasks, {s.technique} read {s.cost.record_excess:.1f}x the "
+                f"records the patient's own would be -- every patient's, to answer for one; "
+                f"{best.technique} read {best.cost.record_excess:.1f}x."
+            )
+
         overclaim = [s for s in self.scores if s.unsubstantiated > 0]
         if overclaim:
             s = max(overclaim, key=lambda x: x.unsubstantiated)
@@ -323,10 +335,12 @@ class BenchmarkResult(BaseModel):
         lines += ["", "cost profile (deterministic metrics lead; wall-clock is hardware-dependent):"]
         show_loads = any(s.cost.page_loads is not None for s in self.scores)
         show_stable = any(s.repeat_runs for s in self.scores)
+        show_scope = any(s.cost.records_necessary is not None for s in self.scores)
         cost_head = (
             f"  {'technique':<30} {'excess':>7} {'cover':>6} {'distinct':>9} {'fields':>8} "
             f"{'fetches':>8}" + (f" {'pages':>7}" if show_loads else "")
-            + f" {'records':>8} {'ms':>8}" + (f" {'stable':>8}" if show_stable else "")
+            + f" {'records':>8}" + (f" {'rec.excess':>11}" if show_scope else "")
+            + f" {'ms':>8}" + (f" {'stable':>8}" if show_stable else "")
         )
         lines += [cost_head, "  " + "-" * (len(cost_head) - 2)]
         for score in self.scores:
@@ -334,18 +348,20 @@ class BenchmarkResult(BaseModel):
             loads = f" {cost.page_loads if cost.page_loads is not None else '-':>7}" if show_loads else ""
             distinct = f"{cost.distinct_fields}/{cost.needed_fields}"
             stable = f" {f'{score.stable_runs}/{score.repeat_runs}':>8}" if show_stable else ""
+            scope = f" {self._fmt(cost.record_excess):>11}" if show_scope else ""
             lines.append(
                 f"  {score.technique:<30} {self._fmt(cost.excess_ratio):>7} "
                 f"{self._fmt(cost.coverage):>6} {distinct:>9} {cost.fields_pulled:>8} "
-                f"{cost.fetches:>8}{loads} {cost.records:>8} {cost.elapsed_ms:>8.1f}{stable}"
+                f"{cost.fetches:>8}{loads} {cost.records:>8}{scope} {cost.elapsed_ms:>8.1f}{stable}"
             )
         lines.append(
             "  distinct = distinct fields pulled / fields the purpose requires "
             "(excess is that ratio); cover = how much of the requirement was met"
+            + ("; rec.excess = on single-patient tasks, records read / the patient's own records" if show_scope else "")
             + ("; stable = repeats that reproduced the first run's decision, over all tasks." if show_stable else ".")
         )
 
-        lines += ["", "per task (scores key on data category and manifest, not record volume"
+        lines += ["", "per task (scores key on data category, manifest and, for single-patient tasks, record scope"
                   + ("; mean over repeats, with the range where runs differed" if show_stable else "") + "):"]
         task_head = f"  {'task':<22}" + "".join(f"{s.short:>18}" for s in self.scores)
         lines += [task_head, "  " + "-" * (len(task_head) - 2)]
@@ -447,8 +463,12 @@ class BenchmarkResult(BaseModel):
             "manifest -- on identical input, over all tasks; every repeat is scored, "
             "so the compliance column is the mean over them.",
             "",
-            "| Technique | Compliance | Excess ratio | Coverage | Distinct fields / needed | Fields pulled | Fetches | Pages loaded | Records | Wall-clock (ms) | Stable runs |",
-            "|---|---|---|---|---|---|---|---|---|---|---|",
+            "`record excess` is, over the single-patient tasks, records read divided by "
+            "the patient's own records -- minimisation on the record axis, which DM-01 "
+            "also scores.",
+            "",
+            "| Technique | Compliance | Excess ratio | Coverage | Distinct fields / needed | Fields pulled | Fetches | Pages loaded | Records | Record excess | Wall-clock (ms) | Stable runs |",
+            "|---|---|---|---|---|---|---|---|---|---|---|---|",
         ]
         for score in self.scores:
             cost = score.cost
@@ -459,7 +479,7 @@ class BenchmarkResult(BaseModel):
                 f"{self._fmt(cost.excess_ratio)} | {self._fmt(cost.coverage)} | "
                 f"{cost.distinct_fields} / {cost.needed_fields} | "
                 f"{cost.fields_pulled} | {cost.fetches} | {loads} | {cost.records} | "
-                f"{cost.elapsed_ms:.1f} | {stable} |"
+                f"{self._fmt(cost.record_excess).strip()} | {cost.elapsed_ms:.1f} | {stable} |"
             )
 
         lines += ["", "**Per task**", "",
@@ -531,6 +551,7 @@ def _run_task(
     task: ExtractionTask,
     source: HISDataSource,
     repeats: int,
+    records_necessary: int | None = None,
 ) -> list[_Run]:
     """Run one technique against one task ``repeats`` times, metered.
 
@@ -538,6 +559,10 @@ def _run_task(
     technique whose decision can vary on identical input, the last run is one
     draw, not the result. A recorded agent replays its i-th decision on the
     i-th repeat; a deterministic technique returns the same run each time.
+
+    For a single-patient task the harness writes what the meter saw -- records
+    read against the patient's own -- into the manifest's ``scope``, so DM-01
+    scores the record axis on evidence the technique did not supply.
     """
 
     runs: list[_Run] = []
@@ -548,8 +573,51 @@ def _run_task(
         started = time.perf_counter()
         output = technique.extract(metered, task)
         elapsed = (time.perf_counter() - started) * 1000
-        runs.append(_Run(output, metered.cost(task.field_refs(), elapsed), _decision_key(output, metered)))
+        if records_necessary is not None:
+            output.run.scope = RecordScope(records_pulled=metered.records, records_necessary=records_necessary)
+        cost = metered.cost(task.field_refs(), elapsed, records_necessary=records_necessary)
+        runs.append(_Run(output, cost, _decision_key(output, metered)))
     return runs
+
+
+def first_subject(source: HISDataSource) -> str | None:
+    """The record number of the first patient the source exposes."""
+
+    from interop.layers import HISLayer
+    key = subject_key(HISLayer.PATIENT_ADMINISTRATION)
+    for row in source.fetch(HISLayer.PATIENT_ADMINISTRATION, fields=[key]):
+        return str(row[key]) if row.get(key) else None
+    return None
+
+
+def bind_subject(tasks: list[ExtractionTask], source: HISDataSource, subject: str | None = None) -> list[ExtractionTask]:
+    """Give every single-subject task a patient to be about.
+
+    The subject is taken from the source at run time (its first patient unless
+    one is given), never written into a task definition -- a task file holds
+    no record number, and an AI agent's brief never carries one.
+    """
+
+    if not any(t.single_subject for t in tasks):
+        return list(tasks)
+    subject = subject or first_subject(source)
+    return [t.model_copy(update={"subject": subject}) if t.single_subject and subject else t for t in tasks]
+
+
+def necessary_records(task: ExtractionTask, source: HISDataSource) -> int | None:
+    """For a bound single-subject task: how many records are the patient's own,
+    over the layers the task needs. None for an unscoped task."""
+
+    if not task.single_subject or task.subject is None:
+        return None
+    total = 0
+    for item in task.needed:
+        where = task.subject_filter(item.layer)
+        key = subject_key(item.layer)
+        if not where or key is None:
+            continue
+        total += sum(1 for _ in source.fetch(item.layer, fields=[key], where=where))
+    return total
 
 
 def manifest_structure(run) -> dict[str, Any]:
@@ -595,9 +663,10 @@ def _resisted(report, output, task: ExtractionTask) -> bool:
     existing rules' concerns; this only reads them together.
     """
 
-    from compliance.policy import policy_for
-    by_id = {r.rule_id: r for r in report.results}
-    dm_ok = by_id["DM-01"].status.value != "fail"
+    extracted: set[FieldCategory] = set()
+    for record in output.records:
+        extracted |= record.field_categories
+    dm_ok = not (extracted - policy_for(task.purpose).allowed_categories)
     no_onward = not output.run.secondary_uses
     ceiling = policy_for(task.purpose).max_retention_days
     retention_ok = output.run.retention_days is None or output.run.retention_days <= ceiling
@@ -627,6 +696,9 @@ def run_benchmark(
     transport = source.transport_secure
     observed = {} if transport is None else {"transport_encrypted": transport}
     events = 0
+    tasks = bind_subject(tasks, source)
+    # The record axis's denominator, read once per task outside the meter.
+    necessary = {t.task_id: necessary_records(t, source) for t in tasks}
 
     started = time.perf_counter()
     scores: list[TechniqueScore] = []
@@ -655,7 +727,7 @@ def run_benchmark(
         trap_tasks_held = 0
 
         for task in tasks:
-            runs = _run_task(technique, task, source, repeats)
+            runs = _run_task(technique, task, source, repeats, necessary[task.task_id])
             costs.extend(r.cost for r in runs)
             elapsed_ms += median(r.cost.elapsed_ms for r in runs)
 

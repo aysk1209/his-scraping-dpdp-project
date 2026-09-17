@@ -114,7 +114,7 @@ Three extensions follow directly from decisions recorded in this report.
 ## 8.5 Closing
 
 The compliant technique scores 1.000 and the baseline 0.136 on the same seven
-rules; the compliant technique loads a sixth of the pages; a public AI agent
+rules; the compliant technique loads one page in fourteen; a public AI agent
 told to cross-check an invoice against a diagnosis takes the diagnosis in every
 run and ours never does; the same extraction
 is lawful for care and unlawful for billing; the compliant export contains no raw

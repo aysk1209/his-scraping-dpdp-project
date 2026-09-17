@@ -105,6 +105,18 @@ class Governance(BaseModel):
     processing_record_kept: bool = False       # a record of processing activities is retained
 
 
+class RecordScope(BaseModel):
+    """How many records a run read against how many the task's subject needed.
+
+    Filled in by the benchmark harness from the meter -- not by the technique
+    -- for tasks about a single patient. Minimisation on the record axis:
+    a summary of one patient does not need every patient's diagnosis.
+    """
+
+    records_pulled: int
+    records_necessary: int
+
+
 class ExtractionRun(BaseModel):
     """Declared manifest for a single extraction run."""
 
@@ -118,6 +130,7 @@ class ExtractionRun(BaseModel):
     security: SecurityPosture = Field(default_factory=SecurityPosture)
     notice: Notice | None = None
     governance: Governance = Field(default_factory=Governance)
+    scope: RecordScope | None = None          # set by the harness for single-subject tasks
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 

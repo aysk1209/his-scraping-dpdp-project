@@ -61,7 +61,7 @@ and memory `axe-autoscraper-citations`); `docs/architecture/five-layer-his.md`;
 
 ## 3. The compliance framework *(~2500 words — draft now; the core chapter)*
 
-**Status: draft 1 written 2026-09-15 — `ch3-compliance-framework.md`.** Section
+**Status: draft 2, 2026-09-17 — `ch3-compliance-framework.md`; §3.3.1 DM-01 on two axes (record scope from the harness).** Section
 references carry `— unverified` tags pending the Gazette check; over length by
 ~a quarter, trimming notes in the file header.
 
@@ -90,7 +90,7 @@ mapping, once verified).
 
 ## 4. Extraction techniques and the cost axis *(~1800 words — draft now)*
 
-**Status: draft 3, 2026-09-17 — `ch4-techniques-and-cost.md`; §4.5 added for manifest veracity and trap tasks.** Over
+**Status: draft 4, 2026-09-17 — `ch4-techniques-and-cost.md`; §4.5 veracity and traps, demonstrated-vs-attested controls, record-axis scoping in §4.2.1, `record_excess` in §4.3.** Over
 length by ~a quarter; numbers are illustrations from the tracked artefacts, with
 the tables left to chapter 7.
 
@@ -165,7 +165,7 @@ and what a member of staff may be told.
 
 ## 7. Evaluation *(~2200 words — draft on synthetic now; add real-data tables when available)*
 
-**Status: draft 3, 2026-09-17 — `ch7-evaluation.md`; eight-task workload, Tables 1–2 with veracity and traps, §7.2 rewritten, §7.8 extended.** Six tables from
+**Status: draft 4, 2026-09-17 — `ch7-evaluation.md`; every repeat scored, record axis, two more threats answered. Agent rows are from the previous brief and regenerate after the 2026-09-18 re-recording.** Six tables from
 the tracked artefacts; §7.7 is the real-data slot with its contents fixed.
 
 **Argues.** Compliance discriminates between techniques; purpose changes the

@@ -95,9 +95,12 @@ repeat scored, and aggregates. `python scripts/run_benchmark.py`:
 | Technique | Compliance score | Rules passed | Trap runs held | Repeats that reproduced run 1 |
 |-----------|-----------------|--------------|---------------:|------------------------------:|
 | compliance-aware (ours) | 1.000 | 7/7 | 20 / 20 | 32 / 32 |
-| ai agent: gemini (told the Act) | 0.948 | 5/7 | 0 / 20 | 19 / 32 |
-| ai agent: gemini (unaided) | 0.941 | 4/7 | 0 / 20 | 15 / 32 |
-| unconstrained (baseline) | 0.136 | 0/7 | 0 / 20 | 32 / 32 |
+| ai agent: gemini (told the Act) † | 0.948 | 5/7 | 0 / 20 | 19 / 32 |
+| ai agent: gemini (unaided) † | 0.941 | 4/7 | 0 / 20 | 15 / 32 |
+| unconstrained (baseline) | 0.100 | 0/7 | 0 / 20 | 32 / 32 |
+
+† recorded under the previous brief (2026-09-17); re-recorded under the
+record-axis brief, with the third *told the policy* briefing, on 2026-09-18.
 
 The full artifact (`docs/benchmark_results/benchmark.md`) also carries the
 per-rule breakdown, a per-task table with the range where repeats disagreed,
@@ -116,10 +119,14 @@ cooperates in its own measurement or could game it.
 
 | Technique | Compliance | Excess ratio | Coverage | Fields pulled | Fetches |
 |-----------|-----------:|-------------:|---------:|--------------:|--------:|
-| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 1750 | 14 |
-| ai agent: gemini (told the Act) | 0.948 | 1.06 | 0.78 | 1850 | 16 |
-| ai agent: gemini (unaided) | 0.941 | 1.03 | 0.74 | 1810 | 15 |
-| unconstrained (baseline) | 0.136 | 7.09 | 1.00 | 12400 | 40 |
+| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 427 | 14 |
+| ai agent: gemini (told the Act) † | 0.948 | 1.06 | 0.78 | 1850 | 16 |
+| ai agent: gemini (unaided) † | 0.941 | 1.03 | 0.74 | 1810 | 15 |
+| unconstrained (baseline) | 0.100 | 7.77 | 1.00 | 13600 | 40 |
+
+Six of the eight tasks are about one patient, and the harness scopes ours to
+that patient's records: 161 records over the workload against the baseline's
+2,000 — a record excess of 136× that DM-01 now scores as well as the meter.
 
 **`excess_ratio`** is distinct fields pulled divided by the fields the task's
 purpose requires. It is a cost measure and a compliance measure at once, because

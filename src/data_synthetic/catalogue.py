@@ -40,7 +40,11 @@ FIELD_CATALOGUE: dict[HISLayer, dict[str, FieldCategory]] = {
         "admission_ward": FieldCategory.ADMINISTRATIVE,
         "admission_datetime": FieldCategory.ADMINISTRATIVE,
     },
+    # Every clinical, departmental and financial record in a real HIS names the
+    # patient it belongs to. The key is a direct identifier on every layer that
+    # carries it, and it is what a single-patient task scopes its pull by.
     HISLayer.CLINICAL_EHR: {
+        "mrn": FieldCategory.DIRECT_IDENTIFIER,
         "primary_diagnosis": FieldCategory.CLINICAL,
         "medication": FieldCategory.CLINICAL,
         "lab_result": FieldCategory.CLINICAL,
@@ -49,6 +53,7 @@ FIELD_CATALOGUE: dict[HISLayer, dict[str, FieldCategory]] = {
         "attending_clinician": FieldCategory.ADMINISTRATIVE,
     },
     HISLayer.ANCILLARY_DEPARTMENTAL: {
+        "mrn": FieldCategory.DIRECT_IDENTIFIER,
         "order_id": FieldCategory.ADMINISTRATIVE,
         "specimen_type": FieldCategory.CLINICAL,
         "result_value": FieldCategory.CLINICAL,
@@ -56,6 +61,7 @@ FIELD_CATALOGUE: dict[HISLayer, dict[str, FieldCategory]] = {
         "report_text": FieldCategory.CLINICAL,
     },
     HISLayer.ADMINISTRATIVE_FINANCIAL: {
+        "mrn": FieldCategory.DIRECT_IDENTIFIER,
         "invoice_id": FieldCategory.FINANCIAL,
         "billed_amount": FieldCategory.FINANCIAL,
         "insurance_policy_no": FieldCategory.FINANCIAL,
@@ -73,6 +79,23 @@ FIELD_CATALOGUE: dict[HISLayer, dict[str, FieldCategory]] = {
         "subject_mrn": FieldCategory.DIRECT_IDENTIFIER,
     },
 }
+
+
+# The field that names the patient on each layer -- the join key across the
+# five-layer model, and the key a subject-scoped fetch filters on.
+SUBJECT_KEY: dict[HISLayer, str] = {
+    HISLayer.PATIENT_ADMINISTRATION: "mrn",
+    HISLayer.CLINICAL_EHR: "mrn",
+    HISLayer.ANCILLARY_DEPARTMENTAL: "mrn",
+    HISLayer.ADMINISTRATIVE_FINANCIAL: "mrn",
+    HISLayer.INFRASTRUCTURE_INTEGRATION: "subject_mrn",
+}
+
+
+def subject_key(layer: HISLayer) -> str | None:
+    """The field on ``layer`` that identifies the patient a record is about."""
+
+    return SUBJECT_KEY.get(layer)
 
 
 def fields_for(layer: HISLayer) -> list[str]:

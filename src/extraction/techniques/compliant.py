@@ -34,7 +34,10 @@ class CompliantExtractionTechnique(ExtractionTechnique):
         records: list[ExtractedRecord] = []
         rows: dict[str, list[dict]] = {}
         for item in task.needed:
-            for row in source.fetch(item.layer, fields=item.fields):
+            # A single-patient task reads that patient's records and no one
+            # else's -- minimisation on the record axis, read off the task the
+            # same way the field list is.
+            for row in source.fetch(item.layer, fields=item.fields, where=task.subject_filter(item.layer) or None):
                 rows.setdefault(item.layer.value, []).append(row)
                 records.append(
                     ExtractedRecord(

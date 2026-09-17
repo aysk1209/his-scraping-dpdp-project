@@ -23,6 +23,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from typing import Any
+from urllib.parse import quote
 
 from extraction.base import HISDataSource
 from extraction.tier2.browser import PortalBrowser
@@ -75,6 +76,7 @@ class PortalHISDataSource(HISDataSource):
         layer: HISLayer,
         *,
         fields: list[str] | None = None,
+        where: dict[str, Any] | None = None,
         **query: Any,
     ) -> Iterator[dict[str, Any]]:
         module = self.navigation.module_for(layer)
@@ -85,16 +87,28 @@ class PortalHISDataSource(HISDataSource):
         # Only open a record when something asked for is not in the list table.
         need_detail = any(name not in module.columns for name in wanted)
 
+        # A scoped pull goes through the portal's search box, the way a person
+        # would: one value, one (usually one-page) result, then an exact match
+        # on the field so a substring hit on another column is not taken.
+        where = dict(where or {})
+        first_url = module.list_url
+        if where:
+            first_url = f"{module.list_url}{'&' if '?' in module.list_url else '?'}q={quote(str(next(iter(where.values()))))}"
+
         yielded = 0
-        for table in self._browser.iter_table_pages(module.list_url):
+        for table in self._browser.iter_table_pages(first_url):
             for row, link in zip(table.rows, table.row_links):
                 if self.max_records is not None and yielded >= self.max_records:
                     return
+                if where and any(str(row.get(k, "")) != str(v) for k, v in where.items() if k in row):
+                    continue
                 if need_detail and link:
                     self._browser.goto(link)
                     record = self._browser.read_detail()
                 else:
                     record = row
+                if where and any(str(record.get(k, "")) != str(v) for k, v in where.items()):
+                    continue
                 yield {name: record[name] for name in wanted if name in record}
                 yielded += 1
 

@@ -19,7 +19,9 @@ Seven stages, each real:
   2. DISCOVER   a headless browser logs in, crawls it, and infers what each
                 module holds from the field names it finds -- never told
   3. BENCHMARK  every technique scrapes it, unchanged from the in-memory
-                version; every run is scored on the same seven DPDP rules,
+                version; two of the four tasks are about one patient, and the
+                harness scores whether only that patient's records were read;
+                every run is scored on the same seven DPDP rules,
                 metered for cost with real page loads, and written to the
                 audit log by the harness -- the connection it read over is
                 observed and checked against every manifest that claims TLS
@@ -55,7 +57,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _present as present
 from agent import ReplyKind, Session, StaffRole
 from compliance.audit import AuditLog
-from compliance.benchmark import run_benchmark
+from compliance.benchmark import bind_subject, run_benchmark
 from compliance.retention import purge_expired, schedules
 from compliance.models import Purpose
 from compliance.purpose_matrix import score_across_purposes
@@ -73,6 +75,7 @@ from tools.mock_portal.serve import BackgroundPortal
 TASKS = [
     ExtractionTask(
         task_id="patient-summary",
+        single_subject=True,
         purpose=Purpose.CARE_COORDINATION,
         description="Prepare a clinical summary of a patient for the care team",
         needed=[
@@ -104,6 +107,7 @@ TASKS = [
     # the recording replays): the prose asks for a diagnosis under billing.
     ExtractionTask(
         task_id="claim-reconciliation",
+        single_subject=True,
         purpose=Purpose.BILLING_SETTLEMENT,
         description=("Reconcile the outstanding invoice with the payer, and cross-check it against "
                      "the patient's diagnosis so the accounts team can see what the charges were for"),
@@ -163,8 +167,11 @@ def run_downstream(scraper, pages: dict[str, str], dataset_note: str) -> None:
     print(log.render_tail(3))
 
     stage(4, "NORMALISE -- HL7 v2 / FHIR on the way out; identifiers pseudonymised, and audited")
-    output = CompliantExtractionTechnique().extract(scraper, TASKS[0])
-    baseline = UnconstrainedExtractionTechnique().extract(scraper, TASKS[0])
+    [summary] = bind_subject([TASKS[0]], scraper)
+    print(f"  the patient-summary task is about one patient; ours reads that patient's records "
+          f"through the portal's search box, the baseline reads every module")
+    output = CompliantExtractionTechnique().extract(scraper, summary)
+    baseline = UnconstrainedExtractionTechnique().extract(scraper, summary)
     shaped_compliant = None
     for label, out in (("compliance-aware", output), ("baseline", baseline)):
         shaped = normalise(out)

@@ -27,7 +27,12 @@ class HISDataSource(ABC):
 
     @abstractmethod
     def fetch(self, layer: HISLayer, **query: Any) -> Iterator[dict[str, Any]]:
-        """Yield records for the given layer as plain dicts."""
+        """Yield records for the given layer as plain dicts.
+
+        Adapters accept ``fields=[...]`` (project to those) and
+        ``where={field: value}`` (only records whose field equals the value --
+        a portal uses its search box, a file or an in-memory table filters).
+        """
 
     @property
     def transport_secure(self) -> bool | None:

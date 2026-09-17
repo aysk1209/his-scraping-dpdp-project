@@ -52,6 +52,12 @@ class ExtractionCost(BaseModel):
     matched_fields: int = 0       # needed pairs the run actually obtained
     coverage: float | None = None      # matched / needed -- did it do the job?
     excess_ratio: float | None = None  # distinct / needed -- how far past the purpose?
+    # The record axis, for single-subject tasks: rows the subject's own records
+    # would have been, against rows actually read. None when the task is not
+    # about one patient (a census, a reminder run) -- there is no "necessary"
+    # row count to measure against.
+    records_necessary: int | None = None
+    record_excess: float | None = None # records / records_necessary
     elapsed_ms: float = 0.0       # hardware-dependent; reported, not relied on
 
     @classmethod
@@ -65,9 +71,12 @@ class ExtractionCost(BaseModel):
         needed: set[FieldRef],
         elapsed_ms: float,
         page_loads: int | None = None,
+        records_necessary: int | None = None,
     ) -> "ExtractionCost":
         matched = len(pulled & needed)
         return cls(
+            records_necessary=records_necessary,
+            record_excess=(None if records_necessary is None else _ratio(records, records_necessary)),
             fetches=fetches,
             page_loads=page_loads,
             records=records,
@@ -96,7 +105,12 @@ def combine(costs: list[ExtractionCost]) -> ExtractionCost:
     matched = sum(c.matched_fields for c in costs)
     distinct = sum(c.distinct_fields for c in costs)
     loads = [c.page_loads for c in costs if c.page_loads is not None]
+    scoped = [c for c in costs if c.records_necessary is not None]
+    rec_needed = sum(c.records_necessary for c in scoped) if scoped else None
+    rec_pulled = sum(c.records for c in scoped)
     return ExtractionCost(
+        records_necessary=rec_needed,
+        record_excess=(None if rec_needed is None else _ratio(rec_pulled, rec_needed)),
         fetches=sum(c.fetches for c in costs),
         page_loads=sum(loads) if loads else None,
         records=sum(c.records for c in costs),
@@ -134,34 +148,8 @@ def per_pass(cost: ExtractionCost, passes: int) -> ExtractionCost:
         matched_fields=each(cost.matched_fields),
         coverage=cost.coverage,
         excess_ratio=cost.excess_ratio,
-        elapsed_ms=cost.elapsed_ms,
-    )
-
-
-def per_pass(cost: ExtractionCost, passes: int) -> ExtractionCost:
-    """A profile combined over ``passes`` repeated runs, expressed per pass.
-
-    Counts become the mean over the runs (rounded); the ratios are left as the
-    micro-average over every run, which is exact. For a deterministic technique
-    every run is identical and this returns the single-run profile unchanged.
-    """
-
-    if passes <= 1:
-        return cost
-
-    def each(n: int) -> int:
-        return round(n / passes)
-
-    return ExtractionCost(
-        fetches=each(cost.fetches),
-        page_loads=None if cost.page_loads is None else each(cost.page_loads),
-        records=each(cost.records),
-        fields_pulled=each(cost.fields_pulled),
-        distinct_fields=each(cost.distinct_fields),
-        needed_fields=each(cost.needed_fields),
-        matched_fields=each(cost.matched_fields),
-        coverage=cost.coverage,
-        excess_ratio=cost.excess_ratio,
+        records_necessary=None if cost.records_necessary is None else each(cost.records_necessary),
+        record_excess=cost.record_excess,
         elapsed_ms=cost.elapsed_ms,
     )
 
@@ -209,7 +197,9 @@ class MeteredSource(HISDataSource):
     def close(self) -> None:
         self._inner.close()
 
-    def cost(self, needed: set[FieldRef], elapsed_ms: float) -> ExtractionCost:
+    def cost(
+        self, needed: set[FieldRef], elapsed_ms: float, *, records_necessary: int | None = None,
+    ) -> ExtractionCost:
         """Freeze what was metered into an ``ExtractionCost``."""
 
         loads = None
@@ -223,4 +213,5 @@ class MeteredSource(HISDataSource):
             needed=needed,
             elapsed_ms=elapsed_ms,
             page_loads=loads,
+            records_necessary=records_necessary,
         )

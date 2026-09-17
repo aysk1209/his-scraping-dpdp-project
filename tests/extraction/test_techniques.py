@@ -146,7 +146,7 @@ def test_ai_agent_recording_holds_no_personal_data(tmp_path):
     live.extract(source, _task())
     text = (tmp_path / "fake-unaided.json").read_text(encoding="utf-8")
     data = json.loads(text)
-    assert set(data["tasks"]["t"]["samples"][0]) == set(_DECISION)
+    assert set(data["tasks"]["t"]["samples"][0]) == set(_DECISION) | {"scope"}
     for row in source.fetch(HISLayer.PATIENT_ADMINISTRATION):
         assert row["full_name"] not in text and row["mrn"] not in text
         break
@@ -199,3 +199,27 @@ def test_default_mode_is_replay_and_a_key_does_not_make_it_live(tmp_path, monkey
         assert False
     except ValueError:
         pass
+
+
+def test_the_policy_briefing_hands_the_agent_everything_ours_reads(tmp_path):
+    from extraction.techniques.ai_agent import BRIEFING_LABELS, SYSTEM_POLICY, system_prompt
+    task = ExtractionTask(task_id="t", purpose=Purpose.CARE_COORDINATION, description="a job",
+                          needed=[LayerFields(layer=HISLayer.CLINICAL_EHR, fields=["primary_diagnosis"])])
+    available = {HISLayer.PATIENT_ADMINISTRATION: ["mrn", "email"], HISLayer.CLINICAL_EHR: ["primary_diagnosis"]}
+    plain = build_user_prompt(task, available)
+    told = build_user_prompt(task, available, policy=True)
+    assert "Purpose policy" not in plain
+    assert "retention ceiling: 90 days" in told
+    assert "permitted data categories: administrative, clinical, direct_identifier, quasi_identifier" in told
+    assert "patient_administration/email -> contact" in told
+    assert "binding" in SYSTEM_POLICY and system_prompt("policy") == SYSTEM_POLICY
+    # The task's own needed list is still withheld: the agent works that out.
+    assert "primary_diagnosis, " not in told.split("Fields available")[0]
+
+    tech = AIAgentTechnique("gemini", briefing="policy", recordings_dir=tmp_path)
+    assert tech.name == "ai agent: gemini (told the policy)" and tech.short_id == "gemini-policy"
+    assert BRIEFING_LABELS["policy"] == "told the policy"
+    # Three briefings, three distinct briefs for the same task.
+    prints = {b: AIAgentTechnique("gemini", briefing=b, recordings_dir=tmp_path).fingerprint(_source(), task)
+              for b in ("unaided", "informed", "policy")}
+    assert len(set(prints.values())) == 3

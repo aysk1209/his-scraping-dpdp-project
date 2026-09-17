@@ -109,8 +109,9 @@ loading several hundred pages, which is the point. Seven stages print in turn:
 3. **Benchmark** — every scraping method (ours, the AI agents replaying their
    recorded decisions, the baseline) runs against the portal, unchanged from the
    in-memory version, and is scored on the same seven rules. The cost table has
-   a **pages** column with real page loads: the compliant method loads about a
-   sixth of what the baseline does, at identical coverage. The connection was
+   a **pages** column with real page loads: for the two single-patient tasks the
+   compliant method goes through the search box — 32 page loads against the
+   baseline's 440 over the four tasks, at identical coverage. The connection was
    **observed** to be encrypted, and every run was written to the **audit log**
    by the harness — the last three events are printed.
 4. **Normalise** — the compliant pull is shaped into HL7 v2 messages and FHIR

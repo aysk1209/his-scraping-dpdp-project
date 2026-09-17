@@ -106,11 +106,14 @@ class DatasetHISDataSource(HISDataSource):
         layer: HISLayer,
         *,
         fields: list[str] | None = None,
+        where: dict[str, Any] | None = None,
         **query: Any,
     ) -> Iterator[dict[str, Any]]:
         frame = self._frames.get(layer)
         if frame is None:
             return
+        for k, v in (where or {}).items():
+            frame = frame[frame[k].astype(str) == str(v)] if k in frame.columns else frame.iloc[0:0]
         wanted = [f for f in (fields or list(frame.columns)) if f in frame.columns]
         for record in frame[wanted].to_dict(orient="records"):
             yield {k: v for k, v in record.items() if v is not None}

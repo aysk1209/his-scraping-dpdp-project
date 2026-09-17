@@ -59,9 +59,22 @@ def test_categories_for_fields_maps_via_catalogue_and_ignores_unknowns():
     }
 
 
-def test_financial_layer_is_all_financial_category():
+def test_financial_layer_is_financial_plus_the_patient_key():
     cats = categories_for_fields(
         HISLayer.ADMINISTRATIVE_FINANCIAL,
         fields_for(HISLayer.ADMINISTRATIVE_FINANCIAL),
     )
-    assert cats == {FieldCategory.FINANCIAL}
+    assert cats == {FieldCategory.FINANCIAL, FieldCategory.DIRECT_IDENTIFIER}
+
+
+def test_every_record_bearing_layer_names_its_patient_and_the_layers_join():
+    from data_synthetic.catalogue import subject_key
+    from data_synthetic.generators.records import build_dataset
+    data = build_dataset(6, seed=3)
+    mrns = [r["mrn"] for r in data[HISLayer.PATIENT_ADMINISTRATION]]
+    assert len(set(mrns)) == 6
+    for layer, rows in data.items():
+        key = subject_key(layer)
+        assert key is not None and all(key in r for r in rows)
+        # Record i of every layer is patient i's.
+        assert [r[key] for r in rows] == mrns

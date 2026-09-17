@@ -1,12 +1,12 @@
 {
-  "base_url": "https://127.0.0.1:53316",
-  "discovered_at": "2026-09-17T09:05:39.667398Z",
+  "base_url": "https://127.0.0.1:61019",
+  "discovered_at": "2026-09-17T09:55:05.810584Z",
   "login_path": "/login",
   "page_loads": 11,
   "modules": [
     {
       "title": "Patient Registration",
-      "list_url": "https://127.0.0.1:53316/m/registration/",
+      "list_url": "https://127.0.0.1:61019/m/registration/",
       "list_path": "/m/registration/",
       "columns": [
         "mrn",
@@ -33,14 +33,16 @@
     },
     {
       "title": "Clinical Records",
-      "list_url": "https://127.0.0.1:53316/m/clinical/",
+      "list_url": "https://127.0.0.1:61019/m/clinical/",
       "list_path": "/m/clinical/",
       "columns": [
+        "mrn",
         "encounter_datetime",
         "primary_diagnosis",
         "attending_clinician"
       ],
       "detail_fields": [
+        "mrn",
         "primary_diagnosis",
         "medication",
         "lab_result",
@@ -55,14 +57,16 @@
     },
     {
       "title": "Departmental Orders",
-      "list_url": "https://127.0.0.1:53316/m/departments/",
+      "list_url": "https://127.0.0.1:61019/m/departments/",
       "list_path": "/m/departments/",
       "columns": [
+        "mrn",
         "order_id",
         "specimen_type",
         "imaging_modality"
       ],
       "detail_fields": [
+        "mrn",
         "order_id",
         "specimen_type",
         "result_value",
@@ -76,14 +80,16 @@
     },
     {
       "title": "Billing & Accounts",
-      "list_url": "https://127.0.0.1:53316/m/billing/",
+      "list_url": "https://127.0.0.1:61019/m/billing/",
       "list_path": "/m/billing/",
       "columns": [
+        "mrn",
         "invoice_id",
         "billed_amount",
         "payer_name"
       ],
       "detail_fields": [
+        "mrn",
         "invoice_id",
         "billed_amount",
         "insurance_policy_no",
@@ -96,7 +102,7 @@
     },
     {
       "title": "Audit Log",
-      "list_url": "https://127.0.0.1:53316/m/integration/",
+      "list_url": "https://127.0.0.1:61019/m/integration/",
       "list_path": "/m/integration/",
       "columns": [
         "audit_event_id",

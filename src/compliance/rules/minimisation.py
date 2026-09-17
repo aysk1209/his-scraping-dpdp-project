@@ -27,22 +27,46 @@ class DataMinimisationRule(Rule):
                 ["No extracted records supplied; nothing to assess."],
             )
 
+        # Field axis: are the categories pulled within the purpose's scope?
         excess = extracted - allowed
-        score = 1.0 - len(excess) / len(extracted)
-
+        category_score = 1.0 - len(excess) / len(extracted)
+        findings: list[str] = []
         if not excess:
-            return self._result(
-                RuleStatus.PASS, 1.0,
-                [f"All {len(extracted)} extracted field categories are within "
-                 f"the '{run.purpose.value}' purpose scope."],
+            findings.append(
+                f"All {len(extracted)} extracted field categories are within "
+                f"the '{run.purpose.value}' purpose scope."
+            )
+        else:
+            findings += [
+                f"Out-of-scope category extracted: {category.value}"
+                for category in sorted(excess, key=lambda c: c.value)
+            ]
+            findings.append(
+                f"{len(excess)} of {len(extracted)} extracted categories exceed the "
+                f"'{run.purpose.value}' purpose scope."
             )
 
-        findings = [
-            f"Out-of-scope category extracted: {category.value}"
-            for category in sorted(excess, key=lambda c: c.value)
-        ]
-        findings.append(
-            f"{len(excess)} of {len(extracted)} extracted categories exceed the "
-            f"'{run.purpose.value}' purpose scope."
-        )
-        return self._result(RuleStatus.FAIL, score, findings)
+        # Record axis: for a task about one patient, were only that patient's
+        # records read? The harness records what was pulled against what the
+        # subject needed; a run that read the whole module to answer for one
+        # person over-collected on every record but one, whatever the fields.
+        # DPDP Act 2023 -- data minimisation: necessary for the purpose means
+        # necessary records as well as necessary fields.
+        if run.scope is None:
+            score = category_score
+        else:
+            pulled, needed = run.scope.records_pulled, run.scope.records_necessary
+            record_score = 1.0 if pulled <= max(needed, 0) or pulled == 0 else needed / pulled
+            if record_score >= 1.0:
+                findings.append(
+                    f"Single-patient task: {pulled} record(s) read, {needed} necessary."
+                )
+            else:
+                findings.append(
+                    f"Single-patient task: {pulled} records read where {needed} were necessary "
+                    f"-- {pulled - needed} other patients' records taken."
+                )
+            score = (category_score + record_score) / 2
+
+        status = RuleStatus.PASS if score >= 1.0 else RuleStatus.FAIL
+        return self._result(status, round(score, 6), findings)

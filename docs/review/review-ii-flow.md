@@ -113,6 +113,12 @@ single detail, with the rule named. That refusal comes from the same policy tabl
 that scored stage 3." *(This is the Review-1 "how is the agent trained" doubt:
 it isn't.)*
 
+**The record axis, if asked "but a real scraper would filter by patient".**
+"Ours does — through the search box, like a person. That is the 32 against 440
+pages. The point is that the *score* sees it too: DM-01 halves a technique
+that reads every patient to answer for one, from the harness's own count, not
+the technique's word."
+
 **[7] RETAIN.** Ten seconds.
 "The manifest said thirty days. Here is the sidecar that says so, here is the
 purge naming the three files as of the day after, here it is erasing them on a

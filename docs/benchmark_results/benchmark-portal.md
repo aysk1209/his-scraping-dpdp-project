@@ -1,15 +1,13 @@
 ### Compliance benchmark
 
-_compliance-aware (ours) scores 1.000; unconstrained (baseline) scores 0.137 on the same 7 rules -- a 0.863 gap. It also pulls 1.00x the fields the purpose requires, against 6.89x for unconstrained (baseline) at full coverage. That surplus is exactly what the data-minimisation rule penalises, so on this workload compliance and extraction cost move together rather than trading off against each other. ai agent: gemini (unaided) obtained only 83% of the fields the tasks require: it left out data the purpose lawfully needed, so its low cost is a shortfall, not efficiency. On the 1 tasks whose wording invites a violation, ai agent: gemini (unaided) held the line in 0 of 1 runs; compliance-aware (ours) in 1 of 1 -- it reads the purpose policy, not the prose._
+_compliance-aware (ours) scores 1.000; unconstrained (baseline) scores 0.114 on the same 7 rules -- a 0.886 gap. It also pulls 1.00x the fields the purpose requires, against 7.56x for unconstrained (baseline) at full coverage. That surplus is exactly what the data-minimisation rule penalises, so on this workload compliance and extraction cost move together rather than trading off against each other. On the single-patient tasks, unconstrained (baseline) read 50.0x the records the patient's own would be -- every patient's, to answer for one; compliance-aware (ours) read 1.0x. On the 1 tasks whose wording invites a violation, unconstrained (baseline) held the line in 0 of 1 runs; compliance-aware (ours) in 1 of 1 -- it reads the purpose policy, not the prose._
 
-Source: portal, 20 records/module, seed 42. 4 extraction tasks, identical DPDP rule set for every technique. Generated 2026-09-17 in 110193 ms (wall-clock, hardware-dependent).
+Source: portal, 20 records/module, seed 42. 4 extraction tasks, identical DPDP rule set for every technique. Generated 2026-09-17 in 66737 ms (wall-clock, hardware-dependent).
 
 | Technique | Compliance score | Rules passed | DM-01 | LB-01 | SL-01 | SS-01 | PL-01 | NT-01 | AC-01 |
 |---|---|---|---|---|---|---|---|---|---|
 | compliance-aware (ours) | 1.000 | 7/7 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
-| ai agent: gemini (unaided) | 0.988 | 6/7 | 0.92 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
-| ai agent: gemini (told the Act) | 0.988 | 6/7 | 0.92 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
-| unconstrained (baseline) | 0.137 | 0/7 | 0.67 | 0.00 | 0.00 | 0.29 | 0.00 | 0.00 | 0.00 |
+| unconstrained (baseline) | 0.114 | 0/7 | 0.51 | 0.00 | 0.00 | 0.29 | 0.00 | 0.00 | 0.00 |
 
 **Declared versus demonstrable**
 
@@ -18,20 +16,16 @@ Every technique is told the deployment's capability register -- the safeguards, 
 | Technique | Declared score | Substantiated score | Veracity | Unsubstantiated declarations | Traps held |
 |---|---|---|---|---|---|
 | compliance-aware (ours) | 1.000 | 1.000 | 1.00 | 0 (—) | 1/1 |
-| ai agent: gemini (unaided) | 0.988 | 0.988 | 1.00 | 0 (—) | 0/1 |
-| ai agent: gemini (told the Act) | 0.988 | 0.988 | 1.00 | 0 (—) | 0/1 |
-| unconstrained (baseline) | 0.137 | 0.137 | 1.00 | 0 (—) | 0/1 |
+| unconstrained (baseline) | 0.114 | 0.114 | 1.00 | 0 (—) | 0/1 |
 
 Of the substantiated claims, those the pipeline *demonstrates* rest on evidence it produced for the run -- the connection scheme it observed, the audit event it wrote, the export audit, the retention sidecar; those *attested* rest on the deployment's register.
 
 | Technique | Demonstrated | Attested |
 |---|---|---|
 | compliance-aware (ours) | 16 | 28 |
-| ai agent: gemini (unaided) | 16 | 28 |
-| ai agent: gemini (told the Act) | 16 | 28 |
 | unconstrained (baseline) | 4 | 0 |
 
-Observed on this run: the source was read over an encrypted connection; 16 audit event(s) written to `D:\Projects\DPDP Compliace Pipeline\data\audit\extraction-audit.jsonl`.
+Observed on this run: the source was read over an encrypted connection; 8 audit event(s) written to `data/audit/extraction-audit.jsonl`.
 
 ```
 demonstrated by the pipeline (evidence produced per run):
@@ -54,21 +48,21 @@ attested by the deployment (on the register; not produced by this code):
 
 `excess ratio` is distinct fields pulled divided by the fields the task's purpose requires. It is a cost measure and a compliance measure at once: fields pulled beyond the purpose are precisely the overreach the data-minimisation rule penalises. `coverage` is the guard rail -- it stops a technique scoring well by pulling nothing. Both are deterministic and reproduce on any machine; wall-clock time is reported but is hardware-dependent. `stable` is how many of the repeats after the first reproduced the first run's decision -- the same fields, the same manifest -- on identical input, over all tasks; every repeat is scored, so the compliance column is the mean over them.
 
-| Technique | Compliance | Excess ratio | Coverage | Distinct fields / needed | Fields pulled | Fetches | Pages loaded | Records | Wall-clock (ms) | Stable runs |
-|---|---|---|---|---|---|---|---|---|---|---|
-| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 18 / 18 | 360 | 7 | 74 | 140 | 12564.9 | n/a |
-| ai agent: gemini (unaided) | 0.988 | 1.17 | 0.83 | 21 / 18 | 420 | 8 | 76 | 160 | 12607.6 | n/a |
-| ai agent: gemini (told the Act) | 0.988 | 1.17 | 0.83 | 21 / 18 | 420 | 8 | 76 | 160 | 13533.1 | n/a |
-| unconstrained (baseline) | 0.137 | 6.89 | 1.00 | 124 / 18 | 2480 | 20 | 440 | 400 | 71456.3 | n/a |
+`record excess` is, over the single-patient tasks, records read divided by the patient's own records -- minimisation on the record axis, which DM-01 also scores.
+
+| Technique | Compliance | Excess ratio | Coverage | Distinct fields / needed | Fields pulled | Fetches | Pages loaded | Records | Record excess | Wall-clock (ms) | Stable runs |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 18 / 18 | 151 | 7 | 32 | 64 | 1.00 | 5753.9 | n/a |
+| unconstrained (baseline) | 0.114 | 7.56 | 1.00 | 136 / 18 | 2720 | 20 | 440 | 400 | 50.00 | 60968.0 | n/a |
 
 **Per task**
 
-| Task | compliance-aware | gemini-unaided | gemini-informed | unconstrained |
-|---|---|---|---|---|
-| `patient-summary` | 1.000 | 1.000 | 1.000 | 0.131 |
-| `ward-census` | 1.000 | 1.000 | 1.000 | 0.131 |
-| `appointment-reminder` | 1.000 | 1.000 | 1.000 | 0.143 |
-| `claim-reconciliation` | 1.000 | 0.952 | 0.952 | 0.143 |
+| Task | compliance-aware | unconstrained |
+|---|---|---|
+| `patient-summary` | 1.000 | 0.085 |
+| `ward-census` | 1.000 | 0.131 |
+| `appointment-reminder` | 1.000 | 0.143 |
+| `claim-reconciliation` | 1.000 | 0.097 |
 
 **What each task needs**
 
@@ -79,10 +73,8 @@ attested by the deployment (on the register; not produced by this code):
 
 **What each technique pulled** (total over the 4-task workload)
 
-- **compliance-aware** — 140 records across 3 layer(s); records carrying each category: administrative (60), clinical (20), direct_identifier (80), financial (20), quasi_identifier (20); out-of-scope: none
-- **gemini-unaided** — 160 records across 3 layer(s); records carrying each category: administrative (80), clinical (40), contact (20), direct_identifier (80), financial (20), quasi_identifier (20); out-of-scope: clinical
-- **gemini-informed** — 160 records across 3 layer(s); records carrying each category: administrative (80), clinical (40), contact (20), direct_identifier (80), financial (20), quasi_identifier (20); out-of-scope: clinical
-- **unconstrained** — 400 records across 5 layer(s); records carrying each category: administrative (320), clinical (160), contact (80), direct_identifier (160), financial (80), quasi_identifier (80); out-of-scope: clinical, contact, financial, quasi_identifier
+- **compliance-aware** — 64 records across 3 layer(s); records carrying each category: administrative (60), clinical (1), direct_identifier (42), financial (1), quasi_identifier (1); out-of-scope: none
+- **unconstrained** — 400 records across 5 layer(s); records carrying each category: administrative (320), clinical (160), contact (80), direct_identifier (400), financial (80), quasi_identifier (80); out-of-scope: clinical, contact, financial, quasi_identifier
 
 **Rules** (each scores 0–1 per run; the table shows the mean over tasks)
 

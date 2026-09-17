@@ -16,10 +16,11 @@ field rather than asserted. For an AI agent the walkthrough also replays every
 recorded decision for the same brief, so the reader sees whether "just AI"
 gives the same answer twice. Ours does, by construction.
 
-Note on the synthetic set: layers are generated independently and carry no
-cross-layer patient key yet, so "one patient" here means the first record of
-each layer, presented together. That is a property of the synthetic generator,
-not of the compliance pipeline -- the scoring path is identical either way.
+"One patient" is real: every record-bearing layer carries the patient's record
+number, the task is about a single patient, and the harness scopes the pull to
+that patient's records -- the source holds several patients, and the walkthrough
+shows who reads only the one it was asked about (ours), who reads everyone
+(the baseline), and what the agent decided to do.
 """
 
 from __future__ import annotations
@@ -31,7 +32,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import _present as present
-from compliance.benchmark import manifest_structure
+from compliance.benchmark import bind_subject, manifest_structure, necessary_records
+from compliance.models import RecordScope
+from extraction.metering import MeteredSource
 from compliance.capabilities import DEFAULT_REGISTER
 from compliance.veracity import substantiate, verify
 from compliance.checkers import run_all
@@ -49,6 +52,7 @@ from interop.layers import HISLayer
 
 TASK = ExtractionTask(
     task_id="patient-summary",
+    single_subject=True,
     purpose=Purpose.CARE_COORDINATION,
     description="Prepare a clinical summary of a patient for the care team",
     needed=[
@@ -68,12 +72,13 @@ def _needed_map(task: ExtractionTask) -> dict[HISLayer, list[str]]:
     return {item.layer: item.fields for item in task.needed}
 
 
-def step_1_source(source: MockHISDataSource) -> None:
+def step_1_source(source: MockHISDataSource, task: ExtractionTask) -> None:
     print(present.banner("STEP 1  the HIS record  (what the source holds)"))
-    print("One synthetic patient, as the data source exposes it. Every value is")
-    print("Faker-generated -- no real person, no real hospital.\n")
+    print(f"One synthetic patient, {task.subject}, as the data source exposes them across the")
+    print(f"layers -- among {PATIENTS} patients it holds. Every value is Faker-generated -- no")
+    print("real person, no real hospital.\n")
     for layer in source.layers():
-        row = next(iter(source.fetch(layer)))
+        row = next(iter(source.fetch(layer, where=task.subject_filter(layer))))
         print(f"  layer: {layer.value}   ({len(row)} fields)")
         for name, value in row.items():
             print(f"      {name:<22} {value}")
@@ -87,6 +92,7 @@ def step_2_task() -> None:
     print("is what makes 'necessary for the purpose' machine-checkable.\n")
     print(f"  task_id : {TASK.task_id}")
     print(f"  purpose : {TASK.purpose.value}")
+    print(f"  subject : one patient -- the harness binds the record number; the task file never holds it")
     for item in TASK.needed:
         print(f"  needs   : {item.layer.value:<24} {', '.join(item.fields)}")
     policy = policy_for(TASK.purpose)
@@ -98,17 +104,17 @@ def step_2_task() -> None:
 
 
 def _col(agent: AIAgentTechnique) -> str:
-    return f"{agent.provider_name[:6]}-{'inf' if agent.briefing == 'informed' else 'un'}"
+    return f"{agent.provider_name[:6]}-{ {'unaided': 'un', 'informed': 'inf', 'policy': 'pol'}[agent.briefing] }"
 
 
-def step_3_selection(source: MockHISDataSource, agents: list[AIAgentTechnique]) -> None:
+def step_3_selection(source: MockHISDataSource, agents: list[AIAgentTechnique], task: ExtractionTask) -> None:
     print(present.banner("STEP 3  field selection + DPDP categorisation"))
     print("Each technique picks fields off the same record. The field catalogue")
     print("(src/data_synthetic/catalogue.py) maps every field name to a DPDP")
     print("category; the purpose policy says which categories are in scope.")
     if agents:
         print("An AI agent's column is its first recorded decision for this brief;")
-        print("'un' = unaided, 'inf' = told the Act. Ours is read off the purpose policy.")
+        print("'un' = unaided, 'inf' = told the Act, 'pol' = told the policy itself. Ours is read off the purpose policy.")
     print()
 
     needed = _needed_map(TASK)
@@ -116,7 +122,7 @@ def step_3_selection(source: MockHISDataSource, agents: list[AIAgentTechnique]) 
     picks: dict[str, dict[HISLayer, list[str]]] = {}
     for agent in agents:
         agent.sample = 0
-        picks[_col(agent)] = agent.decide(source, TASK).selection()
+        picks[_col(agent)] = agent.decide(source, task).selection()
 
     cols = ["ours", *picks, "baseline"]
     header = (
@@ -179,16 +185,23 @@ def _manifest_lines(run: ExtractionRun) -> list[str]:
     ]
 
 
-def run_technique(technique: ExtractionTechnique, source: MockHISDataSource) -> float:
+def run_technique(technique: ExtractionTechnique, source: MockHISDataSource, task: ExtractionTask) -> float:
     if isinstance(technique, AIAgentTechnique):
         technique.sample = 0
-    output = technique.extract(source, TASK)
+    metered = MeteredSource(source)
+    output = technique.extract(metered, task)
+    needed = necessary_records(task, source)
+    if needed is not None:
+        output.run.scope = RecordScope(records_pulled=metered.records, records_necessary=needed)
     print(present.banner(f"STEPS 4-6  technique: {technique.name}"))
+    print(f"  records read: {metered.records}  (the patient's own: {needed})"
+          + ("  -- every patient's, to answer for one" if needed and metered.records > needed else ""))
+    print()
 
     if isinstance(technique, AIAgentTechnique) and technique.last_decision is not None:
         d = technique.last_decision
         print(f"The agent was briefed with the job, the purpose and the field names --")
-        print(f"never a value -- and decided ({technique.last_source}):")
+        print(f"never a value -- and decided ({technique.last_source}; scope '{d.scope}'):")
         for layer, names in d.selection().items():
             print(f"  {layer.value:<26} {', '.join(names)}")
         if d.unknown_fields():
@@ -220,14 +233,14 @@ def run_technique(technique: ExtractionTechnique, source: MockHISDataSource) -> 
     print(present.wrote(report.to_markdown_file()))
 
     if isinstance(technique, AIAgentTechnique):
-        _replay_other_samples(technique, source, report.compliance_score)
+        _replay_other_samples(technique, source, task)
     return report.compliance_score
 
 
-def _replay_other_samples(agent: AIAgentTechnique, source: MockHISDataSource, first: float) -> None:
+def _replay_other_samples(agent: AIAgentTechnique, source: MockHISDataSource, task: ExtractionTask) -> None:
     """Same brief, every recorded decision: does the agent agree with itself?"""
 
-    samples = agent.recorded_samples(TASK.task_id)
+    samples = agent.recorded_samples(task.task_id)
     if len(samples) < 2:
         print("\n  (one recorded decision for this brief; record more with --repeats to see variance)")
         return
@@ -236,7 +249,7 @@ def _replay_other_samples(agent: AIAgentTechnique, source: MockHISDataSource, fi
     base_manifest = None
     for i in range(len(samples)):
         agent.sample = i
-        out = agent.extract(source, TASK)
+        out = agent.extract(source, task)
         fields = {f"{l.value}/{n}" for l, names in agent.last_decision.selection().items() for n in names}
         manifest = manifest_structure(out.run)     # decisions, not wording
         score = run_all(out.run, out.records).compliance_score
@@ -258,23 +271,27 @@ def _replay_other_samples(agent: AIAgentTechnique, source: MockHISDataSource, fi
     agent.sample = 0
 
 
+PATIENTS = 5
+
+
 def main() -> None:
-    source = MockHISDataSource(records_per_layer=1, seed=42)
+    source = MockHISDataSource(records_per_layer=PATIENTS, seed=42)
+    [task] = bind_subject([TASK], source)
 
     print(present.banner("ONE PATIENT, END TO END: source -> rules -> score"))
     print("The benchmark shows the aggregate. This shows the mechanism, on a")
-    print("single record, so every number can be checked by hand.")
+    print("single patient, so every number can be checked by hand.")
 
-    agents = available_agents(tasks=[TASK], source=source)
+    agents = available_agents(tasks=[task], source=source)
 
-    step_1_source(source)
+    step_1_source(source, task)
     step_2_task()
-    step_3_selection(source, agents)
+    step_3_selection(source, agents, task)
 
     techniques = [CompliantExtractionTechnique(), *agents, UnconstrainedExtractionTechnique()]
     scores: dict[str, float] = {}
     for technique in techniques:
-        scores[technique.name] = run_technique(technique, source)
+        scores[technique.name] = run_technique(technique, source, task)
 
     print(present.banner("STEP 7  verdict on this one patient"))
     print(f"  {'technique':<40} {'score':>6}  reproduces its own decision?")
@@ -282,9 +299,9 @@ def main() -> None:
         name = technique.name
         if isinstance(technique, AIAgentTechnique):
             keys = []
-            for i in range(len(technique.recorded_samples(TASK.task_id))):
+            for i in range(len(technique.recorded_samples(task.task_id))):
                 technique.sample = i
-                d = technique.decide(source, TASK)
+                d = technique.decide(source, task)
                 keys.append((frozenset(d.fields), tuple(sorted(manifest_structure(
                     d.manifest("x", TASK.purpose)).items()))))
             technique.sample = 0

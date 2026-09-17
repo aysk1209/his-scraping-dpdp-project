@@ -1,7 +1,7 @@
 """Ask the public AI agents to decide each benchmark task, and record what they said.
 
     set ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY   (whichever you have)
-    python scripts/record_ai_agents.py                       # every keyed provider, both briefings
+    python scripts/record_ai_agents.py                       # every keyed provider, all three briefings
     python scripts/record_ai_agents.py --provider claude --repeats 5
     python scripts/record_ai_agents.py --briefing informed --overwrite
 
@@ -135,6 +135,8 @@ def main() -> None:
     # A small in-memory source is enough: the agent decides from the schema, and
     # the schema is the same whatever the volume.
     source = MockHISDataSource(records_per_layer=5, seed=42)
+    from compliance.benchmark import bind_subject
+    tasks = bind_subject(TASKS, source)
 
     for provider in providers:
         for briefing in briefings:
@@ -145,7 +147,7 @@ def main() -> None:
                 data = tech._load()
                 data["tasks"] = {}
                 tech.recording_path.write_text(__import__("json").dumps(data, indent=2), encoding="utf-8")
-            for task in TASKS:
+            for task in tasks:
                 for i in range(args.repeats):
                     try:
                         out = _with_backoff(lambda: tech.extract(source, task), pause=args.pause)

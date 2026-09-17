@@ -33,11 +33,14 @@ class MockHISDataSource(HISDataSource):
         layer: HISLayer,
         *,
         fields: list[str] | None = None,
+        where: dict[str, Any] | None = None,
         **query: Any,
     ) -> Iterator[dict[str, Any]]:
-        """Yield records for ``layer``; if ``fields`` is given, project to those."""
+        """Yield records for ``layer``; project to ``fields``; filter by ``where``."""
 
         for row in self._data.get(layer, []):
+            if where and any(row.get(k) != v for k, v in where.items()):
+                continue
             if fields is None:
                 yield dict(row)
             else:

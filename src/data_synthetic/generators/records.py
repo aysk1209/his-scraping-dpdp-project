@@ -115,9 +115,22 @@ def build_dataset(
     share an identical value sequence.
     """
 
-    return {
+    data = {
         layer: generate_layer_records(
             layer, records_per_layer, seed=None if seed is None else seed + offset
         )
         for offset, layer in enumerate(FIELD_CATALOGUE)
     }
+    # One patient population across the layers: record i of every layer belongs
+    # to patient i of the registration layer, keyed by MRN. That is the join a
+    # real HIS carries, and what a single-patient task scopes by.
+    from data_synthetic.catalogue import SUBJECT_KEY
+    from interop.layers import HISLayer as _L
+    mrns = [row["mrn"] for row in data[_L.PATIENT_ADMINISTRATION]]
+    for layer, rows in data.items():
+        key = SUBJECT_KEY.get(layer)
+        if layer is _L.PATIENT_ADMINISTRATION or key is None:
+            continue
+        for i, row in enumerate(rows):
+            row[key] = mrns[i % len(mrns)]
+    return data

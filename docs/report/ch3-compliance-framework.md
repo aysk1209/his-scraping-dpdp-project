@@ -148,18 +148,30 @@ necessary for such specified purpose" [s.6(1) — unverified], read with the
 requirement that processing be for a lawful purpose [s.4(1) — unverified]. The
 report should say "derived from", not "named in".
 
-*Check.* Take the union of categories across all extracted records and test it
-for containment in the purpose's allowed set from the policy (§3.4). This is the
-machine-checkable form of "necessary for the purpose".
+*Check.* Minimisation has two axes, and the rule checks both. On the **field
+axis**, take the union of categories across all extracted records and test it
+for containment in the purpose's allowed set from the policy (§3.4) — the
+machine-checkable form of "necessary for the purpose". On the **record axis**,
+for a task about a single patient, compare the records read with the records
+that are the patient's own: a summary of one patient does not need every
+patient's diagnosis, whatever the fields. The record counts are written into
+the manifest by the benchmark harness from its meter (`ExtractionRun.scope`),
+not by the technique — the technique cannot vouch for its own restraint.
 
-*Scoring.* `1 − |excess| / |extracted|`, where excess is the set of categories
-outside the envelope. A run that pulls six categories of which two are out of
-scope scores 0.67; a run entirely within scope scores 1.0. With no records the
-rule is `not_applicable`, so an empty extraction cannot score well by extracting
-nothing — the coverage guard rail of Chapter 4 closes the same door from the cost
-side.
+*Scoring.* Field axis: `1 − |excess| / |extracted|`, where excess is the set of
+categories outside the envelope; a run that pulls six categories of which two
+are out of scope scores 0.67, a run entirely within scope 1.0. Record axis,
+when the task is about one patient: `necessary / pulled`, capped at 1.0. The
+rule's score is the field score alone for a cohort task and the mean of the
+two for a single-patient task, so a baseline that reads every patient's record
+to answer for one is halved on that task even where its categories are lawful.
+With no records the rule is `not_applicable`, so an empty extraction cannot
+score well by extracting nothing — the coverage guard rail of Chapter 4 closes
+the same door from the cost side.
 
-*Findings.* One line per out-of-scope category, and a summary count.
+*Findings.* One line per out-of-scope category, a summary count, and for a
+single-patient task the records read against the records necessary — "50
+records read where 2 were necessary: 48 other patients' records taken".
 
 ### 3.3.2 LB-01 — Lawful basis for processing
 

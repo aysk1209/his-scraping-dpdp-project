@@ -15,6 +15,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from compliance.models import ExtractedRecord, ExtractionRun, Purpose
+from data_synthetic.catalogue import subject_key
 from extraction.base import HISDataSource
 from interop.layers import HISLayer
 
@@ -45,6 +46,21 @@ class ExtractionTask(BaseModel):
     # -- an out-of-scope field, an onward use, a retention beyond the ceiling.
     # Names the temptation, for the report; the purpose and ``needed`` stay lawful.
     trap: str = ""
+    # Minimisation has a record axis as well as a field axis. A task about *one*
+    # patient needs that patient's records and no one else's; ``single_subject``
+    # says so, and ``subject`` is the patient's record number, bound at run time
+    # by the harness from the source (``compliance.benchmark.bind_subject``) --
+    # never written into a task definition, never shown to an AI agent.
+    single_subject: bool = False
+    subject: str | None = None
+
+    def subject_filter(self, layer: HISLayer) -> dict[str, str]:
+        """The ``where`` a subject-scoped fetch of ``layer`` uses, or {} when unscoped."""
+
+        key = subject_key(layer)
+        if self.subject is None or key is None:
+            return {}
+        return {key: self.subject}
 
     def field_refs(self) -> set[tuple[str, str]]:
         """The (layer, field) pairs this task declares as minimum necessary.

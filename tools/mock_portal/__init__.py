@@ -55,9 +55,9 @@ from interop.layers import LAYER_DESCRIPTIONS, HISLayer
 # choice made for the benchmark's sake.
 LIST_COLUMNS: dict[HISLayer, list[str]] = {
     HISLayer.PATIENT_ADMINISTRATION: ["mrn", "full_name", "sex", "admission_ward"],
-    HISLayer.CLINICAL_EHR: ["encounter_datetime", "primary_diagnosis", "attending_clinician"],
-    HISLayer.ANCILLARY_DEPARTMENTAL: ["order_id", "specimen_type", "imaging_modality"],
-    HISLayer.ADMINISTRATIVE_FINANCIAL: ["invoice_id", "billed_amount", "payer_name"],
+    HISLayer.CLINICAL_EHR: ["mrn", "encounter_datetime", "primary_diagnosis", "attending_clinician"],
+    HISLayer.ANCILLARY_DEPARTMENTAL: ["mrn", "order_id", "specimen_type", "imaging_modality"],
+    HISLayer.ADMINISTRATIVE_FINANCIAL: ["mrn", "invoice_id", "billed_amount", "payer_name"],
     HISLayer.INFRASTRUCTURE_INTEGRATION: ["audit_event_id", "event_timestamp", "actor_role", "action"],
 }
 

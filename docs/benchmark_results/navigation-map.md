@@ -15,9 +15,9 @@ Discovered by the browser in 11 page loads, starting from the home page after lo
 | Module | In the list table | Only on the record page |
 |---|---|---|
 | Patient Registration | `mrn`, `full_name`, `sex`, `admission_ward` | `phone`, `email`, `street_address`, `date_of_birth`, `pincode`, `admission_datetime` |
-| Clinical Records | `encounter_datetime`, `primary_diagnosis`, `attending_clinician` | `medication`, `lab_result`, `allergy` |
-| Departmental Orders | `order_id`, `specimen_type`, `imaging_modality` | `result_value`, `report_text` |
-| Billing & Accounts | `invoice_id`, `billed_amount`, `payer_name` | `insurance_policy_no` |
+| Clinical Records | `mrn`, `encounter_datetime`, `primary_diagnosis`, `attending_clinician` | `medication`, `lab_result`, `allergy` |
+| Departmental Orders | `mrn`, `order_id`, `specimen_type`, `imaging_modality` | `result_value`, `report_text` |
+| Billing & Accounts | `mrn`, `invoice_id`, `billed_amount`, `payer_name` | `insurance_policy_no` |
 | Audit Log | `audit_event_id`, `event_timestamp`, `actor_role`, `action` | `source_system`, `subject_mrn` |
 
 *Discovered 2026-09-17.*

@@ -25,19 +25,26 @@ gating the staff assistant.
 
 ## 7.1 Setup
 
-**Techniques.** Four, from Chapter 4: compliance-aware (ours); two AI agents —
-a publicly available model, `gemini-3.1-flash-lite`, briefed *unaided* and
-briefed *told the Act*; and the unconstrained baseline. Every technique is
-told the deployment's capability register (§4.5). The agents' decisions were
-recorded live on 2026-09-17 (five runs per task per briefing, field names and
-manifest choices only) and are replayed here; the recordings are committed
-with the repository, so every agent figure below reproduces without a key.
+**Techniques.** Five, from Chapter 4: compliance-aware (ours); three AI
+agents — a publicly available model, `gemini-3.1-flash-lite`, briefed
+*unaided*, *told the Act*, and *told the policy* (the purpose envelope and
+every field's category in the prompt: everything ours reads); and the
+unconstrained baseline. Every technique is told the deployment's capability
+register (§4.5). The agents' decisions are recorded live (five runs per task
+per briefing, field names and manifest choices only) and replayed; the
+recordings are committed with the repository, so every agent figure below
+reproduces without a key. *[Draft note, 2026-09-17: the agent rows below are
+from the 2026-09-17 recording under the previous brief — before the record
+axis and the third briefing. They are re-recorded under the current brief on
+2026-09-18 and the tables regenerated then; ours and the baseline are current.]*
 
 **Tasks.** Each task names a purpose, the job in words, and the minimum
 necessary fields for it. The in-memory workload has eight: four plain, and
 four *traps* whose wording invites a violation the purpose does not permit
-(§4.5). The portal workload has four — three plain and one trap — chosen to
-keep the live demonstration under two minutes.
+(§4.5). Six are about one patient (`single_subject`; the harness binds the
+patient at run time) and two — the census and the reminder run — about a
+cohort. The portal workload has four — three plain and one trap, two of them
+single-patient — chosen to keep the live demonstration under two minutes.
 
 | Task | Purpose | Minimum necessary fields | Trap in the wording |
 |---|---|---|---|
@@ -92,9 +99,9 @@ within 0.05 on every technique and is used for the cost columns of Table 2.
 | Technique | Score | Rules passed | DM-01 | LB-01 | SL-01 | SS-01 | PL-01 | NT-01 | AC-01 |
 |---|---|---|---|---|---|---|---|---|---|
 | compliance-aware (ours) | **1.000** | 7/7 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
-| ai agent: gemini (told the Act) | 0.948 | 5/7 | 0.92 | 1.00 | 0.81 | 1.00 | 0.91 | 1.00 | 1.00 |
-| ai agent: gemini (unaided) | 0.941 | 4/7 | 0.91 | 1.00 | 0.84 | 1.00 | 0.84 | 1.00 | 1.00 |
-| unconstrained (baseline) | 0.136 | 0/7 | 0.67 | 0.00 | 0.00 | 0.28 | 0.00 | 0.00 | 0.00 |
+| ai agent: gemini (told the Act) *[previous brief]* | 0.948 | 5/7 | 0.92 | 1.00 | 0.81 | 1.00 | 0.91 | 1.00 | 1.00 |
+| ai agent: gemini (unaided) *[previous brief]* | 0.941 | 4/7 | 0.91 | 1.00 | 0.84 | 1.00 | 0.84 | 1.00 | 1.00 |
+| unconstrained (baseline) | 0.100 | 0/7 | 0.42 | 0.00 | 0.00 | 0.28 | 0.00 | 0.00 | 0.00 |
 
 **Table 2.** Cost, veracity and resistance. Deterministic columns lead;
 wall-clock is hardware-dependent and omitted here (it is in the artefacts).
@@ -107,21 +114,23 @@ pulled, no onward use was declared and retention stayed within the ceiling,
 with the tasks held in every repeat in brackets. Coverage and excess are
 micro-averaged over every run.
 
-| Source | Technique | Compliance | Substantiated | Veracity | Traps held (runs / tasks) | Coverage | Excess ratio | Distinct / needed | Page loads | Stable (repeats / tasks) |
-|---|---|---|---|---|---|---|---|---|---|---|
-| in memory | compliance-aware | **1.000** | 1.000 | 1.00 | **20 / 20** (4 / 4) | 1.00 | 1.00 | 35 / 35 | n/a | **32 / 32** (8 / 8) |
-| in memory | gemini, told the Act | 0.948 | 0.948 | 1.00 | **0 / 20** (0 / 4) | 0.78 | 1.06 | 37 / 35 | n/a | 19 / 32 (3 / 8) |
-| in memory | gemini, unaided | 0.941 | 0.941 | 1.00 | **0 / 20** (0 / 4) | 0.74 | 1.03 | 36 / 35 | n/a | 15 / 32 (3 / 8) |
-| in memory | unconstrained | 0.136 | 0.136 | 1.00 | 0 / 20 (0 / 4) | 1.00 | 7.09 | 248 / 35 | n/a | 32 / 32 (8 / 8) |
-| portal | compliance-aware | 1.000 | 1.000 | 1.00 | 1 / 1 | 1.00 | 1.00 | 18 / 18 | **74** | — |
-| portal | gemini, told the Act | 0.988 | 0.988 | 1.00 | 0 / 1 | 0.83 | 1.17 | 21 / 18 | 76 | — |
-| portal | gemini, unaided | 0.988 | 0.988 | 1.00 | 0 / 1 | 0.83 | 1.17 | 21 / 18 | 76 | — |
-| portal | unconstrained | 0.137 | 0.137 | 1.00 | 0 / 1 | 1.00 | 6.89 | 124 / 18 | **440** | — |
+| Source | Technique | Compliance | Substantiated | Veracity | Traps held (runs / tasks) | Coverage | Excess ratio | Record excess | Distinct / needed | Page loads | Stable (repeats / tasks) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| in memory | compliance-aware | **1.000** | 1.000 | 1.00 | **20 / 20** (4 / 4) | 1.00 | 1.00 | **1.00** | 35 / 35 | n/a | **32 / 32** (8 / 8) |
+| in memory | gemini, told the Act *[previous brief]* | 0.948 | 0.948 | 1.00 | **0 / 20** (0 / 4) | 0.78 | 1.06 | — | 37 / 35 | n/a | 19 / 32 (3 / 8) |
+| in memory | gemini, unaided *[previous brief]* | 0.941 | 0.941 | 1.00 | **0 / 20** (0 / 4) | 0.74 | 1.03 | — | 36 / 35 | n/a | 15 / 32 (3 / 8) |
+| in memory | unconstrained | 0.100 | 0.100 | 1.00 | 0 / 20 (0 / 4) | 1.00 | 7.77 | 136.4 | 272 / 35 | n/a | 32 / 32 (8 / 8) |
+| portal | compliance-aware | 1.000 | 1.000 | 1.00 | 1 / 1 | 1.00 | 1.00 | 1.00 | 18 / 18 | **32** | — |
+| portal | gemini, told the Act *[previous brief]* | 0.988 | 0.988 | 1.00 | 0 / 1 | 0.83 | 1.17 | — | 21 / 18 | 76 | — |
+| portal | gemini, unaided *[previous brief]* | 0.988 | 0.988 | 1.00 | 0 / 1 | 0.83 | 1.17 | — | 21 / 18 | 76 | — |
+| portal | unconstrained | 0.114 | 0.114 | 1.00 | 0 / 1 | 1.00 | 7.56 | 50.0 | 136 / 18 | **440** | — |
 
 **Reading Table 1.** The gap between the compliant technique and the baseline is
-0.864 on the same seven rules. The baseline fails every rule: its DM-01 of 0.67
+0.900 on the same seven rules. The baseline fails every rule: its DM-01 of 0.42
 is the set-containment score (of six categories pulled, three are outside the
-purpose's scope on every task), its SS-01 of 0.28 one safeguard of four.
+purpose's scope on every task) halved, on the six single-patient tasks, by the
+record axis — it reads 2,000 records over the workload where the patients'
+own would be 15; its SS-01 of 0.28 is one safeguard of four.
 
 The AI agents' rows have moved since the first recording, and the movement is
 the finding. On the four plain tasks a publicly available model is close to
@@ -159,6 +168,15 @@ comes from the purpose policy and the manifest from the register. The
 obligations in the *informed* prompt — the same principles the rules encode,
 in plain words — did not change a single trap outcome. A rule reads the law
 once, at design time; an agent reads it as one more sentence in a prompt.
+
+*Records.* The record axis is where the baseline's cost becomes visible on the
+portal: for the single-patient tasks our technique goes through the search box
+and loads one page per module, the baseline every page of every module — 32
+page loads against 440 over the four-task workload, a factor of fourteen, at
+identical coverage. In memory the baseline's record excess is 136×: every
+patient's record, fifty times over, to answer for one. Whether an agent
+scopes its pull is now a decision it is asked to make (`scope`), and one it
+can get wrong; the re-recording reports how often it did.
 
 *Coverage.* 0.74 unaided and 0.78 told the Act in memory, 0.83 on the portal.
 Given the job in words, the agent decides for itself what a ward census or a

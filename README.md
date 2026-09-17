@@ -45,11 +45,15 @@ provides:
 | Technique | Compliance | Trap runs held | Coverage | Excess ratio | Repeats that reproduced run 1 |
 |---|---:|---:|---:|---:|---:|
 | compliance-aware (ours) | **1.000** | **20 / 20** | 1.00 | 1.00× | **32 / 32** |
-| AI agent — Gemini, told the Act | 0.948 | 0 / 20 | 0.78 | 1.06× | 19 / 32 |
-| AI agent — Gemini, unaided | 0.941 | 0 / 20 | 0.74 | 1.03× | 15 / 32 |
-| unconstrained baseline | 0.136 | 0 / 20 | 1.00 | 7.09× | 32 / 32 |
+| AI agent — Gemini, told the Act † | 0.948 | 0 / 20 | 0.78 | 1.06× | 19 / 32 |
+| AI agent — Gemini, unaided † | 0.941 | 0 / 20 | 0.74 | 1.03× | 15 / 32 |
+| unconstrained baseline | 0.100 | 0 / 20 | 1.00 | 7.77× | 32 / 32 |
 
-Every one of the forty runs per technique is scored; a score is a mean, not a draw.
+Every one of the forty runs per technique is scored; a score is a mean, not a
+draw. † Recorded 2026-09-17 under the previous brief; six of the eight tasks are
+now about *one patient* and the brief asks the agent whether to scope its pull —
+re-recording under the current brief (and a third briefing, *told the policy*)
+is scheduled for 2026-09-18, after which these rows regenerate.
 
 A current public model matches the rule-driven technique on the *manifest it
 declares* — told what the deployment provides, it cites it correctly, every run.
@@ -60,8 +64,15 @@ once declares ten years' retention against a 180-day ceiling. It takes a name
 where the task needs the record number (74–78% of the job), and reproduces its
 first decision in about half of its repeats. Ours reads the purpose policy, not
 the prose, so it holds every trap and repeats itself, by construction. On the
-portal the baseline loads 440 pages to our 74 for the same coverage; its 7×
+portal the baseline loads 440 pages to our 32 for the same coverage; its 7×
 surplus is exactly the overreach the minimisation rule penalises.
+
+Minimisation has a record axis too. A task about one patient is bound to that
+patient at run time and ours reads only their records — through the portal's
+search box, one page per module: **32 page loads to the baseline's 440** on the
+live run. DM-01 scores the record axis from the harness's own count, so a
+technique that reads every patient's record to answer for one is halved on that
+task whatever its fields.
 
 Four of the controls a manifest can cite are **demonstrated, not declared**: the
 adapter observes whether the connection was encrypted (the fixture serves TLS; a

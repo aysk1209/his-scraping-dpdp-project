@@ -79,6 +79,17 @@ the start" looks like as code: the technique cannot over-collect, because the
 only field list it has is the task's necessary one, and it cannot under-declare,
 because the manifest is built from the same policy the rules score against.
 
+It is scoped on the record axis the same way. A task about one patient
+(`single_subject`) is bound to that patient's record number by the harness at
+run time — the number is never written into a task definition — and the
+technique fetches each needed layer with `where = {mrn: subject}`. Every
+record-bearing layer of the five-layer model carries the patient's record
+number (the join a real HIS has; §5), so the pull is that patient's records
+and no one else's. Against the portal the scoped fetch goes through the search
+box, the way a member of staff would, and costs one page per module instead
+of every page: on the four-task portal workload the compliant technique loads
+32 pages to the baseline's 440.
+
 ### 4.2.2 The AI agents (publicly available models)
 
 The middle techniques are a different *kind* of thing from the other two, and
@@ -192,6 +203,8 @@ technique could game. The meter records:
 | `matched_fields` | yes | Needed pairs the technique actually obtained |
 | `excess_ratio` | yes | `distinct_fields / needed_fields` — how far past the purpose |
 | `coverage` | yes | `matched_fields / needed_fields` — did it do the job |
+| `records_necessary` | yes | For a single-patient task, the records that are the patient's own over the needed layers (read once by the harness, outside the meter) |
+| `record_excess` | yes | `records / records_necessary` — minimisation on the record axis; `None` for a cohort task |
 | `stable_runs` | yes | Of *k* identical runs, how many reproduced the first run's decision — the same fields *and* the same manifest structure |
 | `stable_fields` | yes | The same, for the field selection alone |
 | `veracity` | yes | Declared controls the capability register can back ÷ declared controls (§4.5) |
