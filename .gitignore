@@ -42,3 +42,4 @@ htmlcov/
 !/docs/benchmark_results/navigation-map.json
 !/docs/benchmark_results/navigation-map.md
 !/docs/benchmark_results/techniques-compared.html
+!/docs/benchmark_results/rules-vs-just-ai.html
