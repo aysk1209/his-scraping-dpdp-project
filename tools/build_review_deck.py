@@ -18,7 +18,9 @@ Needs ``python-pptx`` (authoring tool only; not a project dependency).
 from __future__ import annotations
 
 import copy
+import os
 import shutil
+import sys
 from pathlib import Path
 
 from pptx import Presentation
@@ -28,7 +30,11 @@ from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches, Pt
 
 ROOT = Path(__file__).resolve().parents[1]
-TEMPLATE = ROOT / "Review-2 Template.pptx"
+# The VIT/SENSE template is not kept in the repository (team decision
+# 2026-09-17). Point REVIEW_TEMPLATE at it, or drop it in the repo root under
+# its original name -- that name is git-ignored.
+TEMPLATE_NAME = "Review-2 Template.pptx"
+TEMPLATE = Path(os.environ.get("REVIEW_TEMPLATE") or ROOT / TEMPLATE_NAME)
 REVIEW_I = ROOT / "Review-I.pptx"
 TARGET = ROOT / "Review-II.pptx"
 
@@ -415,6 +421,9 @@ def benchmark_rows() -> tuple[list[list[str]], int, int]:
 
 
 def build() -> Path:
+    if not TEMPLATE.exists():
+        sys.exit(f"template not found: {TEMPLATE}. Set REVIEW_TEMPLATE to the path of "
+                 f"'{TEMPLATE_NAME}' (kept outside the repository) or copy it to the repo root.")
     shutil.copyfile(TEMPLATE, TARGET)
     prs = Presentation(TARGET)
     styles = Styles(prs)

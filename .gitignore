@@ -43,3 +43,6 @@ htmlcov/
 !/docs/benchmark_results/navigation-map.md
 !/docs/benchmark_results/techniques-compared.html
 !/docs/benchmark_results/rules-vs-just-ai.html
+
+# --- review deck templates: kept outside the repository (REVIEW_TEMPLATE / build_review_deck.py) ---
+Review-* Template.pptx
