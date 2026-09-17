@@ -382,9 +382,9 @@ techniques or different data still score on the same [0, 1] scale over the same
 seven rules, so a table of techniques is a like-for-like comparison. Second, the
 score is **decomposable**: a run's 0.976 is not an opaque number but a row of
 seven, each with findings, and the per-rule columns in Chapter 7 are where the
-behaviour of each technique is actually visible — an AI agent's perfect DM-01
-and NT-01 beside its 0.83 on SS-01 says precisely which safeguard it failed to
-declare, in one row.
+behaviour of each technique is actually visible — an AI agent's perfect LB-01,
+SS-01 and NT-01 beside its 0.81 on SL-01 and 0.92 on DM-01 says precisely
+where it was talked past the purpose, in one row.
 
 We do not claim that the weights are the right ones. We claim that they are
 explicit, that changing them is a one-line edit to a rule, and that every number

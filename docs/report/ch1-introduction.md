@@ -96,8 +96,10 @@ them.
 2. **A two-axis benchmark whose cost measure is also a compliance measure** —
    the excess ratio, fields pulled over fields the purpose requires, is the
    data-minimisation overreach expressed as a cost, with coverage as the guard
-   rail — and, across repeated runs, whether a technique reproduces its own
-   decision, which separates a rule-driven technique from a publicly available
+   rail — and, beyond it, whether a technique's declarations are ones the
+   deployment can back, whether it holds the line when the wording asks for
+   more than the purpose permits, and whether it reproduces its own decision.
+   These are what separate a rule-driven technique from a publicly available
    AI agent that matches it on paperwork.
 3. **The purpose matrix** — one unchanged extraction, lawful under its declared
    purpose and unlawful under another, in both directions: compliance as a

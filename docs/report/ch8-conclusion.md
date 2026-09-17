@@ -30,11 +30,14 @@ Appendix E.
    overreach expressed as a cost; on our workload the compliant technique is the
    cheap one, and the pages the baseline pays for are exactly the overreach the
    law objects to. Coverage is the guard rail that catches a technique which
-   scores well by pulling less than the task needs. Repeated runs give a
-   determinism figure: a publicly available AI agent given the same job
-   matches ours on the manifest it declares but takes different fields from
-   the task's and reproduces its own decision in only two or three of five
-   runs; ours reproduces it in five of five, by construction.
+   scores well by pulling less than the task needs. Two harder measures sit
+   beside them: manifest veracity — declarations checked against what the
+   deployment actually provides — and trap tasks, whose wording invites a
+   violation the purpose forbids. A publicly available AI agent given the same
+   job matches ours on the manifest it declares, but takes different fields
+   from the task's, holds none of the four traps in any of forty runs, and
+   reproduces its own decision in three of five; ours holds all four and
+   reproduces itself in five of five, by construction.
 
 3. **The purpose matrix: compliance as a property of the pull and its purpose
    together.** One unchanged extraction, with a full manifest, is lawful under
@@ -106,8 +109,10 @@ Three extensions follow directly from decisions recorded in this report.
 
 ## 8.5 Closing
 
-The compliant technique scores 1.000 and the baseline 0.135 on the same seven
-rules; the compliant technique loads a fifth of the pages; the same extraction
+The compliant technique scores 1.000 and the baseline 0.136 on the same seven
+rules; the compliant technique loads a sixth of the pages; a public AI agent
+told to cross-check an invoice against a diagnosis takes the diagnosis in every
+run and ours never does; the same extraction
 is lawful for care and unlawful for billing; the compliant export contains no raw
 identifier and the baseline's contains all of them; and a receptionist asking for
 a diagnosis is refused, with the rule cited, before being asked for a name. Each

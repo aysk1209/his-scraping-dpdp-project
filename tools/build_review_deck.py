@@ -443,10 +443,11 @@ def build() -> Path:
         ("Refinements after Review-I feedback:", [
             "Processing time, as asked: a cost profile per technique — fields pulled, fetches, real browser page "
             "loads, excess ratio, coverage, wall-clock (deterministic metrics lead; wall-clock is hardware-dependent).",
-            "The comparison is now ours against publicly available AI agents (Claude, GPT, Gemini), each briefed "
-            "with the job, the purpose and the field names — never a value — unaided and told the Act; decisions "
-            "recorded, replayed, and repeated so determinism is a measured column. The hand-written baseline "
-            "stands, as the panel agreed most deployed systems sit there.",
+            "The comparison is now ours against a publicly available AI agent (Gemini), briefed with the job, the "
+            "purpose, the field names — never a value — and what the deployment provides; unaided and told the Act; "
+            "decisions recorded, replayed, and repeated so determinism is a measured column. Two harder measures "
+            "added: manifest veracity (declared vs demonstrable) and trap tasks whose wording invites a violation. "
+            "The hand-written baseline stands, as the panel agreed most deployed systems sit there.",
             "The assistant is rule-based: a fixed function registry, no LLM, no training — answering the Review-I "
             "question of how it is trained: it is not. Heterogeneity is answered by discovery: module layers are "
             "inferred from field names, never read from labels.",
@@ -530,10 +531,11 @@ def build() -> Path:
     add_text(res, 0.7, 5.15, 11.9, 1.7, [
         "Reading the table. The baseline loads about five times the pages for the same coverage; its surplus is "
         "exactly the overreach DM-01 penalises, so compliance and cost move together rather than trading off.",
-        "The AI agents are real public models briefed with field names, never values, once unaided and once told "
-        "the Act; coverage catches any that left out data the job lawfully needs. Repeated runs give a stable "
-        "column: ours reproduces its decision every time — rules, not sampling; an agent's compliance is a sample. "
-        "Per-rule columns are in docs/benchmark_results/benchmark-portal.md.",
+        "The AI agent is a real public model, briefed with field names — never values — and told what the "
+        "deployment provides; it cites it correctly, so the gap is not paperwork. Told to reconcile an invoice "
+        "against the diagnosis, it takes the diagnosis in every run, even with the Act in its prompt: traps held "
+        "0 of 4 against our 4 of 4. It does 74% of the job and reproduces its own decision in 3 of 5 runs; ours "
+        "reads the policy, not the prose, and repeats itself. Per-rule columns: docs/benchmark_results/.",
     ], size=12)
 
     # ---- slide 9 (index 9): Results (contd.) — purpose matrix + export audit ----

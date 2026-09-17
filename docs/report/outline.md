@@ -90,7 +90,7 @@ mapping, once verified).
 
 ## 4. Extraction techniques and the cost axis *(~1800 words — draft now)*
 
-**Status: draft 2, 2026-09-16 — `ch4-techniques-and-cost.md`; §4.2.2, §4.3, §4.4 rewritten for the AI-agent comparison.** Over
+**Status: draft 3, 2026-09-17 — `ch4-techniques-and-cost.md`; §4.5 added for manifest veracity and trap tasks.** Over
 length by ~a quarter; numbers are illustrations from the tracked artefacts, with
 the tables left to chapter 7.
 
@@ -165,7 +165,7 @@ and what a member of staff may be told.
 
 ## 7. Evaluation *(~2200 words — draft on synthetic now; add real-data tables when available)*
 
-**Status: draft 2, 2026-09-16 — `ch7-evaluation.md`; Tables 1–2, §7.2 and §7.8 carry the recorded Gemini agents.** Six tables from
+**Status: draft 3, 2026-09-17 — `ch7-evaluation.md`; eight-task workload, Tables 1–2 with veracity and traps, §7.2 rewritten, §7.8 extended.** Six tables from
 the tracked artefacts; §7.7 is the real-data slot with its contents fixed.
 
 **Argues.** Compliance discriminates between techniques; purpose changes the

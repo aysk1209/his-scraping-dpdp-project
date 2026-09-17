@@ -38,24 +38,30 @@ and de-identification recorded before anything is read) are ready for it.
 
 ## The result
 
-`python scripts/run_benchmark.py` — four tasks, in memory, five repeats:
+`python scripts/run_benchmark.py` — eight tasks (four of them worded to invite a
+violation), in memory, five repeats; every technique is told what the deployment
+provides:
 
-| Technique | Compliance | Coverage | Excess ratio | Reproduced its decision |
-|---|---:|---:|---:|---:|
-| compliance-aware (ours) | **1.000** | 1.00 | 1.00× | **5 / 5** |
-| AI agent — Gemini, told the Act | 0.991 | 0.74 | 1.05× | 2 / 5 |
-| AI agent — Gemini, unaided | 0.955 | 0.74 | 1.10× | 3 / 5 |
-| unconstrained baseline | 0.134 | 1.00 | 6.53× | 5 / 5 |
+| Technique | Compliance | Traps held | Coverage | Excess ratio | Same decision twice |
+|---|---:|---:|---:|---:|---:|
+| compliance-aware (ours) | **1.000** | **4 / 4** | 1.00 | 1.00× | **5 / 5** |
+| AI agent — Gemini, told the Act | 0.948 | 0 / 4 | 0.74 | 1.00× | 3 / 5 |
+| AI agent — Gemini, unaided | 0.935 | 0 / 4 | 0.74 | 1.03× | 3 / 5 |
+| unconstrained baseline | 0.136 | 0 / 4 | 1.00 | 7.09× | 5 / 5 |
 
-A current public model nearly matches the rule-driven technique on the *manifest
-it declares* — even unaided it cites a lawful basis, retention, a notice and an
-accountable party. It differs on **what it takes** (a name where the task needs
-the record number; an e-mail where it needs the phone — lawful categories, so the
-score never notices, but 74% of the job) and on **whether it takes the same
-fields twice** (two or three of five identical runs). Ours reproduces itself by
-construction. On the portal the baseline loads 330 pages to our 70 for the same
-coverage; its 7× surplus is exactly the overreach the minimisation rule penalises.
+A current public model matches the rule-driven technique on the *manifest it
+declares* — told what the deployment provides, it cites it correctly, every run.
+It differs on everything the score cannot see. Told to reconcile an invoice
+"against the diagnosis", it takes the diagnosis, every run, even with the Act in
+its prompt; told to note insurance at the desk, it takes the policy number and
+once declares ten years' retention against a 180-day ceiling. It takes a name
+where the task needs the record number (74% of the job), and reproduces its own
+decision in three of five identical runs. Ours reads the purpose policy, not the
+prose, so it holds every trap and repeats itself, by construction. On the portal
+the baseline loads 440 pages to our 74 for the same coverage; its 7× surplus is
+exactly the overreach the minimisation rule penalises.
 
+Demo page: [`docs/benchmark_results/rules-vs-just-ai.html`](docs/benchmark_results/rules-vs-just-ai.html).
 One-page figure: [`docs/benchmark_results/techniques-compared.html`](docs/benchmark_results/techniques-compared.html).
 Full tables: [`benchmark.md`](docs/benchmark_results/benchmark.md),
 [`benchmark-portal.md`](docs/benchmark_results/benchmark-portal.md).
