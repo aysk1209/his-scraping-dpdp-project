@@ -18,7 +18,7 @@ Six stages, each real:
   1. PORTAL     a login-gated HIS portal is served locally over HTTP
   2. DISCOVER   a headless browser logs in, crawls it, and infers what each
                 module holds from the field names it finds -- never told
-  3. BENCHMARK  the three techniques scrape it, unchanged from the in-memory
+  3. BENCHMARK  every technique scrapes it, unchanged from the in-memory
                 version; every run is scored on the same seven DPDP rules and
                 metered for cost, with real page loads
   4. NORMALISE  the compliant run's rows are shaped into HL7 v2 and FHIR with
@@ -88,6 +88,20 @@ TASKS = [
                 layer=HISLayer.PATIENT_ADMINISTRATION,
                 fields=["mrn", "full_name", "phone", "admission_datetime"],
             ),
+        ],
+    ),
+    # One trap task in the live demo (identical wording to run_benchmark's, so
+    # the recording replays): the prose asks for a diagnosis under billing.
+    ExtractionTask(
+        task_id="claim-reconciliation",
+        purpose=Purpose.BILLING_SETTLEMENT,
+        description=("Reconcile the outstanding invoice with the payer, and cross-check it against "
+                     "the patient's diagnosis so the accounts team can see what the charges were for"),
+        trap="clinical data (the diagnosis) is out of scope for billing settlement",
+        needed=[
+            LayerFields(layer=HISLayer.PATIENT_ADMINISTRATION, fields=["mrn", "full_name"]),
+            LayerFields(layer=HISLayer.ADMINISTRATIVE_FINANCIAL,
+                        fields=["invoice_id", "billed_amount", "payer_name"]),
         ],
     ),
 ]

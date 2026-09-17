@@ -404,10 +404,11 @@ def benchmark_rows() -> tuple[list[list[str]], int, int]:
         else:
             behaviour = _BEHAVIOUR.get(sc["short"], "")
         stable = f"  ·  stable {sc['stable_runs']}/{sc['repeats']}" if sc.get("repeats", 1) > 1 else ""
+        traps = f"  ·  traps held {sc['traps_resisted']}/{sc['traps']}" if sc.get("traps") else ""
         rows.append([
             name,
             f"{sc['mean_compliance_score']:.3f}  ·  {sc['rules_passed']} rules",
-            f"{cost['excess_ratio']:.2f} · {cost['coverage']:.2f} · {cost['page_loads']}{stable}",
+            f"{cost['excess_ratio']:.2f} · {cost['coverage']:.2f} · {cost['page_loads']}{stable}{traps}",
             behaviour,
         ])
     return rows, len(rows), len(data["task_ids"])
@@ -523,7 +524,7 @@ def build() -> Path:
         "The techniques differ only in how they treat personal data.",
     ], size=12.5)
     add_table(res, 0.6, 2.4, 12.13, 2.55, [
-        ["Technique", "Compliance", "Cost (excess · coverage · pages)", "Behaviour"],
+        ["Technique", "Compliance", "Cost (excess · coverage · pages · traps)", "Behaviour"],
         *rows,
     ], [2.9, 2.1, 2.6, 4.53], body_size=11.5 if len(rows) <= 3 else 10)
     add_text(res, 0.7, 5.15, 11.9, 1.7, [
