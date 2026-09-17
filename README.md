@@ -72,7 +72,7 @@ Full tables: [`benchmark.md`](docs/benchmark_results/benchmark.md),
 python -m venv .venv && .venv\Scripts\activate      # POSIX: source .venv/bin/activate
 pip install -r requirements.txt
 python -m playwright install chromium                # once per machine
-pytest                                               # 236 tests, ~30 s
+pytest                                               # 245 tests, ~30 s
 python scripts/run_pipeline.py                       # the whole chain, ~1.5 min
 ```
 
@@ -108,7 +108,7 @@ src/
   agent/            rule-based staff assistant: registry, session (recognise -> gate -> collect), guidance
 scripts/            run_pipeline, run_benchmark, trace_one_patient, record_ai_agents, check_source, ...
 tools/mock_portal/  the login-gated portal fixture (Flask); tools/build_review_deck.py
-tests/              236 tests
+tests/              245 tests
 docs/
   compliance/       approach.md, dpdp-provision-map.md (section mapping, to verify against the Gazette)
   report/           outline.md and chapters 1-8 (drafts)
