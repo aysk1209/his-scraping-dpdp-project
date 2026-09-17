@@ -36,6 +36,9 @@ htmlcov/
 !/docs/benchmark_results/.gitkeep
 !/docs/benchmark_results/README.md
 !/docs/benchmark_results/benchmark.md
+!/docs/benchmark_results/benchmark.json
+!/docs/benchmark_results/benchmark-portal.json
+!/docs/benchmark_results/weight-sweep.md
 !/docs/benchmark_results/care-pull--compliance-aware--purpose-matrix.md
 !/docs/benchmark_results/billing-pull--compliance-aware--purpose-matrix.md
 !/docs/benchmark_results/benchmark-portal.md

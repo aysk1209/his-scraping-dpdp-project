@@ -150,6 +150,18 @@ carries its range where the runs disagreed: `desk-registration` unaided is
 0.843 with runs between 0.77 and 0.95 — the same brief, scored five times,
 spanning nearly a fifth of the scale.
 
+**Are the weights doing the work?** Every rule weighs 1.0 in the committed
+score, and a reader may ask whether another weighting would reorder the
+techniques. `tools/weight_sweep.py` re-scores the per-rule means under
+twenty-one alternatives — equal; each rule doubled in turn; each rule dropped
+in turn; minimisation and purpose tripled; the paperwork rules tripled;
+safeguards and storage tripled — and writes `weight-sweep.md`. No weighting
+moves the compliant technique from first or the baseline from last. The only
+movement is between the two agent briefings, which sit within 0.007 of each
+other under equal weights and change sides under two schemes (dropping PL-01;
+tripling SS-01 and SL-01): a tie changing sides, and the table marks it as
+such. The ranking the report rests on is not a property of the weights.
+
 **Reading Table 2.** Three columns carry the argument, and none of them is the
 compliance score.
 

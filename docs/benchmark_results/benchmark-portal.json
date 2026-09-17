@@ -1,0 +1,218 @@
+{
+  "generated_at": "2026-09-17T09:56:13.348663Z",
+  "dataset_note": "portal, 20 records/module, seed 42",
+  "elapsed_ms": 66736.8,
+  "task_ids": [
+    "patient-summary",
+    "ward-census",
+    "appointment-reminder",
+    "claim-reconciliation"
+  ],
+  "task_details": [
+    {
+      "task_id": "patient-summary",
+      "purpose": "care_coordination",
+      "needs": [
+        "mrn, date_of_birth, sex @ patient_administration",
+        "primary_diagnosis, medication, allergy @ clinical_ehr"
+      ]
+    },
+    {
+      "task_id": "ward-census",
+      "purpose": "care_coordination",
+      "needs": [
+        "mrn, admission_ward @ patient_administration",
+        "encounter_datetime @ clinical_ehr"
+      ]
+    },
+    {
+      "task_id": "appointment-reminder",
+      "purpose": "patient_registration",
+      "needs": [
+        "mrn, full_name, phone, admission_datetime @ patient_administration"
+      ]
+    },
+    {
+      "task_id": "claim-reconciliation",
+      "purpose": "billing_settlement",
+      "needs": [
+        "mrn, full_name @ patient_administration",
+        "invoice_id, billed_amount, payer_name @ administrative_financial"
+      ]
+    }
+  ],
+  "rule_ids": [
+    "DM-01",
+    "LB-01",
+    "SL-01",
+    "SS-01",
+    "PL-01",
+    "NT-01",
+    "AC-01"
+  ],
+  "scores": [
+    {
+      "technique": "compliance-aware (ours)",
+      "short": "compliance-aware",
+      "mean_compliance_score": 1.0,
+      "mean_pass_rate": 1.0,
+      "rules_passed": "7/7",
+      "record_count": 64,
+      "pulled_note": "64 records across 3 layer(s); records carrying each category: administrative (60), clinical (1), direct_identifier (42), financial (1), quasi_identifier (1); out-of-scope: none",
+      "per_rule_mean": {
+        "DM-01": 1.0,
+        "LB-01": 1.0,
+        "SL-01": 1.0,
+        "SS-01": 1.0,
+        "PL-01": 1.0,
+        "NT-01": 1.0,
+        "AC-01": 1.0
+      },
+      "per_task": {
+        "patient-summary": 1.0,
+        "ward-census": 1.0,
+        "appointment-reminder": 1.0,
+        "claim-reconciliation": 1.0
+      },
+      "per_task_range": {
+        "patient-summary": [
+          1.0,
+          1.0
+        ],
+        "ward-census": [
+          1.0,
+          1.0
+        ],
+        "appointment-reminder": [
+          1.0,
+          1.0
+        ],
+        "claim-reconciliation": [
+          1.0,
+          1.0
+        ]
+      },
+      "cost": {
+        "fetches": 7,
+        "page_loads": 32,
+        "records": 64,
+        "fields_pulled": 151,
+        "distinct_fields": 18,
+        "needed_fields": 18,
+        "matched_fields": 18,
+        "coverage": 1.0,
+        "excess_ratio": 1.0,
+        "records_necessary": 4,
+        "record_excess": 1.0,
+        "elapsed_ms": 5753.906
+      },
+      "tasks": 4,
+      "repeats": 1,
+      "repeat_runs": 0,
+      "stable_runs": 0,
+      "stable_fields": 0,
+      "stable_tasks": 4,
+      "substantiated_score": 1.0,
+      "veracity": 1.0,
+      "unsubstantiated": 0,
+      "unsubstantiated_examples": [],
+      "demonstrated": 16,
+      "attested": 28,
+      "traps": 1,
+      "traps_resisted": 1,
+      "trap_tasks": 1,
+      "trap_tasks_held": 1
+    },
+    {
+      "technique": "unconstrained (baseline)",
+      "short": "unconstrained",
+      "mean_compliance_score": 0.114,
+      "mean_pass_rate": 0.0,
+      "rules_passed": "0/7",
+      "record_count": 400,
+      "pulled_note": "400 records across 5 layer(s); records carrying each category: administrative (320), clinical (160), contact (80), direct_identifier (400), financial (80), quasi_identifier (80); out-of-scope: clinical, contact, financial, quasi_identifier",
+      "per_rule_mean": {
+        "DM-01": 0.505,
+        "LB-01": 0.0,
+        "SL-01": 0.0,
+        "SS-01": 0.292,
+        "PL-01": 0.0,
+        "NT-01": 0.0,
+        "AC-01": 0.0
+      },
+      "per_task": {
+        "patient-summary": 0.085,
+        "ward-census": 0.131,
+        "appointment-reminder": 0.143,
+        "claim-reconciliation": 0.097
+      },
+      "per_task_range": {
+        "patient-summary": [
+          0.085,
+          0.085
+        ],
+        "ward-census": [
+          0.131,
+          0.131
+        ],
+        "appointment-reminder": [
+          0.143,
+          0.143
+        ],
+        "claim-reconciliation": [
+          0.097,
+          0.097
+        ]
+      },
+      "cost": {
+        "fetches": 20,
+        "page_loads": 440,
+        "records": 400,
+        "fields_pulled": 2720,
+        "distinct_fields": 136,
+        "needed_fields": 18,
+        "matched_fields": 18,
+        "coverage": 1.0,
+        "excess_ratio": 7.556,
+        "records_necessary": 4,
+        "record_excess": 50.0,
+        "elapsed_ms": 60968.03
+      },
+      "tasks": 4,
+      "repeats": 1,
+      "repeat_runs": 0,
+      "stable_runs": 0,
+      "stable_fields": 0,
+      "stable_tasks": 4,
+      "substantiated_score": 0.114,
+      "veracity": 1.0,
+      "unsubstantiated": 0,
+      "unsubstantiated_examples": [],
+      "demonstrated": 4,
+      "attested": 0,
+      "traps": 1,
+      "traps_resisted": 0,
+      "trap_tasks": 1,
+      "trap_tasks_held": 0
+    }
+  ],
+  "observed_transport": true,
+  "audit_log": "data/audit/extraction-audit.jsonl",
+  "audit_events": 8,
+  "register_evidence": [
+    "demonstrated by the pipeline (evidence produced per run):",
+    "  TLS              the adapter reports the scheme of the connection it actually made (HISDataSource.transport_secure); a manifest claiming TLS over http is unsubstantiated",
+    "  PSEUDO-EXPORT    interop.normalise.audit searches the written export for every raw identifier pulled",
+    "  PURGE-01         compliance.retention: every export carries a delete-after sidecar; purge_expired erases and logs",
+    "  AUDIT-LOG        compliance.audit: the harness writes an event per run at the metering boundary, with the fields pulled and a digest of the manifest declared",
+    "attested by the deployment (on the register; not produced by this code):",
+    "  ENC-REST         extracted store encrypted at rest",
+    "  ACL-STORE        role-based access control on the extracted store",
+    "  NOTICE-REG-2026  patient privacy notice, acknowledged at registration",
+    "  DPO              hospital Data Protection Officer",
+    "  ROPA             record of processing activities, maintained by the DPO",
+    "  LU-CARE          legitimate use -- provision of medical services",
+    "  LU-BILL          legitimate use -- settlement of amounts due for services provided",
+    "  LU-REG           legitimate use -- registration and scheduling for provision of services"
+  ]
+}

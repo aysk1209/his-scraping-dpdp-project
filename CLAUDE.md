@@ -115,6 +115,7 @@ Confirm before introducing a new major dependency or language — don't assume.
   /architecture        # five-layer-his.md
   /compliance          # approach.md, dpdp-provision-map.md
   /access              # when-access-lands.md — the day-one procedure for real data
+  /methodology         # benchmark-protocol.md — every parameter a reader needs to reproduce the numbers
   /report              # outline.md (chapters → artefacts, drafting order, status) and ch1–ch8 drafts; section refs tagged '— unverified' until checked against the Gazette
   /review              # review-ii-flow.md — presenter script
   /benchmark_results    # tracked: benchmark.md, benchmark-portal.md, navigation-map.json, two purpose matrices; other runs git-ignored
