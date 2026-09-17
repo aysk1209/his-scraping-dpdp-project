@@ -472,7 +472,8 @@ must preserve it, and the test will fail if it does not, but the framework's
 behaviour on a larger purpose set is untested.
 
 **Section mapping pending.** The rules cite principles; the provision mapping
-of §3.3 is drafted and marked unverified until checked against the Gazette text.
+of §3.3 was checked against the Gazette text on 2026-09-17; three references
+in the first draft were wrong and are corrected (Chapter 3).
 No result in this chapter depends on a section number.
 
 **Wall-clock.** Reported, not relied upon; see §7.1.

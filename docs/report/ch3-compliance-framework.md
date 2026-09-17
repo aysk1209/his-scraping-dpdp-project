@@ -3,12 +3,14 @@
 *Draft 1, 2026-09-15. Target ~2500 words; this draft runs ~3300 and should lose
 about a quarter at the second pass — the rule subsections (§3.3) can each drop
 their *Findings* line, and §3.4's justification of each policy entry can move to
-a table footnote. Every DPDP section
-reference below is written as `[s.N — unverified]` and must be confirmed against
-the Gazette text (Act No. 22 of 2023) before submission; the mapping and the
-places most likely to be mis-transcribed are in
-`docs/compliance/dpdp-provision-map.md`. Once verified, the `— unverified` tags
-are removed in one pass and nothing else changes.*
+a table footnote. Every DPDP section reference below was verified on
+2026-09-17 against the Gazette text of Act No. 22 of 2023 (the MeitY copy of
+the Gazette of India Extraordinary, Part II, s.1); three references in the
+first draft were wrong and are corrected here — the notice provision is s.5(1)
+alone (s.5(2) is transitional), the contact-publication duty is s.8(9) not
+s.8(8), and the medical legitimate uses are s.7(f) (emergency) and s.7(g)
+(epidemic), with routine care resting on s.7(a). The mapping is in
+`docs/compliance/dpdp-provision-map.md`.*
 
 ---
 
@@ -55,7 +57,7 @@ fields for the right reason but declares nothing about retention or notice score
 poorly under our rules, and that is deliberate. The Act's obligations on a Data
 Fiduciary are obligations to *do and be able to show* certain things — give
 notice, keep data no longer than needed, be able to demonstrate compliance
-[s.8(1) — unverified]. An extraction pipeline that cannot state its own retention
+s.8(1). An extraction pipeline that cannot state its own retention
 period has no way to honour a storage-limitation obligation, whatever its author
 intended. Scoring the manifest therefore scores the thing that the law actually
 constrains. It also has a practical consequence for benchmarking: every technique
@@ -144,8 +146,8 @@ purpose.
 
 *Provision.* The Act has no free-standing minimisation article. The principle is
 derived from the requirement that consent be "limited to such personal data as is
-necessary for such specified purpose" [s.6(1) — unverified], read with the
-requirement that processing be for a lawful purpose [s.4(1) — unverified]. The
+necessary for such specified purpose" s.6(1), read with the
+requirement that processing be for a lawful purpose s.4(1). The
 report should say "derived from", not "named in".
 
 *Check.* Minimisation has two axes, and the rule checks both. On the **field
@@ -178,12 +180,16 @@ records read where 2 were necessary: 48 other patients' records taken".
 *Principle.* Personal data is processed only on a recognised ground: the Data
 Principal's consent, or a legitimate use.
 
-*Provision.* [s.4(1)(a)–(b) — unverified], with consent at [s.6 — unverified]
-and legitimate uses at [s.7 — unverified]. The clause letters within s.7 are the
-most likely transcription error in our mapping and must be checked. In the
-hospital setting, care coordination and registration rest on a legitimate use
-(provision of medical services); billing rests on the purpose for which the data
-was voluntarily provided.
+*Provision.* s.4(1)(a)–(b), with consent at s.6 and the "certain legitimate
+uses" at s.7. The Act lists no general legitimate use for the provision of
+medical services: s.7(f) covers a medical emergency and s.7(g) treatment during
+an epidemic or other public-health threat, and neither describes routine care.
+In the hospital setting, therefore, care coordination, registration and billing
+all rest on s.7(a) — processing for the specified purpose for which the Data
+Principal voluntarily provided her personal data — or on consent under s.6.
+The register's `LU-CARE`, `LU-REG` and `LU-BILL` entries are worded
+accordingly, and the informed briefing given to the AI agent was corrected in
+the same pass (§4.2.2).
 
 *Check.* A basis is declared; it is of a recognised type; and it carries a
 reference — the consent artefact for consent, the specific legitimate use for a
@@ -198,10 +204,15 @@ is, for accountability purposes, half a basis.
 *Principle.* Personal data is retained only as long as the purpose requires, then
 erased; a route to erasure exists.
 
-*Provision.* Erasure when "it is reasonable to assume that the specified purpose
-is no longer being served", unless retention is required by law
-[s.8(7) — unverified]. The legal-retention carve-out is what supports the longer
-ceiling for billing in §3.4.
+*Provision.* s.8(7)(a): erase personal data "upon the Data Principal
+withdrawing her consent or as soon as it is reasonable to assume that the
+specified purpose is no longer being served, whichever is earlier", and
+s.8(7)(b): cause any Data Processor to do the same; the whole sub-section is
+subject to the opening words "unless retention is necessary for compliance with
+any law for the time being in force". That carve-out — in the chapeau of
+s.8(7), not a clause of its own — is what supports the longer ceiling for
+billing in §3.4. s.8(8) adds that the purpose is deemed no longer served after
+a prescribed period of inactivity by the Data Principal.
 
 *Check.* Two independent halves: a retention period is declared and does not
 exceed the purpose's ceiling; and a deletion mechanism is declared.
@@ -220,8 +231,8 @@ absence.
 data against breach.
 
 *Provision.* "Appropriate technical and organisational measures"
-[s.8(4) — unverified] and "reasonable security safeguards to prevent personal
-data breach" [s.8(5) — unverified].
+s.8(4) and "reasonable security safeguards to prevent personal
+data breach" s.8(5).
 
 *Check.* A checklist of concrete safeguards: transport encryption, encryption at
 rest, and access control on the extracted store are always required. A fourth —
@@ -250,9 +261,9 @@ output, which is stronger than either alone.
 *Principle.* Personal data is processed only for the specified purpose; onward
 uses require their own basis.
 
-*Provision.* Processing "only for a lawful purpose" [s.4(1) — unverified];
-notice of "the personal data and the purpose" [s.5(1)(i) — unverified]; consent
-"for the specified purpose" [s.6(1) — unverified].
+*Provision.* Processing "only for a lawful purpose" s.4(1);
+notice of "the personal data and the purpose" s.5(1)(i); consent
+"for the specified purpose" s.6(1).
 
 *Check.* Three questions. Was a specific purpose declared at all? Is it one the
 policy recognises? And if onward uses were declared, are they *compatible*?
@@ -278,9 +289,12 @@ declared basis — but the score distinguishes a gap from a breach.
 *Principle.* The Data Principal is told what personal data is processed and for
 what purpose.
 
-*Provision.* Notice accompanying or preceding the request for consent, stating
-the personal data, the purpose, and the manner of exercising rights and of
-complaint [s.5(1)–(2) — unverified].
+*Provision.* s.5(1): a notice accompanying or preceding the request for
+consent, informing the Data Principal of (i) the personal data and the purpose,
+(ii) the manner of exercising her rights under s.6(4) and s.13, and (iii) the
+manner of complaint to the Board; s.5(3): available in English or a scheduled
+language. (s.5(2), which the first draft cited, is the transitional provision
+for consent given before commencement.)
 
 *Check.* A notice artefact is recorded, and it covers the run's purpose. A
 machine-readable form is noted but not required.
@@ -300,10 +314,14 @@ but the declared one.
 *Principle.* The Data Fiduciary can demonstrate compliance.
 
 *Provision.* Responsibility for compliance "irrespective of any agreement to the
-contrary" [s.8(1) — unverified]; publication of the contact of a person able to
-answer questions [s.8(8) — unverified]; and, for Significant Data Fiduciaries,
-a Data Protection Officer and independent audit [s.10(2) — unverified; whether a
-hospital is designated significant is a report-time question].
+contrary" s.8(1); "appropriate technical and organisational measures to ensure
+effective observance" s.8(4); publication of the business contact of a Data
+Protection Officer, "if applicable, or a person who is able to answer" the Data
+Principal's questions s.8(9); a grievance mechanism s.8(10); and, for a
+Significant Data Fiduciary, a Data Protection Officer, an independent data
+auditor and periodic Data Protection Impact Assessment and audit s.10(2) —
+a status the Central Government notifies under s.10(1), so whether a hospital
+is one is a fact about the deployment, not the Act.
 
 *Check.* Three governance controls: the run is audit-logged; a named accountable
 party is recorded; a record of processing is kept.

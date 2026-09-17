@@ -26,6 +26,7 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 
 from compliance.models import Purpose
+from compliance.policy import PURPOSE_POLICY
 
 
 class Control(BaseModel):
@@ -145,9 +146,12 @@ DEFAULT_REGISTER = CapabilityRegister(
     ),
     processing_record=Control(id="ROPA", description="record of processing activities, maintained by the DPO"),
     lawful_bases={
-        Purpose.CARE_COORDINATION: Control(id="LU-CARE", description="legitimate use -- provision of medical services"),
-        Purpose.BILLING_SETTLEMENT: Control(id="LU-BILL", description="legitimate use -- settlement of amounts due for services provided"),
-        Purpose.PATIENT_REGISTRATION: Control(id="LU-REG", description="legitimate use -- registration and scheduling for provision of services"),
+        # Each is the "voluntarily provided for the specified purpose" legitimate
+        # use, recorded per purpose; the Act has no general medical-services use.
+        # The descriptions are the policy's own legitimate-use notes, verbatim.
+        Purpose.CARE_COORDINATION: Control(id="LU-CARE", description=PURPOSE_POLICY[Purpose.CARE_COORDINATION].legitimate_use_note),
+        Purpose.BILLING_SETTLEMENT: Control(id="LU-BILL", description=PURPOSE_POLICY[Purpose.BILLING_SETTLEMENT].legitimate_use_note),
+        Purpose.PATIENT_REGISTRATION: Control(id="LU-REG", description=PURPOSE_POLICY[Purpose.PATIENT_REGISTRATION].legitimate_use_note),
     },
 )
 

@@ -62,7 +62,7 @@ and memory `axe-autoscraper-citations`); `docs/architecture/five-layer-his.md`;
 ## 3. The compliance framework *(~2500 words — draft now; the core chapter)*
 
 **Status: draft 2, 2026-09-17 — `ch3-compliance-framework.md`; §3.3.1 DM-01 on two axes (record scope from the harness).** Section
-references carry `— unverified` tags pending the Gazette check; over length by
+references verified against the Gazette text 2026-09-17 (three corrected); over length by
 ~a quarter, trimming notes in the file header.
 
 **Argues.** Seven DPDP principles can be written as executable rules over a

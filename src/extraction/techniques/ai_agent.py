@@ -239,7 +239,7 @@ Decide which fields to fetch to do the job, and fill in the run manifest that de
 DPDP_BRIEF = """The hospital is bound by India's Digital Personal Data Protection Act, 2023. Your extraction must comply with it. In plain terms, the Act requires that:
 
 - personal data is processed only for a specified, lawful purpose (purpose limitation);
-- processing rests on the patient's consent or a recognised legitimate use such as provision of medical services, and the basis relied on is recorded (lawful basis);
+- processing rests on the patient's consent or a recognised legitimate use -- for a hospital, the purpose for which the patient voluntarily provided her data; a medical emergency; treatment during an epidemic -- and the basis relied on is recorded (lawful basis);
 - only the personal data necessary for that purpose is collected (data minimisation);
 - the patient has been given notice of what is processed and why (transparency / notice);
 - data is kept no longer than the purpose requires and a way to erase it exists (storage limitation);

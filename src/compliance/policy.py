@@ -41,7 +41,10 @@ PURPOSE_POLICY: dict[Purpose, PurposePolicy] = {
         },
         max_retention_days=90,
         requires_pseudonymised_identifiers=True,
-        legitimate_use_note="legitimate use -- provision of medical services",
+        # The Act lists no general legitimate use for medical services (its
+        # medical uses are an emergency and an epidemic); routine care rests on
+        # the purpose for which the patient provided her data, or on consent.
+        legitimate_use_note="legitimate use -- the purpose for which the patient provided her data: provision of medical services",
     ),
     Purpose.BILLING_SETTLEMENT: PurposePolicy(
         allowed_categories={
@@ -60,7 +63,7 @@ PURPOSE_POLICY: dict[Purpose, PurposePolicy] = {
         # look *weaker* on SS-01 inputs while being no less compliant -- necessity,
         # not strictness, is what the policy encodes.
         requires_pseudonymised_identifiers=False,
-        legitimate_use_note="legitimate use -- settlement of amounts due for services provided",
+        legitimate_use_note="legitimate use -- the purpose for which the patient provided her data: settlement of amounts due for services provided",
     ),
     Purpose.PATIENT_REGISTRATION: PurposePolicy(
         allowed_categories={
@@ -75,7 +78,7 @@ PURPOSE_POLICY: dict[Purpose, PurposePolicy] = {
         # Identification at the desk is the purpose. Pseudonymising the identity
         # of the person you are trying to identify is not a safeguard here.
         requires_pseudonymised_identifiers=False,
-        legitimate_use_note="legitimate use -- registration and scheduling for provision of services",
+        legitimate_use_note="legitimate use -- the purpose for which the patient provided her data: registration and scheduling for provision of services",
     ),
 }
 

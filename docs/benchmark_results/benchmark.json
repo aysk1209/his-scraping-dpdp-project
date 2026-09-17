@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-17T09:55:01.758741Z",
+  "generated_at": "2026-09-17T10:08:11.947414Z",
   "dataset_note": "50 records/layer x 5 layers, seed 42",
-  "elapsed_ms": 110.0,
+  "elapsed_ms": 112.2,
   "task_ids": [
     "patient-summary",
     "ward-census",
@@ -159,7 +159,7 @@
         "excess_ratio": 1.0,
         "records_necessary": 11,
         "record_excess": 1.0,
-        "elapsed_ms": 0.858
+        "elapsed_ms": 0.913
       },
       "tasks": 8,
       "repeats": 5,
@@ -251,7 +251,7 @@
         "excess_ratio": 7.771,
         "records_necessary": 11,
         "record_excess": 136.364,
-        "elapsed_ms": 9.094
+        "elapsed_ms": 9.659
       },
       "tasks": 8,
       "repeats": 5,
@@ -286,8 +286,8 @@
     "  NOTICE-REG-2026  patient privacy notice, acknowledged at registration",
     "  DPO              hospital Data Protection Officer",
     "  ROPA             record of processing activities, maintained by the DPO",
-    "  LU-CARE          legitimate use -- provision of medical services",
-    "  LU-BILL          legitimate use -- settlement of amounts due for services provided",
-    "  LU-REG           legitimate use -- registration and scheduling for provision of services"
+    "  LU-CARE          legitimate use -- the purpose for which the patient provided her data: provision of medical services",
+    "  LU-BILL          legitimate use -- the purpose for which the patient provided her data: settlement of amounts due for services provided",
+    "  LU-REG           legitimate use -- the purpose for which the patient provided her data: registration and scheduling for provision of services"
   ]
 }

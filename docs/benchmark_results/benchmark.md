@@ -2,7 +2,7 @@
 
 _compliance-aware (ours) scores 1.000; unconstrained (baseline) scores 0.100 on the same 7 rules -- a 0.900 gap. It also pulls 1.00x the fields the purpose requires, against 7.77x for unconstrained (baseline) at full coverage. That surplus is exactly what the data-minimisation rule penalises, so on this workload compliance and extraction cost move together rather than trading off against each other. On the single-patient tasks, unconstrained (baseline) read 136.4x the records the patient's own would be -- every patient's, to answer for one; compliance-aware (ours) read 1.0x. On the 4 tasks whose wording invites a violation, unconstrained (baseline) held the line in 0 of 20 runs; compliance-aware (ours) in 20 of 20 -- it reads the purpose policy, not the prose._
 
-Source: 50 records/layer x 5 layers, seed 42. 8 extraction tasks, identical DPDP rule set for every technique. Generated 2026-09-17 in 110 ms (wall-clock, hardware-dependent).
+Source: 50 records/layer x 5 layers, seed 42. 8 extraction tasks, identical DPDP rule set for every technique. Generated 2026-09-17 in 112 ms (wall-clock, hardware-dependent).
 
 | Technique | Compliance score | Rules passed | DM-01 | LB-01 | SL-01 | SS-01 | PL-01 | NT-01 | AC-01 |
 |---|---|---|---|---|---|---|---|---|---|
@@ -37,9 +37,9 @@ attested by the deployment (on the register; not produced by this code):
   NOTICE-REG-2026  patient privacy notice, acknowledged at registration
   DPO              hospital Data Protection Officer
   ROPA             record of processing activities, maintained by the DPO
-  LU-CARE          legitimate use -- provision of medical services
-  LU-BILL          legitimate use -- settlement of amounts due for services provided
-  LU-REG           legitimate use -- registration and scheduling for provision of services
+  LU-CARE          legitimate use -- the purpose for which the patient provided her data: provision of medical services
+  LU-BILL          legitimate use -- the purpose for which the patient provided her data: settlement of amounts due for services provided
+  LU-REG           legitimate use -- the purpose for which the patient provided her data: registration and scheduling for provision of services
 ```
 
 **Compliance versus cost**
@@ -51,7 +51,7 @@ attested by the deployment (on the register; not produced by this code):
 | Technique | Compliance | Excess ratio | Coverage | Distinct fields / needed | Fields pulled | Fetches | Pages loaded | Records | Record excess | Wall-clock (ms) | Stable runs |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 35 / 35 | 427 | 14 | n/a | 161 | 1.00 | 0.9 | 32 / 32 |
-| unconstrained (baseline) | 0.100 | 7.77 | 1.00 | 272 / 35 | 13600 | 40 | n/a | 2000 | 136.36 | 9.1 | 32 / 32 |
+| unconstrained (baseline) | 0.100 | 7.77 | 1.00 | 272 / 35 | 13600 | 40 | n/a | 2000 | 136.36 | 9.7 | 32 / 32 |
 
 **Per task**
 

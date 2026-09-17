@@ -7,7 +7,8 @@ added 2026-09-15 with DOIs verified. The inherited entries [7], [10], [11] were
 completed with full author lists via Crossref on 2026-09-15; [9], which existed
 only as an unverifiable repository upload, was replaced by Vorisek et al. 2022
 (JMIR Medical Informatics), a systematic review serving the same role. Section
-references to the Act are tagged `[s.N — unverified]` as in Chapter 3.*
+references to the Act were verified against the Gazette text on 2026-09-17, as
+in Chapter 3.*
 
 ---
 
@@ -133,7 +134,7 @@ has no term for it.
 ## 2.3 The Digital Personal Data Protection Act, 2023
 
 The Act [13] is India's first comprehensive data-protection statute. It applies
-to the processing of digital personal data within India [s.3 — unverified],
+to the processing of digital personal data within India s.3,
 places obligations on the *Data Fiduciary* — the party that determines the
 purpose and means of processing — in respect of the *Data Principal*, the
 person the data is about, and is enforced by a Data Protection Board. A
@@ -141,27 +142,29 @@ hospital extracting its own patients' data through a portal is a Data
 Fiduciary processing personal data in the Act's sense.
 
 **The obligations as principles.** The Act's core sits in a short run of
-sections [ss.4–8 — unverified], and we read seven principles from them, in the
+sections ss.4–8, and we read seven principles from them, in the
 form Chapter 3 turns into rules:
 
 | Principle | Substance | Provision relied on |
 |---|---|---|
-| Lawful basis | processing rests on consent or a recognised legitimate use | [s.4, s.6, s.7 — unverified] |
-| Purpose limitation | processing only for the specified purpose | [s.4(1), s.5(1), s.6(1) — unverified] |
-| Data minimisation | data limited to what the purpose requires | derived from [s.6(1), s.4(1) — unverified] |
-| Transparency / notice | the Data Principal is told what is processed and why | [s.5 — unverified] |
-| Storage limitation | erase when the purpose is no longer served | [s.8(7) — unverified] |
-| Security safeguards | reasonable safeguards against breach | [s.8(4)–(5) — unverified] |
-| Accountability | the Fiduciary can demonstrate compliance | [s.8(1), s.8(8), s.10 — unverified] |
+| Lawful basis | processing rests on consent or a recognised legitimate use | s.4, s.6, s.7 |
+| Purpose limitation | processing only for the specified purpose | s.4(1), s.5(1), s.6(1) |
+| Data minimisation | data limited to what the purpose requires | derived from s.6(1), s.4(1) |
+| Transparency / notice | the Data Principal is told what is processed and why | s.5(1) |
+| Storage limitation | erase when the purpose is no longer served | s.8(7) |
+| Security safeguards | reasonable safeguards against breach | s.8(4)–(5) |
+| Accountability | the Fiduciary can demonstrate compliance | s.8(1), s.8(4), s.8(9), s.10(2) |
 
 **Where the Act differs from the GDPR.** Two differences matter for this work.
 First, the Act has no free-standing data-minimisation article; the principle is
 *derived* from the limitation of consent to data "necessary for such specified
 purpose" read with the lawful-purpose requirement, and the report says so rather
 than citing a provision that does not exist. Second, the Act's list of
-*legitimate uses* [s.7 — unverified] — grounds on which processing may proceed
-without consent, including provision of medical services and public-health
-purposes — is the basis on which a hospital's care and registration purposes
+*legitimate uses* s.7 — grounds on which processing may proceed without
+consent: the purpose for which the Data Principal voluntarily provided her data
+(s.7(a)), a medical emergency (s.7(f)), and treatment during an epidemic or
+other public-health threat (s.7(g)), among others — is the basis on which a
+hospital's care and registration purposes
 rest, and it is narrower and more enumerated than the GDPR's legitimate-interest
 balancing test. The subordinate Rules, which prescribe operational detail —
 notice format, breach timelines, retention for specified classes of fiduciary —

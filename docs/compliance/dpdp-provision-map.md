@@ -26,40 +26,50 @@ enacted text before use.
 
 All seven principles are now covered. The rule set is `compliance.rules.ALL_RULES`.
 
-## Section mapping (report-time task — drafted 2026-09-13, to be verified against the Gazette text)
+## Section mapping — verified against the Gazette text, 2026-09-17
 
-The rules name principles; the report cites sections. The mapping below is our
-reading of the Digital Personal Data Protection Act, 2023 (Act No. 22 of 2023).
-**Every row must be checked against the enacted text before it goes into the
-report or manuscript** — clause letters within s.7 and sub-sections within s.8 are
-the places a transcription error is most likely. Where the Act has no standalone
-principle (India's Act, unlike the GDPR, has no free-standing "data minimisation"
-article), the row says which provision the principle is derived from.
+The rules name principles; the report cites sections. The mapping below was
+checked row by row against the Gazette of India Extraordinary text of the
+Digital Personal Data Protection Act, 2023 (Act No. 22 of 2023; the MeitY copy,
+21 pages). Three rows of the 2026-09-13 draft were wrong and are corrected: the
+notice duty is **s.5(1)** (s.5(2) is transitional, for pre-commencement
+consent); the duty to publish a contact is **s.8(9)**, not s.8(8) (s.8(8) is
+the deemed-lapse rule for a purpose); and among the legitimate uses a medical
+*emergency* is **s.7(f)** and an *epidemic* **s.7(g)** — there is no general
+legitimate use for routine medical services, so ordinary hospital care rests on
+**s.7(a)** (the purpose for which the patient voluntarily provided her data) or
+on consent. The word "minimisation" does not occur in the Act; the principle is
+derived, as the DM-01 row says.
 
 | Rule | Principle | Provision(s) relied on | How the text supports the rule | Verify |
 |------|-----------|------------------------|-------------------------------|--------|
-| `DM-01` | Data minimisation | **s.6(1)** — consent is "limited to such personal data as is necessary for such specified purpose"; read with **s.4(1)** (processing only for a lawful purpose) | The Act ties the *extent* of data to the *specified purpose*; `DM-01` checks extracted categories against the purpose's envelope — the machine-checkable form of "necessary for the purpose" | ☐ |
-| `LB-01` | Lawful basis | **s.4(1)(a)–(b)** — consent, or a "certain legitimate use"; **s.6** (consent) and **s.7** (legitimate uses, incl. voluntary provision (a), medical emergency (e), epidemic / public-health treatment (f)) | A run must declare which of the two grounds it rests on and reference it; `care_coordination` and `patient_registration` rely on s.7 legitimate uses for provision of medical services; `billing_settlement` on the purpose for which data was voluntarily provided | ☐ clause letters |
-| `SL-01` | Storage limitation | **s.8(7)** — erase personal data on withdrawal of consent or "as soon as it is reasonable to assume that the specified purpose is no longer being served", unless retention is required by law; **s.8(7)(b)**-style retention for legal obligation supports billing's longer ceiling | Per-purpose retention ceilings and a declared deletion mechanism; the audit-driven 365-day ceiling for billing is the "required by law" carve-out | ☐ sub-section |
-| `SS-01` | Security safeguards | **s.8(4)** — "appropriate technical and organisational measures"; **s.8(5)** — "reasonable security safeguards to prevent personal data breach" | TLS, encryption at rest, access control, and pseudonymisation on export are the concrete safeguards; the export audit (`interop.normalise.audit`) verifies the last against output | ☐ |
-| `PL-01` | Purpose limitation | **s.4(1)** — processing "only for a lawful purpose"; **s.5(1)(i)** — notice of "the personal data and the purpose"; **s.6(1)** — consent "for the specified purpose" | A run declares one specified purpose; onward uses are assessed against other recognised purposes' envelopes rather than merely flagged | ☐ |
-| `NT-01` | Transparency / notice | **s.5(1)–(2)** — notice accompanying or preceding the request for consent, stating the personal data, the purpose, the manner of exercising rights and of complaint to the Board | A notice artefact is recorded and covers the run's purpose; the purpose matrix treats a notice as not covering a purpose it did not name | ☐ |
-| `AC-01` | Accountability | **s.8(1)** — the Data Fiduciary "shall be responsible for complying … irrespective of any agreement to the contrary"; **s.8(8)** — publish contact of the person able to answer questions; **s.10(2)** (for Significant Data Fiduciaries) — Data Protection Officer, independent audit, DPIA | Audit log, a named accountable party, and a record of processing are the demonstrable-compliance controls; the fifth HIS layer's audit events are the evidence | ☐ s.10 applicability |
+| `DM-01` | Data minimisation | **s.6(1)** — consent "shall … be limited to such personal data as is necessary for such specified purpose"; read with **s.4(1)** (processing "only … for a lawful purpose") and **s.4(2)** (a lawful purpose is one "not expressly forbidden by law") | The Act ties the *extent* of data to the *specified purpose*; `DM-01` checks extracted categories against the purpose's envelope, and for a single-patient task the records read against the patient's own — the machine-checkable form of "necessary for the purpose" | ✔ verbatim |
+| `LB-01` | Lawful basis | **s.4(1)(a)** consent, **s.4(1)(b)** "certain legitimate uses"; **s.6** (consent); **s.7** — (a) the specified purpose for which the Data Principal voluntarily provided her data and has not objected; (f) a medical emergency; (g) medical treatment or health services during an epidemic, outbreak or other public-health threat; (i) employment | A run declares which ground it rests on and references it. **All three purposes rest on s.7(a)** (data the patient provided for treatment, registration or settlement) or on consent; s.7(f)/(g) apply only in an emergency or epidemic and are not the basis of routine care | ✔ clauses corrected: (f) emergency, (g) epidemic; no general "medical services" use exists |
+| `SL-01` | Storage limitation | **s.8(7)** — "unless retention is necessary for compliance with any law for the time being in force", (a) erase on withdrawal of consent "or as soon as it is reasonable to assume that the specified purpose is no longer being served, whichever is earlier", (b) cause the Data Processor to erase; **s.8(8)** — the purpose is deemed no longer served after a prescribed period of inactivity | Per-purpose retention ceilings and a declared deletion mechanism (now a real purge, `compliance/retention.py`); the 365-day ceiling for billing is the "necessary for compliance with any law" carve-out in the chapeau of s.8(7) | ✔ carve-out is the chapeau, not a clause |
+| `SS-01` | Security safeguards | **s.8(4)** — "appropriate technical and organisational measures to ensure effective observance of the provisions of this Act"; **s.8(5)** — "reasonable security safeguards to prevent personal data breach"; **s.8(6)** — breach intimation to the Board and affected Data Principals | TLS (observed on the connection), encryption at rest, access control, and pseudonymisation on export (verified by the export audit) are the concrete safeguards | ✔ verbatim |
+| `PL-01` | Purpose limitation | **s.4(1)** — processing "only … for a lawful purpose"; **s.5(1)(i)** — notice of "the personal data and the purpose for which the same is proposed to be processed"; **s.6(1)** — consent "for the specified purpose" | A run declares one specified purpose; onward uses are assessed against other recognised purposes' envelopes rather than merely flagged | ✔ verbatim |
+| `NT-01` | Transparency / notice | **s.5(1)** — notice accompanying or preceding the request for consent, informing the Data Principal of (i) the personal data and the purpose, (ii) the manner of exercising her rights under s.6(4) and s.13, (iii) the manner of complaint to the Board; **s.5(3)** — in English or a scheduled language | A notice artefact is recorded and covers the run's purpose; the purpose matrix treats a notice as not covering a purpose it did not name | ✔ was cited as s.5(1)–(2); s.5(2) is transitional |
+| `AC-01` | Accountability | **s.8(1)** — the Data Fiduciary "shall … be responsible for complying with the provisions of this Act … irrespective of any agreement to the contrary or failure of a Data Principal to carry out the duties"; **s.8(9)** — publish the business contact of a Data Protection Officer "if applicable, or a person who is able to answer" the Data Principal's questions; **s.8(10)** — grievance mechanism; **s.10(2)** (Significant Data Fiduciary, notified under s.10(1)) — a Data Protection Officer, an independent data auditor, periodic DPIA and audit | Audit log (written by the harness), a named accountable party, and a record of processing are the demonstrable-compliance controls; the fifth HIS layer's audit events are the evidence | ✔ was cited as s.8(8); the contact duty is s.8(9) |
 
-Related provisions to cite in the report's background, not tied to a rule:
-**s.2** (definitions — "personal data", "processing", "Data Fiduciary", "Data
-Principal", "personal data breach"), **s.3** (application — digital personal data
-within India), **s.11–s.14** (Data Principal's rights: access, correction and
-erasure, grievance redressal, nomination), **s.17** (exemptions — research and
-statistical purposes under prescribed standards, which the *synthetic-data*
-methodology deliberately avoids needing).
+Related provisions to cite in the report's background, not tied to a rule
+(all verified): **s.2** (definitions), **s.3(a)** (application — digital
+personal data collected in digital form, or digitised, within India; s.3(c)
+excludes personal or domestic use and data made public), **s.11** (right to
+access), **s.12** (correction, completion, updating and erasure), **s.13**
+(grievance redressal), **s.14** (nomination), **s.17(2)(b)** (the Act does not
+apply to processing "necessary for research, archiving or statistical purposes
+if the personal data is not to be used to take any decision specific to a Data
+Principal" and prescribed standards are followed — the exemption the
+*synthetic-data* methodology deliberately avoids needing, and the one the
+`ward-summary-registry` trap's "research registry" would have to invoke).
 
 Two caveats for the write-up. First, the Act's Rules (subordinate legislation)
 prescribe much of the operational detail — notice format, breach timelines,
-retention for specified classes of fiduciary — and their status at the time of
-writing should be stated. Second, the Act does not use the term "data
-minimisation"; the report should say the principle is *derived* from s.6(1) and
-s.4(1) rather than named in the statute.
+the s.8(8) inactivity period — and their status at the time of writing should
+be stated; commencement is staggered (the provisions on the Board first, the
+substantive obligations later). Second, the Act does not use the term "data
+minimisation" — the word does not occur in the text — so the report says the
+principle is *derived* from s.6(1) and s.4(1) rather than named in the statute.
 
 ## Policy
 
