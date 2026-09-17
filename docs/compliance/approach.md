@@ -78,31 +78,33 @@ for pasting into slides or the report). Artifacts land in
 A **technique** ([`extraction/technique.py`](../../src/extraction/technique.py))
 is a strategy that fulfils an `ExtractionTask` *and* produces its own compliance
 manifest — so "compliance-aware" is a property of the technique's design, not a
-label added afterwards. Three are implemented
+label added afterwards. Three kinds are implemented
 ([`extraction/techniques/`](../../src/extraction/techniques/)):
 
 | Technique | Behaviour |
 |-----------|-----------|
-| compliance-aware (ours) | pulls exactly the task's needed fields; full manifest |
-| morality (privacy by instinct) | judges each field by whether it *feels* private — refuses names, contact details and money whatever the purpose, takes identifiers and demographics freely; declares by instinct (consent assumed, no notice, no retention). Not DPDP-compliant and not trying to be: the model in between |
-| unconstrained (baseline) | ignores the task, grabs every field of every layer; no manifest. Stands in for a coverage-optimised scraper (cf. AutoScraper, EMNLP 2024) |
+| compliance-aware (ours) | pulls exactly the task's needed fields, read off the purpose policy; builds its manifest from the capability register, citing each control by identifier; declares transport encryption only as observed |
+| ai agent: *provider* (unaided / told the Act) | a publicly available model is given the job in words, the purpose, the field *names* per module and the register, and decides for itself what to pull and what manifest to declare; the pipeline executes the fetch (the model never sees a value); decisions are recorded once and replayed by every demo; the *informed* briefing adds the Act's obligations in plain words |
+| unconstrained (baseline) | ignores the task, grabs every field of every layer; no manifest beyond the transport it was observed on. Stands in for a coverage-optimised scraper (cf. AutoScraper, EMNLP 2024); the Review-I panel accepted it as where most deployed systems sit |
 
 [`compliance.benchmark.run_benchmark`](../../src/compliance/benchmark.py) runs
-every technique against every task (four, currently), scores each run with the
-**same** seven-rule set, and aggregates. `python scripts/run_benchmark.py`:
+every technique against every task (eight; four of them *traps* whose wording
+invites a violation the purpose does not permit), five repeats each with every
+repeat scored, and aggregates. `python scripts/run_benchmark.py`:
 
-| Technique | Compliance score | Rules passed |
-|-----------|-----------------|--------------|
-| compliance-aware (ours) | 1.000 | 7/7 |
-| morality (privacy by instinct) | 0.482 | 2/7 |
-| unconstrained (baseline) | 0.134 | 0/7 |
+| Technique | Compliance score | Rules passed | Trap runs held | Repeats that reproduced run 1 |
+|-----------|-----------------|--------------|---------------:|------------------------------:|
+| compliance-aware (ours) | 1.000 | 7/7 | 20 / 20 | 32 / 32 |
+| ai agent: gemini (told the Act) | 0.948 | 5/7 | 0 / 20 | 19 / 32 |
+| ai agent: gemini (unaided) | 0.941 | 4/7 | 0 / 20 | 15 / 32 |
+| unconstrained (baseline) | 0.136 | 0/7 | 0 / 20 | 32 / 32 |
 
 The full artifact (`docs/benchmark_results/benchmark.md`) also carries the
-per-rule breakdown, a per-task table, what each task needs, and what each
-technique actually pulled over the workload — e.g. the baseline collects *750
-records across 5 layers* including 150 *contact*, 150 *financial* and 150
-audit-log fields it was never asked for, while the compliance-aware technique
-pulls *300 records across 2 layers*, nothing out-of-scope.
+per-rule breakdown, a per-task table with the range where repeats disagreed,
+what each task needs, what each technique actually pulled over the workload,
+the manifest veracity table (declared versus demonstrable, and of the
+substantiated claims which the pipeline demonstrates and which the deployment
+attests), and the register's evidence lines.
 
 ### The second axis: cost
 
@@ -114,9 +116,10 @@ cooperates in its own measurement or could game it.
 
 | Technique | Compliance | Excess ratio | Coverage | Fields pulled | Fetches |
 |-----------|-----------:|-------------:|---------:|--------------:|--------:|
-| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 950 | 7 |
-| morality (privacy by instinct) | 0.482 | 0.90 | 0.90 | 850 | 7 |
-| unconstrained (baseline) | 0.134 | 6.53 | 1.00 | 6200 | 20 |
+| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 1750 | 14 |
+| ai agent: gemini (told the Act) | 0.948 | 1.06 | 0.78 | 1850 | 16 |
+| ai agent: gemini (unaided) | 0.941 | 1.03 | 0.74 | 1810 | 15 |
+| unconstrained (baseline) | 0.136 | 7.09 | 1.00 | 12400 | 40 |
 
 **`excess_ratio`** is distinct fields pulled divided by the fields the task's
 purpose requires. It is a cost measure and a compliance measure at once, because
@@ -127,20 +130,24 @@ it, a technique could score perfectly by pulling nothing.
 
 Both are deterministic — they reproduce on any machine and do not drift with
 dataset size, which is what a published benchmark needs. Wall-clock time is
-reported beside them (median of three runs) but is hardware-dependent and is not
+reported beside them (median over repeats) but is hardware-dependent and is not
 what any claim rests on.
 
-The two axes are complementary rather than redundant, and the morality model is
-why. On compliance it sits between the other two. On cost it is the *cheapest*
-technique — and the cheapness is a failure: coverage 0.90 means it refused a name
-and a phone number that the appointment-reminder task lawfully required under the
-registration purpose. Privacy by instinct over-collects what does not feel private
-(MRN, date of birth, sex) and under-delivers what does. Only a purpose-bound
-technique gets both right, and only the two axes together show it.
+The two axes are complementary rather than redundant, and the AI agent is why.
+On the compliance score it lands within a few hundredths of ours — given the
+register, it cites a basis, a retention, a notice and an officer correctly in
+every run. On cost it looks as economical as ours — and the economy is partly
+a shortfall: coverage 0.74–0.78 means it substituted a name for the record
+number and an e-mail for the phone, lawful categories the score cannot see.
+The two harder measures then separate the techniques where the score does
+not: on the four trap tasks the agent held the line in none of twenty runs
+under either briefing, and it reproduced its first decision in about half of
+its repeats. Ours holds every trap and repeats itself by construction, because
+the prose is not an input to it.
 
 This table is the paper's central claim made concrete: compliance discriminates
-between *techniques*, and it is produced by one harness that will later score
-real baseline implementations on equal terms.
+between *techniques*, and it is produced by one harness that scores a real
+public model and a hand-written baseline on equal terms.
 
 
 ## Purpose limitation, demonstrated
@@ -192,8 +199,8 @@ compliance.checkers.run_all     score the run -> ComplianceReport
 
 Three demos:
 
-- `python scripts/run_benchmark.py` — **the headline**: three techniques
-  compared, the table above.
+- `python scripts/run_benchmark.py` — **the headline**: every technique
+  compared, the table above; the AI agents replay committed recordings.
 - `python scripts/run_synthetic_extraction.py` — one technique, three
   configurations (compliant / partial / careless), records from the generator.
 - `python scripts/score_extraction_run.py` — hand-built records, isolates the

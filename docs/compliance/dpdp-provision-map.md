@@ -142,5 +142,5 @@ python scripts/run_synthetic_extraction.py    # 1 technique, 3 configurations
 python scripts/score_extraction_run.py        # hand-built records, rules in isolation
 ```
 
-`run_benchmark.py` output (compliance-aware / morality model / baseline):
-**1.000 / 0.482 / 0.134**.
+`run_benchmark.py` output (compliance-aware / AI agent told the Act / AI agent
+unaided / baseline): **1.000 / 0.948 / 0.941 / 0.136**.

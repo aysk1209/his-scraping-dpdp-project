@@ -18,7 +18,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from typing import Any
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 
 from playwright.sync_api import Browser, BrowserContext, Page, Playwright, sync_playwright
 
@@ -73,7 +73,12 @@ class PortalBrowser:
     def open(self) -> None:
         self._pw = sync_playwright().start()
         self._browser = self._pw.chromium.launch(headless=self.headless)
-        self._context = self._browser.new_context()
+        # A self-signed certificate is accepted on loopback only: that is our
+        # fixture. Against any other host the browser verifies the chain as it
+        # would for a real portal.
+        host = urlsplit(self.base_url).hostname or ""
+        loopback = host in ("127.0.0.1", "localhost", "::1")
+        self._context = self._browser.new_context(ignore_https_errors=loopback)
         self._page = self._context.new_page()
 
     def close(self) -> None:

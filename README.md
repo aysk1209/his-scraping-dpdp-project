@@ -42,12 +42,14 @@ and de-identification recorded before anything is read) are ready for it.
 violation), in memory, five repeats; every technique is told what the deployment
 provides:
 
-| Technique | Compliance | Traps held | Coverage | Excess ratio | Same decision twice |
+| Technique | Compliance | Trap runs held | Coverage | Excess ratio | Repeats that reproduced run 1 |
 |---|---:|---:|---:|---:|---:|
-| compliance-aware (ours) | **1.000** | **4 / 4** | 1.00 | 1.00× | **5 / 5** |
-| AI agent — Gemini, told the Act | 0.948 | 0 / 4 | 0.74 | 1.00× | 3 / 5 |
-| AI agent — Gemini, unaided | 0.935 | 0 / 4 | 0.74 | 1.03× | 3 / 5 |
-| unconstrained baseline | 0.136 | 0 / 4 | 1.00 | 7.09× | 5 / 5 |
+| compliance-aware (ours) | **1.000** | **20 / 20** | 1.00 | 1.00× | **32 / 32** |
+| AI agent — Gemini, told the Act | 0.948 | 0 / 20 | 0.78 | 1.06× | 19 / 32 |
+| AI agent — Gemini, unaided | 0.941 | 0 / 20 | 0.74 | 1.03× | 15 / 32 |
+| unconstrained baseline | 0.136 | 0 / 20 | 1.00 | 7.09× | 32 / 32 |
+
+Every one of the forty runs per technique is scored; a score is a mean, not a draw.
 
 A current public model matches the rule-driven technique on the *manifest it
 declares* — told what the deployment provides, it cites it correctly, every run.
@@ -55,11 +57,18 @@ It differs on everything the score cannot see. Told to reconcile an invoice
 "against the diagnosis", it takes the diagnosis, every run, even with the Act in
 its prompt; told to note insurance at the desk, it takes the policy number and
 once declares ten years' retention against a 180-day ceiling. It takes a name
-where the task needs the record number (74% of the job), and reproduces its own
-decision in three of five identical runs. Ours reads the purpose policy, not the
-prose, so it holds every trap and repeats itself, by construction. On the portal
-the baseline loads 440 pages to our 74 for the same coverage; its 7× surplus is
-exactly the overreach the minimisation rule penalises.
+where the task needs the record number (74–78% of the job), and reproduces its
+first decision in about half of its repeats. Ours reads the purpose policy, not
+the prose, so it holds every trap and repeats itself, by construction. On the
+portal the baseline loads 440 pages to our 74 for the same coverage; its 7×
+surplus is exactly the overreach the minimisation rule penalises.
+
+Four of the controls a manifest can cite are **demonstrated, not declared**: the
+adapter observes whether the connection was encrypted (the fixture serves TLS; a
+manifest claiming TLS over plain http is marked unsubstantiated), the harness
+writes every run to an audit log at the metering boundary, the export audit
+searches the written files for raw identifiers, and every export carries a
+retention sidecar that `scripts/purge_exports.py` erases on the day and logs.
 
 Demo page: [`docs/benchmark_results/rules-vs-just-ai.html`](docs/benchmark_results/rules-vs-just-ai.html).
 One-page figure: [`docs/benchmark_results/techniques-compared.html`](docs/benchmark_results/techniques-compared.html).
@@ -72,15 +81,19 @@ Full tables: [`benchmark.md`](docs/benchmark_results/benchmark.md),
 python -m venv .venv && .venv\Scripts\activate      # POSIX: source .venv/bin/activate
 pip install -r requirements.txt
 python -m playwright install chromium                # once per machine
-pytest                                               # 245 tests, ~30 s
+pytest                                               # 254 tests, ~30 s
 python scripts/run_pipeline.py                       # the whole chain, ~1.5 min
 ```
 
-`run_pipeline.py` serves a login-gated portal, logs a headless browser into it,
-discovers its modules, runs every technique with real page loads as cost, shapes
-the compliant run into HL7 v2 / FHIR with identifiers pseudonymised and audited,
-re-judges one pull under every purpose, and puts one question per role to the
-assistant. No network, no key: the AI agents replay their recorded decisions.
+`run_pipeline.py` serves a login-gated portal over TLS, logs a headless browser
+into it, discovers its modules, runs every technique with real page loads as cost
+(every run audit-logged by the harness; the connection observed, not assumed),
+shapes the compliant run into HL7 v2 / FHIR with identifiers pseudonymised and
+audited, schedules the export for erasure, re-judges one pull under every
+purpose, puts one question per role to the assistant, and finally runs the purge
+as of the day the retention ends. No network, no key: the AI agents replay their
+recorded decisions (`AI_AGENT_MODE=replay` is the default; only
+`record_ai_agents.py` goes live).
 
 Other demos: `run_benchmark.py` (headline table), `trace_one_patient.py` (one
 record, every technique, field by field, and the agent's five answers to the same
@@ -100,21 +113,23 @@ hold only field names and manifest choices.
 ```
 src/
   compliance/       seven DPDP rules, purpose policy, roles, report, benchmark, purpose matrix,
-                    pseudonymisation, real-data handling gate
+                    pseudonymisation, real-data handling gate, capability register + veracity,
+                    audit log (harness-written), retention sidecar + purge
   extraction/       HISDataSource interface; adapters (in-memory, portal via Playwright, dataset);
                     techniques (compliance-aware, AI agents + recordings, baseline); metering; tier2 crawler
   data_synthetic/   field catalogue (field -> layer -> DPDP category), generator, schemas, export
   interop/          five-layer HIS model, layer <-> standard map, HL7 v2 / FHIR shapers, export audit
   agent/            rule-based staff assistant: registry, session (recognise -> gate -> collect), guidance
-scripts/            run_pipeline, run_benchmark, trace_one_patient, record_ai_agents, check_source, ...
-tools/mock_portal/  the login-gated portal fixture (Flask); tools/build_review_deck.py
-tests/              245 tests
+scripts/            run_pipeline, run_benchmark, trace_one_patient, record_ai_agents, purge_exports, check_source, ...
+tools/mock_portal/  the login-gated portal fixture (Flask, TLS); tools/build_review_deck.py, tools/build_demo_page.py
+tests/              254 tests
 docs/
   compliance/       approach.md, dpdp-provision-map.md (section mapping, to verify against the Gazette)
   report/           outline.md and chapters 1-8 (drafts)
   review/           review-ii-flow.md (presenter script)
   access/           when-access-lands.md (day-one procedure for real data)
-  benchmark_results/ tracked results, the navigation map, the one-page figure
+  benchmark_results/ tracked results, the navigation map, the demo page
+.github/workflows/  ci: the suite, then the benchmark regenerated and diffed against the committed numbers
 ```
 
 ## Documents

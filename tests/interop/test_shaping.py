@@ -170,7 +170,8 @@ def test_export_files_carry_the_shaped_artefacts_and_no_raw_identifier(tmp_path)
     shaped = normalise(out, key="k")
     written = shaped.to_files(tmp_path)
     names = {p.name for p in written}
-    assert names == {f"{shaped.run_id}.hl7", f"{shaped.run_id}.fhir.json"}
+    assert names == {f"{shaped.run_id}.hl7", f"{shaped.run_id}.fhir.json", f"{shaped.run_id}.retention.json"}
+    assert "erase on or after" in shaped.schedule_note        # the export is scheduled, not just written
 
     hl7_text = (tmp_path / f"{shaped.run_id}.hl7").read_text(encoding="utf-8")
     assert hl7_text.startswith("MSH|")

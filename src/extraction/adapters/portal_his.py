@@ -61,6 +61,12 @@ class PortalHISDataSource(HISDataSource):
 
         return self._browser.page_loads
 
+    @property
+    def transport_secure(self) -> bool | None:
+        """Observed, not declared: the scheme of the URL the browser was pointed at."""
+
+        return self._browser.base_url.lower().startswith("https://")
+
     def layers(self) -> tuple[HISLayer, ...]:
         return self.navigation.layers()
 

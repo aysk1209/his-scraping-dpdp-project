@@ -38,6 +38,7 @@ class UnconstrainedExtractionTechnique(ExtractionTechnique):
             run_id=f"{task.task_id}--unconstrained",
             purpose=task.purpose,
             purpose_specified=False,  # the scraper has no declared purpose of its own
-            security=SecurityPosture(transport_encrypted=True),
+            # Its one declaration is whatever the connection actually was.
+            security=SecurityPosture(transport_encrypted=source.transport_secure is not False),
         )
         return TechniqueOutput(run=run, records=records, rows=rows)

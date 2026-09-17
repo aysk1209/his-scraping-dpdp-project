@@ -2,11 +2,13 @@
 
     python scripts/run_benchmark.py
 
-Runs three techniques -- a compliance-aware method (ours), a morality model that
-judges privacy by instinct, and an unconstrained coverage-optimised baseline -- against
-a set of extraction tasks over synthetic HIS data, scoring every run with the
-same DPDP rule set and metering every run for cost on the same terms. Prints the
-comparison table and writes docs/benchmark_results/benchmark.{json,md}.
+Runs every technique -- a compliance-aware method (ours), each publicly
+available AI agent with a recording (unaided, and told the Act), and an
+unconstrained coverage-optimised baseline -- against eight extraction tasks over
+synthetic HIS data, five repeats each, scoring every run with the same DPDP rule
+set and metering every run for cost on the same terms. Prints the comparison
+table and writes docs/benchmark_results/benchmark.{json,md}. The agents replay
+committed recordings: nothing here touches the network.
 
 The table is the project's core evidence, on two axes. Compliance distinguishes
 techniques, not just careful vs careless configurations of one. Cost then says
@@ -157,11 +159,15 @@ decision."""
 def _agents_note(techniques) -> str:
     agents = [t for t in techniques if t.name.startswith("ai agent")]
     if agents:
-        return "AI agents in this run: " + ", ".join(t.name for t in agents) + \
-               " (recorded decisions replayed; scripts/record_ai_agents.py refreshes them)."
-    return ("No AI-agent recordings found and no provider key set -- this run is ours against "
-            "the baseline only. Set ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY and run "
-            "scripts/record_ai_agents.py once.")
+        how = {t.mode for t in agents}
+        return "AI agents in this run: " + ", ".join(t.name for t in agents) + (
+            " (recorded decisions replayed -- no network; scripts/record_ai_agents.py refreshes them)."
+            if how == {"replay"} else
+            f" (mode {', '.join(sorted(how))}: a task without a fresh recording is decided live)."
+        )
+    return ("No AI-agent recordings found -- this run is ours against the baseline only. Set a "
+            "provider key in your shell and run scripts/record_ai_agents.py once; every demo then "
+            "replays what it recorded.")
 
 
 def main() -> None:

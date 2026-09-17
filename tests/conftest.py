@@ -19,6 +19,14 @@ PORTAL_RECORDS = 7
 PORTAL_PAGE = 3
 
 
+@pytest.fixture(autouse=True)
+def _audit_log_in_tmp(tmp_path, monkeypatch):
+    """Every test writes its audit events under its own tmp dir, never data/."""
+
+    from compliance.audit import AUDIT_DIR_ENV
+    monkeypatch.setenv(AUDIT_DIR_ENV, str(tmp_path / "audit"))
+
+
 @dataclass
 class RunningPortal:
     url: str

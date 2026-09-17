@@ -98,27 +98,36 @@ python scripts/run_pipeline.py --records 200 # a longer, larger run
 ```
 
 About a minute and a half on a laptop — most of it is the baseline technique
-loading several hundred pages, which is the point. Six stages print in turn:
+loading several hundred pages, which is the point. Seven stages print in turn:
 
-1. **Portal** — a login-gated hospital portal starts on your machine.
+1. **Portal** — a login-gated hospital portal starts on your machine, over TLS
+   with a throwaway certificate (the scraper trusts it on loopback only).
 2. **Discover** — a headless browser signs in, crawls it, and prints a map of what
    it found: five modules, how many pages each has, which fields are in the list
    and which only on a record's page — and **which HIS layer each module is, worked
    out from the field names**, not read from the URL.
-3. **Benchmark** — the three scraping methods run against the portal, unchanged
-   from the in-memory version, and are scored on the same seven rules. The cost
-   table now has a **pages** column with real page loads: the compliant method
-   loads roughly a quarter of what the baseline does, at identical coverage.
+3. **Benchmark** — every scraping method (ours, the AI agents replaying their
+   recorded decisions, the baseline) runs against the portal, unchanged from the
+   in-memory version, and is scored on the same seven rules. The cost table has
+   a **pages** column with real page loads: the compliant method loads about a
+   sixth of what the baseline does, at identical coverage. The connection was
+   **observed** to be encrypted, and every run was written to the **audit log**
+   by the harness — the last three events are printed.
 4. **Normalise** — the compliant pull is shaped into HL7 v2 messages and FHIR
    resources, the way a downstream system would receive it, with the patient's
    identifiers replaced by tokens. The baseline's pull is shaped too. An **audit**
    then searches both exports for the real identifiers: the compliant export has
    none; the baseline's has all of them. A sample ADT message and Patient resource
-   are printed so you can see the tokens.
+   are printed so you can see the tokens. The export is written with a
+   **retention sidecar**: erase on or after the date the manifest's 30 days run out.
 5. **Purpose** — the compliant pull is re-judged under every purpose.
 6. **Assist** — the assistant answers one question per role, and each step now
    carries the portal page it happens on, taken from stage 2. The last request is
    declined.
+7. **Retain** — the export's retention is shown running out: as of the day after
+   the deadline the purge names the three files it would erase, then erases them
+   on a copy and writes the purge to the audit log. `scripts/purge_exports.py
+   --erase` does it for real on the day.
 
 The point to make out loud: **nothing is staged.** The browser really logs in; the
 scraper is never told how the portal is laid out; the methods that ran against
@@ -190,8 +199,8 @@ question a score alone invites — *what do you give up to be compliant?*
 | Method | Excess ratio | Coverage | Fields pulled | Fetches |
 |--------|-------------:|---------:|--------------:|--------:|
 | compliance-aware (ours) | 1.00 | 1.00 | 950 | 7 |
-| ai agent: gemini (told the Act) | 1.00 | 0.74 | 1750 | 16 |
-| ai agent: gemini (unaided) | 1.03 | 0.74 | 1800 | 15 |
+| ai agent: gemini (told the Act) | 1.06 | 0.78 | 1850 | 16 |
+| ai agent: gemini (unaided) | 1.03 | 0.74 | 1810 | 15 |
 | unconstrained (baseline) | 6.53 | 1.00 | 6200 | 20 |
 
 **Excess ratio** is the number to point at: how many fields a method pulled for
@@ -289,7 +298,8 @@ Use `--interactive` if a reviewer wants to type their own request.
 python -m tools.mock_portal --records 500
 ```
 
-Then open <http://127.0.0.1:8765/> in a browser and sign in as **frontdesk /
+Then open <https://127.0.0.1:8765/> in a browser (accept the self-signed
+certificate; `--no-tls` serves plain http) and sign in as **frontdesk /
 letmein**. You will see a plain hospital-style portal: five modules (Registration,
 Clinical Records, Departmental Orders, Billing & Accounts, Audit Log), each a paginated table
 with a search box and an "Open" link per record that shows the fields the table

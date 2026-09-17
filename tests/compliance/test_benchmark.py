@@ -230,13 +230,36 @@ def test_determinism_is_measured_across_repeats(tmp_path):
         TASKS, source, repeats=4,
     )
     scores = {s.short: s for s in result.scores}
-    assert scores["compliance-aware"].stable_runs == 4
-    assert scores["unconstrained"].stable_runs == 4
-    assert scores["fake-unaided"].stable_runs == 2      # samples alternate: 1st, 3rd match
+    # Two tasks x three repeats after the first = six repeats to reproduce.
+    assert scores["compliance-aware"].repeat_runs == 6
+    assert scores["compliance-aware"].stable_runs == 6 and scores["compliance-aware"].stable_tasks == 2
+    assert scores["unconstrained"].stable_runs == 6
+    assert scores["fake-unaided"].stable_runs == 2      # samples alternate: only the 3rd repeat matches the 1st
     assert scores["fake-unaided"].stable_fields == 2
-    assert "reproduced its own decision 2 time(s)" in result._takeaway()
+    assert scores["fake-unaided"].stable_tasks == 0
+    assert "reproduced its first decision in 2 of 6 repeats (0 of 2 tasks every time)" in result._takeaway()
     assert "stable" in result.render_table()
-    assert "| 2 / 4 |" in result.render_markdown()
+    assert "| 2 / 6 |" in result.render_markdown()
+
+
+def test_every_repeat_is_scored_not_just_the_last(tmp_path):
+    # Sample 1 declares a deletion mechanism and a retention (SL-01 passes),
+    # sample 2 declares neither. The reported score must be the mean over both
+    # draws, with the range shown -- not whichever draw came last.
+    complete = dict(_AGENT_DECISION, retention_days=30, deletion_mechanism="PURGE-01")
+    flaky = AIAgentTechnique(FakeProvider([complete, _AGENT_DECISION]), mode="live",
+                             recordings_dir=tmp_path)
+    source = MockHISDataSource(records_per_layer=5, seed=42)
+    result = run_benchmark([CompliantExtractionTechnique(), flaky], TASKS, source, repeats=2)
+    agent = {s.short: s for s in result.scores}["fake-unaided"]
+    lo, hi = agent.per_task_range["patient-summary"]
+    assert lo < hi
+    assert agent.per_task["patient-summary"] == round((lo + hi) / 2, 3)
+    assert f"({lo:.2f}-{hi:.2f})" in result.render_table()
+    # Cost is per pass of the workload, not summed over the repeats.
+    ours = {s.short: s for s in result.scores}["compliance-aware"]
+    once = run_benchmark([CompliantExtractionTechnique()], TASKS, source).scores[0]
+    assert ours.cost.fetches == once.cost.fetches and ours.cost.records == once.cost.records
 
 
 def test_takeaway_flags_under_coverage_when_only_the_best_technique_falls_short():

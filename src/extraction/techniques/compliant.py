@@ -67,7 +67,10 @@ class CompliantExtractionTechnique(ExtractionTechnique):
             deletion_mechanism=f"{reg.deletion_mechanism.id} -- {reg.deletion_mechanism.description}"
             if reg.deletion_mechanism else None,
             security=SecurityPosture(
-                transport_encrypted=reg.transport_encrypted is not None,
+                # Transport is the one safeguard the technique can see for itself:
+                # the register may list TLS, but if the source was reached over
+                # plain http this run was not encrypted in transit, and says so.
+                transport_encrypted=reg.transport_encrypted is not None and source.transport_secure is not False,
                 at_rest_encrypted=reg.at_rest_encrypted is not None,
                 access_controlled=reg.access_controlled is not None,
                 identifiers_pseudonymised=reg.pseudonymisation is not None,

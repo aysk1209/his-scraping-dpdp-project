@@ -33,6 +33,11 @@ anthropic>=0.125
 openai>=1.0
 google-genai>=1.0
 
+# --- review deck builder (tools/build_review_deck.py) ---
+# Fills the mandatory VIT/SENSE template from the benchmark artefacts. Tooling,
+# not pipeline: nothing under src/ imports it.
+python-pptx>=1.0,<2.0
+
 # ------------------------------------------------------------------
 # Deferred, pending team sign-off:
 #   ruff / black   - lint + format

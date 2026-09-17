@@ -1,6 +1,8 @@
 {
   "provider": "gemini",
   "briefing": "informed",
+  "model": "gemini-3.1-flash-lite",
+  "sampling": "provider default (no temperature or seed set)",
   "tasks": {
     "patient-summary": {
       "samples": [
@@ -1085,6 +1087,5 @@
       "fingerprint": "0a191109b9e53a75",
       "recorded_at": "2026-09-17T04:09:13.905238+00:00"
     }
-  },
-  "model": "gemini-3.1-flash-lite"
+  }
 }

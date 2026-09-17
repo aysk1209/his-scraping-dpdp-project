@@ -205,7 +205,7 @@ profile per technique by micro-averaging — summed numerators over summed
 denominators — so a task with many needed fields weighs more than a task with
 few, matching how the workload is actually run.
 
-**Determinism is measured, not asserted.** The benchmark runs every technique
+**Every repeat is scored.** The benchmark runs every technique
 *k* times on identical input and compares each run's decision with the first:
 the set of fields pulled, and the manifest reduced to its structure — whether a
 basis, a notice, a deletion mechanism, an accountable party were declared, not
@@ -256,7 +256,7 @@ needed fields — closes that door, and it is the metric that catches the AI
 agents. On the four plain tasks their compliance scores sit within a few
 hundredths of ours, and their excess ratios over the workload are 1.00 and
 1.03 — read alone, exactly as economical as the compliant technique. Their
-coverage is 0.74: they
+coverage is 0.74–0.78: they
 obtained under three-quarters of what the tasks lawfully required, because they
 took a name where the task needed a record number, an e-mail where it needed a
 phone, and a visit timestamp where it needed the appointment time. A high
@@ -299,9 +299,30 @@ accountability principle's own test (§3.3.7). Our technique builds its
 manifest *from* the register and is substantiated by construction; given a
 thinner register it declares less, not more — a test asserts it.
 
-On the recorded agent this measure found nothing: given the register, it cited
-it correctly in every run, and its veracity is 1.00. We report that as the
-result it is. A first recording, made before the register was in the brief,
+The register is not all attestation. Four of its controls carry *evidence*
+the pipeline produces for every run, and the benchmark reports a manifest's
+substantiated claims split into *demonstrated* and *attested* accordingly.
+Transport encryption is **observed**: the adapter reports the scheme of the
+connection it actually made (`HISDataSource.transport_secure`; the fixture
+serves TLS with a throwaway certificate, and a plain-http fixture makes our
+own technique declare `transport_encrypted = False` and lose the point),
+and a manifest that claims TLS over a plain connection is unsubstantiated
+whatever the register lists. The **audit log** (`compliance/audit.py`) is
+written by the benchmark harness at the metering boundary — the technique
+cannot log itself, it simply is logged — with the fields pulled, the record
+count and a digest of the manifest declared, never a value. Pseudonymisation
+is checked by the **export audit** (§6). And the **deletion mechanism** is
+real (`compliance/retention.py`): every export carries a sidecar with the
+retention the manifest declared and the date after which it must go, and
+`purge_expired` erases it and logs the erasure. Encryption at rest, access
+control on the store, the notice, the officer and the record of processing
+remain attested — no extraction pipeline can produce evidence of a notice on
+a wall — and the report says which is which rather than letting one word
+cover both.
+
+On the recorded agent the veracity measure found nothing: given the register,
+it cited it correctly in every run, and its veracity is 1.00. We report that
+as the result it is. A first recording, made before the register was in the brief,
 had invented a notice identifier and a section number; the difference between
 the two recordings is the measure doing its job in the other direction —
 supply the facts and a current model uses them. The gap between the

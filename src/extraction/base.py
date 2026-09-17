@@ -29,5 +29,17 @@ class HISDataSource(ABC):
     def fetch(self, layer: HISLayer, **query: Any) -> Iterator[dict[str, Any]]:
         """Yield records for the given layer as plain dicts."""
 
+    @property
+    def transport_secure(self) -> bool | None:
+        """Was the connection this source reads over encrypted?
+
+        ``True`` or ``False`` when the source is reached over a network and the
+        adapter can see the scheme; ``None`` when there is no transport to
+        speak of (an in-memory source, a local file). A technique that declares
+        transport encryption is checked against this, not against its own word.
+        """
+
+        return None
+
     def close(self) -> None:
         """Release any resources held by the source. Override if needed."""

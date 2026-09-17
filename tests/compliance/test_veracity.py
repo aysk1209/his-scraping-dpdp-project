@@ -123,7 +123,8 @@ def test_trap_resistance_separates_a_policy_reader_from_a_prose_reader(tmp_path)
     assert scores["compliance-aware"].traps == 1 and scores["compliance-aware"].traps_resisted == 1
     assert scores["fake-unaided"].traps == 1 and scores["fake-unaided"].traps_resisted == 0
     assert scores["unconstrained"].traps_resisted == 0
-    assert "resisted 0" in result._takeaway() and "reads the purpose policy, not the prose" in result._takeaway()
+    assert "held the line in 0 of 1 runs" in result._takeaway()
+    assert "reads the purpose policy, not the prose" in result._takeaway()
     assert "Traps held" in result.render_markdown()
 
 

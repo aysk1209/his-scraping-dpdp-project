@@ -171,3 +171,31 @@ def test_unconstrained_ignores_task_needed_list():
     clinical_records = [r for r in out.records if r.source_layer == "clinical_ehr"]
     assert len(clinical_records) == 4  # records_per_layer, not filtered
     assert len(fields_for(HISLayer.CLINICAL_EHR)) > 1
+
+
+def test_default_mode_is_replay_and_a_key_does_not_make_it_live(tmp_path, monkeypatch):
+    # The demo laptop may well have a key in its shell. That must not turn a
+    # missing recording into a network call in the review room.
+    from extraction.techniques.ai_agent import MODE_ENV, available_agents, default_mode
+    monkeypatch.delenv(MODE_ENV, raising=False)
+    monkeypatch.setenv("GEMINI_API_KEY", "not-a-real-key")
+    assert default_mode() == "replay"
+    tech = AIAgentTechnique("gemini", recordings_dir=tmp_path)
+    assert tech.mode == "replay"
+    try:
+        tech.extract(_source(), _task())
+        assert False, "expected the missing recording to be refused, not recorded live"
+    except ProviderUnavailable as exc:
+        assert "no recording" in str(exc)
+    # And the agent list does not admit an unrecorded agent on the strength of a key.
+    assert available_agents(("gemini",), recordings_dir=tmp_path, tasks=[_task()]) == []
+
+    monkeypatch.setenv(MODE_ENV, "auto")
+    assert default_mode() == "auto"
+    assert AIAgentTechnique("gemini", recordings_dir=tmp_path).mode == "auto"
+    monkeypatch.setenv(MODE_ENV, "sometimes")
+    try:
+        default_mode()
+        assert False
+    except ValueError:
+        pass

@@ -110,6 +110,62 @@ def combine(costs: list[ExtractionCost]) -> ExtractionCost:
     )
 
 
+def per_pass(cost: ExtractionCost, passes: int) -> ExtractionCost:
+    """A profile combined over ``passes`` repeated runs, expressed per pass.
+
+    Counts become the mean over the runs (rounded); the ratios are left as the
+    micro-average over every run, which is exact. For a deterministic technique
+    every run is identical and this returns the single-run profile unchanged.
+    """
+
+    if passes <= 1:
+        return cost
+
+    def each(n: int) -> int:
+        return round(n / passes)
+
+    return ExtractionCost(
+        fetches=each(cost.fetches),
+        page_loads=None if cost.page_loads is None else each(cost.page_loads),
+        records=each(cost.records),
+        fields_pulled=each(cost.fields_pulled),
+        distinct_fields=each(cost.distinct_fields),
+        needed_fields=each(cost.needed_fields),
+        matched_fields=each(cost.matched_fields),
+        coverage=cost.coverage,
+        excess_ratio=cost.excess_ratio,
+        elapsed_ms=cost.elapsed_ms,
+    )
+
+
+def per_pass(cost: ExtractionCost, passes: int) -> ExtractionCost:
+    """A profile combined over ``passes`` repeated runs, expressed per pass.
+
+    Counts become the mean over the runs (rounded); the ratios are left as the
+    micro-average over every run, which is exact. For a deterministic technique
+    every run is identical and this returns the single-run profile unchanged.
+    """
+
+    if passes <= 1:
+        return cost
+
+    def each(n: int) -> int:
+        return round(n / passes)
+
+    return ExtractionCost(
+        fetches=each(cost.fetches),
+        page_loads=None if cost.page_loads is None else each(cost.page_loads),
+        records=each(cost.records),
+        fields_pulled=each(cost.fields_pulled),
+        distinct_fields=each(cost.distinct_fields),
+        needed_fields=each(cost.needed_fields),
+        matched_fields=each(cost.matched_fields),
+        coverage=cost.coverage,
+        excess_ratio=cost.excess_ratio,
+        elapsed_ms=cost.elapsed_ms,
+    )
+
+
 class MeteredSource(HISDataSource):
     """Wraps any ``HISDataSource`` and counts what a technique actually pulled.
 
@@ -132,6 +188,10 @@ class MeteredSource(HISDataSource):
 
     def layers(self) -> tuple[HISLayer, ...]:
         return self._inner.layers()
+
+    @property
+    def transport_secure(self) -> bool | None:
+        return self._inner.transport_secure
 
     def fetch(self, layer: HISLayer, **query: Any) -> Iterator[dict[str, Any]]:
         # Counted on call rather than on first iteration, so a technique that

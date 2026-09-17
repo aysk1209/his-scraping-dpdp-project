@@ -37,6 +37,10 @@ class Claim(BaseModel):
     declared: str                 # the value declared (True, or the text)
     substantiated: bool
     note: str = ""                # why not, when not
+    # For a substantiated claim: "demonstrated" when the register control has
+    # evidence the pipeline produces, "attested" when the deployment vouches
+    # for it. Empty for an unsubstantiated claim.
+    basis: str = ""
 
 
 class VeracityReport(BaseModel):
@@ -53,6 +57,14 @@ class VeracityReport(BaseModel):
     @property
     def unsubstantiated(self) -> list[Claim]:
         return [c for c in self.claims if not c.substantiated]
+
+    @property
+    def demonstrated(self) -> int:
+        return sum(1 for c in self.claims if c.substantiated and c.basis == "demonstrated")
+
+    @property
+    def attested(self) -> int:
+        return sum(1 for c in self.claims if c.substantiated and c.basis == "attested")
 
     @property
     def veracity(self) -> float | None:
@@ -79,22 +91,45 @@ def _cites(text: str | None, control: Control | None) -> bool:
     return control.id.lower() in text.lower()
 
 
-def verify(run: ExtractionRun, register: CapabilityRegister) -> VeracityReport:
+def verify(
+    run: ExtractionRun,
+    register: CapabilityRegister,
+    observed: dict[str, bool] | None = None,
+) -> VeracityReport:
+    """Check every declaration against the register -- and against what was seen.
+
+    ``observed`` carries what the pipeline itself witnessed for this run, keyed
+    by manifest field: ``{"transport_encrypted": False}`` when the connection
+    it made was not encrypted. A declaration the register would back is still
+    unsubstantiated when the observation contradicts it.
+    """
+
+    observed = observed or {}
     claims: list[Claim] = []
 
-    def flag(name: str, declared: bool, control: Control | None) -> None:
-        if declared:
-            claims.append(Claim(control=name, declared="True", substantiated=control is not None,
-                                note="" if control else "the deployment has no such control"))
+    def basis_of(control: Control) -> str:
+        return "demonstrated" if control.demonstrated else "attested"
+
+    def flag(name: str, declared: bool, control: Control | None, key: str | None = None) -> None:
+        if not declared:
+            return
+        if key is not None and observed.get(key) is False:
+            claims.append(Claim(control=name, declared="True", substantiated=False,
+                                note="observed otherwise: the pipeline saw it was not so on this run"))
+            return
+        claims.append(Claim(control=name, declared="True", substantiated=control is not None,
+                            note="" if control else "the deployment has no such control",
+                            basis=basis_of(control) if control else ""))
 
     def text(name: str, value: str | None, control: Control | None) -> None:
         if value and value.strip():
             ok = _cites(value, control)
             claims.append(Claim(control=name, declared=value.strip()[:60], substantiated=ok,
-                                note="" if ok else (f"does not cite {control.id}" if control else "no such control exists")))
+                                note="" if ok else (f"does not cite {control.id}" if control else "no such control exists"),
+                                basis=basis_of(control) if ok and control else ""))
 
     s = run.security
-    flag("transport encryption", s.transport_encrypted, register.transport_encrypted)
+    flag("transport encryption", s.transport_encrypted, register.transport_encrypted, "transport_encrypted")
     flag("encryption at rest", s.at_rest_encrypted, register.at_rest_encrypted)
     flag("access control", s.access_controlled, register.access_controlled)
     flag("pseudonymisation on export", s.identifiers_pseudonymised, register.pseudonymisation)
@@ -102,9 +137,10 @@ def verify(run: ExtractionRun, register: CapabilityRegister) -> VeracityReport:
     if run.notice is not None:
         text("privacy notice", run.notice.reference, register.notice)
         if run.notice.machine_readable:
-            claims.append(Claim(control="machine-readable notice", declared="True",
-                                substantiated=bool(register.notice) and register.notice_machine_readable,
-                                note="" if register.notice_machine_readable else "no machine-readable notice exists"))
+            ok = bool(register.notice) and register.notice_machine_readable
+            claims.append(Claim(control="machine-readable notice", declared="True", substantiated=ok,
+                                note="" if register.notice_machine_readable else "no machine-readable notice exists",
+                                basis=basis_of(register.notice) if ok else ""))
     g = run.governance
     flag("audit log", g.audit_log_enabled, register.audit_log)
     text("accountable party", g.accountable_party, register.accountable_party)
@@ -115,14 +151,18 @@ def verify(run: ExtractionRun, register: CapabilityRegister) -> VeracityReport:
     return VeracityReport(claims=claims)
 
 
-def substantiate(run: ExtractionRun, register: CapabilityRegister) -> ExtractionRun:
+def substantiate(
+    run: ExtractionRun,
+    register: CapabilityRegister,
+    observed: dict[str, bool] | None = None,
+) -> ExtractionRun:
     """The manifest with every unsubstantiated claim removed.
 
     Scoring this with the same rules gives the *substantiated* compliance
     score: what the deployment can demonstrate, rather than what was said.
     """
 
-    report = verify(run, register)
+    report = verify(run, register, observed)
     bad = {c.control for c in report.unsubstantiated}
     s = run.security
     security = SecurityPosture(

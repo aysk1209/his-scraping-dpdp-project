@@ -39,6 +39,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -72,6 +73,19 @@ from interop.layers import LAYER_DESCRIPTIONS, HISLayer
 
 RECORDINGS_DIR = Path(__file__).resolve().parent / "recordings"
 BRIEFINGS = ("unaided", "informed")
+MODES = ("replay", "live", "auto")
+# The default mode. ``replay`` is the safe one: nothing in a demo, a test or a
+# benchmark reaches the network, whatever keys the shell happens to carry. Set
+# AI_AGENT_MODE=auto to let a keyed session fill gaps live; the recorder sets
+# ``live`` itself.
+MODE_ENV = "AI_AGENT_MODE"
+
+
+def default_mode() -> str:
+    mode = os.environ.get(MODE_ENV, "replay").strip().lower() or "replay"
+    if mode not in MODES:
+        raise ValueError(f"{MODE_ENV} must be one of {MODES}, not '{mode}'")
+    return mode
 
 
 # ------------------------------------------------------------ the decision --
@@ -113,6 +127,15 @@ DECISION_SCHEMA: dict[str, Any] = {
         "processing_record_kept", "rationale",
     ],
 }
+
+
+# Words a model uses for "nothing" in a free-text list. An onward use of "none"
+# is not an onward use, and must not be scored as an unrecognised one.
+_NULL_WORDS = {"", "none", "n/a", "na", "nil", "null", "-", "--", "no", "not applicable"}
+
+
+def _real_uses(uses: list[str]) -> list[str]:
+    return [u.strip() for u in uses if u.strip().lower() not in _NULL_WORDS]
 
 
 class AgentDecision(BaseModel):
@@ -177,7 +200,7 @@ class AgentDecision(BaseModel):
             run_id=run_id,
             purpose=purpose,
             purpose_specified=self.purpose_specified,
-            secondary_uses=[u for u in self.secondary_uses if u.strip()],
+            secondary_uses=_real_uses(self.secondary_uses),
             lawful_basis=basis,
             retention_days=self.retention_days if self.retention_days > 0 else None,
             deletion_mechanism=self.deletion_mechanism.strip() or None,
@@ -262,8 +285,9 @@ def build_user_prompt(
 class AIAgentTechnique(ExtractionTechnique):
     """A publicly available model decides the pull and the manifest.
 
-    ``mode``:
-        replay  -- use the recording; error if there is none for this task
+    ``mode`` (default: ``AI_AGENT_MODE`` in the environment, else ``replay``):
+        replay  -- use the recording; error if there is none for this task.
+                   Never touches the network, whatever keys are set.
         live    -- call the provider; record what it decided
         auto    -- replay if a recording exists, otherwise live if a key is
                    available, otherwise raise
@@ -276,11 +300,14 @@ class AIAgentTechnique(ExtractionTechnique):
         provider: str | Provider = "claude",
         *,
         briefing: str = "unaided",
-        mode: str = "auto",
+        mode: str | None = None,
         recordings_dir: Path | None = None,
     ) -> None:
         if briefing not in BRIEFINGS:
             raise ValueError(f"briefing must be one of {BRIEFINGS}")
+        mode = mode or default_mode()
+        if mode not in MODES:
+            raise ValueError(f"mode must be one of {MODES}")
         if isinstance(provider, str):
             self.provider_name = provider
             self._provider: Provider | None = None      # constructed only when live
@@ -291,6 +318,7 @@ class AIAgentTechnique(ExtractionTechnique):
         self.mode = mode
         self.recordings_dir = recordings_dir or RECORDINGS_DIR
         self.sample = 0
+        self._cache: tuple[float, dict[str, Any]] | None = None     # (mtime, parsed recording)
         self.last_decision: AgentDecision | None = None
         self.last_source: str = ""                     # "replay" or "live"
         label = "told the Act" if briefing == "informed" else "unaided"
@@ -304,9 +332,13 @@ class AIAgentTechnique(ExtractionTechnique):
         return self.recordings_dir / f"{self.provider_name}-{self.briefing}.json"
 
     def _load(self) -> dict[str, Any]:
-        if self.recording_path.exists():
-            return json.loads(self.recording_path.read_text(encoding="utf-8"))
-        return {"provider": self.provider_name, "briefing": self.briefing, "tasks": {}}
+        path = self.recording_path
+        if not path.exists():
+            return {"provider": self.provider_name, "briefing": self.briefing, "tasks": {}}
+        mtime = path.stat().st_mtime
+        if self._cache is None or self._cache[0] != mtime:
+            self._cache = (mtime, json.loads(path.read_text(encoding="utf-8")))
+        return self._cache[1]
 
     def has_recording(self, task_id: str) -> bool:
         return task_id in self._load().get("tasks", {})
@@ -338,6 +370,10 @@ class AIAgentTechnique(ExtractionTechnique):
         data["provider"] = self.provider_name
         data["briefing"] = self.briefing
         data["model"] = self._provider.model if self._provider else model_for(self.provider_name)
+        # How the samples were drawn. No provider adapter sets a temperature or a
+        # seed, so the determinism column measures the model as the public API
+        # serves it by default -- and the recording says so.
+        data["sampling"] = getattr(self._provider, "sampling", "provider default (no temperature or seed set)")
         entry = data.setdefault("tasks", {}).setdefault(task.task_id, {"samples": []})
         if entry.get("fingerprint") not in (None, fingerprint):
             entry["samples"] = []                      # the brief changed; old samples are stale
@@ -346,6 +382,7 @@ class AIAgentTechnique(ExtractionTechnique):
         entry["samples"].append(decision)
         self.recordings_dir.mkdir(parents=True, exist_ok=True)
         self.recording_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        self._cache = None
 
     # --- deciding ---------------------------------------------------------
 
@@ -429,17 +466,18 @@ def available_agents(
     """Every provider x briefing that can run right now.
 
     With ``tasks`` given, an agent qualifies only if it has a recording for
-    *every* task (or a key, so it could record live); with ``source`` given
-    too, each recording must also have been made under today's brief. A
-    half-recorded or stale agent is left out rather than allowed to fail
-    mid-benchmark -- and it is reported, so the gap is visible, not silent.
+    *every* task; with ``source`` given too, each recording must also have
+    been made under today's brief. A half-recorded or stale agent is left out
+    rather than allowed to fail mid-benchmark -- and it is reported, so the
+    gap is visible, not silent. Only in ``auto`` or ``live`` mode (see
+    ``AI_AGENT_MODE``) does a key stand in for a missing recording.
     """
 
     out: list[AIAgentTechnique] = []
     for provider in providers:
         for briefing in briefings:
             tech = AIAgentTechnique(provider, briefing=briefing, recordings_dir=recordings_dir)
-            if key_available(provider):
+            if tech.mode != "replay" and key_available(provider):
                 out.append(tech)
                 continue
             if not tech.recording_path.exists():
@@ -462,7 +500,7 @@ def available_agents(
 
 
 __all__ = [
-    "AIAgentTechnique", "AgentDecision", "DECISION_SCHEMA", "BRIEFINGS",
+    "AIAgentTechnique", "AgentDecision", "DECISION_SCHEMA", "BRIEFINGS", "MODES", "MODE_ENV", "default_mode",
     "SYSTEM_UNAIDED", "SYSTEM_INFORMED", "DPDP_BRIEF", "build_user_prompt",
     "available_agents", "RECORDINGS_DIR",
 ]

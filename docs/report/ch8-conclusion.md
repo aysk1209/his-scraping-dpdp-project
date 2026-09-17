@@ -36,8 +36,12 @@ Appendix E.
    violation the purpose forbids. A publicly available AI agent given the same
    job matches ours on the manifest it declares, but takes different fields
    from the task's, holds none of the four traps in any of forty runs, and
-   reproduces its own decision in three of five; ours holds all four and
-   reproduces itself in five of five, by construction.
+   reproduces its first decision in roughly half its repeats; ours holds all
+   four and reproduces itself in every repeat, by construction. Four of the
+   register's controls are demonstrated by the pipeline itself — an observed
+   connection, an audit log written by the harness, an export audit, a
+   retention sidecar the purge erases — so the top score is true of the run,
+   not merely declared for it.
 
 3. **The purpose matrix: compliance as a property of the pull and its purpose
    together.** One unchanged extraction, with a full manifest, is lawful under

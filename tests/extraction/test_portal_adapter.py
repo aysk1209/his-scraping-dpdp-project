@@ -178,3 +178,22 @@ def test_navigation_markdown_is_pasteable_and_carries_no_host(scraper, tmp_path)
         assert f"`{module.inferred_layer.value}`" in md
     path = nav.to_markdown_file(tmp_path)
     assert path.name == "navigation-map.md" and path.read_text(encoding="utf-8") == md
+
+
+def test_transport_is_observed_from_the_connection_not_declared(scraper, portal):
+    # The fixture serves TLS; the adapter reports what it connected over. The
+    # compliant technique's manifest follows that observation (see
+    # tests/compliance/test_observed_controls.py for the plain-http case).
+    assert portal.url.startswith("https://")
+    assert scraper.transport_secure is True
+    assert MeteredSource(scraper).transport_secure is True
+
+    # The observation is the scheme of the connection the browser made, nothing else.
+    from types import SimpleNamespace
+    from extraction.adapters.mock_his import MockHISDataSource
+    from tools.mock_portal.serve import BackgroundPortal
+    plain = BackgroundPortal(MockHISDataSource(records_per_layer=1), tls=False)
+    assert plain.url.startswith("http://")
+    unopened = PortalHISDataSource.__new__(PortalHISDataSource)
+    unopened._browser = SimpleNamespace(base_url=plain.url)
+    assert unopened.transport_secure is False

@@ -384,7 +384,7 @@ def draw_architecture(slide):
 
 _BEHAVIOUR = {
     "compliance-aware": "Pulls what the purpose makes necessary; full manifest; identifiers pseudonymised on export.",
-    "unconstrained": "Every field of every module; no purpose, no manifest, TLS only.",
+    "unconstrained": "Every field of every module; no purpose, no manifest; declares only the transport it was observed on.",
 }
 
 
@@ -403,7 +403,7 @@ def benchmark_rows() -> tuple[list[list[str]], int, int]:
                          "names; recorded and replayed.")
         else:
             behaviour = _BEHAVIOUR.get(sc["short"], "")
-        stable = f"  ·  stable {sc['stable_runs']}/{sc['repeats']}" if sc.get("repeats", 1) > 1 else ""
+        stable = f"  ·  stable {sc['stable_runs']}/{sc['repeat_runs']}" if sc.get("repeat_runs") else ""
         traps = f"  ·  traps held {sc['traps_resisted']}/{sc['traps']}" if sc.get("traps") else ""
         rows.append([
             name,
@@ -534,7 +534,7 @@ def build() -> Path:
         "The AI agent is a real public model, briefed with field names — never values — and told what the "
         "deployment provides; it cites it correctly, so the gap is not paperwork. Told to reconcile an invoice "
         "against the diagnosis, it takes the diagnosis in every run, even with the Act in its prompt: traps held "
-        "0 of 4 against our 4 of 4. It does 74% of the job and reproduces its own decision in 3 of 5 runs; ours "
+        "0 of 20 runs against our 20 of 20. It does 74-78% of the job and reproduces its first decision in about half its repeats; ours "
         "reads the policy, not the prose, and repeats itself. Per-rule columns: docs/benchmark_results/.",
     ], size=12)
 

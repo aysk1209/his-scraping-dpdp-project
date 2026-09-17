@@ -27,8 +27,9 @@ before the day.
 | `python scripts/run_pipeline.py` as the live command (defaults are 20 records, 10 per page) | ~1½ min; enough pages to show pagination, and the baseline's ~330 page loads are the visible cost |
 
 If the browser cannot launch in the room: `python scripts/run_benchmark.py` runs
-the same three techniques in memory in two seconds, and the portal artefacts in
-the open tabs carry the real-page-load numbers. Say so plainly and move on.
+the same techniques in memory in under a second — the AI agents replay their
+recordings, nothing touches the network — and the portal artefacts in the open
+tabs carry the real-page-load numbers. Say so plainly and move on.
 
 ---
 
@@ -112,6 +113,13 @@ single detail, with the rule named. That refusal comes from the same policy tabl
 that scored stage 3." *(This is the Review-1 "how is the agent trained" doubt:
 it isn't.)*
 
+**[7] RETAIN.** Ten seconds.
+"The manifest said thirty days. Here is the sidecar that says so, here is the
+purge naming the three files as of the day after, here it is erasing them on a
+copy, and here is the audit event. Storage limitation is something the pipeline
+does, not something it declares." *(If asked: the audit log itself was written
+by the harness at the metering boundary — a technique cannot log itself.)*
+
 ### Beat 4 — both directions (terminal, 20 s)
 
 ```
@@ -168,7 +176,8 @@ Then next: the report, the manuscript, the real data when it lands.
 | Script | Shows | Time |
 |---|---|---|
 | `scripts/run_pipeline.py` | **The whole chain**: portal → discover → benchmark → normalise + audit → purpose → assistant | ~1½ min |
-| `scripts/run_benchmark.py` | The three techniques on in-memory data, compliance × cost | 2 s |
+| `scripts/run_benchmark.py` | Every technique on in-memory data: eight tasks, five repeats, every repeat scored; compliance × cost × veracity × traps × stability | 1 s |
+| `scripts/purge_exports.py [--as-of DATE] [--erase]` | The deletion mechanism: what is scheduled, what is due, what goes — and the audit event it leaves | 1 s |
 | `scripts/compare_purposes.py` | One pull judged under every purpose, both directions, plus the retention case | 2 s |
 | `scripts/show_role_access.py` | Each role's derived scope; one request through all three roles | 1 s |
 | `scripts/ask_agent.py [--interactive]` | The assistant: four scripted scenes, or live typing | 1 s |

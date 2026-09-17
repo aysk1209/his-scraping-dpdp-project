@@ -29,10 +29,23 @@ from compliance.models import Purpose
 
 
 class Control(BaseModel):
-    """One thing the deployment provides, with the identifier a manifest cites."""
+    """One thing the deployment provides, with the identifier a manifest cites.
+
+    ``evidence`` names the mechanism in this repository that produces proof of
+    the control for a run -- an observed connection scheme, an audit event, an
+    export audit, a retention sidecar. A control with evidence is *demonstrated*
+    by the pipeline; one without is *attested* by the deployment, which is the
+    most any register can do for an officer's name or a notice on a wall. The
+    benchmark reports which of a manifest's substantiated claims are which.
+    """
 
     id: str
     description: str
+    evidence: str = ""
+
+    @property
+    def demonstrated(self) -> bool:
+        return bool(self.evidence)
 
 
 class CapabilityRegister(BaseModel):
@@ -49,6 +62,27 @@ class CapabilityRegister(BaseModel):
     # Lawful bases the deployment can rely on, per purpose. Consent artefacts
     # would be listed here too, when a deployment records them.
     lawful_bases: dict[Purpose, Control] = Field(default_factory=dict)
+
+    def controls(self) -> list[Control]:
+        out = [c for c in (
+            self.transport_encrypted, self.at_rest_encrypted, self.access_controlled,
+            self.pseudonymisation, self.deletion_mechanism, self.notice,
+            self.accountable_party, self.audit_log, self.processing_record,
+        ) if c is not None]
+        return out + list(self.lawful_bases.values())
+
+    def demonstrated(self) -> list[Control]:
+        return [c for c in self.controls() if c.demonstrated]
+
+    def attested(self) -> list[Control]:
+        return [c for c in self.controls() if not c.demonstrated]
+
+    def evidence_lines(self) -> list[str]:
+        lines = ["demonstrated by the pipeline (evidence produced per run):"]
+        lines += [f"  {c.id:<16} {c.evidence}" for c in self.demonstrated()]
+        lines.append("attested by the deployment (on the register; not produced by this code):")
+        lines += [f"  {c.id:<16} {c.description}" for c in self.attested()]
+        return lines
 
     def ids(self) -> set[str]:
         out = {c.id for c in (
@@ -86,15 +120,29 @@ class CapabilityRegister(BaseModel):
 # The deployment behind every demo and benchmark in this repository. The
 # compliant technique builds its manifest from this; the AI agents are shown it.
 DEFAULT_REGISTER = CapabilityRegister(
-    transport_encrypted=Control(id="TLS", description="portal connection over TLS"),
+    transport_encrypted=Control(
+        id="TLS", description="portal connection over TLS",
+        evidence="the adapter reports the scheme of the connection it actually made "
+                 "(HISDataSource.transport_secure); a manifest claiming TLS over http is unsubstantiated",
+    ),
     at_rest_encrypted=Control(id="ENC-REST", description="extracted store encrypted at rest"),
     access_controlled=Control(id="ACL-STORE", description="role-based access control on the extracted store"),
-    pseudonymisation=Control(id="PSEUDO-EXPORT", description="keyed tokens replace direct identifiers on export"),
-    deletion_mechanism=Control(id="PURGE-01", description="scheduled purge on purpose completion, audited"),
+    pseudonymisation=Control(
+        id="PSEUDO-EXPORT", description="keyed tokens replace direct identifiers on export",
+        evidence="interop.normalise.audit searches the written export for every raw identifier pulled",
+    ),
+    deletion_mechanism=Control(
+        id="PURGE-01", description="scheduled purge on purpose completion, audited",
+        evidence="compliance.retention: every export carries a delete-after sidecar; purge_expired erases and logs",
+    ),
     notice=Control(id="NOTICE-REG-2026", description="patient privacy notice, acknowledged at registration"),
     notice_machine_readable=True,
     accountable_party=Control(id="DPO", description="hospital Data Protection Officer"),
-    audit_log=Control(id="AUDIT-LOG", description="every extraction run is logged with actor, purpose and fields"),
+    audit_log=Control(
+        id="AUDIT-LOG", description="every extraction run is logged with actor, purpose and fields",
+        evidence="compliance.audit: the harness writes an event per run at the metering boundary, "
+                 "with the fields pulled and a digest of the manifest declared",
+    ),
     processing_record=Control(id="ROPA", description="record of processing activities, maintained by the DPO"),
     lawful_bases={
         Purpose.CARE_COORDINATION: Control(id="LU-CARE", description="legitimate use -- provision of medical services"),

@@ -84,31 +84,35 @@ recording, and the recording is the evidence.
 ## 7.2 Compliance × cost — the benchmark
 
 **Table 1.** Compliance per rule, in memory (`benchmark.md`; eight tasks, four
-of them traps; five repeats; identical rule set for every technique). The
-portal run (`benchmark-portal.md`, four tasks) agrees to within 0.05 on every
-technique and is used for the cost columns of Table 2.
+of them traps; five repeats, **every repeat scored** — a cell is the mean over
+all forty runs of a technique, not one draw; identical rule set for every
+technique). The portal run (`benchmark-portal.md`, four tasks) agrees to
+within 0.05 on every technique and is used for the cost columns of Table 2.
 
 | Technique | Score | Rules passed | DM-01 | LB-01 | SL-01 | SS-01 | PL-01 | NT-01 | AC-01 |
 |---|---|---|---|---|---|---|---|---|---|
 | compliance-aware (ours) | **1.000** | 7/7 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
 | ai agent: gemini (told the Act) | 0.948 | 5/7 | 0.92 | 1.00 | 0.81 | 1.00 | 0.91 | 1.00 | 1.00 |
-| ai agent: gemini (unaided) | 0.935 | 4/7 | 0.92 | 1.00 | 0.81 | 1.00 | 0.81 | 1.00 | 1.00 |
+| ai agent: gemini (unaided) | 0.941 | 4/7 | 0.91 | 1.00 | 0.84 | 1.00 | 0.84 | 1.00 | 1.00 |
 | unconstrained (baseline) | 0.136 | 0/7 | 0.67 | 0.00 | 0.00 | 0.28 | 0.00 | 0.00 | 0.00 |
 
 **Table 2.** Cost, veracity and resistance. Deterministic columns lead;
 wall-clock is hardware-dependent and omitted here (it is in the artefacts).
-*Stable* is the number of five identical runs that reproduced the first run's
-decision (fields and manifest structure); *veracity* is declared controls the
-register backs ÷ declared; *traps held* counts trap tasks on which nothing out
-of scope was pulled, no onward use was declared and retention stayed within
-the ceiling.
+*Stable* is the number of repeats after the first (eight tasks × four = 32)
+that reproduced the first run's decision — fields and manifest structure —
+with, in brackets, the tasks reproduced in every repeat; *veracity* is
+declared controls the register backs ÷ declared; *traps held* counts trap
+**runs** (four tasks × five repeats = 20) on which nothing out of scope was
+pulled, no onward use was declared and retention stayed within the ceiling,
+with the tasks held in every repeat in brackets. Coverage and excess are
+micro-averaged over every run.
 
-| Source | Technique | Compliance | Substantiated | Veracity | Traps held | Coverage | Excess ratio | Distinct / needed | Page loads | Stable |
+| Source | Technique | Compliance | Substantiated | Veracity | Traps held (runs / tasks) | Coverage | Excess ratio | Distinct / needed | Page loads | Stable (repeats / tasks) |
 |---|---|---|---|---|---|---|---|---|---|---|
-| in memory | compliance-aware | **1.000** | 1.000 | 1.00 | **4 / 4** | 1.00 | 1.00 | 35 / 35 | n/a | **5 / 5** |
-| in memory | gemini, told the Act | 0.948 | 0.948 | 1.00 | **0 / 4** | 0.74 | 1.00 | 35 / 35 | n/a | 3 / 5 |
-| in memory | gemini, unaided | 0.935 | 0.935 | 1.00 | **0 / 4** | 0.74 | 1.03 | 36 / 35 | n/a | 3 / 5 |
-| in memory | unconstrained | 0.136 | 0.136 | 1.00 | 0 / 4 | 1.00 | 7.09 | 248 / 35 | n/a | 5 / 5 |
+| in memory | compliance-aware | **1.000** | 1.000 | 1.00 | **20 / 20** (4 / 4) | 1.00 | 1.00 | 35 / 35 | n/a | **32 / 32** (8 / 8) |
+| in memory | gemini, told the Act | 0.948 | 0.948 | 1.00 | **0 / 20** (0 / 4) | 0.78 | 1.06 | 37 / 35 | n/a | 19 / 32 (3 / 8) |
+| in memory | gemini, unaided | 0.941 | 0.941 | 1.00 | **0 / 20** (0 / 4) | 0.74 | 1.03 | 36 / 35 | n/a | 15 / 32 (3 / 8) |
+| in memory | unconstrained | 0.136 | 0.136 | 1.00 | 0 / 20 (0 / 4) | 1.00 | 7.09 | 248 / 35 | n/a | 32 / 32 (8 / 8) |
 | portal | compliance-aware | 1.000 | 1.000 | 1.00 | 1 / 1 | 1.00 | 1.00 | 18 / 18 | **74** | — |
 | portal | gemini, told the Act | 0.988 | 0.988 | 1.00 | 0 / 1 | 0.83 | 1.17 | 21 / 18 | 76 | — |
 | portal | gemini, unaided | 0.988 | 0.988 | 1.00 | 0 / 1 | 0.83 | 1.17 | 21 / 18 | 76 | — |
@@ -126,18 +130,23 @@ deletion mechanism, encryption, a notice and an accountable party, and, told
 the register, cites each by its identifier (veracity 1.00 in every run). The
 gap on paperwork is small and honest, and the report states it as such: supply
 a current model with the facts and it uses them. What pulls the score down to
-0.948 and 0.935 is the four trap tasks, and the per-rule columns say exactly
-how: **DM-01 0.92** (clinical data taken for billing, financial data at the
-desk), **SL-01 0.81** (a year's retention declared against a 90-day ceiling,
-and at the desk, in one run, 3,650 days against 180), **PL-01 0.81 and 0.91**
-(the research registry declared as an onward use). Telling the agent the Act in
-plain words moves PL-01 by a tenth and nothing else.
+0.948 and 0.941 is the four trap tasks, and the per-rule columns say exactly
+how: **DM-01 0.92 and 0.91** (clinical data taken for billing, financial data
+at the desk), **SL-01 0.81 and 0.84** (a year's retention declared against a
+90-day ceiling, and at the desk, in one run, 3,650 days against 180),
+**PL-01 0.91 and 0.84** (the research registry declared as an onward use).
+Telling the agent the Act in plain words moves PL-01 by less than a tenth and
+nothing else. Because every repeat is scored, a per-task cell in the artefact
+carries its range where the runs disagreed: `desk-registration` unaided is
+0.843 with runs between 0.77 and 0.95 — the same brief, scored five times,
+spanning nearly a fifth of the scale.
 
 **Reading Table 2.** Three columns carry the argument, and none of them is the
 compliance score.
 
 *Traps held.* On the four tasks whose wording invites a violation, the agent
-held **none, in any of five runs, under either briefing.** Told to reconcile
+held **none, in any of twenty runs, under either briefing** — forty trap runs
+in all, none held. Told to reconcile
 an invoice "against the diagnosis", it took the diagnosis every time. Told to
 "note their insurance policy number" at the registration desk, it took the
 policy number and the payer every time — and declared, across runs, retention
@@ -151,22 +160,26 @@ obligations in the *informed* prompt — the same principles the rules encode,
 in plain words — did not change a single trap outcome. A rule reads the law
 once, at design time; an agent reads it as one more sentence in a prompt.
 
-*Coverage.* 0.74 in memory, 0.83 on the portal. Given the job in words, the
-agent decides for itself what a ward census or a reminder needs, and decides
-differently from the policy — a name where the task needs the record number,
-an e-mail where it needs the phone, no date of birth for a medication review.
-Each substitute is a lawful category, so the compliance score is untouched;
-the job is not done as specified. Its excess ratio in memory is now 1.00 —
-over eight tasks its over-collection on the summaries is balanced by its
-under-collection elsewhere, which is exactly why excess and coverage must be
-read together and neither alone.
+*Coverage.* 0.74 unaided and 0.78 told the Act in memory, 0.83 on the portal.
+Given the job in words, the agent decides for itself what a ward census or a
+reminder needs, and decides differently from the policy — a name where the
+task needs the record number, an e-mail where it needs the phone, no date of
+birth for a medication review. Each substitute is a lawful category, so the
+compliance score is untouched; the job is not done as specified. Its excess
+ratio in memory is 1.03–1.06 — over eight tasks its over-collection on the
+summaries is nearly balanced by its under-collection elsewhere, which is
+exactly why excess and coverage must be read together and neither alone.
 
 *Stability.* Put the same brief to the same model five times and it
-reproduced its own decision — the same fields and the same manifest structure
-— in three of five runs, under either briefing. On the single-patient trace
-(`scripts/trace_one_patient.py`) it drops a needed field in some answers and
-adds an unneeded one in others to an identical brief. The compliant technique
-reproduced itself five of five, as did the baseline: neither samples. A
+reproduced its first decision — the same fields and the same manifest
+structure — in 19 of 32 repeats told the Act and 15 of 32 unaided; on only
+three of the eight tasks did every repeat agree, under either briefing. On the
+single-patient trace (`scripts/trace_one_patient.py`) it drops a needed field
+in some answers and adds an unneeded one in others to an identical brief. The
+compliant technique reproduced itself 32 of 32, as did the baseline: neither
+samples. Sampling was at the provider's default — no temperature or seed was
+set, and the recording says so — which is how a hospital calling the public
+API would receive it. A
 rule-driven technique is deterministic by construction; an agent's compliance
 is a sample from a distribution, and a hospital that deploys one is deploying
 the distribution.
@@ -282,6 +295,15 @@ manifest worth scoring. `test_compliant_export_leaks_no_raw_identifier_and_basel
 asserts it; `test_shaping_adds_nothing_that_was_not_extracted` asserts that the
 shaping step introduces no field the technique did not pull.
 
+The export is also *scheduled*: beside the files goes a retention sidecar
+naming the run, the purpose, the 30 days the manifest declared and the date
+after which the files must go, and the pipeline's last stage runs the purge
+as of the day after on a copy of the export, erasing three files and writing
+the erasure to the audit log
+(`test_exports_are_scheduled_for_erasure_and_purged_when_due`). The baseline's
+export, which declares no retention, gets a sidecar that says it cannot be
+scheduled — storage limitation failing in the artefact, not only in the score.
+
 ## 7.6 The role gate and the assistant
 
 The same policy table that scores the benchmark gates what the staff assistant
@@ -357,20 +379,50 @@ provider's free-tier model (`gemini-3.1-flash-lite`), chosen because its daily
 request allowance permitted a complete recording in one session; the flagship
 model in the same family was capped at twenty requests a day. Five runs per
 task is enough to show that decisions vary, not enough to characterise the
-distribution. The trap result — none held, in forty runs — is strong enough
+distribution; every run is scored, so the tables report means and ranges, not
+a draw. The trap result — none held, in forty trap runs — is strong enough
 that a larger sample is unlikely to reverse it, but a more capable model might
 hold some; that is the first thing a second provider would test.
+
+**The agent was never shown the policy.** Our technique reads the purpose
+policy — the allowed categories and the retention ceilings — and the agent
+reads prose, plus, in one briefing, the Act's principles. A critic may say the
+traps measure what the agent was not told rather than what it cannot do: an
+agent handed the same policy table might hold them. We agree that this is the
+right next experiment, and the briefing mechanism is built to take it — a
+third briefing carrying the policy verbatim is a prompt change and a
+re-recording. If the agent then holds the traps, the finding narrows to
+determinism, coverage and veracity, which stand on their own; if it does not,
+the design argument is complete. Either outcome is reportable, and we do not
+pre-empt it here.
+
+**The register is ours.** The capability register that veracity checks
+against was written by us, and a critic may say a declaration checked against
+our own list proves little. Two answers. First, four of its controls are not
+declared but *demonstrated*: the pipeline observes the scheme of the
+connection it read over and a manifest claiming TLS over plain http is marked
+unsubstantiated whatever the register says (`test_a_transport_claim_is_checked_against_what_was_observed`);
+every run is written to an audit log by the harness at the metering boundary,
+not by the technique; the export audit searches the written files for raw
+identifiers; and every export carries a retention sidecar that the purge
+erases and logs. The benchmark reports, per technique, how many substantiated
+claims rest on that evidence and how many on the register's word (sixteen and
+twenty-eight per technique on the portal run). Second, the remaining controls
+— encryption at rest, access control on the store, the notice, the officer,
+the record of processing — are attested by any deployment; no extraction
+pipeline can produce evidence of a notice on a wall, and we do not claim to.
 
 **The traps are ours.** The four trap tasks were written by us, and a critic
 may say they were written to be failed. We answer that each is a request a
 member of hospital staff could plausibly make in passing, that the purpose and
 the needed fields in each are lawful, and that the compliant technique's
 immunity is not a tuning but a design property — it never reads the wording.
-The wording is available in `scripts/run_benchmark.py` for a reader to judge. The adapters for two further providers exist and record in the
-same format; a second provider and a larger sample are the first things to add
-when keys and quota allow, and the recordings are designed so that adding them
-is a re-run, not a redesign. We do not claim the result generalises across
-models; we claim the measurement does.
+The wording is available in `scripts/run_benchmark.py` for a reader to judge.
+The adapters for two further providers exist and record in the same format; a
+second provider and a larger sample are the first things to add when keys and
+quota allow, and the recordings are designed so that adding them is a re-run,
+not a redesign. We do not claim the result generalises across models; we
+claim the measurement does.
 
 **The baseline is hand-written.** It is a coverage-optimised extractor with no
 manifest, standing in for the class of published scrapers, not a

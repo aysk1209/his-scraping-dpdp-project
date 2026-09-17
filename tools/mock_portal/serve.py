@@ -32,16 +32,25 @@ class BackgroundPortal:
         *,
         port: int | None = None,
         users: dict[str, str] | None = None,
+        tls: bool = True,
         **app_kwargs: Any,
     ) -> None:
         self.users = dict(users or DEFAULT_USERS)
         self.app = create_app(source, users=self.users, **app_kwargs)
         self.port = port or free_port()
-        self.url = f"http://127.0.0.1:{self.port}"
+        # Served over TLS by default with a throwaway self-signed certificate, so
+        # the scraper's connection is encrypted the way a real portal's would be
+        # and the adapter can *observe* it rather than assume it. ``tls=False``
+        # serves plain http -- and the compliant technique then declares that.
+        self.tls = tls
+        self.url = f"{'https' if tls else 'http'}://127.0.0.1:{self.port}"
         # The per-request access log would drown the demo output; the portal is a
         # fixture, so the browser's page-load count is the record of what was fetched.
         logging.getLogger("werkzeug").setLevel(logging.ERROR)
-        self._server = make_server("127.0.0.1", self.port, self.app, threaded=True)
+        self._server = make_server(
+            "127.0.0.1", self.port, self.app, threaded=True,
+            ssl_context="adhoc" if tls else None,
+        )
         self._thread = threading.Thread(target=self._server.serve_forever, daemon=True)
 
     @property

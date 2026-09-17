@@ -25,16 +25,20 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--user", action="append", default=[],
                         help="NAME:PASSWORD; repeatable; replaces the default account")
+    parser.add_argument("--no-tls", action="store_true",
+                        help="serve plain http (default: https with a throwaway self-signed certificate)")
     args = parser.parse_args(argv)
 
     users = dict(u.split(":", 1) for u in args.user) if args.user else DEFAULT_USERS
     source = MockHISDataSource(records_per_layer=args.records, seed=args.seed)
     app = create_app(source, users=users, page_size=args.page_size, latency_ms=args.latency_ms)
 
-    print(f"mock HIS portal on http://{args.host}:{args.port}/  "
+    scheme = "http" if args.no_tls else "https"
+    print(f"mock HIS portal on {scheme}://{args.host}:{args.port}/  "
           f"({args.records} records/layer, seed {args.seed}, {args.latency_ms} ms latency)")
     print("accounts: " + ", ".join(f"{u} / {p}" for u, p in users.items()))
-    app.run(host=args.host, port=args.port, debug=False, use_reloader=False)
+    app.run(host=args.host, port=args.port, debug=False, use_reloader=False,
+            ssl_context=None if args.no_tls else "adhoc")
 
 
 if __name__ == "__main__":

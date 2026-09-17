@@ -29,7 +29,12 @@ import secrets
 from pathlib import Path
 from typing import Any
 
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel, Field
+
+if TYPE_CHECKING:  # pragma: no cover
+    from compliance.audit import AuditLog
 
 from compliance.pseudonymise import direct_identifier_fields, pseudonymise_row
 from extraction.technique import TechniqueOutput
@@ -65,6 +70,11 @@ class ExportAudit(BaseModel):
 class NormalisedOutput(BaseModel):
     run_id: str
     pseudonymised: bool
+    # Carried from the manifest so the export can be scheduled for erasure.
+    purpose: str = ""
+    retention_days: int | None = None
+    deletion_mechanism: str = ""
+    schedule_note: str = ""                       # set by to_files(): when the export is due to go
     hl7: dict[str, list[str]] = Field(default_factory=dict)              # layer -> encoded messages
     fhir: dict[str, list[dict[str, Any]]] = Field(default_factory=dict)  # layer -> resources
     skipped_standards: list[str] = Field(default_factory=list)
@@ -89,7 +99,7 @@ class NormalisedOutput(BaseModel):
             lines += ["    " + l for l in json.dumps(res[0], indent=2).split("\n")]
         return "\n".join(lines) if lines else "  (nothing shaped for this layer)"
 
-    def to_files(self, directory: Path | None = None) -> list[Path]:
+    def to_files(self, directory: Path | None = None, *, audit: "AuditLog | None" = None) -> list[Path]:
         """Write the export: one ``.hl7`` file of messages and one FHIR Bundle.
 
         Segments are newline-separated in the ``.hl7`` file so a reader can open
@@ -99,7 +109,15 @@ class NormalisedOutput(BaseModel):
 
         Write only exports whose identifiers are pseudonymised when the source
         may be real: the caller decides, and the audit says which is which.
+
+        Beside the files goes a retention sidecar (``compliance.retention``):
+        the run, the retention the manifest declared, and the date after which
+        ``purge_expired`` erases them. The export is logged as an event.
         """
+
+        from compliance.audit import AuditEvent, AuditLog
+        from compliance.models import ExtractionRun, Purpose
+        from compliance.retention import schedule
 
         directory = directory or ARTIFACT_DIR
         directory.mkdir(parents=True, exist_ok=True)
@@ -124,6 +142,21 @@ class NormalisedOutput(BaseModel):
             fhir_path = directory / f"{self.run_id}.fhir.json"
             fhir_path.write_text(json.dumps(bundle, indent=2), encoding="utf-8")
             written.append(fhir_path)
+
+        if written and self.purpose:
+            stub = ExtractionRun(run_id=self.run_id, purpose=Purpose(self.purpose),
+                                 retention_days=self.retention_days,
+                                 deletion_mechanism=self.deletion_mechanism or None)
+            sched = schedule(stub, written)
+            if sched is not None:
+                self.schedule_note = sched.one_line()
+                written.append(directory / sched.path_name)
+            (audit or AuditLog()).record(AuditEvent(
+                event="export", run_id=self.run_id, purpose=self.purpose,
+                records=self.counts()["hl7_messages"] + self.counts()["fhir_resources"],
+                note=f"{'pseudonymised' if self.pseudonymised else 'RAW'} export, "
+                     f"{len(written)} file(s); " + (self.schedule_note or "no retention declared"),
+            ))
         return written
 
     def render_summary(self) -> str:
@@ -151,7 +184,11 @@ def normalise(output: TechniqueOutput, *, key: str | None = None) -> NormalisedO
 
     pseudonymise = output.run.security.identifiers_pseudonymised
     key = key or secrets.token_hex(16)
-    result = NormalisedOutput(run_id=output.run.run_id, pseudonymised=pseudonymise)
+    result = NormalisedOutput(
+        run_id=output.run.run_id, pseudonymised=pseudonymise,
+        purpose=output.run.purpose.value, retention_days=output.run.retention_days,
+        deletion_mechanism=output.run.deletion_mechanism or "",
+    )
 
     for layer_value, rows in output.rows.items():
         layer = HISLayer(layer_value)

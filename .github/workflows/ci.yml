@@ -1,0 +1,35 @@
+# Every push and pull request: the suite, then the benchmark reproduced from a
+# clean checkout. "Deterministic by construction" is a claim the project makes
+# about its own technique; this job holds the repository to it -- the committed
+# benchmark.json must match what a fresh machine produces, to the number.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python -m playwright install --with-deps chromium
+      - name: tests (AI agents replay committed recordings; no key is set)
+        run: python -m pytest -q
+      - name: benchmark reproduces the committed numbers
+        run: |
+          python scripts/run_benchmark.py > /dev/null
+          # Every number must reproduce; only timestamps and wall-clock may differ.
+          git diff --exit-code -I '"generated_at"' -I '"elapsed_ms"' -- docs/benchmark_results/benchmark.json
+          # The markdown carries wall-clock inside its cost table; compare it with that column blanked.
+          strip() { sed -E 's/\| [0-9]+\.[0-9] \| ([0-9]+ \/ [0-9]+|n\/a) \|$/| ms | \1 |/; /Generated 20|audit event/d' "$1"; }
+          diff <(git show HEAD:docs/benchmark_results/benchmark.md | strip /dev/stdin) <(strip docs/benchmark_results/benchmark.md)
+      - name: the deck builds
+        run: python tools/build_review_deck.py

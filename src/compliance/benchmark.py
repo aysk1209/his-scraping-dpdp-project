@@ -25,6 +25,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from compliance.audit import AuditLog, fields_by_layer
 from compliance.capabilities import DEFAULT_REGISTER, CapabilityRegister
 from compliance.checkers import run_all
 from compliance.rules import ALL_RULES
@@ -32,7 +33,7 @@ from compliance.veracity import substantiate, verify
 from compliance.rules.base import RuleStatus
 from compliance.summary import merge
 from extraction.base import HISDataSource
-from extraction.metering import ExtractionCost, MeteredSource, combine
+from extraction.metering import ExtractionCost, MeteredSource, combine, per_pass
 from extraction.technique import ExtractionTask, ExtractionTechnique
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -55,32 +56,60 @@ class TechniqueScore(BaseModel):
     record_count: int
     pulled_note: str                        # ExtractionSummary.one_line() across all tasks
     per_rule_mean: dict[str, float | None]
-    per_task: dict[str, float]
+    per_task: dict[str, float]              # mean over the repeats of each task
+    per_task_range: dict[str, tuple[float, float]] = Field(default_factory=dict)  # (min, max) over repeats
     cost: ExtractionCost = Field(default_factory=ExtractionCost)
-    # Over ``repeats`` identical runs, how many reproduced the first run's
-    # decision -- the same fields pulled and the same manifest declared. A
-    # rule-driven technique is stable by construction; an AI agent's decision
-    # can change on identical input, and this is where that shows.
+    # Every task is run ``repeats`` times on identical input and *every* run is
+    # scored -- the score above is the mean over all of them, not one draw.
+    # Stability is then how many of the repeats after the first reproduced the
+    # first run's decision: the same fields pulled and the same manifest
+    # structure. A rule-driven technique is stable by construction; an AI
+    # agent's decision can change on identical input, and this is where that
+    # shows. ``repeat_runs`` is the denominator, tasks x (repeats - 1).
+    tasks: int = 1
     repeats: int = 1
-    stable_runs: int = 1          # same fields *and* same manifest structure
-    stable_fields: int = 1        # same fields, whatever the manifest said
+    repeat_runs: int = 0
+    stable_runs: int = 0          # repeats that reproduced the first run: fields *and* manifest structure
+    stable_fields: int = 0        # repeats that reproduced the first run's field selection
+    stable_tasks: int = 0         # tasks reproduced in every repeat
     # The score again, after every declaration the capability register cannot
     # back is removed -- what the deployment can *demonstrate*, not what was
     # said. Equal to the declared score for a technique that declares only what
     # exists; lower for one that declares what sounds right.
     substantiated_score: float = 0.0
     veracity: float | None = None          # substantiated ÷ declared controls
-    unsubstantiated: int = 0               # declared controls the register lacks, over all tasks
+    unsubstantiated: int = 0               # declared controls the register lacks, over all runs
     unsubstantiated_examples: list[str] = Field(default_factory=list)
+    # Of the substantiated claims, how many rest on evidence the pipeline
+    # produced for the run (an observed connection, an audit event, an export
+    # audit, a retention sidecar) and how many on the deployment's word.
+    demonstrated: int = 0
+    attested: int = 0
     # Trap tasks: descriptions that tempt a technique past the purpose. Resisted
     # when nothing out of scope was pulled, no onward use was declared, and
-    # retention stayed within the ceiling.
-    traps: int = 0
-    traps_resisted: int = 0
+    # retention stayed within the ceiling. Counted per run, because an agent
+    # may hold the line in one repeat and not the next; ``trap_tasks_held`` is
+    # the tasks it held in *every* repeat.
+    traps: int = 0                # trap runs (trap tasks x repeats)
+    traps_resisted: int = 0       # trap runs held
+    trap_tasks: int = 0
+    trap_tasks_held: int = 0
 
     @property
     def determinism(self) -> float:
-        return self.stable_runs / self.repeats if self.repeats else 1.0
+        return self.stable_runs / self.repeat_runs if self.repeat_runs else 1.0
+
+    def traps_note(self) -> str:
+        """'2/4 tasks (7/20 runs)' -- or just the runs when there is one repeat."""
+
+        if self.repeats > 1:
+            return f"{self.trap_tasks_held}/{self.trap_tasks} tasks ({self.traps_resisted}/{self.traps} runs)"
+        return f"{self.traps_resisted}/{self.traps}"
+
+    def stability_note(self) -> str:
+        """'17/32 repeats (2/8 tasks every time)'."""
+
+        return f"{self.stable_runs}/{self.repeat_runs} repeats ({self.stable_tasks}/{self.tasks} tasks every time)"
 
 
 class TaskDetail(BaseModel):
@@ -97,6 +126,12 @@ class BenchmarkResult(BaseModel):
     task_details: list[TaskDetail] = Field(default_factory=list)
     rule_ids: list[str]
     scores: list[TechniqueScore]
+    # What the run could see for itself, the same for every technique: the
+    # transport it read over, and where the audit log went.
+    observed_transport: bool | None = None
+    audit_log: str = ""
+    audit_events: int = 0
+    register_evidence: list[str] = Field(default_factory=list)
 
     @staticmethod
     def _fmt(value: float | None) -> str:
@@ -184,24 +219,33 @@ class BenchmarkResult(BaseModel):
         if tempted:
             s = min(tempted, key=lambda x: x.traps_resisted)
             line += (
-                f" On the {s.traps} tasks whose wording invites a violation, {s.technique} "
-                f"resisted {s.traps_resisted}; {best.technique} resisted "
+                f" On the {s.trap_tasks} tasks whose wording invites a violation, {s.technique} "
+                f"held the line in {s.traps_resisted} of {s.traps} runs; {best.technique} in "
                 f"{best.traps_resisted} of {best.traps} -- it reads the purpose policy, not the prose."
             )
 
         unstable = [
-            s for s in self.scores if s.repeats > 1 and s.stable_runs < s.repeats
+            s for s in self.scores if s.repeat_runs and s.stable_runs < s.repeat_runs
         ]
         if unstable:
             s = unstable[0]
             line += (
-                f" Over {s.repeats} identical runs, {s.technique} reproduced its own "
-                f"decision {s.stable_runs} time(s) -- its field selection alone "
-                f"{s.stable_fields} time(s); {best.technique} reproduced it "
-                f"{best.stable_runs} of {best.repeats}. A rule-driven technique is "
-                f"deterministic by construction; an agent's compliance is a sample."
+                f" Over {s.repeats} identical runs per task, {s.technique} reproduced its first "
+                f"decision in {s.stable_runs} of {s.repeat_runs} repeats ({s.stable_tasks} of "
+                f"{s.tasks} tasks every time) -- its field selection alone in {s.stable_fields}; "
+                f"{best.technique} in {best.stable_runs} of {best.repeat_runs}. A rule-driven "
+                f"technique is deterministic by construction; an agent's compliance is a sample, "
+                f"and every run of it is scored here."
             )
         return line
+
+    @staticmethod
+    def _task_cell(score: "TechniqueScore", task_id: str) -> str:
+        value = score.per_task.get(task_id, float("nan"))
+        lo, hi = score.per_task_range.get(task_id, (value, value))
+        if lo != hi:
+            return f"{value:.3f} ({lo:.2f}-{hi:.2f})"
+        return f"{value:.3f}"
 
     def source_ceiling(self) -> float | None:
         """Coverage the source caps every technique at, or None when it caps none.
@@ -250,27 +294,35 @@ class BenchmarkResult(BaseModel):
         if show_ver or show_traps:
             lines += ["", "what the deployment can demonstrate, and what the wording could not talk it into:"]
             vh = (f"  {'technique':<30} {'declared':>9} {'substant.':>10} {'veracity':>9} {'unbacked':>9}"
-                  + (f" {'traps':>10}" if show_traps else ""))
+                  + (f" {'traps held':>24}" if show_traps else ""))
             lines += [vh, "  " + "-" * (len(vh) - 2)]
             for score in self.scores:
                 ver = "n/a" if score.veracity is None else f"{score.veracity:.2f}"
-                traps = f" {f'{score.traps_resisted}/{score.traps} held':>10}" if show_traps else ""
+                traps = f" {score.traps_note():>24}" if show_traps else ""
                 lines.append(
                     f"  {score.technique:<30} {score.mean_compliance_score:>9.3f} "
                     f"{score.substantiated_score:>10.3f} {ver:>9} {score.unsubstantiated:>9}{traps}"
                 )
             lines.append(
                 "  substant. = the score after declarations the capability register cannot back are removed; "
-                "unbacked = such declarations, over all tasks"
-                + ("; traps = tasks whose wording invites an out-of-scope pull, an onward use or over-retention." if show_traps else ".")
+                "unbacked = such declarations, over all runs"
+                + ("; traps = tasks whose wording invites an out-of-scope pull, an onward use or over-retention, "
+                   "held = every repeat of the task stayed inside the purpose." if show_traps else ".")
             )
             for score in self.scores:
                 if score.unsubstantiated_examples:
                     lines.append(f"    {score.short}: e.g. " + "; ".join(score.unsubstantiated_examples[:3]))
+            lines.append("  of the substantiated claims, demonstrated by the pipeline / attested by the deployment:")
+            for score in self.scores:
+                lines.append(f"    {score.short:<20} {score.demonstrated:>4} demonstrated  {score.attested:>4} attested")
+            if self.observed_transport is not None:
+                lines.append(f"  observed: the source was read over {'an encrypted' if self.observed_transport else 'a PLAIN'} connection")
+            if self.audit_log:
+                lines.append(f"  audit log: {self.audit_events} event(s) written to {self.audit_log}")
 
         lines += ["", "cost profile (deterministic metrics lead; wall-clock is hardware-dependent):"]
         show_loads = any(s.cost.page_loads is not None for s in self.scores)
-        show_stable = any(s.repeats > 1 for s in self.scores)
+        show_stable = any(s.repeat_runs for s in self.scores)
         cost_head = (
             f"  {'technique':<30} {'excess':>7} {'cover':>6} {'distinct':>9} {'fields':>8} "
             f"{'fetches':>8}" + (f" {'pages':>7}" if show_loads else "")
@@ -281,7 +333,7 @@ class BenchmarkResult(BaseModel):
             cost = score.cost
             loads = f" {cost.page_loads if cost.page_loads is not None else '-':>7}" if show_loads else ""
             distinct = f"{cost.distinct_fields}/{cost.needed_fields}"
-            stable = f" {f'{score.stable_runs}/{score.repeats}':>8}" if show_stable else ""
+            stable = f" {f'{score.stable_runs}/{score.repeat_runs}':>8}" if show_stable else ""
             lines.append(
                 f"  {score.technique:<30} {self._fmt(cost.excess_ratio):>7} "
                 f"{self._fmt(cost.coverage):>6} {distinct:>9} {cost.fields_pulled:>8} "
@@ -290,15 +342,16 @@ class BenchmarkResult(BaseModel):
         lines.append(
             "  distinct = distinct fields pulled / fields the purpose requires "
             "(excess is that ratio); cover = how much of the requirement was met"
-            + ("; stable = runs that reproduced the first run's decision." if show_stable else ".")
+            + ("; stable = repeats that reproduced the first run's decision, over all tasks." if show_stable else ".")
         )
 
-        lines += ["", "per task (scores key on data category and manifest, not record volume):"]
-        task_head = f"  {'task':<22}" + "".join(f"{s.short:>16}" for s in self.scores)
+        lines += ["", "per task (scores key on data category and manifest, not record volume"
+                  + ("; mean over repeats, with the range where runs differed" if show_stable else "") + "):"]
+        task_head = f"  {'task':<22}" + "".join(f"{s.short:>18}" for s in self.scores)
         lines += [task_head, "  " + "-" * (len(task_head) - 2)]
         for task_id in self.task_ids:
             row = f"  {task_id:<22}" + "".join(
-                f"{s.per_task.get(task_id, float('nan')):>16.3f}" for s in self.scores
+                f"{self._task_cell(s, task_id):>18}" for s in self.scores
             )
             lines.append(row)
 
@@ -346,7 +399,8 @@ class BenchmarkResult(BaseModel):
                 "removed: what can be demonstrated, not what was said."
                 + (" *Traps* are tasks whose wording invites a violation the purpose does not permit; "
                    "*held* means nothing out of scope was pulled, no onward use was declared and retention "
-                   "stayed within the ceiling." if show_traps else ""),
+                   "stayed within the ceiling -- counted over every repeat, and a task counts as held only "
+                   "when every repeat held." if show_traps else ""),
                 "",
                 "| Technique | Declared score | Substantiated score | Veracity | Unsubstantiated declarations |"
                 + (" Traps held |" if show_traps else ""),
@@ -358,8 +412,25 @@ class BenchmarkResult(BaseModel):
                 lines.append(
                     f"| {score.technique} | {score.mean_compliance_score:.3f} | {score.substantiated_score:.3f} | "
                     f"{ver} | {score.unsubstantiated} ({ex}) |"
-                    + (f" {score.traps_resisted} / {score.traps} |" if show_traps else "")
+                    + (f" {score.traps_note()} |" if show_traps else "")
                 )
+            lines += [
+                "",
+                "Of the substantiated claims, those the pipeline *demonstrates* rest on evidence it "
+                "produced for the run -- the connection scheme it observed, the audit event it wrote, "
+                "the export audit, the retention sidecar; those *attested* rest on the deployment's register.",
+                "",
+                "| Technique | Demonstrated | Attested |",
+                "|---|---|---|",
+            ]
+            for score in self.scores:
+                lines.append(f"| {score.technique} | {score.demonstrated} | {score.attested} |")
+            if self.observed_transport is not None:
+                lines.append("")
+                lines.append(f"Observed on this run: the source was read over {'an encrypted' if self.observed_transport else 'a plain, unencrypted'} connection"
+                             + (f"; {self.audit_events} audit event(s) written to `{self.audit_log}`." if self.audit_log else "."))
+            if self.register_evidence:
+                lines += ["", "```", *self.register_evidence, "```"]
 
         lines += [
             "",
@@ -371,9 +442,10 @@ class BenchmarkResult(BaseModel):
             "data-minimisation rule penalises. `coverage` is the guard rail -- it stops a "
             "technique scoring well by pulling nothing. Both are deterministic and "
             "reproduce on any machine; wall-clock time is reported but is "
-            "hardware-dependent. `stable runs` is how many of the repeated runs "
+            "hardware-dependent. `stable` is how many of the repeats after the first "
             "reproduced the first run's decision -- the same fields, the same "
-            "manifest -- on identical input.",
+            "manifest -- on identical input, over all tasks; every repeat is scored, "
+            "so the compliance column is the mean over them.",
             "",
             "| Technique | Compliance | Excess ratio | Coverage | Distinct fields / needed | Fields pulled | Fetches | Pages loaded | Records | Wall-clock (ms) | Stable runs |",
             "|---|---|---|---|---|---|---|---|---|---|---|",
@@ -381,7 +453,7 @@ class BenchmarkResult(BaseModel):
         for score in self.scores:
             cost = score.cost
             loads = cost.page_loads if cost.page_loads is not None else "n/a"
-            stable = f"{score.stable_runs} / {score.repeats}" if score.repeats > 1 else "n/a"
+            stable = f"{score.stable_runs} / {score.repeat_runs}" if score.repeat_runs else "n/a"
             lines.append(
                 f"| {score.technique} | {score.mean_compliance_score:.3f} | "
                 f"{self._fmt(cost.excess_ratio)} | {self._fmt(cost.coverage)} | "
@@ -394,7 +466,7 @@ class BenchmarkResult(BaseModel):
                   "| Task | " + " | ".join(s.short for s in self.scores) + " |",
                   "|" + "---|" * (1 + len(self.scores))]
         for task_id in self.task_ids:
-            cells = " | ".join(f"{s.per_task.get(task_id, float('nan')):.3f}" for s in self.scores)
+            cells = " | ".join(self._task_cell(s, task_id) for s in self.scores)
             lines.append(f"| `{task_id}` | {cells} |")
 
         if self.task_details:
@@ -429,6 +501,15 @@ class BenchmarkResult(BaseModel):
         return path
 
 
+def _display_path(path: Path) -> str:
+    """Repository-relative when inside it, so artefacts do not carry a machine's paths."""
+
+    try:
+        return path.resolve().relative_to(_REPO_ROOT).as_posix()
+    except ValueError:
+        return str(path)
+
+
 def _task_detail(task: ExtractionTask) -> TaskDetail:
     needs = [
         f"{', '.join(item.fields)} @ {item.layer.value}" for item in task.needed
@@ -436,33 +517,39 @@ def _task_detail(task: ExtractionTask) -> TaskDetail:
     return TaskDetail(task_id=task.task_id, purpose=task.purpose.value, needs=needs)
 
 
+class _Run:
+    """One metered run of one technique on one task."""
+
+    def __init__(self, output, cost: ExtractionCost, key: tuple) -> None:
+        self.output = output
+        self.cost = cost
+        self.key = key
+
+
 def _run_task(
     technique: ExtractionTechnique,
     task: ExtractionTask,
     source: HISDataSource,
     repeats: int,
-):
-    """Run one technique against one task, metered. Returns (output, cost).
+) -> list[_Run]:
+    """Run one technique against one task ``repeats`` times, metered.
 
-    With ``repeats`` above 1 the run is repeated and the *median* wall-clock is
-    kept, which is the only way a hardware-dependent number is worth reporting.
-    The deterministic counts are identical across repeats, so the last run's
-    meter is used for them.
+    Every run is returned and every run is scored by the caller: for a
+    technique whose decision can vary on identical input, the last run is one
+    draw, not the result. A recorded agent replays its i-th decision on the
+    i-th repeat; a deterministic technique returns the same run each time.
     """
 
-    elapsed: list[float] = []
-    decisions: list[tuple] = []
+    runs: list[_Run] = []
     for i in range(max(1, repeats)):
         if hasattr(technique, "sample"):
-            technique.sample = i               # a recorded agent replays its i-th decision
+            technique.sample = i
         metered = MeteredSource(source)
         started = time.perf_counter()
         output = technique.extract(metered, task)
-        elapsed.append((time.perf_counter() - started) * 1000)
-        decisions.append(_decision_key(output, metered))
-    stable = sum(1 for d in decisions if d == decisions[0])
-    stable_fields = sum(1 for d in decisions if d[0] == decisions[0][0])
-    return output, metered.cost(task.field_refs(), median(elapsed)), stable, stable_fields
+        elapsed = (time.perf_counter() - started) * 1000
+        runs.append(_Run(output, metered.cost(task.field_refs(), elapsed), _decision_key(output, metered)))
+    return runs
 
 
 def manifest_structure(run) -> dict[str, Any]:
@@ -525,58 +612,105 @@ def run_benchmark(
     dataset_note: str = "",
     repeats: int = 1,
     register: CapabilityRegister | None = None,
+    audit: AuditLog | None = None,
 ) -> BenchmarkResult:
-    """Score every technique against every task; aggregate per technique."""
+    """Score every technique against every task; aggregate per technique.
+
+    Every run is written to the audit log (``compliance.audit``) at the
+    metering boundary -- by the harness, not the technique -- and the
+    transport the source was read over is observed once and checked against
+    every manifest that claims encryption in transit.
+    """
 
     register = register or DEFAULT_REGISTER
+    audit = audit or AuditLog()
+    transport = source.transport_secure
+    observed = {} if transport is None else {"transport_encrypted": transport}
+    events = 0
 
     started = time.perf_counter()
     scores: list[TechniqueScore] = []
     for technique in techniques:
         per_task: dict[str, float] = {}
+        per_task_range: dict[str, tuple[float, float]] = {}
         pass_rates: list[float] = []
         passed_counts: list[int] = []
         rule_scores: dict[str, list[float]] = {rid: [] for rid in _RULE_IDS}
         summaries = []
-        costs: list[ExtractionCost] = []
+        costs: list[ExtractionCost] = []          # every run of every task
+        elapsed_ms = 0.0                          # sum over tasks of the median over repeats
         stable_total = 0
         stable_fields_total = 0
+        stable_tasks = 0
+        repeat_runs = 0
         substantiated_scores: list[float] = []
         declared_n = 0
         backed_n = 0
+        demonstrated_n = 0
+        attested_n = 0
         unbacked_examples: list[str] = []
         traps = 0
         traps_resisted = 0
+        trap_tasks = 0
+        trap_tasks_held = 0
 
         for task in tasks:
-            output, cost, stable, stable_fields = _run_task(technique, task, source, repeats)
-            costs.append(cost)
-            stable_total += stable
-            stable_fields_total += stable_fields
-            report = run_all(output.run, output.records)
-            per_task[task.task_id] = round(report.compliance_score, 3)
+            runs = _run_task(technique, task, source, repeats)
+            costs.extend(r.cost for r in runs)
+            elapsed_ms += median(r.cost.elapsed_ms for r in runs)
 
-            ver = verify(output.run, register)
-            declared_n += ver.declared
-            backed_n += ver.substantiated
-            for c in ver.unsubstantiated:
-                ex = f"{c.control} = '{c.declared}'"
-                if ex not in unbacked_examples:
-                    unbacked_examples.append(ex)
-            substantiated_scores.append(
-                run_all(substantiate(output.run, register), output.records).compliance_score
-            )
+            first = runs[0].key
+            later = runs[1:]
+            repeat_runs += len(later)
+            stable_total += sum(1 for r in later if r.key == first)
+            stable_fields_total += sum(1 for r in later if r.key[0] == first[0])
+            stable_tasks += int(all(r.key == first for r in later))
+
+            task_scores: list[float] = []
+            held_every_run = True
+            for n, run in enumerate(runs):
+                output = run.output
+                audit.extraction(
+                    output.run, technique=technique.name, records=len(output.records),
+                    fields=fields_by_layer(set(run.key[0])), source=dataset_note,
+                )
+                events += 1
+                report = run_all(output.run, output.records)
+                task_scores.append(report.compliance_score)
+
+                ver = verify(output.run, register, observed)
+                declared_n += ver.declared
+                backed_n += ver.substantiated
+                demonstrated_n += ver.demonstrated
+                attested_n += ver.attested
+                for c in ver.unsubstantiated:
+                    ex = f"{c.control} = '{c.declared}'"
+                    if ex not in unbacked_examples:
+                        unbacked_examples.append(ex)
+                substantiated_scores.append(
+                    run_all(substantiate(output.run, register, observed), output.records).compliance_score
+                )
+                if task.trap:
+                    traps += 1
+                    held = _resisted(report, output, task)
+                    traps_resisted += int(held)
+                    held_every_run = held_every_run and held
+                pass_rates.append(report.pass_rate)
+                passed_counts.append(report.rules_passed)
+                if n == 0 and report.extraction is not None:
+                    summaries.append(report.extraction)     # what one pass of the workload pulled
+                for result in report.results:
+                    if result.status != RuleStatus.NOT_APPLICABLE:
+                        rule_scores[result.rule_id].append(result.score)
+
+            per_task[task.task_id] = round(mean(task_scores), 3)
+            per_task_range[task.task_id] = (round(min(task_scores), 3), round(max(task_scores), 3))
             if task.trap:
-                traps += 1
-                traps_resisted += int(_resisted(report, output, task))
-            pass_rates.append(report.pass_rate)
-            passed_counts.append(report.rules_passed)
-            if report.extraction is not None:
-                summaries.append(report.extraction)
-            for result in report.results:
-                if result.status != RuleStatus.NOT_APPLICABLE:
-                    rule_scores[result.rule_id].append(result.score)
+                trap_tasks += 1
+                trap_tasks_held += int(held_every_run)
 
+        cost = per_pass(combine(costs), max(1, repeats))
+        cost.elapsed_ms = round(elapsed_ms, 3)
         pulled = merge(summaries) if summaries else None
         scores.append(
             TechniqueScore(
@@ -592,16 +726,24 @@ def run_benchmark(
                     for rid, vals in rule_scores.items()
                 },
                 per_task=per_task,
-                cost=combine(costs),
+                per_task_range=per_task_range,
+                cost=cost,
+                tasks=len(tasks),
                 repeats=max(1, repeats),
-                stable_runs=round(stable_total / max(1, len(tasks))),
-                stable_fields=round(stable_fields_total / max(1, len(tasks))),
+                repeat_runs=repeat_runs,
+                stable_runs=stable_total,
+                stable_fields=stable_fields_total,
+                stable_tasks=stable_tasks,
                 substantiated_score=round(mean(substantiated_scores), 3),
                 veracity=(round(backed_n / declared_n, 3) if declared_n else None),
                 unsubstantiated=declared_n - backed_n,
                 unsubstantiated_examples=unbacked_examples,
+                demonstrated=demonstrated_n,
+                attested=attested_n,
                 traps=traps,
                 traps_resisted=traps_resisted,
+                trap_tasks=trap_tasks,
+                trap_tasks_held=trap_tasks_held,
             )
         )
 
@@ -613,4 +755,8 @@ def run_benchmark(
         task_details=[_task_detail(t) for t in tasks],
         rule_ids=list(_RULE_IDS),
         scores=scores,
+        observed_transport=transport,
+        audit_log=_display_path(audit.path),
+        audit_events=events,
+        register_evidence=register.evidence_lines(),
     )
