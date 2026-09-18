@@ -31,24 +31,40 @@ from compliance.policy import PURPOSE_POLICY                             # noqa:
 from compliance.rules import ALL_RULES                                   # noqa: E402
 from data_synthetic.catalogue import FIELD_CATALOGUE                     # noqa: E402
 from extraction.adapters.mock_his import MockHISDataSource               # noqa: E402
-from extraction.techniques.ai_agent import AIAgentTechnique, BRIEFINGS  # noqa: E402
+from extraction.techniques.ai_agent import (  # noqa: E402
+    AIAgentTechnique, BRIEFING_LABELS, BRIEFINGS, model_slug, recorded_models,
+)
 from run_benchmark import TASKS                                          # noqa: E402
 
 PAGE = ROOT / "docs" / "benchmark_results" / "rules-vs-just-ai.html"
 RESULTS = ROOT / "docs" / "benchmark_results"
 PROVIDER = "gemini"
 _BLOCK = re.compile(r'(<script id="data" type="application/json">)(.*?)(</script>)', re.S)
-_PROV = re.compile(r"(document\.getElementById\('prov'\)\.textContent = `)([^`]*)(`)")
 
 
 def _score_fields(technique_short: str, scores: list[dict]) -> dict:
     return next(s for s in scores if s["short"] == technique_short)
 
 
-def _runs_for(task, briefing: str, source) -> list[dict]:
-    """Every recorded decision for the task, replayed and scored."""
+def _agents() -> list[dict]:
+    """Every recorded model x briefing, in table order: model, then briefing order."""
 
-    tech = AIAgentTechnique(PROVIDER, briefing=briefing, mode="replay")
+    out: list[dict] = []
+    for model in sorted({m for b in BRIEFINGS for m in recorded_models(PROVIDER, b)}):
+        for briefing in BRIEFINGS:
+            if model in recorded_models(PROVIDER, briefing):
+                short = model.replace(f"{PROVIDER}-", "", 1)
+                out.append({"k": f"{model_slug(model)}-{briefing}", "model": model, "briefing": briefing,
+                            "name": f"{short}, {BRIEFING_LABELS[briefing]}"})
+    return out
+
+
+def _runs_for(task, model: str, briefing: str, source) -> list[dict]:
+    """Every recorded decision for the task, replayed and scored; [] if stale or incomplete."""
+
+    tech = AIAgentTechnique(PROVIDER, briefing=briefing, mode="replay", model=model)
+    if tech.stale_tasks(source, [task]) or not tech.has_recording(task.task_id):
+        return []
     out: list[dict] = []
     policy = PURPOSE_POLICY[task.purpose]
     for i, _ in enumerate(tech.recorded_samples(task.task_id)):
@@ -75,9 +91,14 @@ def build_data() -> dict:
     memory = json.loads((RESULTS / "benchmark.json").read_text(encoding="utf-8"))
     portal = json.loads((RESULTS / "benchmark-portal.json").read_text(encoding="utf-8"))
     source = MockHISDataSource(records_per_layer=5, seed=42)
+    from compliance.benchmark import bind_subject
+    bound = bind_subject(TASKS, source)
+    # Only agents the benchmark itself admitted (a fresh recording for every task).
+    admitted = {s["short"] for s in memory["scores"]}
+    agents = [a for a in _agents() if a["k"] in admitted]
 
     tasks: dict[str, dict] = {}
-    for task in TASKS:
+    for task in bound:
         policy = PURPOSE_POLICY[task.purpose]
         tasks[task.task_id] = {
             "purpose": task.purpose.value,
@@ -86,7 +107,7 @@ def build_data() -> dict:
             "needed": sorted(f"{layer}/{name}" for layer, name in task.field_refs()),
             "allowed": sorted(c.value for c in policy.allowed_categories),
             "ceiling": policy.max_retention_days,
-            "runs": {briefing: _runs_for(task, briefing, source) for briefing in BRIEFINGS},
+            "runs": {a["k"]: _runs_for(task, a["model"], a["briefing"], source) for a in agents},
         }
 
     catalogue = {layer.value: {name: cat.value for name, cat in fields.items()}
@@ -96,19 +117,16 @@ def build_data() -> dict:
         "memory": memory["scores"],
         "portal": portal["scores"],
         "tasks": tasks,
+        "agents": agents,
         "catalogue": catalogue,
         "meta": {
             "generated": memory["generated_at"][:10],
             "repeats": memory["scores"][0].get("repeats", 1),
             "tasks": len(memory["task_ids"]),
-            "model": _model(),
+            "models": sorted({a["model"] for a in agents}),
+            "briefings": [BRIEFING_LABELS[b] for b in BRIEFINGS if any(a["briefing"] == b for a in agents)],
         },
     }
-
-
-def _model() -> str:
-    path = ROOT / "src" / "extraction" / "techniques" / "recordings" / f"{PROVIDER}-unaided.json"
-    return json.loads(path.read_text(encoding="utf-8")).get("model", PROVIDER)
 
 
 def main() -> None:
@@ -118,11 +136,9 @@ def main() -> None:
     html, n = _BLOCK.subn(lambda m: m.group(1) + payload + m.group(3), html)
     assert n == 1, "data block not found"
     meta = data["meta"]
-    prov = (f"{meta['model']} · recorded {meta['generated']} · {meta['tasks']} tasks × "
-            f"{meta['repeats']} runs × 2 briefings · scores from benchmark.json")
-    html, _ = _PROV.subn(lambda m: m.group(1) + prov + m.group(3), html)
     PAGE.write_text(html, encoding="utf-8")
-    print(f"wrote {PAGE}  ({len(payload) / 1024:.0f} KB of data; {meta['tasks']} tasks, {meta['repeats']} repeats)")
+    print(f"wrote {PAGE}  ({len(payload) / 1024:.0f} KB of data; {meta['tasks']} tasks, {meta['repeats']} repeats, "
+          f"agents: {', '.join(a['k'] for a in data['agents']) or 'none'})")
 
 
 if __name__ == "__main__":

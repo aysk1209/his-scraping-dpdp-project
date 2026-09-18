@@ -155,7 +155,9 @@ work by definition, and the manuscript waits on a venue and page budget.
 
 *2026-09-17, later: the record axis is built — every record-bearing layer carries the patient key, single-patient tasks are bound to a patient at run time, ours reads that patient's records (through the portal's search box: 32 page loads to the baseline's 440), DM-01 scores `necessary/pulled` from the harness's own count, `record_excess` joins the cost profile; the agent is asked whether to scope (`scope`) and a third briefing, *told the policy*, hands it the purpose envelope verbatim. The catalogue change made the 2026-09-17 recordings stale: the demos run without agents until re-recorded.*
 
-*Next, in order: **2026-09-18 — re-record** (`python scripts/record_ai_agents.py --provider gemini --repeats 5`: flash-lite, three briefings, 120 calls; then the flagship at `--repeats 3` within its 20/day cap over ~4 days), then `run_benchmark.py`, `run_pipeline.py`, `tools/build_demo_page.py` (add the fifth series), and the agent rows in ch7/README/approach; (done 2026-09-17: the weight sweep in ch7, the Gazette check with three corrections, `docs/methodology/benchmark-protocol.md`). The hospital dataset is expected before Review-II: run `scripts/check_source.py` first, then `run_pipeline.py --dataset …`.*
+*2026-09-18: flash-lite re-recorded under the current brief, three briefings; every artefact, the demo page and the chapters regenerated. The third briefing's result: handed the policy verbatim the agent obeys its numbers and not its categories — 10 of 20 trap runs held, the two field-taking traps failed in every run. The flagship (`gemini-3.8-flash`) is being recorded at three samples within its 20-requests/day cap and joins the tables briefing by briefing.*
+
+*Next, in order: finish the flagship recording (re-run the same command daily); the report's second pass; the manuscript. Done 2026-09-17: the weight sweep in ch7, the Gazette check with three corrections, `docs/methodology/benchmark-protocol.md`. The hospital dataset is expected before Review-II: run `scripts/check_source.py` first, then `run_pipeline.py --dataset …`.*
 
 ## 6. Workstreams
 

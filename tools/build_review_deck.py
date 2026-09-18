@@ -453,7 +453,8 @@ def build() -> Path:
             "Processing time, as asked: a cost profile per technique — fields pulled, fetches, real browser page "
             "loads, excess ratio, coverage, wall-clock (deterministic metrics lead; wall-clock is hardware-dependent).",
             "The comparison is now ours against a publicly available AI agent (Gemini), briefed with the job, the "
-            "purpose, the field names — never a value — and what the deployment provides; unaided and told the Act; "
+            "purpose, the field names — never a value — and what the deployment provides; unaided, told the Act, and "
+            "handed the purpose policy itself; "
             "decisions recorded, replayed, and repeated so determinism is a measured column. Two harder measures "
             "added: manifest veracity (declared vs demonstrable) and trap tasks whose wording invites a violation. "
             "The hand-written baseline stands, as the panel agreed most deployed systems sit there.",
@@ -542,8 +543,9 @@ def build() -> Path:
         "exactly the overreach DM-01 penalises, so compliance and cost move together rather than trading off.",
         "The AI agent is a real public model, briefed with field names — never values — and told what the "
         "deployment provides; it cites it correctly, so the gap is not paperwork. Told to reconcile an invoice "
-        "against the diagnosis, it takes the diagnosis in every run, even with the Act in its prompt: traps held "
-        "0 of 20 runs against our 20 of 20. It does 74-78% of the job and reproduces its first decision in about half its repeats; ours "
+        "against the diagnosis, it takes the diagnosis in every run -- with the Act in its prompt, and with the purpose "
+        "policy itself in its prompt (it obeys the policy's numbers, not its categories): traps held 0-10 of 20 runs "
+        "against our 20 of 20. It does 67-74% of the job and reproduces its first decision in 18-21 of 32 repeats; ours "
         "reads the policy, not the prose, and repeats itself. Per-rule columns: docs/benchmark_results/.",
     ], size=12)
 

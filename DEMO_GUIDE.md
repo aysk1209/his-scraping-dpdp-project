@@ -199,10 +199,11 @@ question a score alone invites — *what do you give up to be compliant?*
 
 | Method | Excess ratio | Coverage | Fields pulled | Fetches |
 |--------|-------------:|---------:|--------------:|--------:|
-| compliance-aware (ours) | 1.00 | 1.00 | 950 | 7 |
-| ai agent: gemini (told the Act) | 1.06 | 0.78 | 1850 | 16 |
-| ai agent: gemini (unaided) | 1.03 | 0.74 | 1810 | 15 |
-| unconstrained (baseline) | 6.53 | 1.00 | 6200 | 20 |
+| compliance-aware (ours) | 1.00 | 1.00 | 427 | 14 |
+| ai agent: gemini-3.1-flash-lite (told the policy) | 1.43 | 0.74 | 442 | 14 |
+| ai agent: gemini-3.1-flash-lite (told the Act) | 1.06 | 0.69 | 429 | 13 |
+| ai agent: gemini-3.1-flash-lite (unaided) | 1.06 | 0.67 | 380 | 14 |
+| unconstrained (baseline) | 7.77 | 1.00 | 13600 | 40 |
 
 **Excess ratio** is the number to point at: how many fields a method pulled for
 every one the job actually required. The compliant method pulls exactly what is

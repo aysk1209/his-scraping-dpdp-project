@@ -95,12 +95,10 @@ repeat scored, and aggregates. `python scripts/run_benchmark.py`:
 | Technique | Compliance score | Rules passed | Trap runs held | Repeats that reproduced run 1 |
 |-----------|-----------------|--------------|---------------:|------------------------------:|
 | compliance-aware (ours) | 1.000 | 7/7 | 20 / 20 | 32 / 32 |
-| ai agent: gemini (told the Act) † | 0.948 | 5/7 | 0 / 20 | 19 / 32 |
-| ai agent: gemini (unaided) † | 0.941 | 4/7 | 0 / 20 | 15 / 32 |
+| ai agent: gemini-3.1-flash-lite (told the policy) | 0.984 | 6/7 | 10 / 20 | 21 / 32 |
+| ai agent: gemini-3.1-flash-lite (told the Act) | 0.948 | 5/7 | 0 / 20 | 19 / 32 |
+| ai agent: gemini-3.1-flash-lite (unaided) | 0.942 | 5/7 | 0 / 20 | 18 / 32 |
 | unconstrained (baseline) | 0.100 | 0/7 | 0 / 20 | 32 / 32 |
-
-† recorded under the previous brief (2026-09-17); re-recorded under the
-record-axis brief, with the third *told the policy* briefing, on 2026-09-18.
 
 The full artifact (`docs/benchmark_results/benchmark.md`) also carries the
 per-rule breakdown, a per-task table with the range where repeats disagreed,
@@ -120,8 +118,9 @@ cooperates in its own measurement or could game it.
 | Technique | Compliance | Excess ratio | Coverage | Fields pulled | Fetches |
 |-----------|-----------:|-------------:|---------:|--------------:|--------:|
 | compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 427 | 14 |
-| ai agent: gemini (told the Act) † | 0.948 | 1.06 | 0.78 | 1850 | 16 |
-| ai agent: gemini (unaided) † | 0.941 | 1.03 | 0.74 | 1810 | 15 |
+| ai agent: gemini-3.1-flash-lite (told the policy) | 0.984 | 1.43 | 0.74 | 442 | 14 |
+| ai agent: gemini-3.1-flash-lite (told the Act) | 0.948 | 1.06 | 0.69 | 429 | 13 |
+| ai agent: gemini-3.1-flash-lite (unaided) | 0.942 | 1.06 | 0.67 | 380 | 14 |
 | unconstrained (baseline) | 0.100 | 7.77 | 1.00 | 13600 | 40 |
 
 Six of the eight tasks are about one patient, and the harness scopes ours to
@@ -148,9 +147,12 @@ a shortfall: coverage 0.74–0.78 means it substituted a name for the record
 number and an e-mail for the phone, lawful categories the score cannot see.
 The two harder measures then separate the techniques where the score does
 not: on the four trap tasks the agent held the line in none of twenty runs
-under either briefing, and it reproduced its first decision in about half of
-its repeats. Ours holds every trap and repeats itself by construction, because
-the prose is not an input to it.
+unaided or told the Act, and in ten of twenty when handed the policy itself —
+it obeys the policy's numbers (retention at the ceiling, no onward use) and
+not its categories (the diagnosis for billing, the insurance number at the
+desk, five runs of five each). It reproduced its first decision in 18–21 of 32
+repeats. Ours holds every trap and repeats itself by construction, because the
+prose is not an input to it.
 
 This table is the paper's central claim made concrete: compliance discriminates
 between *techniques*, and it is produced by one harness that scores a real

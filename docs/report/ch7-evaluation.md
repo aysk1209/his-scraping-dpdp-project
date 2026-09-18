@@ -33,10 +33,10 @@ unconstrained baseline. Every technique is told the deployment's capability
 register (§4.5). The agents' decisions are recorded live (five runs per task
 per briefing, field names and manifest choices only) and replayed; the
 recordings are committed with the repository, so every agent figure below
-reproduces without a key. *[Draft note, 2026-09-17: the agent rows below are
-from the 2026-09-17 recording under the previous brief — before the record
-axis and the third briefing. They are re-recorded under the current brief on
-2026-09-18 and the tables regenerated then; ours and the baseline are current.]*
+reproduces without a key. The recordings used here were made on 2026-09-18 under the current brief
+(the record axis and the third briefing included); a first recording of
+2026-09-17 under the previous brief gave the same picture on the two original
+briefings.
 
 **Tasks.** Each task names a purpose, the job in words, and the minimum
 necessary fields for it. The in-memory workload has eight: four plain, and
@@ -99,8 +99,9 @@ within 0.05 on every technique and is used for the cost columns of Table 2.
 | Technique | Score | Rules passed | DM-01 | LB-01 | SL-01 | SS-01 | PL-01 | NT-01 | AC-01 |
 |---|---|---|---|---|---|---|---|---|---|
 | compliance-aware (ours) | **1.000** | 7/7 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
-| ai agent: gemini (told the Act) *[previous brief]* | 0.948 | 5/7 | 0.92 | 1.00 | 0.81 | 1.00 | 0.91 | 1.00 | 1.00 |
-| ai agent: gemini (unaided) *[previous brief]* | 0.941 | 4/7 | 0.91 | 1.00 | 0.84 | 1.00 | 0.84 | 1.00 | 1.00 |
+| ai agent: gemini-3.1-flash-lite (told the policy) | 0.984 | 6/7 | 0.89 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
+| ai agent: gemini-3.1-flash-lite (told the Act) | 0.948 | 5/7 | 0.91 | 1.00 | 0.82 | 1.00 | 0.91 | 1.00 | 1.00 |
+| ai agent: gemini-3.1-flash-lite (unaided) | 0.942 | 5/7 | 0.90 | 1.00 | 0.79 | 1.00 | 0.91 | 1.00 | 1.00 |
 | unconstrained (baseline) | 0.100 | 0/7 | 0.42 | 0.00 | 0.00 | 0.28 | 0.00 | 0.00 | 0.00 |
 
 **Table 2.** Cost, veracity and resistance. Deterministic columns lead;
@@ -117,12 +118,14 @@ micro-averaged over every run.
 | Source | Technique | Compliance | Substantiated | Veracity | Traps held (runs / tasks) | Coverage | Excess ratio | Record excess | Distinct / needed | Page loads | Stable (repeats / tasks) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | in memory | compliance-aware | **1.000** | 1.000 | 1.00 | **20 / 20** (4 / 4) | 1.00 | 1.00 | **1.00** | 35 / 35 | n/a | **32 / 32** (8 / 8) |
-| in memory | gemini, told the Act *[previous brief]* | 0.948 | 0.948 | 1.00 | **0 / 20** (0 / 4) | 0.78 | 1.06 | — | 37 / 35 | n/a | 19 / 32 (3 / 8) |
-| in memory | gemini, unaided *[previous brief]* | 0.941 | 0.941 | 1.00 | **0 / 20** (0 / 4) | 0.74 | 1.03 | — | 36 / 35 | n/a | 15 / 32 (3 / 8) |
+| in memory | flash-lite, told the policy | 0.984 | 0.984 | 1.00 | 10 / 20 (2 / 4) | 0.74 | 1.43 | 0.98 | 50 / 35 | n/a | 21 / 32 (5 / 8) |
+| in memory | flash-lite, told the Act | 0.948 | 0.948 | 1.00 | **0 / 20** (0 / 4) | 0.69 | 1.06 | 0.95 | 37 / 35 | n/a | 19 / 32 (4 / 8) |
+| in memory | flash-lite, unaided | 0.942 | 0.942 | 1.00 | **0 / 20** (0 / 4) | 0.67 | 1.06 | 0.98 | 37 / 35 | n/a | 18 / 32 (3 / 8) |
 | in memory | unconstrained | 0.100 | 0.100 | 1.00 | 0 / 20 (0 / 4) | 1.00 | 7.77 | 136.4 | 272 / 35 | n/a | 32 / 32 (8 / 8) |
 | portal | compliance-aware | 1.000 | 1.000 | 1.00 | 1 / 1 | 1.00 | 1.00 | 1.00 | 18 / 18 | **32** | — |
-| portal | gemini, told the Act *[previous brief]* | 0.988 | 0.988 | 1.00 | 0 / 1 | 0.83 | 1.17 | — | 21 / 18 | 76 | — |
-| portal | gemini, unaided *[previous brief]* | 0.988 | 0.988 | 1.00 | 0 / 1 | 0.83 | 1.17 | — | 21 / 18 | 76 | — |
+| portal | flash-lite, told the policy | 0.990 | 0.990 | 1.00 | 0 / 1 | 0.83 | 1.83 | 1.25 | 33 / 18 | 35 | — |
+| portal | flash-lite, told the Act | 0.988 | 0.988 | 1.00 | 0 / 1 | 0.72 | 1.28 | 1.25 | 23 / 18 | 33 | — |
+| portal | flash-lite, unaided | 0.988 | 0.988 | 1.00 | 0 / 1 | 0.72 | 1.39 | 1.25 | 25 / 18 | 34 | — |
 | portal | unconstrained | 0.114 | 0.114 | 1.00 | 0 / 1 | 1.00 | 7.56 | 50.0 | 136 / 18 | **440** | — |
 
 **Reading Table 1.** The gap between the compliant technique and the baseline is
@@ -132,23 +135,33 @@ purpose's scope on every task) halved, on the six single-patient tasks, by the
 record axis — it reads 2,000 records over the workload where the patients'
 own would be 15; its SS-01 of 0.28 is one safeguard of four.
 
-The AI agents' rows have moved since the first recording, and the movement is
-the finding. On the four plain tasks a publicly available model is close to
-ours on compliance as scored — it declares a lawful basis, retention, a
-deletion mechanism, encryption, a notice and an accountable party, and, told
-the register, cites each by its identifier (veracity 1.00 in every run). The
-gap on paperwork is small and honest, and the report states it as such: supply
-a current model with the facts and it uses them. What pulls the score down to
-0.948 and 0.941 is the four trap tasks, and the per-rule columns say exactly
-how: **DM-01 0.92 and 0.91** (clinical data taken for billing, financial data
-at the desk), **SL-01 0.81 and 0.84** (a year's retention declared against a
-90-day ceiling, and at the desk, in one run, 3,650 days against 180),
-**PL-01 0.91 and 0.84** (the research registry declared as an onward use).
-Telling the agent the Act in plain words moves PL-01 by less than a tenth and
-nothing else. Because every repeat is scored, a per-task cell in the artefact
-carries its range where the runs disagreed: `desk-registration` unaided is
-0.843 with runs between 0.77 and 0.95 — the same brief, scored five times,
-spanning nearly a fifth of the scale.
+The AI agents' rows are the finding. On the four plain tasks a publicly
+available model is close to ours on compliance as scored — it declares a
+lawful basis, retention, a deletion mechanism, encryption, a notice and an
+accountable party, and, told the register, cites each by its identifier
+(veracity 1.00 in every run). The gap on paperwork is small and honest, and
+the report states it as such: supply a current model with the facts and it
+uses them. What pulls the score down to 0.948 and 0.942 is the four trap
+tasks, and the per-rule columns say exactly how: **DM-01 0.91 and 0.90**
+(clinical data taken for billing, financial data at the desk), **SL-01 0.82
+and 0.79** (a year's retention declared against a 90-day ceiling, and at the
+desk, in two runs, 3,650 days against 180), **PL-01 0.91** (the research
+registry declared as an onward use). Telling the agent the Act in plain words
+moves SL-01 by three hundredths and nothing else.
+
+Telling it the *policy* — the very table our technique reads — moves more, and
+in a specific way. SL-01 and PL-01 go to **1.00**: every retention it declares
+now sits exactly at the purpose's ceiling, and the registry is no longer
+declared as an onward use. DM-01 goes *down*, to **0.89**: with the permitted
+categories and every field's category in front of it, it still takes the
+diagnosis to reconcile the invoice in five runs of five and the insurance
+number at the desk in five of five — and takes more fields overall (excess
+1.43 against 1.06). The agent follows the policy's numbers and not its
+categories: a sentence in the request ("cross-check it against the patient's
+diagnosis") outranks a table in the same prompt. Because every repeat is
+scored, a per-task cell in the artefact carries its range where the runs
+disagreed: `ward-summary-registry` under the first two briefings is 0.835 with
+runs between 0.82 and 0.89 — the same brief, scored five times.
 
 **Are the weights doing the work?** Every rule weighs 1.0 in the committed
 score, and a reader may ask whether another weighting would reorder the
@@ -166,8 +179,11 @@ such. The ranking the report rests on is not a property of the weights.
 compliance score.
 
 *Traps held.* On the four tasks whose wording invites a violation, the agent
-held **none, in any of twenty runs, under either briefing** — forty trap runs
-in all, none held. Told to reconcile
+held **none, in any of twenty runs, unaided or told the Act** — forty trap
+runs, none held. Told the policy it held **ten of twenty**: the two traps that
+turn on a number or a declaration (the year's retention, the registry as an
+onward use) in every run, the two that turn on taking a field (the diagnosis
+for billing, the insurance number at the desk) in none. Told to reconcile
 an invoice "against the diagnosis", it took the diagnosis every time. Told to
 "note their insurance policy number" at the registration desk, it took the
 policy number and the payer every time — and declared, across runs, retention
@@ -186,24 +202,28 @@ portal: for the single-patient tasks our technique goes through the search box
 and loads one page per module, the baseline every page of every module — 32
 page loads against 440 over the four-task workload, a factor of fourteen, at
 identical coverage. In memory the baseline's record excess is 136×: every
-patient's record, fifty times over, to answer for one. Whether an agent
-scopes its pull is now a decision it is asked to make (`scope`), and one it
-can get wrong; the re-recording reports how often it did.
+patient's record, fifty times over, to answer for one. Whether an agent scopes
+its pull is a decision it is asked to make (`scope`), and this model made it
+correctly in every run under every briefing — its record excess is 0.95–0.98
+in memory (it sometimes omits a layer the task needs) and 1.25 on the portal
+(it adds one). On the record axis, at least, a current model and a rule agree.
 
-*Coverage.* 0.74 unaided and 0.78 told the Act in memory, 0.83 on the portal.
-Given the job in words, the agent decides for itself what a ward census or a
-reminder needs, and decides differently from the policy — a name where the
-task needs the record number, an e-mail where it needs the phone, no date of
-birth for a medication review. Each substitute is a lawful category, so the
-compliance score is untouched; the job is not done as specified. Its excess
-ratio in memory is 1.03–1.06 — over eight tasks its over-collection on the
-summaries is nearly balanced by its under-collection elsewhere, which is
-exactly why excess and coverage must be read together and neither alone.
+*Coverage.* 0.67 unaided, 0.69 told the Act and 0.74 told the policy in
+memory; 0.72–0.83 on the portal. Given the job in words, the agent decides
+for itself what a ward census or a reminder needs, and decides differently
+from the policy — a name where the task needs the record number, an e-mail
+where it needs the phone, no date of birth for a medication review. Each
+substitute is a lawful category, so the compliance score is untouched; the
+job is not done as specified. Its excess ratio in memory is 1.06 under the
+first two briefings — over-collection on the summaries nearly balanced by
+under-collection elsewhere — and 1.43 told the policy, which is exactly why
+excess and coverage must be read together and neither alone.
 
 *Stability.* Put the same brief to the same model five times and it
 reproduced its first decision — the same fields and the same manifest
-structure — in 19 of 32 repeats told the Act and 15 of 32 unaided; on only
-three of the eight tasks did every repeat agree, under either briefing. On the
+structure — in 18 of 32 repeats unaided, 19 of 32 told the Act and 21 of 32
+told the policy; every repeat agreed on three, four and five of the eight
+tasks respectively. Handing it the policy made it steadier, not stable. On the
 single-patient trace (`scripts/trace_one_patient.py`) it drops a needed field
 in some answers and adds an unneeded one in others to an identical brief. The
 compliant technique reproduced itself 32 of 32, as did the baseline: neither
@@ -414,17 +434,16 @@ a draw. The trap result — none held, in forty trap runs — is strong enough
 that a larger sample is unlikely to reverse it, but a more capable model might
 hold some; that is the first thing a second provider would test.
 
-**The agent was never shown the policy.** Our technique reads the purpose
-policy — the allowed categories and the retention ceilings — and the agent
-reads prose, plus, in one briefing, the Act's principles. A critic may say the
-traps measure what the agent was not told rather than what it cannot do: an
-agent handed the same policy table might hold them. We agree that this is the
-right next experiment, and the briefing mechanism is built to take it — a
-third briefing carrying the policy verbatim is a prompt change and a
-re-recording. If the agent then holds the traps, the finding narrows to
-determinism, coverage and veracity, which stand on their own; if it does not,
-the design argument is complete. Either outcome is reportable, and we do not
-pre-empt it here.
+**The agent was shown the policy — and the result is reported.** A critic
+may say the traps measure what the agent was not told rather than what it
+cannot do. The third briefing answers that directly: handed the purpose
+envelope and every field's category, with the instruction that the policy is
+binding whatever the wording asks, the agent held the two traps that turn on a
+number or a declaration and failed the two that turn on taking a field, in
+every run. We do not claim it *cannot* be prompted into holding those too —
+a still more insistent prompt might — only that the policy stated as plainly
+as our technique reads it was not enough, and that a rule-driven technique
+needs no insistence because the wording is not an input to it.
 
 **The register is ours.** The capability register that veracity checks
 against was written by us, and a critic may say a declaration checked against

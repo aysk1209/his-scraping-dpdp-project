@@ -1,0 +1,86 @@
+{
+  "provider": "gemini",
+  "briefing": "unaided",
+  "tasks": {
+    "patient-summary": {
+      "samples": [
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/date_of_birth",
+            "patient_administration/sex",
+            "patient_administration/admission_ward",
+            "patient_administration/admission_datetime",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/medication",
+            "clinical_ehr/lab_result",
+            "clinical_ehr/allergy",
+            "clinical_ehr/encounter_datetime",
+            "clinical_ehr/attending_clinician"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 0,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Extracting necessary demographic and clinical EHR data for the individual patient to prepare a clinical summary for direct care coordination."
+        },
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/date_of_birth",
+            "patient_administration/sex",
+            "patient_administration/admission_ward",
+            "patient_administration/admission_datetime",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/medication",
+            "clinical_ehr/lab_result",
+            "clinical_ehr/allergy",
+            "clinical_ehr/encounter_datetime",
+            "clinical_ehr/attending_clinician",
+            "ancillary_departmental/specimen_type",
+            "ancillary_departmental/result_value",
+            "ancillary_departmental/imaging_modality",
+            "ancillary_departmental/report_text"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 30,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Only clinically necessary information for the specific patient is extracted for care coordination by the treating care team under legitimate medical use."
+        }
+      ],
+      "fingerprint": "6c64406cb2f97f14",
+      "recorded_at": "2026-09-18T05:17:32.680225+00:00"
+    }
+  },
+  "model": "gemini-3.8-flash",
+  "sampling": "provider default (no temperature or seed set)"
+}

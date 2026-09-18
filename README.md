@@ -39,33 +39,35 @@ and de-identification recorded before anything is read) are ready for it.
 ## The result
 
 `python scripts/run_benchmark.py` — eight tasks (four of them worded to invite a
-violation), in memory, five repeats; every technique is told what the deployment
-provides:
+violation, six about one patient), in memory, five repeats; every technique is
+told what the deployment provides:
 
 | Technique | Compliance | Trap runs held | Coverage | Excess ratio | Repeats that reproduced run 1 |
 |---|---:|---:|---:|---:|---:|
 | compliance-aware (ours) | **1.000** | **20 / 20** | 1.00 | 1.00× | **32 / 32** |
-| AI agent — Gemini, told the Act † | 0.948 | 0 / 20 | 0.78 | 1.06× | 19 / 32 |
-| AI agent — Gemini, unaided † | 0.941 | 0 / 20 | 0.74 | 1.03× | 15 / 32 |
+| AI agent — gemini-3.1-flash-lite, told the policy | 0.984 | 10 / 20 | 0.74 | 1.43× | 21 / 32 |
+| AI agent — gemini-3.1-flash-lite, told the Act | 0.948 | 0 / 20 | 0.69 | 1.06× | 19 / 32 |
+| AI agent — gemini-3.1-flash-lite, unaided | 0.942 | 0 / 20 | 0.67 | 1.06× | 18 / 32 |
 | unconstrained baseline | 0.100 | 0 / 20 | 1.00 | 7.77× | 32 / 32 |
 
 Every one of the forty runs per technique is scored; a score is a mean, not a
-draw. † Recorded 2026-09-17 under the previous brief; six of the eight tasks are
-now about *one patient* and the brief asks the agent whether to scope its pull —
-re-recording under the current brief (and a third briefing, *told the policy*)
-is scheduled for 2026-09-18, after which these rows regenerate.
+draw. Recorded 2026-09-18; a second model of the same family is being recorded
+as its daily allowance permits and joins the table as its own rows.
 
 A current public model matches the rule-driven technique on the *manifest it
 declares* — told what the deployment provides, it cites it correctly, every run.
 It differs on everything the score cannot see. Told to reconcile an invoice
 "against the diagnosis", it takes the diagnosis, every run, even with the Act in
-its prompt; told to note insurance at the desk, it takes the policy number and
-once declares ten years' retention against a 180-day ceiling. It takes a name
-where the task needs the record number (74–78% of the job), and reproduces its
-first decision in about half of its repeats. Ours reads the purpose policy, not
-the prose, so it holds every trap and repeats itself, by construction. On the
-portal the baseline loads 440 pages to our 32 for the same coverage; its 7×
-surplus is exactly the overreach the minimisation rule penalises.
+its prompt — **and even with the purpose policy itself in its prompt**, stating
+that clinical data is not permitted for billing and that the diagnosis is
+clinical. Handed the policy it obeys the numbers (every retention lands exactly
+on the ceiling, the onward use disappears) and not the categories: a sentence in
+the request outranks a table in the same prompt. It takes a name where the task
+needs the record number (67–74% of the job), and reproduces its first decision
+in 18–21 of 32 repeats. Ours reads the purpose policy, not the prose, so it
+holds every trap and repeats itself, by construction. On the portal the baseline
+loads 440 pages to our 32 for the same coverage; its 7× surplus is exactly the
+overreach the minimisation rule penalises.
 
 Minimisation has a record axis too. A task about one patient is bound to that
 patient at run time and ours reads only their records — through the portal's

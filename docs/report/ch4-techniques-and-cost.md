@@ -121,17 +121,25 @@ Three properties of the design are held to, and each is asserted by a test.
   the repository; the benchmark and the demonstrations replay it, so results
   reproduce without network access or a key. The recording also holds several
   answers to the same brief, which is what §4.3's determinism measure reads.
-- **Two briefings.** *Unaided* gets the job, the purpose and the fields. *Told
-  the Act* additionally gets the seven obligations in plain words — the same
-  principles the rules encode, stated as a developer would state them in a
-  system prompt. Whether prompting alone closes the gap to a rule-driven
-  technique is then a measured question rather than an assumed answer.
+- **Three briefings.** *Unaided* gets the job, the purpose and the fields.
+  *Told the Act* additionally gets the seven obligations in plain words — the
+  same principles the rules encode, stated as a developer would state them in
+  a system prompt. *Told the policy* gets, on top of that, the purpose policy
+  our own technique reads — the categories the purpose permits, its retention
+  ceiling, whether pseudonymisation is required — and the category of every
+  field on offer, with the instruction that the policy is binding whatever the
+  wording asks. The third is the fairest comparison there is: the agent knows
+  everything the rule-driven technique knows, and whether it *holds* to it is
+  the only remaining question. Whether prompting closes the gap is then a
+  measured answer rather than an assumed one.
 
 The provider adapters (`ai_providers.py`) cover three public models behind
 their official SDKs — Claude, OpenAI and Gemini — with the model identifier
 configurable, so the comparison can be re-run against whatever is current. The
 results in Chapter 7 are from `gemini-3.1-flash-lite`, five recorded runs per
-task per briefing; the model tier is stated because it is part of the result.
+task per briefing, recorded 2026-09-18; the model tier is stated because it is
+part of the result, and a second model of the same family is recorded as its
+own agent as its daily allowance permits.
 
 What the agent actually does is the substance of Chapter 7, but its character
 can be stated here. It is *good at the paperwork*: told what the deployment
@@ -145,9 +153,21 @@ clinician for a summary that did not ask for them. It *does what the wording
 asks* rather than what the purpose permits: told to reconcile an invoice
 "against the diagnosis", it takes the diagnosis; told the consultant wants a
 file kept for a year, it declares a year. And — put the same brief five times —
-it returns a different decision in most of them. None of the three is visible
-in the compliance score alone; all three are visible in the columns §4.3 and
-§4.5 add, which is why the benchmark has them.
+it returns a different decision in a third to a half of them. None of the
+three is visible in the compliance score alone; all three are visible in the
+columns §4.3 and §4.5 add, which is why the benchmark has them.
+
+The third briefing sharpens the second of these to a finding. Handed the
+policy verbatim, the agent obeys its *numbers* — every retention it declares
+sits exactly at the ceiling, the research registry is no longer declared as an
+onward use, and SL-01 and PL-01 both go to 1.00 — but not its *categories*:
+told that clinical data is not permitted for billing, and that
+`primary_diagnosis` is clinical, it still takes the diagnosis to reconcile the
+invoice in five runs of five, and the insurance number at the registration
+desk in five of five, each time with a rationale that says the pull complies
+with data minimisation. The wording of the request outranks the table in the
+same prompt. A rule cannot be outranked by a sentence, which is the design
+property under test.
 
 ### 4.2.3 The unconstrained baseline
 

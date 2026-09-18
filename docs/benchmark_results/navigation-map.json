@@ -1,12 +1,12 @@
 {
-  "base_url": "https://127.0.0.1:61019",
-  "discovered_at": "2026-09-17T09:55:05.810584Z",
+  "base_url": "https://127.0.0.1:52424",
+  "discovered_at": "2026-09-18T05:22:40.754157Z",
   "login_path": "/login",
   "page_loads": 11,
   "modules": [
     {
       "title": "Patient Registration",
-      "list_url": "https://127.0.0.1:61019/m/registration/",
+      "list_url": "https://127.0.0.1:52424/m/registration/",
       "list_path": "/m/registration/",
       "columns": [
         "mrn",
@@ -33,7 +33,7 @@
     },
     {
       "title": "Clinical Records",
-      "list_url": "https://127.0.0.1:61019/m/clinical/",
+      "list_url": "https://127.0.0.1:52424/m/clinical/",
       "list_path": "/m/clinical/",
       "columns": [
         "mrn",
@@ -57,7 +57,7 @@
     },
     {
       "title": "Departmental Orders",
-      "list_url": "https://127.0.0.1:61019/m/departments/",
+      "list_url": "https://127.0.0.1:52424/m/departments/",
       "list_path": "/m/departments/",
       "columns": [
         "mrn",
@@ -80,7 +80,7 @@
     },
     {
       "title": "Billing & Accounts",
-      "list_url": "https://127.0.0.1:61019/m/billing/",
+      "list_url": "https://127.0.0.1:52424/m/billing/",
       "list_path": "/m/billing/",
       "columns": [
         "mrn",
@@ -102,7 +102,7 @@
     },
     {
       "title": "Audit Log",
-      "list_url": "https://127.0.0.1:61019/m/integration/",
+      "list_url": "https://127.0.0.1:52424/m/integration/",
       "list_path": "/m/integration/",
       "columns": [
         "audit_event_id",

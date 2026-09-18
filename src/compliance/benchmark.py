@@ -279,6 +279,8 @@ class BenchmarkResult(BaseModel):
 
     def render_table(self) -> str:
         lines: list[str] = []
+        W = max(32, max(len(sc.technique) for sc in self.scores))       # technique column
+        S = max(18, max(len(sc.short) for sc in self.scores) + 2)       # short-id column
         meta = []
         if self.dataset_note:
             meta.append(self.dataset_note)
@@ -289,13 +291,13 @@ class BenchmarkResult(BaseModel):
         lines.append("")
 
         head = (
-            f"{'technique':<32} {'score':>6} {'pass':>7}  "
+            f"{'technique':<{W}} {'score':>6} {'pass':>7}  "
             + " ".join(f"{rid:>6}" for rid in self.rule_ids)
         )
         lines += [head, "-" * len(head)]
         for score in self.scores:
             row = (
-                f"{score.technique:<32} {score.mean_compliance_score:>6.3f} "
+                f"{score.technique:<{W}} {score.mean_compliance_score:>6.3f} "
                 f"{score.rules_passed:>7}  "
                 + " ".join(f"{self._fmt(score.per_rule_mean.get(rid)):>6}" for rid in self.rule_ids)
             )
@@ -305,14 +307,14 @@ class BenchmarkResult(BaseModel):
         show_traps = any(s.traps for s in self.scores)
         if show_ver or show_traps:
             lines += ["", "what the deployment can demonstrate, and what the wording could not talk it into:"]
-            vh = (f"  {'technique':<30} {'declared':>9} {'substant.':>10} {'veracity':>9} {'unbacked':>9}"
+            vh = (f"  {'technique':<{W}} {'declared':>9} {'substant.':>10} {'veracity':>9} {'unbacked':>9}"
                   + (f" {'traps held':>24}" if show_traps else ""))
             lines += [vh, "  " + "-" * (len(vh) - 2)]
             for score in self.scores:
                 ver = "n/a" if score.veracity is None else f"{score.veracity:.2f}"
                 traps = f" {score.traps_note():>24}" if show_traps else ""
                 lines.append(
-                    f"  {score.technique:<30} {score.mean_compliance_score:>9.3f} "
+                    f"  {score.technique:<{W}} {score.mean_compliance_score:>9.3f} "
                     f"{score.substantiated_score:>10.3f} {ver:>9} {score.unsubstantiated:>9}{traps}"
                 )
             lines.append(
@@ -326,7 +328,7 @@ class BenchmarkResult(BaseModel):
                     lines.append(f"    {score.short}: e.g. " + "; ".join(score.unsubstantiated_examples[:3]))
             lines.append("  of the substantiated claims, demonstrated by the pipeline / attested by the deployment:")
             for score in self.scores:
-                lines.append(f"    {score.short:<20} {score.demonstrated:>4} demonstrated  {score.attested:>4} attested")
+                lines.append(f"    {score.short:<{S}} {score.demonstrated:>4} demonstrated  {score.attested:>4} attested")
             if self.observed_transport is not None:
                 lines.append(f"  observed: the source was read over {'an encrypted' if self.observed_transport else 'a PLAIN'} connection")
             if self.audit_log:
@@ -337,7 +339,7 @@ class BenchmarkResult(BaseModel):
         show_stable = any(s.repeat_runs for s in self.scores)
         show_scope = any(s.cost.records_necessary is not None for s in self.scores)
         cost_head = (
-            f"  {'technique':<30} {'excess':>7} {'cover':>6} {'distinct':>9} {'fields':>8} "
+            f"  {'technique':<{W}} {'excess':>7} {'cover':>6} {'distinct':>9} {'fields':>8} "
             f"{'fetches':>8}" + (f" {'pages':>7}" if show_loads else "")
             + f" {'records':>8}" + (f" {'rec.excess':>11}" if show_scope else "")
             + f" {'ms':>8}" + (f" {'stable':>8}" if show_stable else "")
@@ -350,7 +352,7 @@ class BenchmarkResult(BaseModel):
             stable = f" {f'{score.stable_runs}/{score.repeat_runs}':>8}" if show_stable else ""
             scope = f" {self._fmt(cost.record_excess):>11}" if show_scope else ""
             lines.append(
-                f"  {score.technique:<30} {self._fmt(cost.excess_ratio):>7} "
+                f"  {score.technique:<{W}} {self._fmt(cost.excess_ratio):>7} "
                 f"{self._fmt(cost.coverage):>6} {distinct:>9} {cost.fields_pulled:>8} "
                 f"{cost.fetches:>8}{loads} {cost.records:>8}{scope} {cost.elapsed_ms:>8.1f}{stable}"
             )
@@ -363,17 +365,17 @@ class BenchmarkResult(BaseModel):
 
         lines += ["", "per task (scores key on data category, manifest and, for single-patient tasks, record scope"
                   + ("; mean over repeats, with the range where runs differed" if show_stable else "") + "):"]
-        task_head = f"  {'task':<22}" + "".join(f"{s.short:>18}" for s in self.scores)
+        task_head = f"  {'task':<22}" + "".join(f"{s.short:>{S}}" for s in self.scores)
         lines += [task_head, "  " + "-" * (len(task_head) - 2)]
         for task_id in self.task_ids:
             row = f"  {task_id:<22}" + "".join(
-                f"{self._task_cell(s, task_id):>18}" for s in self.scores
+                f"{self._task_cell(s, task_id):>{S}}" for s in self.scores
             )
             lines.append(row)
 
         lines += ["", f"what each technique pulled (total over the {len(self.task_ids)}-task workload):"]
         for score in self.scores:
-            lines.append(f"  {score.short:<17} {score.pulled_note}")
+            lines.append(f"  {score.short:<{S}} {score.pulled_note}")
 
         lines += ["", self._takeaway()]
         return "\n".join(lines)
