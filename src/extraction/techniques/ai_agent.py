@@ -43,6 +43,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -344,6 +345,7 @@ class AIAgentTechnique(ExtractionTechnique):
         briefing: str = "unaided",
         mode: str | None = None,
         recordings_dir: Path | None = None,
+        model: str | None = None,
     ) -> None:
         if briefing not in BRIEFINGS:
             raise ValueError(f"briefing must be one of {BRIEFINGS}")
@@ -353,9 +355,14 @@ class AIAgentTechnique(ExtractionTechnique):
         if isinstance(provider, str):
             self.provider_name = provider
             self._provider: Provider | None = None      # constructed only when live
+            self.model = model or model_for(provider)
         else:
             self.provider_name = provider.name
             self._provider = provider
+            self.model = provider.model
+        # One agent is one provider, one model, one briefing: two models of the
+        # same provider are two agents with two recordings, side by side.
+        self.model_slug = model_slug(self.model)
         self.briefing = briefing
         self.mode = mode
         self.recordings_dir = recordings_dir or RECORDINGS_DIR
@@ -363,14 +370,14 @@ class AIAgentTechnique(ExtractionTechnique):
         self._cache: tuple[float, dict[str, Any]] | None = None     # (mtime, parsed recording)
         self.last_decision: AgentDecision | None = None
         self.last_source: str = ""                     # "replay" or "live"
-        self.name = f"ai agent: {self.provider_name} ({BRIEFING_LABELS[briefing]})"
-        self.short_id = f"{self.provider_name}-{briefing}"
+        self.name = f"ai agent: {self.model} ({BRIEFING_LABELS[briefing]})"
+        self.short_id = f"{self.model_slug}-{briefing}"
 
     # --- recordings -------------------------------------------------------
 
     @property
     def recording_path(self) -> Path:
-        return self.recordings_dir / f"{self.provider_name}-{self.briefing}.json"
+        return self.recordings_dir / f"{self.provider_name}--{self.model_slug}--{self.briefing}.json"
 
     def _load(self) -> dict[str, Any]:
         path = self.recording_path
@@ -410,7 +417,7 @@ class AIAgentTechnique(ExtractionTechnique):
         data = self._load()
         data["provider"] = self.provider_name
         data["briefing"] = self.briefing
-        data["model"] = self._provider.model if self._provider else model_for(self.provider_name)
+        data["model"] = self.model
         # How the samples were drawn. No provider adapter sets a temperature or a
         # seed, so the determinism column measures the model as the public API
         # serves it by default -- and the recording says so.
@@ -467,7 +474,7 @@ class AIAgentTechnique(ExtractionTechnique):
                 f"no recording for '{task.task_id}' and no key for {self.provider_name}"
             )
         if self._provider is None:
-            self._provider = provider_for(self.provider_name)
+            self._provider = provider_for(self.provider_name, self.model)
         raw = self._provider.decide(system, user, DECISION_SCHEMA)
         decision = AgentDecision.model_validate(raw)
         self._record(task, fingerprint, decision.model_dump())
@@ -519,32 +526,68 @@ def available_agents(
     out: list[AIAgentTechnique] = []
     for provider in providers:
         for briefing in briefings:
-            tech = AIAgentTechnique(provider, briefing=briefing, recordings_dir=recordings_dir)
-            if tech.mode != "replay" and key_available(provider):
-                out.append(tech)
-                continue
-            if not tech.recording_path.exists():
-                continue
-            if tasks is None:
-                out.append(tech)
-                continue
-            missing = [t.task_id for t in tasks if not tech.has_recording(t.task_id)]
-            stale = tech.stale_tasks(source, tasks) if source is not None else []
-            if not missing and not stale:
-                out.append(tech)
-                continue
-            why = []
-            if missing:
-                why.append("no recording yet for " + ", ".join(missing))
-            if stale:
-                why.append("recording predates the current brief for " + ", ".join(stale))
-            print(f"  (skipping {tech.name}: {'; '.join(why)} -- run scripts/record_ai_agents.py)")
+            # Every model this provider has a recording for, plus -- when the
+            # mode allows a live call -- the current default model.
+            candidates = [
+                AIAgentTechnique(provider, briefing=briefing, recordings_dir=recordings_dir, model=model)
+                for model in recorded_models(provider, briefing, recordings_dir)
+            ]
+            default = AIAgentTechnique(provider, briefing=briefing, recordings_dir=recordings_dir)
+            if default.mode != "replay" and key_available(provider) and default.model not in {c.model for c in candidates}:
+                candidates.append(default)
+            for tech in candidates:
+                if tech.mode != "replay" and key_available(provider):
+                    out.append(tech)
+                    continue
+                if not tech.recording_path.exists():
+                    continue
+                if tasks is None:
+                    out.append(tech)
+                    continue
+                out.extend(_qualify(tech, tasks, source))
+    return out
+
+
+def _qualify(tech: "AIAgentTechnique", tasks, source) -> list["AIAgentTechnique"]:
+    """The agent, if it has a fresh recording for every task; else say why not."""
+
+    missing = [t.task_id for t in tasks if not tech.has_recording(t.task_id)]
+    stale = tech.stale_tasks(source, tasks) if source is not None else []
+    if not missing and not stale:
+        return [tech]
+    why = []
+    if missing:
+        why.append("no recording yet for " + ", ".join(missing))
+    if stale:
+        why.append("recording predates the current brief for " + ", ".join(stale))
+    print(f"  (skipping {tech.name}: {'; '.join(why)} -- run scripts/record_ai_agents.py)")
+    return []
+
+
+def model_slug(model: str) -> str:
+    """A model id as a file-name and identifier fragment: 'gemini-3.1-flash-lite'."""
+
+    return re.sub(r"[^a-z0-9.]+", "-", model.lower()).strip("-")
+
+
+def recorded_models(provider: str, briefing: str, recordings_dir: Path | None = None) -> list[str]:
+    """Model ids that have a recording file for ``provider`` x ``briefing``."""
+
+    directory = recordings_dir or RECORDINGS_DIR
+    out: list[str] = []
+    for path in sorted(directory.glob(f"{provider}--*--{briefing}.json")):
+        try:
+            model = json.loads(path.read_text(encoding="utf-8")).get("model")
+        except (OSError, ValueError):
+            continue
+        if model and model_slug(model) == path.name[len(provider) + 2:-(len(briefing) + 7)]:
+            out.append(model)
     return out
 
 
 __all__ = [
     "AIAgentTechnique", "AgentDecision", "DECISION_SCHEMA", "BRIEFINGS", "BRIEFING_LABELS", "MODES", "MODE_ENV",
     "default_mode", "SYSTEM_UNAIDED", "SYSTEM_INFORMED", "SYSTEM_POLICY", "DPDP_BRIEF", "POLICY_BRIEF",
-    "system_prompt", "build_user_prompt",
+    "system_prompt", "build_user_prompt", "model_slug", "recorded_models",
     "available_agents", "RECORDINGS_DIR",
 ]

@@ -121,7 +121,7 @@ def test_trap_resistance_separates_a_policy_reader_from_a_prose_reader(tmp_path)
     )
     scores = {s.short: s for s in result.scores}
     assert scores["compliance-aware"].traps == 1 and scores["compliance-aware"].traps_resisted == 1
-    assert scores["fake-unaided"].traps == 1 and scores["fake-unaided"].traps_resisted == 0
+    assert scores["fake-1-unaided"].traps == 1 and scores["fake-1-unaided"].traps_resisted == 0
     assert scores["unconstrained"].traps_resisted == 0
     assert "held the line in 0 of 1 runs" in result._takeaway()
     assert "reads the purpose policy, not the prose" in result._takeaway()
@@ -146,7 +146,7 @@ def test_onward_use_and_over_retention_also_break_resistance(tmp_path):
         result = run_benchmark([CompliantExtractionTechnique(), tech], [care_trap], source)
         scores = {s.short: s for s in result.scores}
         assert scores["compliance-aware"].traps_resisted == 1
-        assert scores["fake-unaided"].traps_resisted == 0
+        assert scores["fake-1-unaided"].traps_resisted == 0
 
 
 def test_benchmark_reports_veracity_and_the_substantiated_score(tmp_path):
@@ -158,7 +158,7 @@ def test_benchmark_reports_veracity_and_the_substantiated_score(tmp_path):
     source = MockHISDataSource(records_per_layer=3, seed=7)
     result = run_benchmark([CompliantExtractionTechnique(), fabricator], [PLAIN], source)
     scores = {s.short: s for s in result.scores}
-    ours, fab = scores["compliance-aware"], scores["fake-unaided"]
+    ours, fab = scores["compliance-aware"], scores["fake-1-unaided"]
     assert ours.veracity == 1.0 and ours.unsubstantiated == 0
     assert ours.substantiated_score == ours.mean_compliance_score == 1.0
     assert fab.unsubstantiated == 3 and fab.veracity < 1.0
@@ -174,7 +174,7 @@ def test_a_stale_recording_is_not_replayed_against_a_changed_brief(tmp_path):
                             mode="live", recordings_dir=tmp_path)
     live.extract(source, PLAIN)
     changed = PLAIN.model_copy(update={"description": "list open invoices, urgently"})
-    replay = AIAgentTechnique("fake", mode="replay", recordings_dir=tmp_path)
+    replay = AIAgentTechnique("fake", mode="replay", recordings_dir=tmp_path, model="fake-1")
     assert replay.stale_tasks(source, [changed]) == ["invoice"]
     try:
         replay.extract(source, changed)

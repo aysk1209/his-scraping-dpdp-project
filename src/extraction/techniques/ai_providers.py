@@ -48,7 +48,7 @@ _KEY_VARS = {
 
 
 def model_for(provider: str) -> str:
-    return os.environ.get(f"AI_AGENT_MODEL_{provider.upper()}") or DEFAULT_MODELS[provider]
+    return os.environ.get(f"AI_AGENT_MODEL_{provider.upper()}") or DEFAULT_MODELS.get(provider, provider)
 
 
 def key_available(provider: str) -> bool:
@@ -214,13 +214,16 @@ def list_models(provider: str) -> list[str]:
     raise ValueError(f"unknown provider '{provider}'")
 
 
-def provider_for(name: str) -> Provider:
+def provider_for(name: str, model: str | None = None) -> Provider:
+    """An adapter for ``name``; ``model`` overrides the env/default model id."""
+
+    kwargs = {"model": model} if model else {}
     if name == "claude":
-        return ClaudeProvider()
+        return ClaudeProvider(**kwargs)
     if name == "openai":
-        return OpenAIProvider()
+        return OpenAIProvider(**kwargs)
     if name == "gemini":
-        return GeminiProvider()
+        return GeminiProvider(**kwargs)
     raise ValueError(f"unknown provider '{name}'; choose from {', '.join(PROVIDERS)}")
 
 

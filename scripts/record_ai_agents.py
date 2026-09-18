@@ -2,12 +2,15 @@
 
     set ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY   (whichever you have)
     python scripts/record_ai_agents.py                       # every keyed provider, all three briefings
+    python scripts/record_ai_agents.py --provider gemini --model gemini-3.8-flash --repeats 3
+                                                             # a second model of the same provider: its own
+                                                             # recording, its own row; resumes across days
     python scripts/record_ai_agents.py --provider claude --repeats 5
     python scripts/record_ai_agents.py --briefing informed --overwrite
 
 One live call per provider x briefing x task x repeat. Each decision -- the
 fields the model chose and the manifest it declared, nothing more -- is appended
-to ``src/extraction/techniques/recordings/<provider>-<briefing>.json``. From then
+to ``src/extraction/techniques/recordings/<provider>--<model>--<briefing>.json``. From then
 on every demo and the benchmark replay those decisions without network or keys,
 and the benchmark's determinism column is computed from the samples.
 
@@ -88,6 +91,10 @@ def _with_backoff(call, attempts: int = 6, pause: float = 0.0):
                     "the account has no API credit (insufficient_quota) -- not a rate limit; "
                     "add credit or use another provider"
                 ) from exc
+            # A daily cap is not a rate limit either: nothing more will succeed
+            # today. Stop cleanly; the run resumes where it left off tomorrow.
+            if any(k in text for k in ("PerDay", "per day", "perDay", "daily", "Daily")):
+                raise DailyCapReached(text[:200]) from exc
             transient = any(k in text for k in (
                 "429", "RESOURCE_EXHAUSTED", "rate", "Rate", "quota",
                 "500", "503", "overloaded", "high demand", "UNAVAILABLE", "InternalServer",
@@ -102,6 +109,10 @@ def _with_backoff(call, attempts: int = 6, pause: float = 0.0):
             delay *= 2
 
 
+class DailyCapReached(ProviderUnavailable):
+    """The provider's requests-per-day allowance is spent."""
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--list-models", action="store_true",
@@ -109,9 +120,12 @@ def main() -> None:
     parser.add_argument("--provider", choices=PROVIDERS, action="append",
                         help="repeatable; default: every provider with a key set")
     parser.add_argument("--briefing", choices=BRIEFINGS, action="append",
-                        help="repeatable; default: both")
+                        help="repeatable; default: all three")
+    parser.add_argument("--model", help="model id to record (default: the provider's env/default id); "
+                        "each model gets its own recording and its own row in every table")
     parser.add_argument("--repeats", type=int, default=3,
-                        help="decisions to record per task (the determinism sample)")
+                        help="decisions to have per task (the determinism sample); an interrupted run "
+                        "resumes up to this count, so the same command can be re-run across days")
     parser.add_argument("--overwrite", action="store_true",
                         help="discard existing samples for these tasks first")
     parser.add_argument("--pause", type=float, default=4.0,
@@ -127,7 +141,7 @@ def main() -> None:
         return
 
     print(present.banner("Recording AI-agent decisions"))
-    print(f"  providers : {', '.join(f'{p} ({model_for(p)})' for p in providers)}")
+    print(f"  providers : {', '.join(f'{p} ({args.model or model_for(p)})' for p in providers)}")
     print(f"  briefings : {', '.join(briefings)}")
     print(f"  tasks     : {', '.join(t.task_id for t in TASKS)}   x {args.repeats} repeat(s)")
     print("  The model is shown field names and the job; no patient value leaves this machine.")
@@ -139,20 +153,42 @@ def main() -> None:
     tasks = bind_subject(TASKS, source)
 
     for provider in providers:
+        capped = False
         for briefing in briefings:
-            tech = AIAgentTechnique(provider, briefing=briefing, mode="live")
+            if capped:
+                break
+            tech = AIAgentTechnique(provider, briefing=briefing, mode="live", model=args.model)
             print(present.rule())
             print(f"{tech.name}  ->  {tech.recording_path.name}")
             if args.overwrite and tech.recording_path.exists():
                 data = tech._load()
                 data["tasks"] = {}
                 tech.recording_path.write_text(__import__("json").dumps(data, indent=2), encoding="utf-8")
+            # Resume: samples already recorded under today's exact brief count
+            # toward the target; stale ones (a different brief) do not.
+            todo = {}
             for task in tasks:
-                for i in range(args.repeats):
+                have = tech.recorded_samples(task.task_id) if task.task_id not in tech.stale_tasks(source, [task]) else []
+                todo[task.task_id] = max(0, args.repeats - len(have))
+            remaining = sum(todo.values())
+            if remaining == 0:
+                print(f"  complete: {args.repeats} sample(s) per task already recorded under this brief")
+                continue
+            print(f"  {remaining} call(s) to make ({sum(args.repeats for _ in tasks) - remaining} already on file)")
+            for task in tasks:
+                if capped:
+                    break
+                for i in range(args.repeats - todo[task.task_id], args.repeats):
                     try:
                         out = _with_backoff(lambda: tech.extract(source, task), pause=args.pause)
+                    except DailyCapReached as exc:
+                        print(f"  {task.task_id:<22} daily cap reached: {exc}")
+                        print(f"  stopping for today. Re-run the same command tomorrow; it resumes at this task.")
+                        capped = True
+                        break
                     except ProviderUnavailable as exc:
                         print(f"  {task.task_id:<22} unavailable: {exc}")
+                        capped = True
                         break
                     except Exception as exc:                       # noqa: BLE001 - report and continue
                         print(f"  {task.task_id:<22} run {i + 1}: {type(exc).__name__}: {str(exc)[:160]}")

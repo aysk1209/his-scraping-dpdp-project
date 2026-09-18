@@ -114,18 +114,18 @@ def test_ai_agent_output_is_scored_by_the_same_rules(tmp_path):
     assert by_id["NT-01"].status.value == "fail"       # no notice
     assert by_id["SL-01"].status.value == "fail"
     assert 0.2 < report.compliance_score < 1.0
-    assert out.run.run_id == "t--fake-unaided"
+    assert out.run.run_id == "t--fake-1-unaided"
 
 
 def test_ai_agent_records_live_decisions_and_replays_them_without_a_provider(tmp_path):
     live = AIAgentTechnique(FakeProvider([_DECISION]), mode="live", recordings_dir=tmp_path)
     live.extract(_source(), _task())
     assert live.last_source == "live"
-    assert (tmp_path / "fake-unaided.json").exists()
+    assert (tmp_path / "fake--fake-1--unaided.json").exists()
     assert live.has_recording("t")
 
     # Replay by provider *name*: no provider object, no key, no network.
-    replay = AIAgentTechnique("fake", mode="replay", recordings_dir=tmp_path)
+    replay = AIAgentTechnique("fake", mode="replay", recordings_dir=tmp_path, model="fake-1")
     out = replay.extract(_source(), _task())
     assert replay.last_source == "replay"
     assert {k for row in out.rows["patient_administration"] for k in row} == {"mrn", "sex"}
@@ -144,7 +144,7 @@ def test_ai_agent_recording_holds_no_personal_data(tmp_path):
     live = AIAgentTechnique(FakeProvider([_DECISION]), mode="live", recordings_dir=tmp_path)
     source = _source()
     live.extract(source, _task())
-    text = (tmp_path / "fake-unaided.json").read_text(encoding="utf-8")
+    text = (tmp_path / "fake--fake-1--unaided.json").read_text(encoding="utf-8")
     data = json.loads(text)
     assert set(data["tasks"]["t"]["samples"][0]) == set(_DECISION) | {"scope"}
     for row in source.fetch(HISLayer.PATIENT_ADMINISTRATION):
@@ -217,9 +217,25 @@ def test_the_policy_briefing_hands_the_agent_everything_ours_reads(tmp_path):
     assert "primary_diagnosis, " not in told.split("Fields available")[0]
 
     tech = AIAgentTechnique("gemini", briefing="policy", recordings_dir=tmp_path)
-    assert tech.name == "ai agent: gemini (told the policy)" and tech.short_id == "gemini-policy"
+    assert tech.name == f"ai agent: {tech.model} (told the policy)" and tech.short_id == f"{tech.model_slug}-policy"
     assert BRIEFING_LABELS["policy"] == "told the policy"
     # Three briefings, three distinct briefs for the same task.
     prints = {b: AIAgentTechnique("gemini", briefing=b, recordings_dir=tmp_path).fingerprint(_source(), task)
               for b in ("unaided", "informed", "policy")}
     assert len(set(prints.values())) == 3
+
+
+def test_two_models_of_one_provider_are_two_agents_with_two_recordings(tmp_path):
+    from extraction.techniques.ai_agent import available_agents, model_slug, recorded_models
+    lite = AIAgentTechnique(FakeProvider([_DECISION], model="fake-lite"), mode="live", recordings_dir=tmp_path)
+    big = AIAgentTechnique(FakeProvider([_DECISION], model="fake-big-2"), mode="live", recordings_dir=tmp_path)
+    for tech in (lite, big):
+        tech.extract(_source(), _task())
+    assert {p.name for p in tmp_path.glob("*.json")} == {"fake--fake-lite--unaided.json", "fake--fake-big-2--unaided.json"}
+    assert lite.short_id == "fake-lite-unaided" and big.short_id == "fake-big-2-unaided"
+    assert lite.name == "ai agent: fake-lite (unaided)"
+    assert model_slug("Gemini 3.8 Flash") == "gemini-3.8-flash"
+    assert recorded_models("fake", "unaided", tmp_path) == ["fake-big-2", "fake-lite"]
+    # Discovery finds both, by model, from the files -- no key, replay mode.
+    found = available_agents(("fake",), ("unaided",), recordings_dir=tmp_path, tasks=[_task()], source=_source())
+    assert sorted(t.short_id for t in found) == ["fake-big-2-unaided", "fake-lite-unaided"]

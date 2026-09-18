@@ -82,7 +82,7 @@ def test_compliance_aware_wins_and_baseline_loses():
     scores = {s.technique: s for s in _result().scores}
     assert scores["compliance-aware (ours)"].mean_compliance_score == 1.0
     assert scores["unconstrained (baseline)"].mean_compliance_score < 0.4
-    mid = scores["ai agent: fake (unaided)"].mean_compliance_score
+    mid = scores["ai agent: fake-1 (unaided)"].mean_compliance_score
     assert 0.2 < mid < 1.0
 
 
@@ -234,9 +234,9 @@ def test_determinism_is_measured_across_repeats(tmp_path):
     assert scores["compliance-aware"].repeat_runs == 6
     assert scores["compliance-aware"].stable_runs == 6 and scores["compliance-aware"].stable_tasks == 2
     assert scores["unconstrained"].stable_runs == 6
-    assert scores["fake-unaided"].stable_runs == 2      # samples alternate: only the 3rd repeat matches the 1st
-    assert scores["fake-unaided"].stable_fields == 2
-    assert scores["fake-unaided"].stable_tasks == 0
+    assert scores["fake-1-unaided"].stable_runs == 2      # samples alternate: only the 3rd repeat matches the 1st
+    assert scores["fake-1-unaided"].stable_fields == 2
+    assert scores["fake-1-unaided"].stable_tasks == 0
     assert "reproduced its first decision in 2 of 6 repeats (0 of 2 tasks every time)" in result._takeaway()
     assert "stable" in result.render_table()
     assert "| 2 / 6 |" in result.render_markdown()
@@ -251,7 +251,7 @@ def test_every_repeat_is_scored_not_just_the_last(tmp_path):
                              recordings_dir=tmp_path)
     source = MockHISDataSource(records_per_layer=5, seed=42)
     result = run_benchmark([CompliantExtractionTechnique(), flaky], TASKS, source, repeats=2)
-    agent = {s.short: s for s in result.scores}["fake-unaided"]
+    agent = {s.short: s for s in result.scores}["fake-1-unaided"]
     lo, hi = agent.per_task_range["patient-summary"]
     assert lo < hi
     assert agent.per_task["patient-summary"] == round((lo + hi) / 2, 3)
