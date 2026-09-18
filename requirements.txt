@@ -4,6 +4,8 @@
 
 # --- core data handling ---
 pandas>=2.2,<3.0
+# Excel exports (.xlsx) -- hospitals send them; pandas needs this to read them.
+openpyxl>=3.1,<4.0
 
 # --- schema modelling: DPDP compliance rules + five-layer HIS record schemas ---
 pydantic>=2.9,<3.0

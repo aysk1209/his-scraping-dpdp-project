@@ -56,7 +56,7 @@ reported and never relied on.
 ## Reproduce
 
 ```
-pytest                                  # 263 tests
+pytest                                  # 270 tests
 python scripts/run_benchmark.py         # benchmark.{json,md}; agents replay
 python scripts/run_pipeline.py          # benchmark-portal.{json,md}, exports, audit log
 python tools/weight_sweep.py            # weight-sweep.md

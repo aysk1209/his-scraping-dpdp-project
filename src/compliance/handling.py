@@ -28,7 +28,11 @@ from pathlib import Path
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = _REPO_ROOT / "data"
 PROVENANCE = "PROVENANCE.md"
-_DEID_WORDS = ("de-identified", "deidentified", "anonymised", "anonymized", "pseudonymised", "pseudonymized")
+# The note must *address* de-identification, one way or the other: "fully
+# identified, no de-identification applied" is an acceptable, honest statement;
+# silence is not.
+_DEID_WORDS = ("de-identified", "deidentified", "de-identification", "deidentification", "anonymised",
+               "anonymized", "pseudonymised", "pseudonymized", "identifiable", "identified")
 
 
 @dataclass

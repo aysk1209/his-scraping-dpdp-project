@@ -4,6 +4,21 @@ Everything below is built and rehearsed against synthetic exports and the mock
 portal. The real dataset or portal should cost a mapping file and nothing else.
 This page is the checklist for that first hour.
 
+## 0. Rehearse first (any time, no data needed)
+
+```
+python scripts/rehearse_day_one.py
+```
+
+Builds a hospital-shaped export from synthetic data — the hospital's own column
+names, a column we do not model, an `.xlsx` among the CSVs, day-first dates, a
+layer split across two files — runs every step below on it through the real
+handling gate, and then searches everything printed and written for one
+patient's record number, name and phone. It exits non-zero on a leak. The four
+defects it found on 2026-09-18 (a header that means different fields in
+different files, a split layer truncated, dates passed through unconverted,
+Excel unreadable) are fixed and pinned by `tests/extraction/test_day_one.py`.
+
 ## A. A dataset (CSV / Excel files)
 
 1. **Put it under `data/`** — e.g. `data/hospital_export/`. Nowhere else: `data/`
@@ -20,8 +35,15 @@ This page is the checklist for that first hour.
    recognised, and which were not (`<- map these`). The template it writes has
    every unrecognised header on the left and a blank on the right.
 4. **Fill the map.** Right-hand side is a catalogue field name (listed under
-   `_catalogue` in the same file). Leave blank to drop a column. Re-run the check
-   until the layers are inferred with the confidence you expect.
+   `_catalogue` in the same file). Leave blank to drop a column. A header that
+   means different fields in different files — a patient id that is `mrn` on
+   the clinical file and `subject_mrn` on the audit trail — goes under
+   `"files"`, per file name; the check prints the exact line to write. Re-run
+   the check until the layers are inferred with the confidence you expect.
+   Several files for one layer (an export by month) are concatenated when
+   their recognised columns agree; the check says so. Dates in any common form
+   are parsed day-first and emitted in ISO form; values it cannot parse are
+   left as written and counted.
 5. **Run the pipeline on it:**
    ```
    python scripts/run_pipeline.py --dataset data/hospital_export --column-map data/hospital_export/column_map.json

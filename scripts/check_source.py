@@ -45,13 +45,25 @@ def _load_map(path: str | None) -> dict[str, str]:
     return {k: v for k, v in data.get("map", data).items() if v}   # blanks are "not yet mapped"
 
 
-def _write_template(path: Path, unmatched: list[str], existing: dict[str, str], kind: str) -> None:
+def _load_file_maps(path: str | None) -> dict[str, dict[str, str]]:
+    if not path:
+        return {}
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    return {f: {k: v for k, v in m.items() if v} for f, m in data.get("files", {}).items()}
+
+
+def _write_template(path: Path, unmatched: list[str], existing: dict[str, str], kind: str,
+                    file_maps: dict[str, dict[str, str]] | None = None) -> None:
     template = {
         "_about": (
             f"{kind} mapping: left = the header as the source shows it, right = the catalogue field "
-            f"it means. Leave a value blank to drop that column. Fields per layer are listed under _catalogue."
+            f"it means. Leave a value blank to drop that column. Fields per layer are listed under _catalogue. "
+            f"A header that means different fields in different files (a patient id that is 'mrn' on a "
+            f"clinical file and 'subject_mrn' on the audit trail) goes under 'files', per file name, "
+            f"which overrides 'map' for that file."
         ),
         "map": {**{h: "" for h in unmatched}, **existing},
+        "files": file_maps or {},
         "_catalogue": {layer.value: list(fields) for layer, fields in FIELD_CATALOGUE.items()},
     }
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -73,7 +85,9 @@ def _report_fields(label: str, seen: list[str], layer: HISLayer | None, confiden
 
 # --------------------------------------------------------------------------- #
 
-def check_directory(directory: Path, column_map: dict[str, str], write_map: Path | None) -> int:
+def check_directory(directory: Path, column_map: dict[str, str], write_map: Path | None,
+                    file_maps: dict[str, dict[str, str]] | None = None) -> int:
+    file_maps = file_maps or {}
     print(present.banner(f"Source check -- directory {directory}"))
     report = check_handling(directory)
     print(report.render())
@@ -89,21 +103,42 @@ def check_directory(directory: Path, column_map: dict[str, str], write_map: Path
     if not files:
         print("  no CSV / Excel files found")
         return 1
+    from data_synthetic.catalogue import SUBJECT_KEY
+    from extraction.adapters.dataset_his import normalise_dates
+    suggestions: dict[str, dict[str, str]] = {}
     for path in files:
         frame = readers[path.suffix.lower()](path, nrows=200)
         headers = [str(c) for c in frame.columns]
-        mapped = [column_map.get(h, h) for h in headers]
+        this_map = {**column_map, **file_maps.get(path.name, {})}
+        mapped = [this_map.get(h, h) for h in headers]
         layer, confidence = infer_layer(mapped)
         for line in _report_fields(f"{path.name}  ({len(frame)}+ rows sampled, {len(headers)} columns)",
                                    mapped, layer, confidence):
             print(line)
+        if layer is not None:
+            # A patient-id header mapped to the wrong layer's key: say exactly what to write.
+            key = SUBJECT_KEY.get(layer)
+            for h, m in zip(headers, mapped):
+                if m in SUBJECT_KEY.values() and m not in FIELD_CATALOGUE[layer] and key:
+                    suggestions.setdefault(path.name, {})[h] = key
+                    print(f"    per-file fix    : '{h}' is '{key}' on this layer -> files.\"{path.name}\".\"{h}\" = \"{key}\"")
+            sample = frame.rename(columns=this_map)
+            known = [c for c in sample.columns if c in FIELD_CATALOGUE[layer]]
+            _, unparsed = normalise_dates(sample[known])
+            dated = [c for c in known if c in ("date_of_birth", "admission_datetime", "encounter_datetime", "event_timestamp")]
+            if dated:
+                print(f"    dates           : {', '.join(dated)} parsed day-first and emitted in ISO form"
+                      + (f"; could not parse: {', '.join(f'{c} x{n}' for c, n in unparsed.items())}" if unparsed else ""))
         all_unmatched += [h for h, m in zip(headers, mapped) if m not in FIELD_CATALOGUE.get(layer, {}) if layer]
         if layer is None:
             all_unmatched += headers
         print()
 
     if write_map:
-        _write_template(write_map, sorted(set(all_unmatched)), column_map, "column")
+        merged = {**{f: dict(m) for f, m in file_maps.items()}}
+        for f, m in suggestions.items():
+            merged.setdefault(f, {}).update(m)
+        _write_template(write_map, sorted(set(all_unmatched)), column_map, "column", merged)
         print(present.wrote(write_map))
     print("  Next: fill the map, re-run this check, then "
           "python scripts/run_pipeline.py --dataset <dir> --column-map <file>")
@@ -153,7 +188,8 @@ def main() -> int:
         if not (args.user and args.password):
             parser.error("--user and --password are required for a portal")
         return check_portal(args.source, args.user, args.password, _load_map(args.aliases), args.write_map)
-    return check_directory(Path(args.source), _load_map(args.column_map), args.write_map)
+    return check_directory(Path(args.source), _load_map(args.column_map), args.write_map,
+                           file_maps=_load_file_maps(args.column_map))
 
 
 if __name__ == "__main__":

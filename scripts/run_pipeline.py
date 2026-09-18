@@ -142,6 +142,16 @@ def _load_map(path: str | None) -> dict[str, str]:
     return {k: v for k, v in data.get("map", data).items() if v}
 
 
+def _load_file_maps(path: str | None) -> dict[str, dict[str, str]]:
+    """Per-file overrides: ``{"files": {"audit_trail.csv": {"Patient ID": "subject_mrn"}}}``."""
+
+    if not path:
+        return {}
+    import json
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    return {f: {k: v for k, v in m.items() if v} for f, m in data.get("files", {}).items()}
+
+
 def run_downstream(scraper, pages: dict[str, str], dataset_note: str) -> None:
     """Stages 3-6: identical whatever the source was."""
 
@@ -169,7 +179,7 @@ def run_downstream(scraper, pages: dict[str, str], dataset_note: str) -> None:
     stage(4, "NORMALISE -- HL7 v2 / FHIR on the way out; identifiers pseudonymised, and audited")
     [summary] = bind_subject([TASKS[0]], scraper)
     print(f"  the patient-summary task is about one patient; ours reads that patient's records "
-          f"through the portal's search box, the baseline reads every module")
+          f"through the source's own filter (a portal's search box, a file's rows), the baseline reads every module")
     output = CompliantExtractionTechnique().extract(scraper, summary)
     baseline = UnconstrainedExtractionTechnique().extract(scraper, summary)
     shaped_compliant = None
@@ -255,7 +265,8 @@ def main() -> None:
 
     if args.dataset:
         stage(1, "DATASET -- an exported hospital dataset, handling checks enforced")
-        scraper = DatasetHISDataSource(args.dataset, column_map=_load_map(args.column_map))
+        scraper = DatasetHISDataSource(args.dataset, column_map=_load_map(args.column_map),
+                                       file_maps=_load_file_maps(args.column_map))
         print(f"  {args.dataset}")
         stage(2, "UNDERSTAND -- what the adapter made of the files")
         print(scraper.describe())

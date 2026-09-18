@@ -157,6 +157,8 @@ work by definition, and the manuscript waits on a venue and page budget.
 
 *2026-09-18: flash-lite re-recorded under the current brief, three briefings; every artefact, the demo page and the chapters regenerated. The third briefing's result: handed the policy verbatim the agent obeys its numbers and not its categories — 10 of 20 trap runs held, the two field-taking traps failed in every run. The flagship (`gemini-3.8-flash`) is being recorded at three samples on the *told the policy* and *unaided* briefings within its 20-requests/day cap and joins the tables as one row per model. Recordings are now source-independent (the agent is briefed on the canonical catalogue), so the hospital dataset will not require re-recording; tables, deck and demo page read per model at the policy briefing with the full grid kept.*
 
+*2026-09-18, later: `scripts/rehearse_day_one.py` runs the day-one procedure on a hospital-shaped synthetic export through the real gate and audits everything printed or written for a patient's identifiers (none leak). It found four defects the real data would have hit — a header meaning different fields in different files (now per-file map overrides), a split layer truncated (now concatenated), day-first dates passed to the shapers unconverted (now ISO at the adapter), `.xlsx` unreadable (`openpyxl` added) — all fixed and pinned by tests.*
+
 *Next, in order: finish the flagship recording (re-run the same command daily); the report's second pass; the manuscript. Done 2026-09-17: the weight sweep in ch7, the Gazette check with three corrections, `docs/methodology/benchmark-protocol.md`. The hospital dataset is expected before Review-II: run `scripts/check_source.py` first, then `run_pipeline.py --dataset …`.*
 
 ## 6. Workstreams
