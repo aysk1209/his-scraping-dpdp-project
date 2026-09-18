@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-18T05:48:55.950611Z",
+  "generated_at": "2026-09-18T05:53:48.853193Z",
   "dataset_note": "50 records/layer x 5 layers, seed 42",
-  "elapsed_ms": 184.1,
+  "elapsed_ms": 206.8,
   "task_ids": [
     "patient-summary",
     "ward-census",
@@ -161,7 +161,7 @@
         "excess_ratio": 1.0,
         "records_necessary": 11,
         "record_excess": 1.0,
-        "elapsed_ms": 0.768
+        "elapsed_ms": 0.852
       },
       "tasks": 8,
       "repeats": 5,
@@ -255,7 +255,7 @@
         "excess_ratio": 1.429,
         "records_necessary": 11,
         "record_excess": 0.982,
-        "elapsed_ms": 2.128
+        "elapsed_ms": 2.693
       },
       "tasks": 8,
       "repeats": 5,
@@ -349,7 +349,7 @@
         "excess_ratio": 1.057,
         "records_necessary": 11,
         "record_excess": 0.945,
-        "elapsed_ms": 1.807
+        "elapsed_ms": 1.815
       },
       "tasks": 8,
       "repeats": 5,
@@ -443,7 +443,7 @@
         "excess_ratio": 1.057,
         "records_necessary": 11,
         "record_excess": 0.982,
-        "elapsed_ms": 1.831
+        "elapsed_ms": 1.918
       },
       "tasks": 8,
       "repeats": 5,
@@ -537,7 +537,7 @@
         "excess_ratio": 7.771,
         "records_necessary": 11,
         "record_excess": 136.364,
-        "elapsed_ms": 9.051
+        "elapsed_ms": 10.721
       },
       "tasks": 8,
       "repeats": 5,
