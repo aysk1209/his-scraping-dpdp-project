@@ -276,3 +276,25 @@ def test_markdown_labels_the_source_rather_than_assuming_synthetic_data():
     assert "Source:" in md
     assert "Synthetic data:" not in md
     assert "Distinct fields / needed" in md
+
+
+def test_the_headline_view_shows_one_row_per_model_at_the_policy_briefing(tmp_path):
+    # Two models: one recorded on all briefings, one on 'unaided' only. The
+    # headline shows each once -- at 'told the policy' where it exists, else
+    # at its best available briefing, flagged. The full grid keeps every row.
+    lite = [AIAgentTechnique(FakeProvider([_AGENT_DECISION], model="m-lite"), briefing=b, mode="live",
+                             recordings_dir=tmp_path) for b in ("unaided", "informed", "policy")]
+    big = AIAgentTechnique(FakeProvider([_AGENT_DECISION], model="m-big"), briefing="unaided", mode="live",
+                           recordings_dir=tmp_path)
+    source = MockHISDataSource(records_per_layer=5, seed=42)
+    result = run_benchmark([CompliantExtractionTechnique(), *lite, big, UnconstrainedExtractionTechnique()], TASKS, source)
+    assert len(result.scores) == 6
+    rows = result.by_model()
+    assert [s.short for s, _ in rows] == ["compliance-aware", "m-lite-policy", "m-big-unaided", "unconstrained"] or \
+           [s.short for s, _ in rows][0] == "compliance-aware" and {s.short for s, _ in rows} == {
+               "compliance-aware", "m-lite-policy", "m-big-unaided", "unconstrained"}
+    flags = {s.short: f for s, f in rows}
+    assert flags["m-lite-policy"] is False and flags["m-big-unaided"] is True
+    assert "by model" in result.render_table() and "**By model**" in result.render_markdown()
+    assert "not recorded at that briefing" in result.render_markdown()
+    assert {s.model for s in result.scores if s.model} == {"m-lite", "m-big"}

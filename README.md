@@ -42,17 +42,20 @@ and de-identification recorded before anything is read) are ready for it.
 violation, six about one patient), in memory, five repeats; every technique is
 told what the deployment provides:
 
+One row per model, each AI agent **handed the purpose policy itself** (the
+fairest briefing — it knows everything ours knows); the other briefings are in
+the full grid in [`benchmark.md`](docs/benchmark_results/benchmark.md):
+
 | Technique | Compliance | Trap runs held | Coverage | Excess ratio | Repeats that reproduced run 1 |
 |---|---:|---:|---:|---:|---:|
 | compliance-aware (ours) | **1.000** | **20 / 20** | 1.00 | 1.00× | **32 / 32** |
 | AI agent — gemini-3.1-flash-lite, told the policy | 0.984 | 10 / 20 | 0.74 | 1.43× | 21 / 32 |
-| AI agent — gemini-3.1-flash-lite, told the Act | 0.948 | 0 / 20 | 0.69 | 1.06× | 19 / 32 |
-| AI agent — gemini-3.1-flash-lite, unaided | 0.942 | 0 / 20 | 0.67 | 1.06× | 18 / 32 |
 | unconstrained baseline | 0.100 | 0 / 20 | 1.00 | 7.77× | 32 / 32 |
 
-Every one of the forty runs per technique is scored; a score is a mean, not a
-draw. Recorded 2026-09-18; a second model of the same family is being recorded
-as its daily allowance permits and joins the table as its own rows.
+Unaided, or told the Act in plain words, the same model scores 0.942 / 0.948
+and holds **0 / 20** trap runs. Every one of the forty runs per technique is
+scored; a score is a mean, not a draw. Recorded 2026-09-18; a second model of
+the same family is being recorded and joins as one more row.
 
 A current public model matches the rule-driven technique on the *manifest it
 declares* — told what the deployment provides, it cites it correctly, every run.

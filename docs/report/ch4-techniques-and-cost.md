@@ -131,7 +131,11 @@ Three properties of the design are held to, and each is asserted by a test.
   wording asks. The third is the fairest comparison there is: the agent knows
   everything the rule-driven technique knows, and whether it *holds* to it is
   the only remaining question. Whether prompting closes the gap is then a
-  measured answer rather than an assumed one.
+  measured answer rather than an assumed one. The reference model is recorded
+  on all three; further models on *told the policy* and *unaided*, and the
+  comparison is read per model at the *told the policy* briefing. The reference model is recorded
+  on all three; further models on *told the policy* and *unaided*, and the
+  comparison is read per model at the *told the policy* briefing.
 
 The provider adapters (`ai_providers.py`) cover three public models behind
 their official SDKs — Claude, OpenAI and Gemini — with the model identifier

@@ -15,7 +15,9 @@ is:
    names, purpose, obligations -- and the pipeline executes the fetch. That is
    how an agent orchestrating a scraper works anyway, and it means this
    comparison is safe to run against the hospital dataset: no personal data
-   goes to a third-party API.
+   goes to a third-party API. It is also briefed on the canonical catalogue,
+   not on a particular source, so one recording replays against every source
+   -- the hospital's dataset included -- without a second round of calls.
 
 2. **Record and replay.** A live decision is recorded (field names and manifest
    choices only -- nothing personal) so the benchmark and the demo replay it
@@ -391,19 +393,24 @@ class AIAgentTechnique(ExtractionTechnique):
     def has_recording(self, task_id: str) -> bool:
         return task_id in self._load().get("tasks", {})
 
-    def fingerprint(self, source: HISDataSource, task: ExtractionTask) -> str:
-        """Identity of the brief this agent would send for ``task`` against ``source``."""
+    def fingerprint(self, source: HISDataSource | None, task: ExtractionTask) -> str:
+        """Identity of the brief this agent would send for ``task``.
+
+        ``source`` is accepted for the call sites' convenience and ignored: the
+        brief does not depend on it (see ``_available``).
+        """
 
         system = system_prompt(self.briefing)
-        user = build_user_prompt(task, self._available(source), policy=self.briefing == "policy")
+        user = build_user_prompt(task, self._available(), policy=self.briefing == "policy")
         return hashlib.sha256((system + "\n" + user).encode("utf-8")).hexdigest()[:16]
 
-    def stale_tasks(self, source: HISDataSource, tasks: list[ExtractionTask]) -> list[str]:
+    def stale_tasks(self, source: HISDataSource | None, tasks: list[ExtractionTask]) -> list[str]:
         """Tasks whose recording was made under a different brief than today's.
 
-        A recording answers one exact brief. If the task wording, the field
-        list or the capability register has changed since, replaying it would
-        compare a new question with an old answer; those tasks need re-recording.
+        A recording answers one exact brief. If the task wording, the catalogue
+        or the capability register has changed since, replaying it would
+        compare a new question with an old answer; those tasks need
+        re-recording. A change of *source* never stales a recording.
         """
 
         data = self._load().get("tasks", {})
@@ -434,18 +441,24 @@ class AIAgentTechnique(ExtractionTechnique):
 
     # --- deciding ---------------------------------------------------------
 
-    def _available(self, source: HISDataSource) -> dict[HISLayer, list[str]]:
-        # What the source actually exposes, restricted to what the catalogue
-        # can categorise -- the model is briefed on the real portal's modules.
-        return {
-            layer: list(FIELD_CATALOGUE[layer])
-            for layer in source.layers()
-            if layer in FIELD_CATALOGUE
-        }
+    @staticmethod
+    def _available(source: HISDataSource | None = None) -> dict[HISLayer, list[str]]:
+        """The fields the agent is briefed on: the canonical catalogue, whole.
+
+        Deliberately *not* what a particular source exposes. The model never
+        sees a value, so its decision is a function of the task, the
+        catalogue, the register and the briefing -- and nothing about the
+        source. A recording is therefore a property of the model, and replays
+        unchanged against the in-memory fixture, the served portal and the
+        hospital's dataset (whose columns are mapped to catalogue names on the
+        way in). A layer the source lacks is fetched as empty at execution.
+        """
+
+        return {layer: list(FIELD_CATALOGUE[layer]) for layer in FIELD_CATALOGUE}
 
     def decide(self, source: HISDataSource, task: ExtractionTask) -> AgentDecision:
         system = system_prompt(self.briefing)
-        user = build_user_prompt(task, self._available(source), policy=self.briefing == "policy")
+        user = build_user_prompt(task, self._available(), policy=self.briefing == "policy")
         fingerprint = hashlib.sha256((system + "\n" + user).encode("utf-8")).hexdigest()[:16]
 
         samples = self.recorded_samples(task.task_id)

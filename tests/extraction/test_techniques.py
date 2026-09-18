@@ -239,3 +239,26 @@ def test_two_models_of_one_provider_are_two_agents_with_two_recordings(tmp_path)
     # Discovery finds both, by model, from the files -- no key, replay mode.
     found = available_agents(("fake",), ("unaided",), recordings_dir=tmp_path, tasks=[_task()], source=_source())
     assert sorted(t.short_id for t in found) == ["fake-big-2-unaided", "fake-lite-unaided"]
+
+
+def test_a_recording_is_a_property_of_the_model_not_of_the_source(tmp_path):
+    # Briefed on the canonical catalogue: the same brief whatever source the
+    # decision is replayed against -- the in-memory fixture, a source missing
+    # layers, or the hospital's dataset -- so live data never stales a recording.
+    from extraction.adapters.mock_his import MockHISDataSource
+
+    class TwoLayers(MockHISDataSource):
+        def __init__(self, **kw):
+            super().__init__(**kw)
+            self._data = {l: rows for l, rows in self._data.items()
+                          if l in (HISLayer.PATIENT_ADMINISTRATION, HISLayer.CLINICAL_EHR)}
+
+    task = _task()
+    tech = AIAgentTechnique("gemini", recordings_dir=tmp_path)
+    full = MockHISDataSource(records_per_layer=3, seed=1)
+    assert tech.fingerprint(full, task) == tech.fingerprint(TwoLayers(records_per_layer=3, seed=1), task) == tech.fingerprint(None, task)
+    # And a decision naming a layer the source lacks executes as an empty fetch, not an error.
+    decision = dict(_DECISION, fields=_DECISION["fields"] + ["administrative_financial/invoice_id"])
+    live = AIAgentTechnique(FakeProvider([decision]), mode="live", recordings_dir=tmp_path)
+    out = live.extract(TwoLayers(records_per_layer=3, seed=1), task)
+    assert "administrative_financial" not in out.rows and out.records

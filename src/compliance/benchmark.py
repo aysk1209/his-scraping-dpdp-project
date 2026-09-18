@@ -39,6 +39,8 @@ from extraction.base import HISDataSource
 from extraction.metering import ExtractionCost, MeteredSource, combine, per_pass
 from extraction.technique import ExtractionTask, ExtractionTechnique
 
+BRIEFING_LABEL = {"unaided": "unaided", "informed": "told the Act", "policy": "told the policy"}
+
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 ARTIFACT_DIR = _REPO_ROOT / "docs" / "benchmark_results"
 _RULE_IDS = [rule.rule_id for rule in ALL_RULES]
@@ -50,9 +52,20 @@ def _short(technique) -> str:
     return short or technique.name.split()[0].rstrip(",")
 
 
+# The briefing a model is shown at when the tables show one row per model.
+# "Told the policy" is the fairest condition -- the agent knows everything the
+# rule-driven technique knows -- so it is the headline; the other briefings
+# stay in the full grid.
+HEADLINE_BRIEFING = "policy"
+
+
 class TechniqueScore(BaseModel):
     technique: str
     short: str
+    # For an AI agent: which model and which briefing this row is. Two models
+    # of one provider are two rows; the headline view collapses briefings.
+    model: str | None = None
+    briefing: str | None = None
     mean_compliance_score: float
     mean_pass_rate: float
     rules_passed: str                       # e.g. "7/7" (worst-case across tasks)
@@ -277,8 +290,64 @@ class BenchmarkResult(BaseModel):
         widest = max(covered, key=lambda s: s.cost.excess_ratio or 0.0)
         return top.cost.coverage if widest.cost.coverage == top.cost.coverage else None
 
+    def by_model(self, briefing: str = HEADLINE_BRIEFING) -> list[tuple["TechniqueScore", bool]]:
+        """One row per technique, agents collapsed to one row per model.
+
+        Each model is shown at ``briefing``; a model not recorded at that
+        briefing is shown at the best briefing it has, and the flag says so.
+        Order follows the full ranking.
+        """
+
+        out: list[tuple[TechniqueScore, bool]] = []
+        seen: set[str] = set()
+        for score in self.scores:
+            if score.model is None:
+                out.append((score, False))
+                continue
+            if score.model in seen:
+                continue
+            seen.add(score.model)
+            rows = [s for s in self.scores if s.model == score.model]
+            exact = [s for s in rows if s.briefing == briefing]
+            if exact:
+                out.append((exact[0], False))
+            else:
+                out.append((max(rows, key=lambda s: s.mean_compliance_score), True))
+        return out
+
+    def render_headline(self) -> str:
+        """The by-model view, for the room: ours, each model at the headline briefing, the baseline."""
+
+        rows = self.by_model()
+        if not any(s.model for s, _ in rows):
+            return ""
+        W = max(32, max(len(s.technique) for s, _ in rows))
+        show_traps = any(s.traps for s in self.scores)
+        lines = [f"by model -- each AI agent at its '{BRIEFING_LABEL.get(HEADLINE_BRIEFING, HEADLINE_BRIEFING)}' "
+                 "briefing; the full model x briefing grid follows:"]
+        head = (f"  {'technique':<{W}} {'score':>6} {'cover':>6} {'excess':>7}"
+                + (f" {'traps held':>24}" if show_traps else "")
+                + (f" {'stable':>8}" if any(s.repeat_runs for s in self.scores) else "")
+                + (f" {'pages':>6}" if any(s.cost.page_loads is not None for s in self.scores) else ""))
+        lines += [head, "  " + "-" * (len(head) - 2)]
+        for s, fallback in rows:
+            name = s.technique + ("  *" if fallback else "")
+            row = (f"  {name:<{W}} {s.mean_compliance_score:>6.3f} {self._fmt(s.cost.coverage):>6} "
+                   f"{self._fmt(s.cost.excess_ratio):>7}"
+                   + (f" {s.traps_note():>24}" if show_traps else "")
+                   + (f" {f'{s.stable_runs}/{s.repeat_runs}':>8}" if any(x.repeat_runs for x in self.scores) else "")
+                   + (f" {s.cost.page_loads if s.cost.page_loads is not None else '-':>6}"
+                      if any(x.cost.page_loads is not None for x in self.scores) else ""))
+            lines.append(row)
+        if any(f for _, f in rows):
+            lines.append("  * not recorded at that briefing; shown at the best briefing it has")
+        return "\n".join(lines)
+
     def render_table(self) -> str:
         lines: list[str] = []
+        headline = self.render_headline()
+        if headline:
+            lines += [headline, ""]
         W = max(32, max(len(sc.technique) for sc in self.scores))       # technique column
         S = max(18, max(len(sc.short) for sc in self.scores) + 2)       # short-id column
         meta = []
@@ -393,10 +462,30 @@ class BenchmarkResult(BaseModel):
             f"technique. Generated {self.generated_at:%Y-%m-%d}"
             + (f" in {self.elapsed_ms:.0f} ms" if self.elapsed_ms is not None else "")
             + " (wall-clock, hardware-dependent).",
-            "",
-            header,
-            sep,
         ]
+        by_model = self.by_model()
+        if any(s.model for s, _ in by_model):
+            lines += [
+                "",
+                f"**By model** -- each AI agent at its *{BRIEFING_LABEL.get(HEADLINE_BRIEFING, HEADLINE_BRIEFING)}* "
+                "briefing (the fairest condition: it is handed the purpose policy our technique reads); "
+                "the full model x briefing grid is below.",
+                "",
+                "| Technique | Compliance | Coverage | Excess ratio | Traps held | Stable | Page loads |",
+                "|---|---|---|---|---|---|---|",
+            ]
+            for s, fallback in by_model:
+                lines.append(
+                    f"| {s.technique}{' *' if fallback else ''} | {s.mean_compliance_score:.3f} | "
+                    f"{self._fmt(s.cost.coverage)} | {self._fmt(s.cost.excess_ratio)} | "
+                    f"{s.traps_note() if s.traps else 'n/a'} | "
+                    f"{f'{s.stable_runs} / {s.repeat_runs}' if s.repeat_runs else 'n/a'} | "
+                    f"{s.cost.page_loads if s.cost.page_loads is not None else 'n/a'} |"
+                )
+            if any(f for _, f in by_model):
+                lines.append("")
+                lines.append("\* not recorded at that briefing; shown at the best briefing it has.")
+        lines += ["", "**Every technique, every briefing**", "", header, sep]
         for score in self.scores:
             cells = " | ".join(self._fmt(score.per_rule_mean.get(rid)) for rid in self.rule_ids)
             lines.append(
@@ -790,6 +879,8 @@ def run_benchmark(
             TechniqueScore(
                 technique=technique.name,
                 short=_short(technique),
+                model=getattr(technique, "model", None) if getattr(technique, "briefing", None) else None,
+                briefing=getattr(technique, "briefing", None),
                 mean_compliance_score=round(mean(per_task.values()), 3),
                 mean_pass_rate=round(mean(pass_rates), 3),
                 rules_passed=f"{min(passed_counts)}/{len(_RULE_IDS)}",

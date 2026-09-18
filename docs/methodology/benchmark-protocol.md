@@ -46,8 +46,8 @@ reported and never relied on.
 | Item | Value |
 |---|---|
 | Provider / model | Gemini, `gemini-3.1-flash-lite` (free tier; the flagship is capped at 20 requests/day) |
-| Briefings | `unaided`; `informed` (the Act's seven obligations in plain words); `policy` (the purpose envelope and every field's category, in the prompt) |
-| What the model sees | the job in words, the purpose, whether the job is about one patient, the field *names* per module, the capability register. Never a value, never a record number, never the task's own needed list |
+| Briefings | `unaided`; `informed` (the Act's seven obligations in plain words); `policy` (the purpose envelope and every field's category, in the prompt). The reference model is recorded on all three; further models on `policy` and `unaided`. Tables are read per model at `policy`; the full grid is kept |
+| What the model sees | the job in words, the purpose, whether the job is about one patient, the field *names* of the **canonical catalogue** (not of any particular source), the capability register. Never a value, never a record number, never the task's own needed list. A recording is therefore a property of the model and replays against every source; only a catalogue, register or wording change stales it |
 | What it returns | a flat JSON decision: fields, `scope` (`subject` / `all`), and the manifest |
 | Sampling | provider default — no temperature or seed set; the recording says so |
 | Recording | `scripts/record_ai_agents.py`: 5 samples per task per briefing; each sample stores field names and manifest choices only, with a fingerprint (SHA-256 of the exact prompt) so a change to the brief marks the recording stale |

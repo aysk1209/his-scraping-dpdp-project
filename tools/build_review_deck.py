@@ -400,13 +400,20 @@ def benchmark_rows() -> tuple[list[list[str]], int, int]:
     import json
     path = ROOT / "docs" / "benchmark_results" / "benchmark-portal.json"
     data = json.loads(path.read_text(encoding="utf-8"))
+    # One row per model, at the headline briefing (told the policy) -- the
+    # slide has room for a model per row, not a briefing per row. A model not
+    # recorded at that briefing is shown at its best one, marked *.
+    sys.path.insert(0, str(ROOT / "src"))
+    from compliance.benchmark import BenchmarkResult
+    result = BenchmarkResult.model_validate(data)
     rows = []
-    for sc in data["scores"]:
+    for score, fallback in result.by_model():
+        sc = score.model_dump()
         cost = sc["cost"]
-        name = sc["technique"]
-        if name.startswith("ai agent"):
-            behaviour = ("A public model decides the pull and the manifest from the job, purpose and field "
-                         "names; recorded and replayed.")
+        name = sc["technique"] + (" *" if fallback else "")
+        if sc.get("model"):
+            behaviour = ("A public model decides the pull and the manifest from the job, purpose, field names "
+                         "and -- in this briefing -- the purpose policy itself; recorded and replayed.")
         else:
             behaviour = _BEHAVIOUR.get(sc["short"], "")
         stable = f"  ·  stable {sc['stable_runs']}/{sc['repeat_runs']}" if sc.get("repeat_runs") else ""

@@ -2,9 +2,9 @@
 
     set ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY   (whichever you have)
     python scripts/record_ai_agents.py                       # every keyed provider, all three briefings
-    python scripts/record_ai_agents.py --provider gemini --model gemini-3.8-flash --repeats 3
-                                                             # a second model of the same provider: its own
-                                                             # recording, its own row; resumes across days
+    python scripts/record_ai_agents.py --provider gemini --model gemini-3.8-flash \
+        --briefing policy --briefing unaided --repeats 3     # a further model: its own recording, its own
+                                                             # row (shown at 'policy'); resumes across days
     python scripts/record_ai_agents.py --provider claude --repeats 5
     python scripts/record_ai_agents.py --briefing informed --overwrite
 

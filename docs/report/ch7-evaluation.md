@@ -25,11 +25,16 @@ gating the staff assistant.
 
 ## 7.1 Setup
 
-**Techniques.** Five, from Chapter 4: compliance-aware (ours); three AI
-agents — a publicly available model, `gemini-3.1-flash-lite`, briefed
-*unaided*, *told the Act*, and *told the policy* (the purpose envelope and
-every field's category in the prompt: everything ours reads); and the
-unconstrained baseline. Every technique is told the deployment's capability
+**Techniques.** Compliance-aware (ours); a publicly available model,
+`gemini-3.1-flash-lite`, briefed three ways — *unaided*, *told the Act*, and
+*told the policy* (the purpose envelope and every field's category in the
+prompt: everything ours reads) — each briefing scored as its own technique;
+and the unconstrained baseline. A further model of the same family is
+recorded on the *told the policy* and *unaided* briefings only, as its daily
+allowance permits, and enters as one more row per briefing. Because the agent
+is briefed on the canonical catalogue rather than on a particular source, a
+recording is a property of the model and replays unchanged against the
+in-memory fixture, the portal and the hospital's dataset. Every technique is told the deployment's capability
 register (§4.5). The agents' decisions are recorded live (five runs per task
 per briefing, field names and manifest choices only) and replayed; the
 recordings are committed with the repository, so every agent figure below
@@ -89,6 +94,42 @@ Where the chapter reports a property of an AI agent, it is read off the
 recording, and the recording is the evidence.
 
 ## 7.2 Compliance × cost — the benchmark
+
+**Table 0.** One row per technique, each AI model at the *told the policy*
+briefing — the condition under which it knows everything our technique knows.
+This is the view the comparison is read from; Tables 1 and 2 keep every
+briefing as evidence. A model recorded on fewer briefings is shown at its best
+available one and marked.
+
+| Technique | Compliance | Trap runs held | Coverage | Excess | Record excess | Stable |
+|---|---|---|---|---|---|---|
+| compliance-aware (ours) | **1.000** | **20 / 20** | 1.00 | 1.00 | 1.00 | **32 / 32** |
+| gemini-3.1-flash-lite, told the policy | 0.984 | 10 / 20 | 0.74 | 1.43 | 0.98 | 21 / 32 |
+| unconstrained (baseline) | 0.100 | 0 / 20 | 1.00 | 7.77 | 136.4 | 32 / 32 |
+
+**Table 0.** One row per technique, each AI model at the *told the policy*
+briefing — the condition under which it knows everything our technique knows.
+This is the view the comparison is read from; Tables 1 and 2 keep every
+briefing as evidence. A model recorded on fewer briefings is shown at its best
+available one and marked.
+
+| Technique | Compliance | Trap runs held | Coverage | Excess | Record excess | Stable |
+|---|---|---|---|---|---|---|
+| compliance-aware (ours) | **1.000** | **20 / 20** | 1.00 | 1.00 | 1.00 | **32 / 32** |
+| gemini-3.1-flash-lite, told the policy | 0.984 | 10 / 20 | 0.74 | 1.43 | 0.98 | 21 / 32 |
+| unconstrained (baseline) | 0.100 | 0 / 20 | 1.00 | 7.77 | 136.4 | 32 / 32 |
+
+**Table 0.** One row per technique, each AI model at the *told the policy*
+briefing — the condition under which it knows everything our technique knows.
+This is the view the comparison is read from; Tables 1 and 2 keep every
+briefing as evidence. A model recorded on fewer briefings is shown at its best
+available one and marked.
+
+| Technique | Compliance | Trap runs held | Coverage | Excess | Record excess | Stable |
+|---|---|---|---|---|---|---|
+| compliance-aware (ours) | **1.000** | **20 / 20** | 1.00 | 1.00 | 1.00 | **32 / 32** |
+| gemini-3.1-flash-lite, told the policy | 0.984 | 10 / 20 | 0.74 | 1.43 | 0.98 | 21 / 32 |
+| unconstrained (baseline) | 0.100 | 0 / 20 | 1.00 | 7.77 | 136.4 | 32 / 32 |
 
 **Table 1.** Compliance per rule, in memory (`benchmark.md`; eight tasks, four
 of them traps; five repeats, **every repeat scored** — a cell is the mean over

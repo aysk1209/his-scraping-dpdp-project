@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-18T05:22:12.599985Z",
+  "generated_at": "2026-09-18T05:48:55.950611Z",
   "dataset_note": "50 records/layer x 5 layers, seed 42",
-  "elapsed_ms": 183.4,
+  "elapsed_ms": 184.1,
   "task_ids": [
     "patient-summary",
     "ward-census",
@@ -89,6 +89,8 @@
     {
       "technique": "compliance-aware (ours)",
       "short": "compliance-aware",
+      "model": null,
+      "briefing": null,
       "mean_compliance_score": 1.0,
       "mean_pass_rate": 1.0,
       "rules_passed": "7/7",
@@ -159,7 +161,7 @@
         "excess_ratio": 1.0,
         "records_necessary": 11,
         "record_excess": 1.0,
-        "elapsed_ms": 0.779
+        "elapsed_ms": 0.768
       },
       "tasks": 8,
       "repeats": 5,
@@ -181,6 +183,8 @@
     {
       "technique": "ai agent: gemini-3.1-flash-lite (told the policy)",
       "short": "gemini-3.1-flash-lite-policy",
+      "model": "gemini-3.1-flash-lite",
+      "briefing": "policy",
       "mean_compliance_score": 0.984,
       "mean_pass_rate": 0.946,
       "rules_passed": "6/7",
@@ -251,7 +255,7 @@
         "excess_ratio": 1.429,
         "records_necessary": 11,
         "record_excess": 0.982,
-        "elapsed_ms": 2.231
+        "elapsed_ms": 2.128
       },
       "tasks": 8,
       "repeats": 5,
@@ -273,6 +277,8 @@
     {
       "technique": "ai agent: gemini-3.1-flash-lite (told the Act)",
       "short": "gemini-3.1-flash-lite-informed",
+      "model": "gemini-3.1-flash-lite",
+      "briefing": "informed",
       "mean_compliance_score": 0.948,
       "mean_pass_rate": 0.882,
       "rules_passed": "5/7",
@@ -343,7 +349,7 @@
         "excess_ratio": 1.057,
         "records_necessary": 11,
         "record_excess": 0.945,
-        "elapsed_ms": 1.841
+        "elapsed_ms": 1.807
       },
       "tasks": 8,
       "repeats": 5,
@@ -365,6 +371,8 @@
     {
       "technique": "ai agent: gemini-3.1-flash-lite (unaided)",
       "short": "gemini-3.1-flash-lite-unaided",
+      "model": "gemini-3.1-flash-lite",
+      "briefing": "unaided",
       "mean_compliance_score": 0.942,
       "mean_pass_rate": 0.868,
       "rules_passed": "5/7",
@@ -435,7 +443,7 @@
         "excess_ratio": 1.057,
         "records_necessary": 11,
         "record_excess": 0.982,
-        "elapsed_ms": 1.814
+        "elapsed_ms": 1.831
       },
       "tasks": 8,
       "repeats": 5,
@@ -457,6 +465,8 @@
     {
       "technique": "unconstrained (baseline)",
       "short": "unconstrained",
+      "model": null,
+      "briefing": null,
       "mean_compliance_score": 0.1,
       "mean_pass_rate": 0.0,
       "rules_passed": "0/7",
@@ -527,7 +537,7 @@
         "excess_ratio": 7.771,
         "records_necessary": 11,
         "record_excess": 136.364,
-        "elapsed_ms": 8.505
+        "elapsed_ms": 9.051
       },
       "tasks": 8,
       "repeats": 5,
