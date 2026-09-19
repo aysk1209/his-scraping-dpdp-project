@@ -159,7 +159,9 @@ work by definition, and the manuscript waits on a venue and page budget.
 
 *2026-09-18, later: `scripts/rehearse_day_one.py` runs the day-one procedure on a hospital-shaped synthetic export through the real gate and audits everything printed or written for a patient's identifiers (none leak). It found four defects the real data would have hit — a header meaning different fields in different files (now per-file map overrides), a split layer truncated (now concatenated), day-first dates passed to the shapers unconverted (now ISO at the adapter), `.xlsx` unreadable (`openpyxl` added) — all fixed and pinned by tests.*
 
-*Next, in order: finish the flagship recording (re-run the same command daily); the report's second pass; the manuscript. Done 2026-09-17: the weight sweep in ch7, the Gazette check with three corrections, `docs/methodology/benchmark-protocol.md`. The hospital dataset is expected before Review-II: run `scripts/check_source.py` first, then `run_pipeline.py --dataset …`.*
+*2026-09-19: the recorder is rationed — paced to the model's per-minute allowance, budgeted per day with a local ledger so it stops before the cap, breadth-first across tasks so a short day still yields a usable row; the benchmark caps repeats at the samples recorded.*
+
+*Next, in order: finish the flagship recording (run the same command once a day; it stops at the budget and resumes); the report's second pass; the manuscript. Done 2026-09-17: the weight sweep in ch7, the Gazette check with three corrections, `docs/methodology/benchmark-protocol.md`. The hospital dataset is expected before Review-II: run `scripts/check_source.py` first, then `run_pipeline.py --dataset …`.*
 
 ## 6. Workstreams
 

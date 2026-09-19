@@ -50,13 +50,13 @@ reported and never relied on.
 | What the model sees | the job in words, the purpose, whether the job is about one patient, the field *names* of the **canonical catalogue** (not of any particular source), the capability register. Never a value, never a record number, never the task's own needed list. A recording is therefore a property of the model and replays against every source; only a catalogue, register or wording change stales it |
 | What it returns | a flat JSON decision: fields, `scope` (`subject` / `all`), and the manifest |
 | Sampling | provider default — no temperature or seed set; the recording says so |
-| Recording | `scripts/record_ai_agents.py`: 5 samples per task per briefing; each sample stores field names and manifest choices only, with a fingerprint (SHA-256 of the exact prompt) so a change to the brief marks the recording stale |
+| Recording | `scripts/record_ai_agents.py`: 5 samples per task per briefing for the reference model, 3 for further models; each sample stores field names and manifest choices only, with a fingerprint (SHA-256 of the exact prompt) so a change to the brief marks the recording stale. Calls are paced to the model's per-minute allowance and budgeted per day; samples are taken breadth-first (one per task, then the next), so an interrupted recording leaves every task equally sampled. The benchmark repeats an agent at most as often as it has samples |
 | Replay | `AI_AGENT_MODE=replay` is the default; every demo and test replays. Only the recorder makes live calls |
 
 ## Reproduce
 
 ```
-pytest                                  # 270 tests
+pytest                                  # 274 tests
 python scripts/run_benchmark.py         # benchmark.{json,md}; agents replay
 python scripts/run_pipeline.py          # benchmark-portal.{json,md}, exports, audit log
 python tools/weight_sweep.py            # weight-sweep.md

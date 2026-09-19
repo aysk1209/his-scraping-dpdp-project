@@ -484,7 +484,7 @@ class BenchmarkResult(BaseModel):
                 )
             if any(f for _, f in by_model):
                 lines.append("")
-                lines.append("\* not recorded at that briefing; shown at the best briefing it has.")
+                lines.append(r"\* not recorded at that briefing; shown at the best briefing it has.")
         lines += ["", "**Every technique, every briefing**", "", header, sep]
         for score in self.scores:
             cells = " | ".join(self._fmt(score.per_rule_mean.get(rid)) for rid in self.rule_ids)
@@ -794,6 +794,10 @@ def run_benchmark(
     started = time.perf_counter()
     scores: list[TechniqueScore] = []
     for technique in techniques:
+        # A recorded agent is repeated at most as often as it has distinct
+        # samples: replaying one sample twice is not a reproduced decision.
+        cap = technique.max_repeats(tasks) if hasattr(technique, "max_repeats") else None
+        n_repeats = max(1, min(repeats, cap)) if cap else max(1, repeats)
         per_task: dict[str, float] = {}
         per_task_range: dict[str, tuple[float, float]] = {}
         pass_rates: list[float] = []
@@ -818,7 +822,7 @@ def run_benchmark(
         trap_tasks_held = 0
 
         for task in tasks:
-            runs = _run_task(technique, task, source, repeats, necessary[task.task_id])
+            runs = _run_task(technique, task, source, n_repeats, necessary[task.task_id])
             costs.extend(r.cost for r in runs)
             elapsed_ms += median(r.cost.elapsed_ms for r in runs)
 
@@ -894,7 +898,7 @@ def run_benchmark(
                 per_task_range=per_task_range,
                 cost=cost,
                 tasks=len(tasks),
-                repeats=max(1, repeats),
+                repeats=n_repeats,
                 repeat_runs=repeat_runs,
                 stable_runs=stable_total,
                 stable_fields=stable_fields_total,

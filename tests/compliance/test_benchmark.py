@@ -298,3 +298,22 @@ def test_the_headline_view_shows_one_row_per_model_at_the_policy_briefing(tmp_pa
     assert "by model" in result.render_table() and "**By model**" in result.render_markdown()
     assert "not recorded at that briefing" in result.render_markdown()
     assert {s.model for s in result.scores if s.model} == {"m-lite", "m-big"}
+
+
+def test_repeats_are_capped_at_the_samples_an_agent_actually_recorded(tmp_path):
+    # Two distinct samples recorded; the benchmark asks for five repeats. The
+    # agent is repeated twice, not five times -- replaying a sample again is
+    # not a reproduced decision -- and its denominators say so.
+    other = dict(_AGENT_DECISION, fields=_AGENT_DECISION["fields"][:-1])
+    live = AIAgentTechnique(FakeProvider([_AGENT_DECISION, other], model="m2"), mode="live", recordings_dir=tmp_path)
+    source = MockHISDataSource(records_per_layer=5, seed=42)
+    for task in TASKS:
+        for _ in range(2):
+            live.extract(source, task)
+    replay = AIAgentTechnique("fake", model="m2", mode="replay", recordings_dir=tmp_path)
+    assert replay.max_repeats(TASKS) == 2
+    result = run_benchmark([CompliantExtractionTechnique(), replay], TASKS, source, repeats=5)
+    scores = {s.short: s for s in result.scores}
+    assert scores["m2-unaided"].repeats == 2 and scores["m2-unaided"].repeat_runs == 2   # 2 tasks x (2-1)
+    assert scores["m2-unaided"].stable_runs == 0                                        # the two samples differ
+    assert scores["compliance-aware"].repeats == 5 and scores["compliance-aware"].repeat_runs == 8

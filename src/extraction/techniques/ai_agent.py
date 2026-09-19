@@ -420,6 +420,19 @@ class AIAgentTechnique(ExtractionTechnique):
     def recorded_samples(self, task_id: str) -> list[dict[str, Any]]:
         return list(self._load().get("tasks", {}).get(task_id, {}).get("samples", []))
 
+    def max_repeats(self, tasks: list[ExtractionTask]) -> int | None:
+        """How many distinct decisions this agent can replay for every task.
+
+        The benchmark caps its repeats here: replaying the same sample twice
+        would count as a reproduced decision, which it is not. ``None`` when
+        the agent would decide live.
+        """
+
+        if self.mode == "live":
+            return None
+        counts = [len(self.recorded_samples(t.task_id)) for t in tasks]
+        return min(counts) if counts and all(counts) else None
+
     def _record(self, task: ExtractionTask, fingerprint: str, decision: dict[str, Any]) -> None:
         data = self._load()
         data["provider"] = self.provider_name

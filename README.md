@@ -97,7 +97,7 @@ Full tables: [`benchmark.md`](docs/benchmark_results/benchmark.md),
 python -m venv .venv && .venv\Scripts\activate      # POSIX: source .venv/bin/activate
 pip install -r requirements.txt
 python -m playwright install chromium                # once per machine
-pytest                                               # 270 tests, ~40 s
+pytest                                               # 274 tests, ~40 s
 python scripts/run_pipeline.py                       # the whole chain, ~1.5 min
 ```
 
@@ -139,7 +139,7 @@ src/
 scripts/            run_pipeline, run_benchmark, trace_one_patient, record_ai_agents, purge_exports, check_source,
                     rehearse_day_one (the real-data procedure on a hospital-shaped export, with a leak audit), ...
 tools/mock_portal/  the login-gated portal fixture (Flask, TLS); tools/build_review_deck.py, tools/build_demo_page.py
-tests/              270 tests
+tests/              274 tests
 docs/
   compliance/       approach.md, dpdp-provision-map.md (section mapping, to verify against the Gazette)
   report/           outline.md and chapters 1-8 (drafts)

@@ -14,6 +14,24 @@ to ``src/extraction/techniques/recordings/<provider>--<model>--<briefing>.json``
 on every demo and the benchmark replay those decisions without network or keys,
 and the benchmark's determinism column is computed from the samples.
 
+Free tiers ration calls per minute and per day, so the recorder is built to be
+interrupted and resumed without waste:
+
+- **Paced.** Calls are spaced to the model's requests-per-minute allowance
+  (``MODEL_LIMITS``, or ``--rpm``) from the time of the last call, so a run
+  never provokes a rate limit it then has to back off from.
+- **Budgeted.** A per-model ledger (``recordings/.quota.json``, git-ignored)
+  counts today's calls; the run stops *before* the daily allowance
+  (``--daily-budget``) is spent and says when to resume. A daily-cap error
+  from the provider marks the day spent.
+- **Breadth-first.** Samples are taken one per task across all tasks before a
+  second sample of any -- so a day that ends early still leaves every task
+  with the same number of samples, and the model enters the tables with what
+  it has (the benchmark caps its repeats at the samples recorded). The
+  ``policy`` briefing is recorded first, being the one the tables lead with.
+- **Resumable.** ``--repeats`` is a target; the same command re-run picks up
+  at the first missing sample.
+
 No patient value is ever sent: the model is briefed with field *names*. The
 recordings are therefore safe to commit, and they are committed, so that the
 review-room demo does not depend on the venue's Wi-Fi.
@@ -22,6 +40,7 @@ review-room demo does not depend on the venue's Wi-Fi.
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -33,7 +52,7 @@ from compliance.capabilities import DEFAULT_REGISTER
 from compliance.checkers import run_all
 from compliance.veracity import verify
 from extraction.adapters.mock_his import MockHISDataSource
-from extraction.techniques.ai_agent import BRIEFINGS, AIAgentTechnique
+from extraction.techniques.ai_agent import RECORDINGS_DIR, BRIEFINGS, AIAgentTechnique
 from extraction.techniques.ai_providers import (
     PROVIDERS, ProviderUnavailable, key_available, list_models, model_for,
 )
@@ -113,6 +132,62 @@ class DailyCapReached(ProviderUnavailable):
     """The provider's requests-per-day allowance is spent."""
 
 
+# Free-tier allowances per model id, as published at the time of recording
+# (requests per minute, requests per day). Overridable with --rpm / --daily-budget;
+# an unknown model is paced conservatively.
+MODEL_LIMITS: dict[str, tuple[int, int]] = {
+    "gemini-3.8-flash": (5, 20),
+    "gemini-3.1-flash-lite": (15, 500),
+}
+DEFAULT_LIMITS = (5, 50)
+QUOTA_LEDGER = RECORDINGS_DIR / ".quota.json"
+
+
+def _today() -> str:
+    from datetime import date
+    return date.today().isoformat()
+
+
+def quota_used(model: str) -> int:
+    """Calls made to ``model`` today, per the local ledger."""
+
+    try:
+        data = json.loads(QUOTA_LEDGER.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return 0
+    return int(data.get(model, {}).get(_today(), 0))
+
+
+def quota_note(model: str, n: int) -> None:
+    try:
+        data = json.loads(QUOTA_LEDGER.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        data = {}
+    data.setdefault(model, {})
+    data[model] = {_today(): n}                     # only today matters; older days are dropped
+    QUOTA_LEDGER.parent.mkdir(parents=True, exist_ok=True)
+    QUOTA_LEDGER.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+
+class Pacer:
+    """Space calls to a requests-per-minute allowance, measured from the last call."""
+
+    def __init__(self, rpm: int) -> None:
+        import time
+        self.gap = 60.0 / max(1, rpm) + 1.0
+        self._last: float | None = None
+        self._time = time
+
+    def wait(self) -> None:
+        if self._last is not None:
+            due = self._last + self.gap - self._time.monotonic()
+            if due > 0:
+                self._time.sleep(due)
+
+    def mark(self) -> None:
+        self._last = self._time.monotonic()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--list-models", action="store_true",
@@ -128,8 +203,12 @@ def main() -> None:
                         "resumes up to this count, so the same command can be re-run across days")
     parser.add_argument("--overwrite", action="store_true",
                         help="discard existing samples for these tasks first")
-    parser.add_argument("--pause", type=float, default=4.0,
-                        help="seconds to wait after each call (free tiers cap requests per minute)")
+    parser.add_argument("--rpm", type=int, help="requests per minute to pace to (default: the model's known allowance)")
+    parser.add_argument("--daily-budget", type=int,
+                        help="calls to allow today for this model (default: the model's known allowance); "
+                             "the run stops before exceeding it and resumes tomorrow")
+    parser.add_argument("--pause", type=float, default=None,
+                        help="fixed seconds between calls, overriding the pacing derived from --rpm")
     args = parser.parse_args()
 
     providers = args.provider or [p for p in PROVIDERS if key_available(p)]
@@ -140,9 +219,13 @@ def main() -> None:
         show_models(providers)
         return
 
+    # The headline briefing first: a day that ends early still yields the row
+    # the tables lead with.
+    briefings = sorted(briefings, key=lambda b: 0 if b == "policy" else 1)
+
     print(present.banner("Recording AI-agent decisions"))
     print(f"  providers : {', '.join(f'{p} ({args.model or model_for(p)})' for p in providers)}")
-    print(f"  briefings : {', '.join(briefings)}")
+    print(f"  briefings : {', '.join(briefings)}  (breadth-first: one sample of every task, then the next)")
     print(f"  tasks     : {', '.join(t.task_id for t in TASKS)}   x {args.repeats} repeat(s)")
     print("  The model is shown field names and the job; no patient value leaves this machine.")
 
@@ -153,11 +236,24 @@ def main() -> None:
     tasks = bind_subject(TASKS, source)
 
     for provider in providers:
-        capped = False
+        model = args.model or model_for(provider)
+        rpm, rpd = MODEL_LIMITS.get(model, DEFAULT_LIMITS)
+        rpm = args.rpm or rpm
+        budget = args.daily_budget or rpd
+        used = quota_used(model)
+        pacer = Pacer(rpm)
+        if args.pause is not None:
+            pacer.gap = args.pause
+        print(present.rule())
+        print(f"  {model}: paced to {rpm}/min ({pacer.gap:.0f} s between calls); "
+              f"today's budget {budget}, {used} used, {max(0, budget - used)} left")
+        capped = used >= budget
+        if capped:
+            print("  today's budget is spent -- re-run tomorrow; nothing to do now")
         for briefing in briefings:
             if capped:
                 break
-            tech = AIAgentTechnique(provider, briefing=briefing, mode="live", model=args.model)
+            tech = AIAgentTechnique(provider, briefing=briefing, mode="live", model=model)
             print(present.rule())
             print(f"{tech.name}  ->  {tech.recording_path.name}")
             if args.overwrite and tech.recording_path.exists():
@@ -166,24 +262,37 @@ def main() -> None:
                 tech.recording_path.write_text(__import__("json").dumps(data, indent=2), encoding="utf-8")
             # Resume: samples already recorded under today's exact brief count
             # toward the target; stale ones (a different brief) do not.
-            todo = {}
+            have: dict[str, int] = {}
             for task in tasks:
-                have = tech.recorded_samples(task.task_id) if task.task_id not in tech.stale_tasks(source, [task]) else []
-                todo[task.task_id] = max(0, args.repeats - len(have))
-            remaining = sum(todo.values())
+                fresh = task.task_id not in tech.stale_tasks(source, [task])
+                have[task.task_id] = len(tech.recorded_samples(task.task_id)) if fresh else 0
+            remaining = sum(max(0, args.repeats - n) for n in have.values())
             if remaining == 0:
                 print(f"  complete: {args.repeats} sample(s) per task already recorded under this brief")
                 continue
-            print(f"  {remaining} call(s) to make ({sum(args.repeats for _ in tasks) - remaining} already on file)")
-            for task in tasks:
+            left = max(0, budget - used)
+            print(f"  {remaining} call(s) to make ({sum(have.values())} already on file); "
+                  f"{min(remaining, left)} of them fit in today's budget")
+            # Breadth-first: sample i of every task before sample i+1 of any.
+            for i in range(args.repeats):
                 if capped:
                     break
-                for i in range(args.repeats - todo[task.task_id], args.repeats):
+                for task in tasks:
+                    if have[task.task_id] > i:
+                        continue
+                    if used >= budget:
+                        print(f"  today's budget ({budget}) is spent. Re-run the same command tomorrow; "
+                              f"it resumes at {task.task_id}, sample {i + 1}.")
+                        capped = True
+                        break
+                    pacer.wait()
                     try:
-                        out = _with_backoff(lambda: tech.extract(source, task), pause=args.pause)
+                        out = _with_backoff(lambda: tech.extract(source, task), pause=0.0)
                     except DailyCapReached as exc:
+                        used = budget
+                        quota_note(model, used)
                         print(f"  {task.task_id:<22} daily cap reached: {exc}")
-                        print(f"  stopping for today. Re-run the same command tomorrow; it resumes at this task.")
+                        print(f"  stopping for today. Re-run the same command tomorrow; it resumes here.")
                         capped = True
                         break
                     except ProviderUnavailable as exc:
@@ -191,15 +300,20 @@ def main() -> None:
                         capped = True
                         break
                     except Exception as exc:                       # noqa: BLE001 - report and continue
+                        pacer.mark()
                         print(f"  {task.task_id:<22} run {i + 1}: {type(exc).__name__}: {str(exc)[:160]}")
                         continue
+                    pacer.mark()
+                    used += 1
+                    quota_note(model, used)
+                    have[task.task_id] += 1
                     d = tech.last_decision
                     report = run_all(out.run, out.records)
                     fields = sum(len(v) for v in d.selection().values())
                     unknown = len(d.unknown_fields())
                     ver = verify(out.run, DEFAULT_REGISTER)
                     print(
-                        f"  {task.task_id:<22} run {i + 1}: {fields} fields"
+                        f"  {task.task_id:<22} run {i + 1} [{used}/{budget} today]: {fields} fields"
                         + (f" (+{unknown} unknown, dropped)" if unknown else "")
                         + f", score {report.compliance_score:.3f}, "
                         f"{report.rules_passed}/{len(report.results)} rules"
@@ -210,8 +324,9 @@ def main() -> None:
                         print(f"  {'':<22}   \"{d.rationale.strip()[:110]}\"")
 
     print(present.rule())
-    print("Recordings written. The benchmark and every demo now replay them; re-run with")
-    print("--overwrite after changing a task or a prompt (stale samples are detected by fingerprint).")
+    print("Recordings written. The benchmark and every demo now replay them; a model enters the tables")
+    print("as soon as every task has one sample (repeats are capped at what is recorded). Re-run the same")
+    print("command to add samples up to --repeats; --overwrite after changing a task or a prompt.")
 
 
 if __name__ == "__main__":

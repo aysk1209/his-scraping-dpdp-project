@@ -49,3 +49,6 @@ htmlcov/
 
 # --- review deck templates: kept outside the repository (REVIEW_TEMPLATE / build_review_deck.py) ---
 Review-* Template.pptx
+
+# recorder quota ledger (per machine, per day)
+.quota.json
