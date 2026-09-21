@@ -11,6 +11,12 @@ and renumbers the page-number boxes. Slide 1 stays the template's instruction
 slide until the team replaces it with the guide-signed scan, as the template says.
 
 Content facts (dates, marks, focus, mark split) come from the template itself.
+The numbers come from the artefacts the demo writes: the results table from
+``benchmark-portal.json`` (one row per model at the *told the policy*
+briefing), the dataset slide from ``benchmark-dataset.json`` when it exists
+(the rehearsal writes one; the day the hospital's export lands the same file
+is written from the real run and the slide swaps itself), the test count from
+the suite. Rebuild after every regeneration; nothing here is typed in twice.
 
 Needs ``python-pptx`` (authoring tool only; not a project dependency).
 """
@@ -384,7 +390,7 @@ def draw_architecture(slide):
         "H scores the extraction (E), gates what leaves (F), and gates what a person may be told (G).",
     ], size=10.5, color=BLACK, bold_first=True)
     add_text(slide, 0.6, 6.45, 12.1, 0.5, [
-        "Runs as one command: scripts/run_pipeline.py — portal → discover → benchmark → normalise + audit → purpose → assistant (~1½ min)."
+        "Runs as one command: scripts/run_pipeline.py — portal → discover → benchmark → normalise + audit → purpose → assistant → retain (~2 min)."
     ], size=11, color=GREY)
 
 
@@ -424,7 +430,57 @@ def benchmark_rows() -> tuple[list[list[str]], int, int]:
             f"{cost['excess_ratio']:.2f} · {cost['coverage']:.2f} · {cost['page_loads']}{stable}{traps}",
             behaviour,
         ])
-    return rows, len(rows), len(data["task_ids"])
+    return rows, len(result.scores), len(data["task_ids"])
+
+
+def test_count() -> int:
+    """How many tests the suite collects (falls back to counting definitions)."""
+
+    import re
+    import subprocess
+    try:
+        out = subprocess.run([sys.executable, "-m", "pytest", "--co", "-q"], cwd=ROOT, capture_output=True,
+                             text=True, timeout=120).stdout
+        m = re.search(r"(\d+) tests? collected", out)
+        if m:
+            return int(m.group(1))
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return sum(len(re.findall(r"^\s*def test_", p.read_text(encoding="utf-8"), re.M))
+               for p in (ROOT / "tests").rglob("test_*.py"))
+
+
+def dataset_rows() -> tuple[list[list[str]], str, str] | None:
+    """Rows for the dataset slide from benchmark-dataset.json, or None if no dataset run exists.
+
+    Returns (rows, source note, generated date). The note says 'rehearsal'
+    while the run is the hospital-shaped synthetic export; the day the real
+    export is run, the same file carries the real numbers.
+    """
+
+    import json
+    path = ROOT / "docs" / "benchmark_results" / "benchmark-dataset.json"
+    if not path.exists():
+        return None
+    data = json.loads(path.read_text(encoding="utf-8"))
+    sys.path.insert(0, str(ROOT / "src"))
+    from compliance.benchmark import BenchmarkResult
+    result = BenchmarkResult.model_validate(data)
+    rows = []
+    for score, fallback in result.by_model():
+        sc = score.model_dump()
+        cost = sc["cost"]
+        traps = f"{sc['traps_resisted']} / {sc['traps']}" if sc.get("traps") else "—"
+        rows.append([
+            sc["technique"] + (" *" if fallback else ""),
+            f"{sc['mean_compliance_score']:.3f}  ·  {sc['rules_passed']} rules",
+            f"{cost['coverage']:.2f}", f"{cost['excess_ratio']:.2f}",
+            f"{cost['record_excess']:.2f}×" if cost.get("record_excess") is not None else "—",
+            traps,
+        ])
+    note = data.get("dataset_note") or ""
+    note = "rehearsal" if "rehearsal" in note else Path(note.replace("dataset ", "")).name or "hospital export"
+    return rows, note, str(data.get("generated_at", ""))[:10]
 
 
 def build() -> Path:
@@ -435,6 +491,7 @@ def build() -> Path:
     prs = Presentation(TARGET)
     styles = Styles(prs)
     s = prs.slides
+    n_tests = test_count()
 
     # ---- slide 2: title slide fields ----
     rewrite_plain(shape_named(s[1], "Text 3"), ["AI-Driven HIS Management Agent with DPDP-Compliant Web Scraping"], size=26)
@@ -458,12 +515,14 @@ def build() -> Path:
         ]),
         ("Refinements after Review-I feedback:", [
             "Processing time, as asked: a cost profile per technique — fields pulled, fetches, real browser page "
-            "loads, excess ratio, coverage, wall-clock (deterministic metrics lead; wall-clock is hardware-dependent).",
+            "loads, excess ratio, coverage, wall-clock (deterministic metrics lead; wall-clock is hardware-dependent) — "
+            "and a record axis: a task about one patient is scored on the records read, not only the fields.",
             "The comparison is now ours against a publicly available AI agent (Gemini), briefed with the job, the "
             "purpose, the field names — never a value — and what the deployment provides; unaided, told the Act, and "
             "handed the purpose policy itself; "
-            "decisions recorded, replayed, and repeated so determinism is a measured column. Two harder measures "
-            "added: manifest veracity (declared vs demonstrable) and trap tasks whose wording invites a violation. "
+            "decisions recorded, replayed, and repeated so determinism is a measured column — every repeat scored. "
+            "Two harder measures added: manifest veracity (declared vs demonstrable, with four controls demonstrated "
+            "by the pipeline rather than attested) and trap tasks whose wording invites a violation. "
             "The hand-written baseline stands, as the panel agreed most deployed systems sit there.",
             "The assistant is rule-based: a fixed function registry, no LLM, no training — answering the Review-I "
             "question of how it is trained: it is not. Heterogeneity is answered by discovery: module layers are "
@@ -505,26 +564,30 @@ def build() -> Path:
 
     # ---- slide 7 (index 7): Implementation Details ----
     rewrite_body(shape_named(s[8], "Text 2"), [
-        ("Modules developed and integrated (src/, 224 tests):", [
-            "compliance/ — models (manifest, valueless records), policy (3 purposes), roles (role = purposes ∩ "
-            "interop artefacts; authorise()), 7 rules, checkers, benchmark (compliance × cost), purpose_matrix, "
-            "pseudonymise (HMAC tokens), handling (real-data gate).",
-            "extraction/ — HISDataSource interface; adapters mock / portal (Playwright) / dataset (pandas, column "
-            "map); techniques compliant / ai_agent (Claude, OpenAI, Gemini; record + replay) / unconstrained; "
-            "metering incl. determinism; tier2 browser + navigation discovery.",
-            "interop/ — HL7 v2 (ADT, ORM, ORU, DFT) and FHIR R4 (10 resources incl. AuditEvent) shapers; normalise + "
+        (f"Modules developed and integrated (src/, {n_tests} tests, CI diffs the regenerated benchmark):", [
+            "compliance/ — models (manifest, valueless records, record scope), policy (3 non-nested purposes), roles "
+            "(role = purposes ∩ interop artefacts; authorise()), 7 rules, benchmark (compliance × cost × veracity × "
+            "traps × stability), purpose_matrix, capabilities (register: demonstrated vs attested), audit (the "
+            "harness logs every run), retention (sidecar + purge), pseudonymise (HMAC tokens), handling (real-data gate).",
+            "extraction/ — HISDataSource interface (transport observed, where= for one patient); adapters mock / portal "
+            "(Playwright over TLS; search box) / dataset (CSV + Excel, column map, per-file overrides, day-first dates); "
+            "techniques compliant / ai_agent (one agent = model × briefing; recorded, replayed, rationed) / "
+            "unconstrained; metering (fields, fetches, pages, records); tier2 browser + navigation discovery.",
+            "interop/ — HL7 v2 (ADT, ORM, ORU, DFT) and FHIR R4 (12 resources incl. AuditEvent) shapers; normalise + "
             "export audit. agent/ — 13-function registry, session state machine, grounded guidance. "
-            "tools/mock_portal — the Flask fixture built as a system we do not control.",
+            "tools/mock_portal — the Flask fixture built as a system we do not control. scripts/rehearse_day_one.py — "
+            "the real-data procedure rehearsed on a hospital-shaped export, with a leak audit.",
         ]),
         ("Algorithms implemented:", [
-            "Rule scoring: each principle → 0–1 with findings; weighted aggregate. Excess ratio = distinct fields "
-            "pulled ÷ fields the purpose requires; coverage = needed fields obtained ÷ needed (micro-averaged).",
-            "Layer inference: argmax over layers of catalogue-explained field names, with confidence — applied "
-            "identically to a scraped module and an exported file. Role gate: lawful purpose → necessity → access "
-            "control, first failure names its rule. Pseudonymisation: HMAC-SHA256 keyed per export; audit = search "
-            "of emitted artefacts for raw identifier values.",
+            "Rule scoring: each principle → 0–1 with findings; weighted aggregate (a sweep shows the ranking survives any "
+            "weighting). DM-01 on two axes: categories beyond the purpose, and records read beyond the patient's own. "
+            "Excess ratio = distinct fields pulled ÷ required; coverage = needed fields obtained ÷ needed.",
+            "Veracity = score after removing declarations the register cannot back; a control counts as demonstrated only "
+            "when the run produced its evidence (observed TLS, audit event, export audit, retention sidecar). Layer "
+            "inference: argmax over layers of catalogue-explained field names — the same for a scraped module and an "
+            "exported file. Role gate: lawful purpose → necessity → access control; the first failure names its rule.",
         ]),
-    ], styles, heading_size=15, bullet_size=12)
+    ], styles, heading_size=15, bullet_size=11.5)
     add_text(s[8], 0.7, 5.35, 11.9, 1.5, [
         "def authorise(role, purpose, artefacts):                       # compliance/roles.py",
         "    if purpose not in role_policy(role).purposes:  return deny(\"PL-01\")   # lawful purpose for this role?",
@@ -537,7 +600,8 @@ def build() -> Path:
     res = s[9]
     rows, n_tech, n_tasks = benchmark_rows()
     add_text(res, 0.7, 1.35, 11.9, 0.95, [
-        f"{n_tech} techniques, {n_tasks} extraction tasks, the same login-gated portal scraped by a real browser "
+        f"{n_tech} techniques (one row per model, at the briefing that hands it the purpose policy), {n_tasks} extraction tasks, "
+        "the same login-gated portal scraped by a real browser "
         "(20 records per module, 10 per page); every run scored on the identical seven rules; cost measured as real page loads. "
         "The techniques differ only in how they treat personal data.",
     ], size=12.5)
@@ -548,12 +612,13 @@ def build() -> Path:
     add_text(res, 0.7, 5.15, 11.9, 1.7, [
         "Reading the table. The baseline loads about five times the pages for the same coverage; its surplus is "
         "exactly the overreach DM-01 penalises, so compliance and cost move together rather than trading off.",
-        "The AI agent is a real public model, briefed with field names — never values — and told what the "
-        "deployment provides; it cites it correctly, so the gap is not paperwork. Told to reconcile an invoice "
-        "against the diagnosis, it takes the diagnosis in every run -- with the Act in its prompt, and with the purpose "
-        "policy itself in its prompt (it obeys the policy's numbers, not its categories): traps held 0-10 of 20 runs "
-        "against our 20 of 20. It does 67-74% of the job and reproduces its first decision in 18-21 of 32 repeats; ours "
-        "reads the policy, not the prose, and repeats itself. Per-rule columns: docs/benchmark_results/.",
+        "The AI agent is a real public model, briefed with field names — never a value — and handed the purpose "
+        "policy itself; it cites the register correctly, so the gap is not paperwork. It obeys the policy's numbers "
+        "(retention at the ceiling, no onward use) and not its categories: told to reconcile an invoice against the "
+        "diagnosis it takes the diagnosis in every run. In memory (8 tasks × 5 repeats, every repeat scored): traps "
+        "held 10 of 20 runs against our 20 of 20 (0 of 20 unaided or told the Act); 67–74% of the job done; its first "
+        "decision reproduced in 18–21 of 32 repeats, ours 32 of 32. Ours reads the policy, not the prose, and repeats "
+        "itself. Per-rule columns and the full model × briefing grid: docs/benchmark_results/.",
     ], size=12)
 
     # ---- slide 9 (index 9): Results (contd.) — purpose matrix + export audit ----
@@ -570,16 +635,21 @@ def build() -> Path:
         ["why", "lawful for this purpose", "out of scope: clinical, quasi-identifier; notice does not cover it",
          "out of scope: clinical; notice does not cover it"],
     ], [4.6, 2.2, 2.9, 2.43], body_size=11)
-    add_table(res2, 0.6, 4.2, 12.13, 1.3, [
-        ["Export audit (HL7 v2 + FHIR)", "Pseudonymisation", "Raw identifiers found in the export"],
-        ["compliance-aware (ours)", "declared → applied (HMAC tokens, PSN-…)", "0 of 120  ·  180 artefacts checked"],
-        ["unconstrained (baseline)", "not declared → raw", "120 of 120  ·  510 artefacts checked"],
+    add_table(res2, 0.6, 4.1, 12.13, 1.3, [
+        ["Export audit (HL7 v2 + FHIR), one patient's summary", "Pseudonymisation", "Raw identifiers found in the export"],
+        ["compliance-aware (ours) — reads that patient through the search box", "declared → applied (HMAC tokens, PSN-…)",
+         "none  ·  6 artefacts checked"],
+        ["unconstrained (baseline) — reads every module", "not declared → raw", "60 of 60  ·  340 artefacts checked"],
     ], [4.6, 3.6, 3.93], body_size=11)
-    add_text(res2, 0.7, 5.7, 11.9, 1.2, [
+    add_text(res2, 0.7, 5.5, 11.9, 1.4, [
         "Care may see clinical data and not billing data; billing may see billing data and not clinical data. Neither "
         "purpose is stricter — \"out of scope\" means not necessary for this purpose. Tokens are keyed hashes: stable "
         "within one export, unlinkable across exports, not reversible.",
-    ], size=11.5)
+        "Storage limitation is done, not declared: every export carries a delete-after sidecar (30 d for care), the purge "
+        "erases the files on the day and writes the audit event; the run itself was logged by the harness, not by the "
+        "technique — the log, the observed TLS, the export audit and the sidecar are the four controls the tables count "
+        "as demonstrated.",
+    ], size=11)
 
     # ---- slide 9b: Results (contd.) — discovery & the assistant ----
     res3 = duplicate_slide(prs, 10)
@@ -612,8 +682,62 @@ def build() -> Path:
         "walked through it, each step stamped with the page the crawler found: [clinical_ehr / Condition / /m/clinical/].",
     ], size=11)
 
-    # ---- Challenges & Remaining Work (index 11 after two insertions) ----
-    chal = s[12]
+    # ---- slide 9c: Results (contd.) — the hospital dataset (or its rehearsal) ----
+    # Built from benchmark-dataset.json: today the rehearsal's run on a
+    # hospital-shaped export; the day the real export lands, the same file is
+    # regenerated by run_pipeline.py --dataset and this slide reads the real
+    # numbers. One slide changes that day, not the deck.
+    ds = dataset_rows()
+    n_inserted = 3
+    if ds is not None:
+        rows_ds, note_ds, date_ds = ds
+        res4 = duplicate_slide(prs, 10)
+        move_slide(prs, res4, 12)
+        for sh in list(res4.shapes):
+            if sh.name not in ("Text 0", "Text 1", "Image 0"):
+                sh._element.getparent().remove(sh._element)
+        rehearsal = note_ds == "rehearsal"
+        rewrite_plain(shape_named(res4, "Text 1"), [
+            "Results & Analysis (contd.) — " + ("Real Data, Rehearsed" if rehearsal else "The Hospital Dataset")])
+        if rehearsal:
+            intro = [
+                "The hospital's export was not in when this deck was built, so the day-one procedure was run on an export "
+                "shaped like one: the hospital's own column names, a column we do not model, an Excel file among the CSVs, "
+                "dd/mm/yyyy dates, one table split across two files — and no synthetic manifest, so the handling gate treats "
+                "it as real (refused without provenance under data/, git-ignored). check_source.py wrote the mapping template, "
+                "a person filled it, run_pipeline.py --dataset ran the same techniques and recordings unchanged.",
+            ]
+            after = [
+                "The rehearsal found four defects before any real data existed — a header meaning different fields in "
+                "different files, a split table read half, day-first dates reaching HL7 unparsed, .xlsx unreadable — and "
+                "each is now fixed and tested. Then everything printed or written was searched for one patient's record "
+                "number, name and phone: nothing. A recording is a property of the model, not of a source, so no agent is "
+                "re-recorded for the real data; the day it arrives this slide is rebuilt from its run and nothing else changes.",
+            ]
+        else:
+            intro = [
+                f"The hospital's export ({note_ds}), through the same pipeline and the same recordings: the files classified "
+                "by their columns into the five layers, the hospital's headers mapped onto the catalogue once, every "
+                "technique scored on the identical rules. Nothing downstream of the adapter changed.",
+            ]
+            after = [
+                "Identifiers were pseudonymised at export and audited; nothing printed or written by the run carries a raw "
+                "identifier. Provenance, de-identification status and the ignore rule were checked by the handling gate "
+                "before a row was read.",
+            ]
+        add_text(res4, 0.7, 1.35, 11.9, 1.3, intro, size=11.5)
+        add_table(res4, 0.6, 2.75, 12.13, 0.4 + 0.42 * len(rows_ds), [
+            ["Technique (at 'told the policy')", "Compliance", "Coverage", "Excess", "Records read ÷ needed", "Traps held"],
+            *rows_ds,
+        ], [4.3, 2.0, 1.2, 1.2, 2.0, 1.43], body_size=11)
+        add_text(res4, 0.7, 3.3 + 0.42 * len(rows_ds), 11.9, 1.8, after, size=11.5)
+        add_text(res4, 0.7, 6.3, 11.9, 0.4,
+                 [f"benchmark-dataset.json, generated {date_ds}; four tasks; the baseline's records-read column is every "
+                  f"patient's records for one patient's task."], size=10, color=GREY)
+        n_inserted = 4
+
+    # ---- Challenges & Remaining Work (after the inserted slides) ----
+    chal = s[9 + n_inserted]
     assert shape_named(chal, "Text 1").text_frame.text.startswith("Challenges")
     rewrite_body(shape_named(chal, "Text 2"), [
         ("Challenges faced and solutions:", [
@@ -621,24 +745,27 @@ def build() -> Path:
             "cookie, paginated HTML, robots.txt), so the browser layer is real and transfers as selectors + aliases.",
             "Measuring cost honestly — wall-clock is hardware-dependent, so deterministic metrics lead (fields, page "
             "loads, excess ratio) and coverage guards against pulling nothing.",
-            "Trusting the manifest — pseudonymisation is now applied at export and audited against the emitted "
-            "artefacts rather than taken from the declaration. Real data handling — the PLAN §4 checklist is enforced "
-            "in code: a non-synthetic export is refused without provenance, de-identification statement and ignore rule.",
+            "Trusting our own claims — the manifest is scored against what the run produced (export audit, observed "
+            "transport, harness-written audit log, retention sidecar), not against the declaration; and the real-data "
+            "procedure was rehearsed on a hospital-shaped export before any real data existed, which found four defects.",
+            "Public models on free tiers — the flagship allows 20 requests a day, so the recorder is paced, budgeted per "
+            "day and breadth-first; a model enters the tables after one pass and its stability denominator grows with "
+            "its samples. The model never sees a patient value, so the same recordings replay on the real data.",
         ]),
-        ("Remaining work (25%):", [
-            "Project report: all eight chapters drafted; second pass for length, and the section mapping to be "
-            "verified against the Gazette text before citations enter it. Manuscript compressed from chapters 3–7. "
-            "Real hospital dataset → one column map, then the same pipeline; results reported beside the synthetic ones.",
+        ("Remaining work (ledger at 98%, PLAN.md §5):", [
+            "The hospital dataset, expected before this review: one column map, the same pipeline; its results slide is "
+            "rebuilt from that run. The second model's recording completes over its daily allowance. Project report: "
+            "eight chapters drafted on the real numbers (section references verified against the Gazette text); second "
+            "pass for length. Manuscript compressed from chapters 3–7.",
         ]),
         ("Timeline for completion by Review-III (28.10.2026):", [
-            "Weeks 1–2: report chapters 3–4 (framework, techniques and cost) and 7 on synthetic data. Weeks 2–3: "
-            "chapters 5–6, appendices; real-data integration the day the export lands. Week 4: manuscript "
-            "compression, final results tables, rehearsal.",
+            "Week 1: real-data results beside the synthetic ones; second model complete. Weeks 2–3: report second pass, "
+            "appendices, weight-sensitivity and per-model discussion. Week 4: manuscript, final tables, rehearsal.",
         ]),
-    ], styles, heading_size=15, bullet_size=12.5)
+    ], styles, heading_size=15, bullet_size=12)
 
-    # ---- References (index 13) ----
-    refs = s[13]
+    # ---- References (after the inserted slides) ----
+    refs = s[10 + n_inserted]
     rewrite_plain(shape_named(refs, "Text 2"), REFERENCES, size=10.5)
     rewrite_plain(shape_named(refs, "Text 3"), [
         "IEEE format. [1]–[12] and [14]–[16] are cited on the literature slides; [13] on the problem, methodology and results slides."

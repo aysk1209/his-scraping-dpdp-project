@@ -98,7 +98,7 @@ python -m venv .venv && .venv\Scripts\activate      # POSIX: source .venv/bin/ac
 pip install -r requirements.txt
 python -m playwright install chromium                # once per machine
 pytest                                               # 274 tests, ~40 s
-python scripts/run_pipeline.py                       # the whole chain, ~1.5 min
+python scripts/run_pipeline.py                       # the whole chain, ~2 min
 ```
 
 `run_pipeline.py` serves a login-gated portal over TLS, logs a headless browser

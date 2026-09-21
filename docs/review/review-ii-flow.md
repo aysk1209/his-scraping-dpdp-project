@@ -11,8 +11,16 @@ focus "75% work completion & implementation progress". Marks: technical depth 15
 implementation quality 15, results analysis 5, presentation 3, Q&A 2. The two
 15-mark items are exactly what the live run and the code walk-through show, so
 budget **6–7 minutes live** out of the slot and keep the slides brisk. The
-literature review must list **at least 15 papers**; we have 12 — three to add
-before the day.
+literature review must list **at least 15 papers**; the deck carries 15 over
+three slides.
+
+**Dry run on the demo machine, 2026-09-21:** dependencies and Chromium
+installed; `run_pipeline.py` ran clean end to end in **2 min 0 s** (88 s of it
+the benchmark, most of that the baseline's 440 page loads); every stage's
+numbers matched the committed artefacts to the millisecond column. The deck
+(`Review-II.pptx`) was rebuilt from those artefacts the same day — rebuild it
+after any regeneration (`REVIEW_TEMPLATE=… python tools/build_review_deck.py`;
+the template lives outside the repository).
 
 ---
 
@@ -22,9 +30,11 @@ before the day.
 |---|---|
 | `python -m playwright install chromium` on the demo machine | Browser binaries are not in `pip install`; first run downloads ~150 MB |
 | `python scripts/run_pipeline.py` once, discard output | Warms Chromium and the Python imports; the first run is slowest |
+| Make sure **no `GEMINI_API_KEY` is needed** — the shell may carry one; it does not matter | `AI_AGENT_MODE` defaults to `replay`; nothing in the demo touches the network, with or without a key. Turn the Wi-Fi off if that is easier to say than to explain |
+| `python scripts/rehearse_day_one.py` once, watch the verdict line | Proves the real-data path on this machine: `identifier leaks: 0`. If the hospital's export has arrived, run the day-one procedure instead and rebuild the deck — the dataset slide reads from that run |
 | Open in browser tabs: `docs/benchmark_results/benchmark-portal.md`, `care-pull--compliance-aware--purpose-matrix.md`, `billing-pull--compliance-aware--purpose-matrix.md`, `navigation-map.json` | These are the same tables the live run prints — the fallback if anything fails |
 | Terminal: dark theme, font ≥ 16 pt, window at least 100 columns wide | The benchmark tables are wide |
-| `python scripts/run_pipeline.py` as the live command (defaults are 20 records, 10 per page) | ~1½ min; enough pages to show pagination, and the baseline's ~330 page loads are the visible cost |
+| `python scripts/run_pipeline.py` as the live command (defaults are 20 records, 10 per page) | ~2 min; enough pages to show pagination, and the baseline's 440 page loads are the visible cost |
 
 If the browser cannot launch in the room: `python scripts/run_benchmark.py` runs
 the same techniques in memory in under a second — the AI agents replay their
@@ -77,27 +87,41 @@ names it found — mrn, full name, date of birth. Point it at a portal with
 different names and this map re-derives itself." *(This is the Review-1
 heterogeneity doubt, answered.)*
 
-**[3] BENCHMARK.** Point at the `score` column, then the `pages` column.
-"Every method ran against that portal — the same code that ran against
+**[3] BENCHMARK.** The first table is *by model* — one row per AI model, at the
+briefing that hands it the purpose policy. Point at the `score` column, then
+`pages`. "Every method ran against that portal — the same code that ran against
 in-memory data, unchanged. Same seven DPDP rules. Ours: 1.0. The baseline, which
-grabs everything: 0.13. In between, real AI agents — Claude, GPT, Gemini — each
-handed the job, the purpose and the field names, never a value, and left to
-decide what to pull and what to declare. Once unaided, once told the Act in
-plain words. Their scores are whatever they recorded." Then cost: "The baseline
-loaded four to five times as many pages for the same coverage. That surplus is
-exactly what the minimisation rule penalises — compliance and cost move
-together. Coverage catches any agent that left out data the job lawfully needs."
-Then the `stable` column: "We put the same brief to each agent several times.
-Ours reproduces its decision every time — it is rules, not sampling. An agent's
-compliance is a sample." *(This is the Review-I processing-time request answered
-with a number that reproduces on any machine, and the guide's request answered
-with a column: deterministic, and better than just AI.)*
+grabs everything: 0.11. In between, a real public model, handed the job, the
+purpose, the field names — never a value — and the purpose policy itself, and
+left to decide what to pull and what to declare. Its score is whatever it
+recorded: 0.99 on these four tasks." Then cost: "The baseline loaded 440 pages
+to our 32 for the same coverage — it reads every patient to answer for one, and
+the minimisation rule sees that (the `rec.excess` column: 50× against 1×).
+Compliance and cost move together. Coverage catches an agent that left out data
+the job lawfully needs: the model got 83% of it." Then the grid below: "The same
+model three ways — unaided, told the Act, told the policy — every briefing is
+its own row. The full result is the in-memory benchmark, eight tasks, five
+repeats, every repeat scored: told the policy it obeys the policy's *numbers* —
+retention at the ceiling, no onward use — and not its *categories*; it takes the
+diagnosis for billing in every run. Traps held 10 of 20 runs against our 20 of
+20; unaided or told the Act, 0 of 20. It reproduces its first decision in 18–21
+of 32 repeats; ours 32 of 32 — rules, not sampling." *(This is the Review-I
+processing-time request answered with a number that reproduces on any machine,
+and the guide's request answered with a column: deterministic, and better than
+just AI.)*
+
+If asked why one model: "The flagship of the same family allows twenty requests
+a day on the free tier; it is being recorded at that pace and joins as one more
+row. The model never sees a patient value, so the recordings replay unchanged
+on the hospital's data — nothing is re-recorded when it arrives."
 
 **[4] NORMALISE.** Point at the two `audit:` lines.
-"The compliant run's data went out as HL7 v2 and FHIR with identifiers replaced by
-tokens. Then we *audited* the export for the real identifiers: none. The
-baseline's export: all of them. The compliant method *claimed* pseudonymisation in
-its manifest; we checked the output instead of believing it." Show the `PID|…PSN-…`
+"One patient's summary. Ours read that patient through the search box: two HL7
+messages, four FHIR resources, identifiers replaced by tokens; then we
+*audited* the export for the real identifiers: none. The baseline read every
+module for the same question — 80 messages, 260 resources, and 60 of 60 raw
+identifiers in what left. The compliant method *claimed* pseudonymisation in its
+manifest; we checked the output instead of believing it." Show the `PID|…PSN-…`
 line.
 
 **[5] PURPOSE.** Point at the two scores.
@@ -152,11 +176,15 @@ recognise it.
 
 ### Beat 6 — results, limitations, next (slide, 60 s)
 
-The `benchmark-portal.md` table on the slide. Then the limitations, said before
-anyone asks: the portal is cleaner than a real vendor system, so this demonstrates
-the mechanism, not robustness; the hospital dataset is not in yet, and the adapter
-that takes it is built and tested against a synthetic export of the same shape.
-Then next: the report, the manuscript, the real data when it lands.
+The `benchmark-portal.md` table on the slide, then the real-data slide. Say
+which it is: if the hospital's export has arrived, that slide *is* its run; if
+not, it is the rehearsal — "we ran the whole day-one procedure on an export
+shaped like a hospital's before any real data existed, found four defects, fixed
+them, and searched everything the run printed or wrote for one patient's
+identifiers: nothing." Then the limitations, said before anyone asks: the portal
+is cleaner than a real vendor system, so this demonstrates the mechanism, not
+robustness; one model family so far, the second model still recording. Then
+next: the real data's own slide, the report's second pass, the manuscript.
 
 ---
 
@@ -168,7 +196,11 @@ Then next: the report, the manuscript, the real data when it lands.
 | "How is the agent trained?" | Stage [6] | It isn't. `src/agent/functions.py` is a fixed registry; recognition is token overlap; the gate is `compliance.roles.authorise` |
 | "Where's the processing time?" | Stage [3], `pages` and `ms` columns | `extraction/metering.py` counts real page loads; wall-clock is shown but labelled hardware-dependent |
 | "Isn't the baseline a strawman?" | — | The panel has accepted that most real systems sit at the baseline; the models in between are real public AI agents, recorded |
-| "What exactly does the AI agent see?" | `build_user_prompt` in `techniques/ai_agent.py` | The job, the purpose, the field names -- never a value; the recording under `techniques/recordings/` is the literal answer it gave |
+| "What exactly does the AI agent see?" | `build_user_prompt` in `techniques/ai_agent.py` | The job, the purpose, the field names of the canonical catalogue -- never a value, never a record number; the recording under `techniques/recordings/` is the literal answer it gave |
+| "It gave a different answer next time — so what does the score mean?" | The `stable` column; `per_task_range` in `benchmark.json` | Every repeat is scored; the score is a mean over runs; the range per task is in the artefact; ours is 32/32 by construction |
+| "Why only one model? Why not Claude or GPT?" | `techniques/ai_providers.py` | Three providers are wired through their official SDKs; only the free tier we hold has API access. The flagship of that family is recorded at 20 requests a day (`MODEL_LIMITS`) and enters as one more row |
+| "What did the rehearsal find?" | `scripts/rehearse_day_one.py`, `tests/extraction/test_day_one.py` | A header that means `mrn` in four files and `subject_mrn` in the audit trail (per-file map), a layer split across files read half (concatenated), dd/mm/yyyy dates reaching HL7 unparsed (ISO normalisation), `.xlsx` unreadable (`openpyxl`); the leak audit passed |
+| "Who wrote the audit log — the technique?" | Stage [3], the `audit log` lines; `compliance/audit.py` | The harness, at the metering boundary; a technique cannot log itself. Same for the observed TLS, the export audit and the retention sidecar — the four *demonstrated* controls |
 | "Why is compliance cheaper here — isn't that suspicious?" | `excess_ratio` | Fields pulled beyond the purpose are both the cost and the overreach the minimisation rule penalises — one quantity, two readings; the an agent that leaves out needed data is cheaper still and that cheapness *is* its failure (coverage below 1) |
 | "What happens when you get the real data?" | `extraction/adapters/dataset_his.py` | Drop it in `data/`, write a `column_map`, run the same pipeline; tested with hospital-named columns |
 | "And a real portal?" | `PortalHISDataSource(field_aliases=…)` | Display labels map to fields as headers are read; tested against the fixture in label mode |
@@ -181,7 +213,8 @@ Then next: the report, the manuscript, the real data when it lands.
 
 | Script | Shows | Time |
 |---|---|---|
-| `scripts/run_pipeline.py` | **The whole chain**: portal → discover → benchmark → normalise + audit → purpose → assistant | ~1½ min |
+| `scripts/run_pipeline.py` | **The whole chain**: portal → discover → benchmark → normalise + audit → purpose → assistant → retain | ~2 min |
+| `scripts/rehearse_day_one.py` | The real-data procedure on a hospital-shaped export, through the handling gate, with a leak audit | 5 s |
 | `scripts/run_benchmark.py` | Every technique on in-memory data: eight tasks, five repeats, every repeat scored; compliance × cost × veracity × traps × stability | 1 s |
 | `scripts/purge_exports.py [--as-of DATE] [--erase]` | The deletion mechanism: what is scheduled, what is due, what goes — and the audit event it leaves | 1 s |
 | `scripts/compare_purposes.py` | One pull judged under every purpose, both directions, plus the retention case | 2 s |
