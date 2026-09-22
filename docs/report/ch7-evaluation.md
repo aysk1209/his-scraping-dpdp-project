@@ -29,9 +29,7 @@ gating the staff assistant.
 `gemini-3.1-flash-lite`, briefed three ways — *unaided*, *told the Act*, and
 *told the policy* (the purpose envelope and every field's category in the
 prompt: everything ours reads) — each briefing scored as its own technique;
-and the unconstrained baseline. A further model of the same family is
-recorded on the *told the policy* and *unaided* briefings only, as its daily
-allowance permits, and enters as one more row per briefing. Because the agent
+and the unconstrained baseline. Because the agent
 is briefed on the canonical catalogue rather than on a particular source, a
 recording is a property of the model and replays unchanged against the
 in-memory fixture, the portal and the hospital's dataset. Every technique is told the deployment's capability
@@ -467,8 +465,12 @@ the data side, but only live access closes it.
 
 **One AI agent, one tier, five samples.** The agent results are from a single
 provider's free-tier model (`gemini-3.1-flash-lite`), chosen because its daily
-request allowance permitted a complete recording in one session; the flagship
-model in the same family was capped at twenty requests a day. Five runs per
+request allowance permitted a complete recording in one session. The flagship
+model in the same family was attempted and dropped: nominally twenty requests
+a day, in practice its free tier served one or two before reporting the day
+spent, across two keys on two days, and the comparison was not worth paid
+credit; the machinery (one agent per model and briefing, a rationed recorder,
+a per-model view) stays, so a further model is one command away. Five runs per
 task is enough to show that decisions vary, not enough to characterise the
 distribution; every run is scored, so the tables report means and ranges, not
 a draw. The trap result — none held, in forty trap runs — is strong enough

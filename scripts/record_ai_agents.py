@@ -2,9 +2,11 @@
 
     set ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY   (whichever you have)
     python scripts/record_ai_agents.py                       # every keyed provider, all three briefings
-    python scripts/record_ai_agents.py --provider gemini --model gemini-3.8-flash \
+    python scripts/record_ai_agents.py --provider gemini --model <model-id> \
         --briefing policy --briefing unaided --repeats 3     # a further model: its own recording, its own
-                                                             # row (shown at 'policy'); resumes across days
+                                                             # row (shown at 'policy'); resumes across days.
+                                                             # (gemini-3.8-flash was tried 2026-09-22: the free
+                                                             # tier served 1-2 calls a day; dropped, no credit.)
     python scripts/record_ai_agents.py --provider claude --repeats 5
     python scripts/record_ai_agents.py --briefing informed --overwrite
 
@@ -93,6 +95,7 @@ def _with_backoff(call, attempts: int = 6, pause: float = 0.0):
     import re
     import time
     delay = 10.0
+    cap_probes = 0
     for attempt in range(attempts):
         try:
             result = call()
@@ -111,8 +114,19 @@ def _with_backoff(call, attempts: int = 6, pause: float = 0.0):
                     "add credit or use another provider"
                 ) from exc
             # A daily cap is not a rate limit either: nothing more will succeed
-            # today. Stop cleanly; the run resumes where it left off tomorrow.
+            # today. But the server sometimes says "retry in 29s" with it -- a
+            # sliding window, not a calendar day. Probe that hint up to three
+            # times (it costs nothing if the cap is real), then stop cleanly;
+            # the run resumes where it left off after the reset.
             if any(k in text for k in ("PerDay", "per day", "perDay", "daily", "Daily")):
+                m = re.search(r"retry in ([0-9.]+)\s*s", text)
+                if m and cap_probes < 3 and float(m.group(1)) <= 300:
+                    cap_probes += 1
+                    wait = float(m.group(1)) + 2.0
+                    print(f"    daily cap reported with a retry hint -- probing it in {wait:.0f} s "
+                          f"({cap_probes}/3)")
+                    time.sleep(wait)
+                    continue
                 raise DailyCapReached(text[:200]) from exc
             transient = any(k in text for k in (
                 "429", "RESOURCE_EXHAUSTED", "rate", "Rate", "quota",
@@ -143,9 +157,31 @@ DEFAULT_LIMITS = (5, 50)
 QUOTA_LEDGER = RECORDINGS_DIR / ".quota.json"
 
 
+# The free tier's "per day" is the provider's day, not ours: it resets at
+# midnight Pacific time (12:30 IST during daylight time, 13:30 otherwise). The
+# ledger is keyed on that day so a run after the reset is not refused by a
+# local date that has not changed -- or allowed by one that has.
+def _provider_now():
+    from datetime import datetime, timedelta, timezone
+    try:
+        from zoneinfo import ZoneInfo
+        return datetime.now(ZoneInfo("America/Los_Angeles"))
+    except Exception:                                              # noqa: BLE001 - no tz database (Windows without tzdata)
+        return datetime.now(timezone.utc) - timedelta(hours=7)     # PDT; an hour off in winter, on the safe side
+
+
 def _today() -> str:
-    from datetime import date
-    return date.today().isoformat()
+    return _provider_now().date().isoformat()
+
+
+def reset_note() -> str:
+    """When the provider's day turns, in local time."""
+
+    from datetime import datetime, timedelta
+    now = _provider_now()
+    reset = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    local = reset.astimezone().strftime("%H:%M %Z on %d.%m")
+    return f"the provider's day resets at midnight Pacific -- {local} local time"
 
 
 def quota_used(model: str) -> int:
@@ -281,8 +317,8 @@ def main() -> None:
                     if have[task.task_id] > i:
                         continue
                     if used >= budget:
-                        print(f"  today's budget ({budget}) is spent. Re-run the same command tomorrow; "
-                              f"it resumes at {task.task_id}, sample {i + 1}.")
+                        print(f"  today's budget ({budget}) is spent. Re-run the same command after the reset "
+                              f"({reset_note()}); it resumes at {task.task_id}, sample {i + 1}.")
                         capped = True
                         break
                     pacer.wait()
@@ -292,7 +328,8 @@ def main() -> None:
                         used = budget
                         quota_note(model, used)
                         print(f"  {task.task_id:<22} daily cap reached: {exc}")
-                        print(f"  stopping for today. Re-run the same command tomorrow; it resumes here.")
+                        print(f"  stopping for today ({reset_note()}). Re-run the same command after the reset; "
+                              f"it resumes here. The cap is per Google Cloud project, not per key.")
                         capped = True
                         break
                     except ProviderUnavailable as exc:

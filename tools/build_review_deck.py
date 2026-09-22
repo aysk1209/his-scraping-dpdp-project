@@ -748,18 +748,19 @@ def build() -> Path:
             "Trusting our own claims — the manifest is scored against what the run produced (export audit, observed "
             "transport, harness-written audit log, retention sidecar), not against the declaration; and the real-data "
             "procedure was rehearsed on a hospital-shaped export before any real data existed, which found four defects.",
-            "Public models on free tiers — the flagship allows 20 requests a day, so the recorder is paced, budgeted per "
-            "day and breadth-first; a model enters the tables after one pass and its stability denominator grows with "
-            "its samples. The model never sees a patient value, so the same recordings replay on the real data.",
+            "Public models on free tiers — the recorder is paced, budgeted per day and breadth-first, and a model enters "
+            "the tables after one pass; the flagship of the family still served only one or two calls a day in practice, "
+            "so it was dropped rather than paid for. The model never sees a patient value, so the recordings replay on "
+            "the real data unchanged.",
         ]),
         ("Remaining work (ledger at 98%, PLAN.md §5):", [
             "The hospital dataset, expected before this review: one column map, the same pipeline; its results slide is "
-            "rebuilt from that run. The second model's recording completes over its daily allowance. Project report: "
+            "rebuilt from that run. Project report: "
             "eight chapters drafted on the real numbers (section references verified against the Gazette text); second "
             "pass for length. Manuscript compressed from chapters 3–7.",
         ]),
         ("Timeline for completion by Review-III (28.10.2026):", [
-            "Week 1: real-data results beside the synthetic ones; second model complete. Weeks 2–3: report second pass, "
+            "Week 1: real-data results beside the synthetic ones. Weeks 2–3: report second pass, "
             "appendices, weight-sensitivity and per-model discussion. Week 4: manuscript, final tables, rehearsal.",
         ]),
     ], styles, heading_size=15, bullet_size=12)

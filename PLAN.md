@@ -161,7 +161,9 @@ work by definition, and the manuscript waits on a venue and page budget.
 
 *2026-09-19: the recorder is rationed — paced to the model's per-minute allowance, budgeted per day with a local ledger so it stops before the cap, breadth-first across tasks so a short day still yields a usable row; the benchmark caps repeats at the samples recorded.*
 
-*Next, in order: finish the flagship recording (run the same command once a day; it stops at the budget and resumes); the report's second pass; the manuscript. Done 2026-09-17: the weight sweep in ch7, the Gazette check with three corrections, `docs/methodology/benchmark-protocol.md`. The hospital dataset is expected before Review-II: run `scripts/check_source.py` first, then `run_pipeline.py --dataset …`.*
+*2026-09-22: the flagship is dropped. Across two keys and two days the free tier served one or two calls before reporting its 20/day spent (the cap is per project; failed retries count); no credit will be spent; its partial recordings are deleted. The reference model is the AI-agent comparison; the machinery for a further model stays. The Review-II deck is data-driven and was rebuilt on the demo machine after a clean dry run (2 min 0 s).*
+
+*Next, in order: the hospital dataset when it lands (rehearsal first); the report's second pass; the manuscript. Done 2026-09-17: the weight sweep in ch7, the Gazette check with three corrections, `docs/methodology/benchmark-protocol.md`. The hospital dataset is expected before Review-II: run `scripts/check_source.py` first, then `run_pipeline.py --dataset …`.*
 
 ## 6. Workstreams
 
@@ -395,8 +397,8 @@ free tier carries no API credit (`insufficient_quota` on the first call, zero
 requests served), and a second provider is not worth a paid top-up for the
 argument as it stands. The adapter is built and tested against the documented
 surface; a key with credit makes it a five-minute run. The flagship Gemini
-model is capped at 20 requests/day on the free tier and can be added over two
-days if wanted. §7.8 of the report states the single-provider limitation.
+model was tried (2026-09-22) and dropped: its free tier served one or two
+calls a day in practice. §7.8 of the report states the single-model limitation.
 
 ### W8 — Real baseline technique — **DROPPED 2026-09-13**
 

@@ -131,19 +131,18 @@ Three properties of the design are held to, and each is asserted by a test.
   wording asks. The third is the fairest comparison there is: the agent knows
   everything the rule-driven technique knows, and whether it *holds* to it is
   the only remaining question. Whether prompting closes the gap is then a
-  measured answer rather than an assumed one. The reference model is recorded
-  on all three; further models on *told the policy* and *unaided*, and the
-  comparison is read per model at the *told the policy* briefing. The reference model is recorded
-  on all three; further models on *told the policy* and *unaided*, and the
-  comparison is read per model at the *told the policy* briefing.
+  measured answer rather than an assumed one. The model is recorded on all
+  three, and the comparison is read per model at the *told the policy*
+  briefing; a further model, were one recorded, would take the *told the
+  policy* and *unaided* briefings and enter as its own row.
 
 The provider adapters (`ai_providers.py`) cover three public models behind
 their official SDKs — Claude, OpenAI and Gemini — with the model identifier
 configurable, so the comparison can be re-run against whatever is current. The
 results in Chapter 7 are from `gemini-3.1-flash-lite`, five recorded runs per
 task per briefing, recorded 2026-09-18; the model tier is stated because it is
-part of the result, and a second model of the same family is recorded as its
-own agent as its daily allowance permits.
+part of the result. The flagship of the same family was attempted and dropped
+(§7.8): its free tier served one or two requests a day in practice.
 
 What the agent actually does is the substance of Chapter 7, but its character
 can be stated here. It is *good at the paperwork*: told what the deployment

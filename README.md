@@ -54,8 +54,9 @@ the full grid in [`benchmark.md`](docs/benchmark_results/benchmark.md):
 
 Unaided, or told the Act in plain words, the same model scores 0.942 / 0.948
 and holds **0 / 20** trap runs. Every one of the forty runs per technique is
-scored; a score is a mean, not a draw. Recorded 2026-09-18; a second model of
-the same family is being recorded and joins as one more row.
+scored; a score is a mean, not a draw. Recorded 2026-09-18. (The flagship of
+the same family was tried and dropped: its free tier served one or two calls a
+day; a further model is one recorder command away if a key with credit appears.)
 
 A current public model matches the rule-driven technique on the *manifest it
 declares* — told what the deployment provides, it cites it correctly, every run.

@@ -45,12 +45,12 @@ reported and never relied on.
 
 | Item | Value |
 |---|---|
-| Provider / model | Gemini, `gemini-3.1-flash-lite` (free tier; the flagship is capped at 20 requests/day) |
-| Briefings | `unaided`; `informed` (the Act's seven obligations in plain words); `policy` (the purpose envelope and every field's category, in the prompt). The reference model is recorded on all three; further models on `policy` and `unaided`. Tables are read per model at `policy`; the full grid is kept |
+| Provider / model | Gemini, `gemini-3.1-flash-lite` (free tier). The flagship of the family was attempted on 2026-09-22 and dropped: the free tier served one or two calls a day in practice before reporting its 20/day spent, and no credit was spent; its partial recordings were deleted, not kept |
+| Briefings | `unaided`; `informed` (the Act's seven obligations in plain words); `policy` (the purpose envelope and every field's category, in the prompt). The reference model is recorded on all three; a further model, if one is recorded, on `policy` and `unaided`. Tables are read per model at `policy`; the full grid is kept |
 | What the model sees | the job in words, the purpose, whether the job is about one patient, the field *names* of the **canonical catalogue** (not of any particular source), the capability register. Never a value, never a record number, never the task's own needed list. A recording is therefore a property of the model and replays against every source; only a catalogue, register or wording change stales it |
 | What it returns | a flat JSON decision: fields, `scope` (`subject` / `all`), and the manifest |
 | Sampling | provider default — no temperature or seed set; the recording says so |
-| Recording | `scripts/record_ai_agents.py`: 5 samples per task per briefing for the reference model, 3 for further models; each sample stores field names and manifest choices only, with a fingerprint (SHA-256 of the exact prompt) so a change to the brief marks the recording stale. Calls are paced to the model's per-minute allowance and budgeted per day; samples are taken breadth-first (one per task, then the next), so an interrupted recording leaves every task equally sampled. The benchmark repeats an agent at most as often as it has samples |
+| Recording | `scripts/record_ai_agents.py`: 5 samples per task per briefing for the reference model (3 for a further model, if one is recorded); each sample stores field names and manifest choices only, with a fingerprint (SHA-256 of the exact prompt) so a change to the brief marks the recording stale. Calls are paced to the model's per-minute allowance and budgeted per day; samples are taken breadth-first (one per task, then the next), so an interrupted recording leaves every task equally sampled. The benchmark repeats an agent at most as often as it has samples |
 | Replay | `AI_AGENT_MODE=replay` is the default; every demo and test replays. Only the recorder makes live calls |
 
 ## Reproduce

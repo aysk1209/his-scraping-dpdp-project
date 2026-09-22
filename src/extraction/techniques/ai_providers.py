@@ -12,7 +12,7 @@ repository runs without any of them installed:
     openai   -> ``openai``          OPENAI_API_KEY
     gemini   -> ``google-genai``    GEMINI_API_KEY (or GOOGLE_API_KEY)
 
-Model identifiers default to the current flagship of each and can be overridden
+Model identifiers default to a current model of each and can be overridden
 with ``AI_AGENT_MODEL_CLAUDE`` / ``_OPENAI`` / ``_GEMINI`` so the comparison can be
 re-run against whatever is current without a code change.
 
@@ -37,7 +37,7 @@ REQUEST_TIMEOUT_S = 90.0
 DEFAULT_MODELS = {
     "claude": "claude-opus-5",
     "openai": "gpt-6-astra",
-    "gemini": "gemini-3.8-flash",
+    "gemini": "gemini-3.1-flash-lite",     # the recorded model; the flagship's free tier proved unusable (2026-09-22)
 }
 
 _KEY_VARS = {
