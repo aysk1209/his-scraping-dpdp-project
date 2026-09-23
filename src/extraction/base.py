@@ -34,6 +34,15 @@ class HISDataSource(ABC):
         a portal uses its search box, a file or an in-memory table filters).
         """
 
+    def fields(self, layer: HISLayer) -> list[str] | None:
+        """The catalogue fields this source exposes for ``layer``; ``None`` when it cannot say.
+
+        Lets the harness ask only for what a source has -- a portal asked for a
+        field its module lacks would open every record's detail page looking.
+        """
+
+        return None
+
     @property
     def transport_secure(self) -> bool | None:
         """Was the connection this source reads over encrypted?

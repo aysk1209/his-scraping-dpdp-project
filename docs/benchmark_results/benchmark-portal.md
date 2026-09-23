@@ -2,7 +2,7 @@
 
 _compliance-aware (ours) scores 1.000; unconstrained (baseline) scores 0.114 on the same 7 rules -- a 0.886 gap. It also pulls 1.00x the fields the purpose requires, against 7.56x for unconstrained (baseline) at full coverage. That surplus is exactly what the data-minimisation rule penalises, so on this workload compliance and extraction cost move together rather than trading off against each other. ai agent: gemini-3.1-flash-lite (told the policy) obtained only 83% of the fields the tasks require: it left out data the purpose lawfully needed, so its low cost is a shortfall, not efficiency. On the single-patient tasks, unconstrained (baseline) read 50.0x the records the patient's own would be -- every patient's, to answer for one; compliance-aware (ours) read 1.0x. On the 1 tasks whose wording invites a violation, ai agent: gemini-3.1-flash-lite (told the policy) held the line in 0 of 1 runs; compliance-aware (ours) in 1 of 1 -- it reads the purpose policy, not the prose._
 
-Source: portal, 20 records/module, seed 42. 4 extraction tasks, identical DPDP rule set for every technique. Generated 2026-09-18 in 97890 ms (wall-clock, hardware-dependent).
+Source: portal, 20 records/module, seed 42. 4 extraction tasks, identical DPDP rule set for every technique. Generated 2026-09-23 in 99966 ms (wall-clock, hardware-dependent).
 
 **By model** -- each AI agent at its *told the policy* briefing (the fairest condition: it is handed the purpose policy our technique reads); the full model x briefing grid is below.
 
@@ -71,11 +71,11 @@ attested by the deployment (on the register; not produced by this code):
 
 | Technique | Compliance | Excess ratio | Coverage | Distinct fields / needed | Fields pulled | Fetches | Pages loaded | Records | Record excess | Wall-clock (ms) | Stable runs |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 18 / 18 | 151 | 7 | 32 | 64 | 1.00 | 6188.3 | n/a |
-| ai agent: gemini-3.1-flash-lite (told the policy) | 0.990 | 1.83 | 0.83 | 33 / 18 | 185 | 8 | 35 | 65 | 1.25 | 6219.9 | n/a |
-| ai agent: gemini-3.1-flash-lite (unaided) | 0.988 | 1.39 | 0.72 | 25 / 18 | 158 | 8 | 34 | 65 | 1.25 | 6219.7 | n/a |
-| ai agent: gemini-3.1-flash-lite (told the Act) | 0.988 | 1.28 | 0.72 | 23 / 18 | 175 | 8 | 33 | 65 | 1.25 | 5868.9 | n/a |
-| unconstrained (baseline) | 0.114 | 7.56 | 1.00 | 136 / 18 | 2720 | 20 | 440 | 400 | 50.00 | 73351.5 | n/a |
+| compliance-aware (ours) | 1.000 | 1.00 | 1.00 | 18 / 18 | 151 | 7 | 32 | 64 | 1.00 | 3070.8 | n/a |
+| ai agent: gemini-3.1-flash-lite (told the policy) | 0.990 | 1.83 | 0.83 | 33 / 18 | 185 | 8 | 35 | 65 | 1.25 | 7402.7 | n/a |
+| ai agent: gemini-3.1-flash-lite (unaided) | 0.988 | 1.39 | 0.72 | 25 / 18 | 158 | 8 | 34 | 65 | 1.25 | 5765.4 | n/a |
+| ai agent: gemini-3.1-flash-lite (told the Act) | 0.988 | 1.28 | 0.72 | 23 / 18 | 175 | 8 | 33 | 65 | 1.25 | 6503.8 | n/a |
+| unconstrained (baseline) | 0.114 | 7.56 | 1.00 | 136 / 18 | 2720 | 20 | 440 | 400 | 50.00 | 77185.8 | n/a |
 
 **Per task**
 

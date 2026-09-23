@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-18T05:53:48.853193Z",
+  "generated_at": "2026-09-23T08:46:23.852666Z",
   "dataset_note": "50 records/layer x 5 layers, seed 42",
-  "elapsed_ms": 206.8,
+  "elapsed_ms": 183.3,
   "task_ids": [
     "patient-summary",
     "ward-census",
@@ -161,7 +161,7 @@
         "excess_ratio": 1.0,
         "records_necessary": 11,
         "record_excess": 1.0,
-        "elapsed_ms": 0.852
+        "elapsed_ms": 0.772
       },
       "tasks": 8,
       "repeats": 5,
@@ -255,7 +255,7 @@
         "excess_ratio": 1.429,
         "records_necessary": 11,
         "record_excess": 0.982,
-        "elapsed_ms": 2.693
+        "elapsed_ms": 2.071
       },
       "tasks": 8,
       "repeats": 5,
@@ -349,7 +349,7 @@
         "excess_ratio": 1.057,
         "records_necessary": 11,
         "record_excess": 0.945,
-        "elapsed_ms": 1.815
+        "elapsed_ms": 1.885
       },
       "tasks": 8,
       "repeats": 5,
@@ -443,7 +443,7 @@
         "excess_ratio": 1.057,
         "records_necessary": 11,
         "record_excess": 0.982,
-        "elapsed_ms": 1.918
+        "elapsed_ms": 1.907
       },
       "tasks": 8,
       "repeats": 5,
@@ -537,7 +537,7 @@
         "excess_ratio": 7.771,
         "records_necessary": 11,
         "record_excess": 136.364,
-        "elapsed_ms": 10.721
+        "elapsed_ms": 8.358
       },
       "tasks": 8,
       "repeats": 5,
@@ -557,6 +557,9 @@
       "trap_tasks_held": 0
     }
   ],
+  "coverage_needed": 35,
+  "coverage_in_source": 35,
+  "coverage_reachable": 35,
   "observed_transport": null,
   "audit_log": "data/audit/extraction-audit.jsonl",
   "audit_events": 200,

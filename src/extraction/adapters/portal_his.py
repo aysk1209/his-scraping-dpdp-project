@@ -71,6 +71,10 @@ class PortalHISDataSource(HISDataSource):
     def layers(self) -> tuple[HISLayer, ...]:
         return self.navigation.layers()
 
+    def fields(self, layer: HISLayer) -> list[str] | None:
+        module = self.navigation.module_for(layer)
+        return [] if module is None else list(module.all_fields())
+
     def fetch(
         self,
         layer: HISLayer,

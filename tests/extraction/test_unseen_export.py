@@ -252,3 +252,68 @@ def test_the_patient_summary_is_complete_on_a_per_concept_export(tmp_path):
                            bind_subject([task], src), src)
     ours = next(s for s in result.scores if s.short == "compliance-aware")
     assert ours.cost.coverage == 1.0 and ours.mean_compliance_score == 1.0
+
+
+# --------------- 5. the coverage ceiling is measured from the source, per task
+
+SUMMARY = ExtractionTask(
+    task_id="patient-summary", purpose=Purpose.CARE_COORDINATION, single_subject=True,
+    needed=[LayerFields(layer=HISLayer.PATIENT_ADMINISTRATION, fields=["mrn", "date_of_birth", "sex"]),
+            LayerFields(layer=HISLayer.CLINICAL_EHR, fields=["primary_diagnosis", "medication", "allergy"])],
+)
+
+
+def test_the_ceiling_counts_what_the_patient_has_not_what_anyone_has(tmp_path):
+    from compliance.benchmark import bind_subject, reachable_fields
+    _per_concept_export(tmp_path)
+    src = DatasetHISDataSource(tmp_path, enforce_handling=False)
+    # 000456 has a diagnosis and a medication but no allergy on record.
+    [task] = bind_subject([SUMMARY], src, subject="000456")
+    assert reachable_fields(task, src) == (6, 6, 5)
+    [task] = bind_subject([SUMMARY], src, subject="000123")
+    assert reachable_fields(task, src) == (6, 6, 6)
+
+
+def test_the_headline_does_not_hold_the_patients_missing_records_against_anyone(tmp_path):
+    from compliance.benchmark import bind_subject
+    _per_concept_export(tmp_path)
+    src = DatasetHISDataSource(tmp_path, enforce_handling=False)
+    result = run_benchmark([CompliantExtractionTechnique(), UnconstrainedExtractionTechnique()],
+                           bind_subject([SUMMARY], src, subject="000456"), src)
+    ours, baseline = (next(s for s in result.scores if s.short == k) for k in ("compliance-aware", "unconstrained"))
+    assert result.source_ceiling() == 0.833 == ours.cost.coverage      # ours reached everything the patient has
+    assert baseline.cost.coverage == 1.0                               # by reading someone else's allergy
+    text = result._takeaway()
+    assert "1 are in the source but not in the records of the patient" in text
+    assert "unconstrained (baseline) shows 100% only because it read other patients' records" in text
+    assert "not directly comparable" not in text and "Every technique obtained the same" not in text
+
+
+def test_the_ceiling_never_asks_a_source_for_a_field_it_lacks_and_stops_early():
+    # A portal asked for a field its module lacks would open every detail page.
+    from compliance.benchmark import reachable_fields
+    from extraction.base import HISDataSource
+
+    class Recording(HISDataSource):
+        asked: list[list[str]] = []
+        rows_served = 0
+
+        def layers(self):
+            return (HISLayer.PATIENT_ADMINISTRATION,)
+
+        def fields(self, layer):
+            return ["mrn", "sex"]
+
+        def fetch(self, layer, *, fields=None, where=None, **_):
+            self.asked.append(list(fields))
+            for i in range(1000):
+                Recording.rows_served += 1
+                yield {"mrn": f"P{i}", "sex": "F"}
+
+    task = ExtractionTask(task_id="t", purpose=Purpose.CARE_COORDINATION,
+                          needed=[LayerFields(layer=HISLayer.PATIENT_ADMINISTRATION,
+                                              fields=["mrn", "sex", "full_name"])])
+    src = Recording()
+    assert reachable_fields(task, src) == (3, 2, 2)
+    assert all("full_name" not in asked for asked in src.asked)
+    assert Recording.rows_served == 1

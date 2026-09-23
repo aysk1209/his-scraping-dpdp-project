@@ -36,6 +36,13 @@ reported and never relied on.
   a task is *held* only when every repeat held.
 - *Coverage*, *excess ratio*, *record excess*: micro-averaged over every run;
   counts shown per pass of the workload.
+- *Coverage ceiling*: counted from the source once per task, outside the
+  meter, never read off a technique (`benchmark.reachable_fields`). It counts
+  the needed fields the source carries and, on a single-patient task, only
+  those that patient's own records carry. A technique that finds a field in
+  other patients' records can show coverage above the ceiling; that is records
+  read, not a higher ceiling. On the synthetic and portal workloads every
+  needed field is reachable (35/35 and 18/18), so the ceiling is 1.0.
 - *Veracity*: substantiated ÷ declared controls over every run; substantiated
   claims split into *demonstrated* (evidence the pipeline produced) and
   *attested* (the register's word). Transport is observed from the connection.

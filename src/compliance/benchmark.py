@@ -38,6 +38,7 @@ from compliance.summary import merge
 from extraction.base import HISDataSource
 from extraction.metering import ExtractionCost, MeteredSource, combine, per_pass
 from extraction.technique import ExtractionTask, ExtractionTechnique
+from interop.layers import HISLayer
 
 BRIEFING_LABEL = {"unaided": "unaided", "informed": "told the Act", "policy": "told the policy"}
 
@@ -142,6 +143,13 @@ class BenchmarkResult(BaseModel):
     task_details: list[TaskDetail] = Field(default_factory=list)
     rule_ids: list[str]
     scores: list[TechniqueScore]
+    # The coverage ceiling, counted from the source once per task (reachable_fields):
+    # fields the tasks need; of those, the ones the source carries; and the ones
+    # each task can obtain -- on a single-patient task, from that patient's records.
+    # None on results written before it was measured.
+    coverage_needed: int | None = None
+    coverage_in_source: int | None = None
+    coverage_reachable: int | None = None
     # What the run could see for itself, the same for every technique: the
     # transport it read over, and where the audit log went.
     observed_transport: bool | None = None
@@ -181,14 +189,8 @@ class BenchmarkResult(BaseModel):
         ceiling = self.source_ceiling()
         at_ceiling = " at full coverage" if ceiling is None else ""
         if ceiling is not None:
-            missing = best.cost.needed_fields - best.cost.matched_fields
-            line += (
-                f" Every technique obtained the same {ceiling:.0%} of the fields the "
-                f"tasks require -- the source itself lacks {missing} of the "
-                f"{best.cost.needed_fields}, so coverage is a property of this "
-                f"dataset and the comparison holds on what it does carry."
-            )
-        elif best.cost.coverage is not None and best.cost.coverage < 1.0:
+            line += " " + self._ceiling_note(ceiling)
+        if best.cost.coverage is not None and best.cost.coverage < (1.0 if ceiling is None else ceiling):
             return (
                 f"{line} Note that it obtained only {best.cost.coverage:.0%} of the "
                 f"fields the tasks require, so its score is not directly comparable "
@@ -276,15 +278,51 @@ class BenchmarkResult(BaseModel):
             return f"{value:.3f} ({lo:.2f}-{hi:.2f})"
         return f"{value:.3f}"
 
-    def source_ceiling(self) -> float | None:
-        """Coverage the source caps every technique at, or None when it caps none.
+    def _ceiling_note(self, ceiling: float) -> str:
+        """Why no technique could reach full coverage -- the source, or the one patient."""
 
-        When the best-covering technique still misses needed fields *and* the
-        widest-pulling technique (the one that takes everything it can see)
-        covers no more, the fields are absent from the source, not withheld by
-        a technique.
+        if not self.coverage_needed:
+            # Inferred from the techniques (a result written before the measurement).
+            best = self.scores[0]
+            missing = best.cost.needed_fields - best.cost.matched_fields
+            return (f"No technique obtained more than {ceiling:.0%} of the fields the tasks "
+                    f"require -- the source itself lacks {missing} of the {best.cost.needed_fields}, "
+                    f"so coverage is a property of this dataset and the comparison holds on what it "
+                    f"does carry.")
+        needed = self.coverage_needed
+        absent = needed - (self.coverage_in_source or 0)
+        not_theirs = (self.coverage_in_source or 0) - (self.coverage_reachable or 0)
+        why = []
+        if absent:
+            why.append(f"{absent} are not in the source")
+        if not_theirs:
+            why.append(f"{not_theirs} are in the source but not in the records of the patient a "
+                       f"single-patient task is about")
+        note = (f"The tasks could obtain at most {ceiling:.0%} of the {needed} fields they require: "
+                f"{' and '.join(why)}. That ceiling is a property of this dataset, and the comparison "
+                f"holds on what it does carry.")
+        above = [s for s in self.scores if s.cost.coverage is not None and s.cost.coverage > ceiling]
+        if not_theirs and above:
+            s = max(above, key=lambda x: x.cost.coverage or 0)
+            note += (f" {s.technique} shows {s.cost.coverage:.0%} only because it read other "
+                     f"patients' records to answer for one.")
+        return note
+
+    def source_ceiling(self) -> float | None:
+        """The share of needed fields the tasks could obtain from this source, or None when all.
+
+        Measured from the source (``reachable_fields``), not read off the
+        techniques: the widest-pulling technique used to set the ceiling, and on
+        a single-patient task it finds fields in other patients' records that
+        the task's own patient does not have -- a ceiling no compliant pull can
+        reach, which then made the narrower techniques look short. Results
+        written before the measurement fall back to that inference.
         """
 
+        if self.coverage_needed:
+            share = round((self.coverage_reachable or 0) / self.coverage_needed, 3)
+            return None if share >= 1.0 else share
+        # Results written before the ceiling was measured: infer it from the techniques.
         covered = [s for s in self.scores if s.cost.coverage is not None]
         if not covered:
             return None
@@ -693,10 +731,13 @@ def bind_subject(tasks: list[ExtractionTask], source: HISDataSource, subject: st
     no record number, and an AI agent's brief never carries one.
     """
 
-    if not any(t.single_subject for t in tasks):
+    if not any(t.single_subject and t.subject is None for t in tasks):
         return list(tasks)
     subject = subject or first_subject(source)
-    return [t.model_copy(update={"subject": subject}) if t.single_subject and subject else t for t in tasks]
+    # A task already bound keeps its patient: re-binding in run_benchmark must not
+    # silently swap the patient a caller chose.
+    return [t.model_copy(update={"subject": subject}) if t.single_subject and t.subject is None and subject else t
+            for t in tasks]
 
 
 def necessary_records(task: ExtractionTask, source: HISDataSource) -> int | None:
@@ -713,6 +754,52 @@ def necessary_records(task: ExtractionTask, source: HISDataSource) -> int | None
             continue
         total += sum(1 for _ in source.fetch(item.layer, fields=[key], where=where))
     return total
+
+
+def _fields_present(source: HISDataSource, layer: HISLayer, wanted: set[str], where: dict[str, str]) -> set[str]:
+    """Which of ``wanted`` some record returns; stops once all are seen.
+
+    Counted as the meter counts a pulled field (``extraction.metering``): the key
+    came back, whatever its value -- so the ceiling and a technique's coverage
+    are measured the same way.
+    """
+
+    seen: set[str] = set()
+    if not wanted:
+        return seen
+    for row in source.fetch(layer, fields=sorted(wanted), where=where or None):
+        seen |= {k for k in row if k in wanted}
+        if seen == wanted:
+            break
+    return seen
+
+
+def reachable_fields(task: ExtractionTask, source: HISDataSource) -> tuple[int, int, int]:
+    """For one task: (fields needed, of those the source carries, of those the task can obtain).
+
+    Counted from the source, not from any technique. On a single-patient task
+    a field is obtainable only if that patient's own records carry it: another
+    patient's allergy does not complete this patient's summary, so a technique
+    that finds it by reading everyone's records has not reached a higher
+    ceiling -- it has read records the task did not need.
+    """
+
+    needed = in_source = reachable = 0
+    by_layer: dict[str, set[str]] = {}
+    for layer, name in task.field_refs():
+        by_layer.setdefault(layer, set()).add(name)
+    for layer_value, names in by_layer.items():
+        layer = HISLayer(layer_value)
+        exposed = source.fields(layer)
+        # Ask only for what the source has, when it can say (see HISDataSource.fields).
+        askable = names if exposed is None else names & set(exposed)
+        anywhere = _fields_present(source, layer, askable, {})
+        where = task.subject_filter(layer)
+        own = _fields_present(source, layer, anywhere, where) if where else anywhere
+        needed += len(names)
+        in_source += len(anywhere)
+        reachable += len(own)
+    return needed, in_source, reachable
 
 
 def manifest_structure(run) -> dict[str, Any]:
@@ -794,6 +881,9 @@ def run_benchmark(
     tasks = bind_subject(tasks, source)
     # The record axis's denominator, read once per task outside the meter.
     necessary = {t.task_id: necessary_records(t, source) for t in tasks}
+    # The coverage ceiling, also read once outside the meter: what each task
+    # could obtain from this source, whatever technique ran it.
+    reach = [reachable_fields(t, source) for t in tasks]
 
     started = time.perf_counter()
     scores: list[TechniqueScore] = []
@@ -928,6 +1018,9 @@ def run_benchmark(
         task_details=[_task_detail(t) for t in tasks],
         rule_ids=list(_RULE_IDS),
         scores=scores,
+        coverage_needed=sum(r[0] for r in reach),
+        coverage_in_source=sum(r[1] for r in reach),
+        coverage_reachable=sum(r[2] for r in reach),
         observed_transport=transport,
         audit_log=_display_path(audit.path),
         audit_events=events,
