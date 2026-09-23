@@ -284,7 +284,7 @@ def _pick_patients(source: DatasetHISDataSource) -> list[str]:
     return ([first] if first else []) + [m for _, m in ranked[: PATIENTS - 1]]
 
 
-def trace_section(source, tasks, agent, key: str, values_shown: bool) -> tuple[list[dict], dict]:
+def trace_section(source, tasks, agents, key: str, values_shown: bool) -> tuple[list[dict], dict]:
     pa = HISLayer.PATIENT_ADMINISTRATION
     patients = []
     for mrn in _pick_patients(source):
@@ -299,10 +299,10 @@ def trace_section(source, tasks, agent, key: str, values_shown: bool) -> tuple[l
                 own.update(source.rows_by_file(layer, fields=[k], where={k: mrn}))
         patients.append({"id": mrn, "token": token_for(mrn, key=key), "label": label, "records": own})
 
-    techniques = [("ours", CompliantExtractionTechnique())]
-    if agent is not None:
-        techniques.append(("agent", agent))
-    techniques.append(("baseline", UnconstrainedExtractionTechnique()))
+    # Every AI model at the briefing that hands it the purpose policy, each its own key.
+    techniques = [("ours", CompliantExtractionTechnique()),
+                  *[(f"agent:{agent.short_id}", agent) for agent in agents],
+                  ("baseline", UnconstrainedExtractionTechnique())]
 
     traces: dict[str, dict] = {}
     baseline_cache: dict[str, dict] = {}
@@ -364,8 +364,9 @@ def benchmark_section(result) -> dict:
 
 def retention_section(traces: dict[str, dict], tasks, today: date) -> list[dict]:
     out = []
+    kinds = list(dict.fromkeys(k.split("|")[-1] for k in traces))
     for task in [t for t in tasks if t.single_subject]:
-        for kind in ("ours", "agent", "baseline"):
+        for kind in kinds:
             view = next((v for k, v in traces.items() if k.startswith(f"{task.task_id}|") and k.endswith(f"|{kind}")),
                         None)
             if view is None:
@@ -416,14 +417,14 @@ def build(directory: Path, *, column_map: dict | None = None, file_maps: dict | 
         raise SystemExit("the adapter understood none of the files -- fill the column map first (check_source.py)")
     key = token_for(directory.resolve(), key="dataset-page")        # stable pseudonyms per export
     techniques = default_techniques(TASKS, source)
-    agent = next((t for t in techniques if getattr(t, "briefing", None) == "policy"), None)
+    agents = [t for t in techniques if getattr(t, "briefing", None) == "policy"]
     result = run_benchmark(techniques, TASKS, source, dataset_note=f"dataset {directory.name}",
                            audit=audit_log or AuditLog())
-    patients, traces = trace_section(source, TASKS, agent, key, values_shown)
+    patients, traces = trace_section(source, TASKS, agents, key, values_shown)
     files = files_section(source)
     data = {
         "meta": {"dataset": directory.name, "generated": today.isoformat(), "values_shown": values_shown,
-                 "agent": agent.name if agent else None},
+                 "agents": [{"key": f"agent:{a.short_id}", "name": a.model} for a in agents]},
         "files": files,
         "layers": layers_section(source),
         "gate": gate_section(directory),

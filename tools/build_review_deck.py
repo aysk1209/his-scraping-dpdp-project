@@ -473,8 +473,8 @@ def benchmark_rows() -> tuple[list[list[str]], int, int]:
         cost = sc["cost"]
         name = sc["technique"] + (" *" if fallback else "")
         if sc.get("model"):
-            behaviour = ("A public model decides the pull and the manifest from the job, purpose, field names "
-                         "and -- in this briefing -- the purpose policy itself; recorded and replayed.")
+            behaviour = ("Public model; decides pull and manifest from field names and the purpose policy; "
+                         "recorded, replayed.")
         else:
             behaviour = _BEHAVIOUR.get(sc["short"], "")
         stable = f"  ·  stable {sc['stable_runs']}/{sc['repeat_runs']}" if sc.get("repeat_runs") else ""
@@ -486,6 +486,72 @@ def benchmark_rows() -> tuple[list[list[str]], int, int]:
             behaviour,
         ])
     return rows, len(result.scores), len(data["task_ids"])
+
+
+def agent_findings() -> dict:
+    """Per AI model, from the in-memory benchmark (8 tasks x 5 repeats, every repeat scored).
+
+    Returns {model: {briefing: (traps_resisted, traps, stable_runs, repeat_runs, coverage)}} and
+    ours as ``"_ours"`` -- the numbers the results slide states, so none is typed in twice.
+    """
+
+    import json
+    data = json.loads((ROOT / "docs" / "benchmark_results" / "benchmark.json").read_text(encoding="utf-8"))
+    out: dict = {}
+    for sc in data["scores"]:
+        key = sc.get("model") or ("_ours" if sc["short"] == "compliance-aware" else None)
+        if key is None:
+            continue
+        out.setdefault(key, {})[sc.get("briefing") or "rules"] = (
+            sc["traps_resisted"], sc["traps"], sc["stable_runs"], sc["repeat_runs"], sc["cost"]["coverage"])
+        out[key]["_repeats"] = max(out[key].get("_repeats", 0), sc.get("repeats", 1))
+    return out
+
+
+def agent_models() -> list[str]:
+    """The AI models with a complete recording in the in-memory benchmark."""
+
+    return sorted(k for k in agent_findings() if k != "_ours")
+
+
+def _repeats_phrase(f: dict) -> str:
+    """'8 tasks × 5 repeats' -- or, where models have fewer recordings, which have how many."""
+
+    most = f["_ours"]["_repeats"]
+    fewer = sorted({m: by["_repeats"] for m, by in f.items() if m != "_ours" and by["_repeats"] < most}.items())
+    if not fewer:
+        return f"8 tasks × {most} repeats"
+    counts = sorted({n for _, n in fewer})
+    names = " and ".join(m for m, _ in fewer)
+    return f"8 tasks × {most} repeats, {'/'.join(map(str, counts))} for {names}"
+
+
+def agent_paragraph() -> str:
+    """The results slide's AI-agent sentence, composed from ``agent_findings``."""
+
+    f = agent_findings()
+    repeats = _repeats_phrase(f)
+    ours = f.pop("_ours")["rules"]
+    parts = []
+    for model, by in sorted(f.items()):
+        if "policy" not in by:
+            continue
+        tr, t, st, rr, cov = by["policy"]
+        others = [(b, by[b][0], by[b][1]) for b in ("unaided", "informed") if b in by]
+        if others:
+            lo, hi = min(o[1] for o in others), max(o[1] for o in others)
+            label = "unaided or told the Act" if len(others) > 1 else "unaided"
+            other = f" ({lo if lo == hi else f'{lo}–{hi}'} of {others[0][2]} {label})"
+        else:
+            other = ""
+        parts.append(f"{model} held {tr} of {t} trap runs{other}, did {cov:.0%} of the job and reproduced its "
+                     f"first decision in {st} of {rr} repeats")
+    return ("The AI agents are real public models, briefed with field names — never a value — and, in the row shown, "
+            f"handed the purpose policy itself. In memory ({repeats}; every repeat scored): "
+            + "; ".join(parts)
+            + f". Ours held {ours[0]} of {ours[1]} and reproduced itself in {ours[2]} of {ours[3]} — it reads "
+              "the policy, not the prose, and repeats itself. Per-rule columns and the full model × briefing grid: "
+              "docs/benchmark_results/.")
 
 
 def test_count() -> int:
@@ -572,7 +638,8 @@ def build() -> Path:
             "Processing time, as asked: a cost profile per technique — fields pulled, fetches, real browser page "
             "loads, excess ratio, coverage, wall-clock (deterministic metrics lead; wall-clock is hardware-dependent) — "
             "and a record axis: a task about one patient is scored on the records read, not only the fields.",
-            "The comparison is now ours against a publicly available AI agent (Gemini), briefed with the job, the "
+            f"The comparison is now ours against publicly available AI models ({', '.join(agent_models())}), "
+            "briefed with the job, the "
             "purpose, the field names — never a value — and what the deployment provides; unaided, told the Act, and "
             "handed the purpose policy itself; "
             "decisions recorded, replayed, and repeated so determinism is a measured column — every repeat scored. "
@@ -669,13 +736,7 @@ def build() -> Path:
     add_text(res, 0.7, 5.15, 11.9, 1.7, [
         "Reading the table. The baseline loads about five times the pages for the same coverage; its surplus is "
         "exactly the overreach DM-01 penalises, so compliance and cost move together rather than trading off.",
-        "The AI agent is a real public model, briefed with field names — never a value — and handed the purpose "
-        "policy itself; it cites the register correctly, so the gap is not paperwork. It obeys the policy's numbers "
-        "(retention at the ceiling, no onward use) and not its categories: told to reconcile an invoice against the "
-        "diagnosis it takes the diagnosis in every run. In memory (8 tasks × 5 repeats, every repeat scored): traps "
-        "held 10 of 20 runs against our 20 of 20 (0 of 20 unaided or told the Act); 67–74% of the job done; its first "
-        "decision reproduced in 18–21 of 32 repeats, ours 32 of 32. Ours reads the policy, not the prose, and repeats "
-        "itself. Per-rule columns and the full model × briefing grid: docs/benchmark_results/.",
+        agent_paragraph(),
     ], size=12)
 
     # ---- slide 9 (index 9): Results (contd.) — purpose matrix + export audit ----
@@ -786,12 +847,14 @@ def build() -> Path:
                 "before a row was read.",
             ]
         add_text(res4, 0.7, 1.35, 11.9, 1.3, intro, size=11.5)
-        add_table(res4, 0.6, 2.75, 12.13, 0.4 + 0.42 * len(rows_ds), [
+        # Rows tighten as models are added, so the paragraph below keeps clear of the source line.
+        rh = 0.42 if len(rows_ds) <= 3 else 0.33
+        add_table(res4, 0.6, 2.75, 12.13, 0.4 + rh * len(rows_ds), [
             ["Technique (at 'told the policy')", "Compliance", "Coverage", "Excess", "Records read ÷ needed", "Traps held"],
             *rows_ds,
-        ], [4.3, 2.0, 1.2, 1.2, 2.0, 1.43], body_size=11)
-        add_text(res4, 0.7, 3.3 + 0.42 * len(rows_ds), 11.9, 1.8, after, size=11.5)
-        add_text(res4, 0.7, 6.3, 11.9, 0.4,
+        ], [4.3, 2.0, 1.2, 1.2, 2.0, 1.43], body_size=11 if len(rows_ds) <= 3 else 10.5)
+        add_text(res4, 0.7, 3.3 + rh * len(rows_ds), 11.9, 1.8, after, size=11.5 if len(rows_ds) <= 3 else 11)
+        add_text(res4, 0.7, 6.75, 11.9, 0.4,
                  [f"benchmark-dataset.json, generated {date_ds}; four tasks; the baseline's records-read column is every "
                   f"patient's records for one patient's task."], size=10, color=GREY)
         n_inserted = 4
@@ -809,10 +872,11 @@ def build() -> Path:
             "transport, harness-written audit log, retention sidecar), not against the declaration; and the real-data "
             "procedure was rehearsed on a hospital-shaped export before any real data existed (four defects found), then run "
             "on a public export we had never seen (five more) — each fixed and pinned by a test.",
-            "Public models on free tiers — the recorder is paced, budgeted per day and breadth-first, and a model enters "
-            "the tables after one pass; the flagship of the family still served only one or two calls a day in practice, "
-            "so it was dropped rather than paid for. The model never sees a patient value, so the recordings replay on "
-            "the real data unchanged.",
+            "Public models without paying — the recorder is paced, budgeted per day and breadth-first, and a model enters "
+            "the tables after one pass; a free-tier flagship served only one or two calls a day, so it was dropped; the "
+            "Claude models were recorded through a subscription's command line (headless, our brief as the whole system "
+            "prompt, no tools, effort pinned), no API credit spent. The model never sees a patient value, so the "
+            "recordings replay on the real data unchanged.",
         ]),
         ("Remaining work (ledger at 98%, PLAN.md §5):", [
             "The hospital dataset, expected before this review: one column map, the same pipeline; its results slide is "

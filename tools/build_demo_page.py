@@ -34,11 +34,11 @@ from extraction.adapters.mock_his import MockHISDataSource               # noqa:
 from extraction.techniques.ai_agent import (  # noqa: E402
     AIAgentTechnique, BRIEFING_LABELS, BRIEFINGS, model_slug, recorded_models,
 )
+from extraction.techniques.ai_providers import PROVIDERS            # noqa: E402
 from run_benchmark import TASKS                                          # noqa: E402
 
 PAGE = ROOT / "docs" / "benchmark_results" / "rules-vs-just-ai.html"
 RESULTS = ROOT / "docs" / "benchmark_results"
-PROVIDER = "gemini"
 _BLOCK = re.compile(r'(<script id="data" type="application/json">)(.*?)(</script>)', re.S)
 
 
@@ -46,23 +46,32 @@ def _score_fields(technique_short: str, scores: list[dict]) -> dict:
     return next(s for s in scores if s["short"] == technique_short)
 
 
+def _short_model(model: str) -> str:
+    """'gemini-3.1-flash-lite' -> '3.1-flash-lite'; 'claude-haiku-4-5' -> 'haiku-4-5'."""
+
+    for family in ("gemini-", "claude-", "gpt-"):
+        if model.startswith(family):
+            return model[len(family):]
+    return model
+
+
 def _agents() -> list[dict]:
-    """Every recorded model x briefing, in table order: model, then briefing order."""
+    """Every recorded provider x model x briefing, in table order: model, then briefing order."""
 
     out: list[dict] = []
-    for model in sorted({m for b in BRIEFINGS for m in recorded_models(PROVIDER, b)}):
-        for briefing in BRIEFINGS:
-            if model in recorded_models(PROVIDER, briefing):
-                short = model.replace(f"{PROVIDER}-", "", 1)
-                out.append({"k": f"{model_slug(model)}-{briefing}", "model": model, "briefing": briefing,
-                            "name": f"{short}, {BRIEFING_LABELS[briefing]}"})
+    for provider in PROVIDERS:
+        for model in sorted({m for b in BRIEFINGS for m in recorded_models(provider, b)}):
+            for briefing in BRIEFINGS:
+                if model in recorded_models(provider, briefing):
+                    out.append({"k": f"{model_slug(model)}-{briefing}", "provider": provider, "model": model,
+                                "briefing": briefing, "name": f"{_short_model(model)}, {BRIEFING_LABELS[briefing]}"})
     return out
 
 
-def _runs_for(task, model: str, briefing: str, source) -> list[dict]:
+def _runs_for(task, provider: str, model: str, briefing: str, source) -> list[dict]:
     """Every recorded decision for the task, replayed and scored; [] if stale or incomplete."""
 
-    tech = AIAgentTechnique(PROVIDER, briefing=briefing, mode="replay", model=model)
+    tech = AIAgentTechnique(provider, briefing=briefing, mode="replay", model=model)
     if tech.stale_tasks(source, [task]) or not tech.has_recording(task.task_id):
         return []
     out: list[dict] = []
@@ -107,7 +116,7 @@ def build_data() -> dict:
             "needed": sorted(f"{layer}/{name}" for layer, name in task.field_refs()),
             "allowed": sorted(c.value for c in policy.allowed_categories),
             "ceiling": policy.max_retention_days,
-            "runs": {a["k"]: _runs_for(task, a["model"], a["briefing"], source) for a in agents},
+            "runs": {a["k"]: _runs_for(task, a["provider"], a["model"], a["briefing"], source) for a in agents},
         }
 
     catalogue = {layer.value: {name: cat.value for name, cat in fields.items()}
@@ -122,6 +131,9 @@ def build_data() -> dict:
         "meta": {
             "generated": memory["generated_at"][:10],
             "repeats": memory["scores"][0].get("repeats", 1),
+            # A model is repeated at most as often as it has recordings: say so per model.
+            "repeats_by_model": {m: max(s.get("repeats", 1) for s in memory["scores"] if s.get("model") == m)
+                                 for m in {s["model"] for s in memory["scores"] if s.get("model")}},
             "tasks": len(memory["task_ids"]),
             "models": sorted({a["model"] for a in agents}),
             "briefings": [BRIEFING_LABELS[b] for b in BRIEFINGS if any(a["briefing"] == b for a in agents)],

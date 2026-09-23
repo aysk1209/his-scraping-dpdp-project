@@ -56,7 +56,7 @@ from compliance.veracity import verify
 from extraction.adapters.mock_his import MockHISDataSource
 from extraction.techniques.ai_agent import RECORDINGS_DIR, BRIEFINGS, AIAgentTechnique
 from extraction.techniques.ai_providers import (
-    PROVIDERS, ProviderUnavailable, key_available, list_models, model_for,
+    EXPLICIT_ONLY, PROVIDERS, ProviderUnavailable, key_available, list_models, model_for,
 )
 from run_benchmark import TASKS
 
@@ -152,6 +152,9 @@ class DailyCapReached(ProviderUnavailable):
 MODEL_LIMITS: dict[str, tuple[int, int]] = {
     "gemini-3.8-flash": (5, 20),
     "gemini-3.1-flash-lite": (15, 500),
+    # Through a Claude subscription (claude-code): gentle pacing, inside a usage window.
+    "claude-haiku-4-5": (6, 200),
+    "claude-sonnet-5": (6, 200),
 }
 DEFAULT_LIMITS = (5, 50)
 QUOTA_LEDGER = RECORDINGS_DIR / ".quota.json"
@@ -247,7 +250,8 @@ def main() -> None:
                         help="fixed seconds between calls, overriding the pacing derived from --rpm")
     args = parser.parse_args()
 
-    providers = args.provider or [p for p in PROVIDERS if key_available(p)]
+    # A subscription-backed provider is used only when named (--provider claude-code).
+    providers = args.provider or [p for p in PROVIDERS if p not in EXPLICIT_ONLY and key_available(p)]
     briefings = args.briefing or list(BRIEFINGS)
     if not providers:
         sys.exit("No provider key found. Set ANTHROPIC_API_KEY, OPENAI_API_KEY or GEMINI_API_KEY.")

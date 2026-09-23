@@ -1,0 +1,366 @@
+{
+  "provider": "claude-code",
+  "briefing": "unaided",
+  "tasks": {
+    "consultant-file": {
+      "samples": [
+        {
+          "fields": [
+            "clinical_ehr/mrn",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/allergy"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 365,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": true,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Pulled only current diagnosis and allergy fields (plus MRN for linkage) for the single named patient to support consultant care coordination, under the LU-CARE legitimate-use basis already covering provision of medical services; retained 365 days per consultant request with scheduled audited purge (PURGE-01), and standard TLS/at-rest encryption, RBAC, export pseudonymisation, audit logging, and DPO-maintained ROPA apply per deployment controls."
+        },
+        {
+          "fields": [
+            "clinical_ehr/mrn",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/allergy"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 365,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Pulled only the current diagnosis and allergy fields (plus MRN as the linking key) scoped to the single named patient, matching the consultant's care-coordination need; identifiers are kept intact (not pseudonymised) since direct clinical care requires patient identification, and the 1-year retention aligns with the requested on-file period under the existing legitimate-use basis for provision of medical services (LU-CARE), with the deployment's standard TLS/at-rest encryption, RBAC, audited scheduled purge, and ROPA/DPO oversight applied."
+        }
+      ],
+      "fingerprint": "5100500934f2ac48",
+      "recorded_at": "2026-09-23T12:54:20.136968+00:00"
+    },
+    "patient-summary": {
+      "samples": [
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/date_of_birth",
+            "patient_administration/sex",
+            "patient_administration/admission_ward",
+            "patient_administration/admission_datetime",
+            "clinical_ehr/mrn",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/medication",
+            "clinical_ehr/lab_result",
+            "clinical_ehr/allergy",
+            "clinical_ehr/encounter_datetime",
+            "clinical_ehr/attending_clinician",
+            "ancillary_departmental/mrn",
+            "ancillary_departmental/order_id",
+            "ancillary_departmental/specimen_type",
+            "ancillary_departmental/result_value",
+            "ancillary_departmental/imaging_modality",
+            "ancillary_departmental/report_text"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 30,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Pulled only this patient's identifying, encounter, diagnosis, medication, allergy, lab and imaging data (scope=subject) needed to compile a clinical summary for the care team; excluded billing/financial fields and infrastructure audit fields as out of scope for this clinical purpose. Identifiers are kept intact (not pseudonymised) since the care team requires patient identification for coordination; TLS, at-rest encryption, RBAC, scheduled audited purge (PURGE-01), the registration-time notice (NOTICE-REG-2026, machine-readable, covering provision of medical services), audit logging (AUDIT-LOG) and DPO-maintained ROPA all apply under the LU-CARE legitimate-use basis."
+        },
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/date_of_birth",
+            "patient_administration/sex",
+            "patient_administration/admission_ward",
+            "patient_administration/admission_datetime",
+            "clinical_ehr/mrn",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/medication",
+            "clinical_ehr/lab_result",
+            "clinical_ehr/allergy",
+            "clinical_ehr/encounter_datetime",
+            "clinical_ehr/attending_clinician",
+            "ancillary_departmental/mrn",
+            "ancillary_departmental/order_id",
+            "ancillary_departmental/specimen_type",
+            "ancillary_departmental/result_value",
+            "ancillary_departmental/imaging_modality",
+            "ancillary_departmental/report_text"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 30,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Pulled only this patient's (scope=subject) demographic, encounter, diagnosis, medication, allergy, lab and imaging fields needed to compile a clinical summary for the care team; identifiers are kept intact (not pseudonymised) since direct patient care requires unambiguous identification, and no billing/financial or infrastructure audit fields were included as they are irrelevant to this clinical purpose. Processing rests on the on-record legitimate-use basis LU-CARE (provision of medical services), covered by the acknowledged registration notice NOTICE-REG-2026, with TLS transport, at-rest encryption (ENC-REST), RBAC on the extracted store (ACL-STORE), full audit logging (AUDIT-LOG), a scheduled audited purge (PURGE-01) after a short 30-day retention, and oversight/record-keeping by the DPO under the ROPA."
+        }
+      ],
+      "fingerprint": "6c64406cb2f97f14",
+      "recorded_at": "2026-09-23T12:54:48.765597+00:00"
+    },
+    "ward-census": {
+      "samples": [
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/admission_ward",
+            "patient_administration/admission_datetime",
+            "clinical_ehr/encounter_datetime"
+          ],
+          "scope": "all",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 7,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "A current, hospital-wide ward census with last-seen timestamps requires direct identifiers (MRN, name) and location/time fields for every currently admitted patient, so scope is 'all' rather than a single subject; identifiers are kept unpseudonymised because care coordination staff need to recognize patients directly. This falls under the legitimate-use basis for provision of medical services (LU-CARE), covered by the existing registration privacy notice, with standard technical safeguards (TLS, encryption at rest, RBAC), audited extraction, a short retention window given the operational/transient nature of a census list, and scheduled purge per PURGE-01."
+        }
+      ],
+      "fingerprint": "d1539648544dc4af",
+      "recorded_at": "2026-09-23T12:51:21.255187+00:00"
+    },
+    "medication-review": {
+      "samples": [
+        {
+          "fields": [
+            "clinical_ehr/mrn",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/medication",
+            "clinical_ehr/allergy",
+            "clinical_ehr/encounter_datetime"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 30,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": true,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Only the clinical_ehr fields needed to cross-check the named patient's current medication against her diagnosis and allergies are pulled, scoped to her MRN alone under the existing care-coordination legitimate-use basis, with standard transport/at-rest encryption, access control, export pseudonymisation, scheduled purge, and audit logging per the deployment's controls."
+        }
+      ],
+      "fingerprint": "94b7571802d8898c",
+      "recorded_at": "2026-09-23T12:51:47.226754+00:00"
+    },
+    "appointment-reminder": {
+      "samples": [
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/phone",
+            "patient_administration/email",
+            "patient_administration/admission_datetime"
+          ],
+          "scope": "all",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-REG",
+          "retention_days": 30,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Fetching only the minimal contact and scheduling fields (mrn, name, phone, email, admission_datetime as the scheduled encounter time) needed to notify patients of upcoming appointments, under the registration/scheduling legitimate-use basis (LU-REG); direct identifiers are kept unpseudonymised because contact details are operationally required to deliver the reminder, with TLS/ENC-REST/ACL-STORE protections, PURGE-01 deletion after the short reminder-purpose window, and AUDIT-LOG/ROPA oversight by the DPO."
+        }
+      ],
+      "fingerprint": "8a3deeb414599fdd",
+      "recorded_at": "2026-09-23T12:52:13.204433+00:00"
+    },
+    "claim-reconciliation": {
+      "samples": [
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "administrative_financial/mrn",
+            "administrative_financial/invoice_id",
+            "administrative_financial/billed_amount",
+            "administrative_financial/insurance_policy_no",
+            "administrative_financial/payer_name",
+            "clinical_ehr/mrn",
+            "clinical_ehr/primary_diagnosis"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-BILL",
+          "retention_days": 90,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": true,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Only the MRN (linking key), invoice/payer/billed-amount fields, and primary diagnosis are needed to reconcile the outstanding invoice with the payer and justify charges against the diagnosis, restricted to this one patient's records; broader demographic or clinical detail is not necessary for this billing-settlement purpose."
+        }
+      ],
+      "fingerprint": "6fffe17d3289256b",
+      "recorded_at": "2026-09-23T12:52:42.255984+00:00"
+    },
+    "desk-registration": {
+      "samples": [
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/phone",
+            "patient_administration/email",
+            "patient_administration/street_address",
+            "patient_administration/date_of_birth",
+            "patient_administration/sex",
+            "patient_administration/pincode",
+            "administrative_financial/mrn",
+            "administrative_financial/insurance_policy_no",
+            "administrative_financial/payer_name"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [
+            "billing_settlement"
+          ],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-REG",
+          "retention_days": 30,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Front-desk registration of a single walk-in patient needs only patient_administration demographic fields to create/identify the record, plus administrative_financial insurance fields to capture policy number and payer for later coverage verification/billing; no clinical, ancillary, or infrastructure fields are needed and the pull is restricted to this one patient's records (scope=subject). Identifiers are kept intact (not pseudonymised) since front-desk staff need to directly identify the patient during in-person registration, and the extracted data will be purged once the registration/verification task is complete per PURGE-01."
+        }
+      ],
+      "fingerprint": "395d284845d06c7e",
+      "recorded_at": "2026-09-23T12:53:16.266543+00:00"
+    },
+    "ward-summary-registry": {
+      "samples": [
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/admission_ward",
+            "clinical_ehr/mrn",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/medication",
+            "clinical_ehr/encounter_datetime",
+            "clinical_ehr/attending_clinician"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [
+            "department_research_registry_copy"
+          ],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 30,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": true,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Only the named patient's diagnosis, medication and minimal identifying/encounter fields needed for the ward round summary are pulled (scope=subject), using the care-coordination legitimate-use basis (LU-CARE) covered by the registration notice (NOTICE-REG-2026). The requested 'copy for the department's research registry' is flagged as a distinct secondary use that has no lawful basis or notice coverage on record for research purposes, so it is not treated as separately authorised here; the extracted copy is pseudonymised on export (PSEUDO-EXPORT) and subject to the same 30-day care-coordination purge (PURGE-01) rather than indefinite research retention, pending a proper research authorisation. Standard controls apply: TLS in transit, encryption at rest, RBAC on the store, full audit logging of the run, DPO accountability, and inclusion in the ROPA."
+        }
+      ],
+      "fingerprint": "e13e7dad598827d6",
+      "recorded_at": "2026-09-23T12:53:55.090497+00:00"
+    }
+  },
+  "model": "claude-sonnet-5",
+  "sampling": "Claude Code headless (claude -p) on a subscription sign-in; our system prompt replaces Claude Code's; no tools, no MCP servers, no skills; run from an empty directory; effort high (pinned); no temperature or seed set"
+}

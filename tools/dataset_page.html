@@ -150,6 +150,7 @@
     <div class="card controls">
       <div class="row"><span class="lab">Task</span><div class="seg" id="taskseg"></div><span class="muted" id="taskdesc"></span></div>
       <div class="row"><span class="lab">Patient</span><div class="row" id="patients" style="gap:8px"></div></div>
+      <div class="row" id="agentrow"><span class="lab">AI agent</span><div class="seg" id="agentseg"></div><span class="muted">each handed the purpose policy</span></div>
     </div>
     <div class="who" id="who"></div>
     <div class="card">
@@ -206,9 +207,13 @@
   const pct = (n) => (n === null || n === undefined) ? "–" : Math.round(n * 100) + "%";
   const LAYERS = Object.keys(D.layer_labels);
   const lcol = (l) => `var(--l${Math.max(0, LAYERS.indexOf(l))})`;
-  const KIND = { ours: "Ours — reads the purpose policy", agent: "AI agent — told the policy", baseline: "Baseline — takes everything" };
-  const KSHORT = { ours: "Ours", agent: "AI agent", baseline: "Baseline" };
-  const kcol = (k) => `var(--${k === "baseline" ? "base" : k})`;
+  const AGENTS = D.meta.agents || [];
+  const base = (k) => (k && k.startsWith("agent") ? "agent" : k);
+  const agentName = (k) => (AGENTS.find((a) => a.key === k) || {}).name || "AI agent";
+  const KIND = (k) => ({ ours: "Ours — reads the purpose policy", baseline: "Baseline — takes everything" }[k]
+    || `AI agent — ${agentName(k)}, told the policy`);
+  const KSHORT = (k) => ({ ours: "Ours", baseline: "Baseline" }[k] || agentName(k));
+  const kcol = (k) => `var(--${base(k) === "baseline" ? "base" : base(k)})`;
   const TASKLABEL = (id) => id.replace(/-/g, " ");
 
   /* ------------------------------------------------------------- header */
@@ -312,7 +317,8 @@
 
   /* ------------------------------------------------------------- 3 one patient */
   const single = D.tasks.filter((t) => t.single);
-  const kinds = ["ours", "agent", "baseline"].filter((k) => Object.keys(D.traces).some((x) => x.endsWith("|" + k)));
+  let AG = AGENTS[0] ? AGENTS[0].key : null;
+  const kindsNow = () => ["ours", AG, "baseline"].filter((k) => k && Object.keys(D.traces).some((x) => x.endsWith("|" + k)));
   let T = single[0]?.id, P = D.patients[0]?.token, OT = "ours", FMT = "hl7";
   $("lead-3").innerHTML = `Pick a job and a patient. The same request goes to three techniques: <b>ours</b>, a real public <b>AI agent</b> handed the purpose policy, and the <b>baseline</b> most systems amount to. `
     + `Each is scored by the harness exactly as in the benchmark — including how many records it read to answer for one patient.`;
@@ -326,7 +332,14 @@
       return `<button class="chip-btn" aria-pressed="${p.token === P}" data-p="${esc(p.token)}"><span class="tk">${esc(p.token)}</span><span class="sm">${i === 0 ? "the benchmark's patient · " : ""}${esc(p.label)}${p.label ? " · " : ""}${num(own)} records in the export</span></button>`;
     }).join("");
     $("patients").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { P = b.dataset.p; paint3(); }));
-    $("outtech").innerHTML = kinds.map((k) => `<button aria-pressed="${k === OT}" data-k="${k}">${KSHORT[k]}</button>`).join("");
+    if (AGENTS.length > 1) {
+      $("agentseg").innerHTML = AGENTS.map((a) => `<button aria-pressed="${a.key === AG}" data-a="${esc(a.key)}">${esc(a.name)}</button>`).join("");
+      $("agentseg").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
+        if (OT === AG) OT = b.dataset.a;
+        AG = b.dataset.a; paint3(); if (typeof paint5 === "function") paint5();
+      }));
+    } else { $("agentrow").hidden = true; }
+    $("outtech").innerHTML = kindsNow().map((k) => `<button aria-pressed="${k === OT}" data-k="${k}">${esc(KSHORT(k))}</button>`).join("");
     $("outtech").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { OT = b.dataset.k; paint3(); }));
     $("outfmt").innerHTML = [["hl7", "HL7 v2"], ["fhir", "FHIR"]].map(([k, l]) => `<button aria-pressed="${k === FMT}" data-k="${k}">${l}</button>`).join("");
     $("outfmt").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { FMT = b.dataset.k; paint3(); }));
@@ -351,7 +364,7 @@
     const rules = v.rules.map((r) => `<span class="rule ${esc(r.status)}" title="${esc(r.title)}: ${esc(r.status)}${r.finding ? " — " + esc(r.finding) : ""}">${esc(r.id)}</span>`).join("");
     const ex = v.export, clean = ex.leaked === 0;
     const x = v.record_excess;
-    return `<div class="card tech ${k}"><div class="head"><span class="name">${esc(KIND[k])}</span></div>`
+    return `<div class="card tech ${base(k)}"><div class="head"><span class="name">${esc(KIND(k))}</span></div>`
       + `<div class="score" style="color:${kcol(k)}">${f2(v.score)}</div><div class="muted">compliance score on this task</div>`
       + `<dl class="kv"><dt>read</dt><dd><b>${num(v.records)}</b> records</dd><dt></dt><dd class="muted">${readNote(v)}</dd></dl>`
       + `<div class="readbar"><i style="width:${w}%;background:${kcol(k)}"></i></div>`
@@ -370,14 +383,14 @@
   }
   function paint3() {
     segs();
-    const vs = kinds.map((k) => [k, D.traces[`${T}|${P}|${k}`]]).filter(([, v]) => v);
+    const vs = kindsNow().map((k) => [k, D.traces[`${T}|${P}|${k}`]]).filter(([, v]) => v);
     const maxRead = Math.max(...vs.map(([, v]) => v.records), 1);
     $("who").innerHTML = vs.map(([k, v]) => techCard(k, v, maxRead)).join("");
     const v = D.traces[`${T}|${P}|${OT}`];
     if (!v) { $("outcode").textContent = ""; return; }
     const items = v.export[FMT];
     const total = FMT === "hl7" ? v.export.counts.hl7_messages : v.export.counts.fhir_resources;
-    $("outnote").innerHTML = `${KSHORT[OT]}: showing ${items.length} of ${num(total)} ${FMT === "hl7" ? "HL7 v2 messages" : "FHIR resources"} it exported. ${esc(v.export.audit)}.`
+    $("outnote").innerHTML = `${esc(KSHORT(OT))}: showing ${items.length} of ${num(total)} ${FMT === "hl7" ? "HL7 v2 messages" : "FHIR resources"} it exported. ${esc(v.export.audit)}.`
       + (OT === "baseline" ? ` <b>These are other patients' records</b> — it read everyone to answer for one.` : "");
     $("outcode").innerHTML = items.length ? items.map((it) => `<span class="hid">── ${esc(D.layer_labels[it.layer] || it.layer)} ──</span>\n${hilite(it.text)}`).join("\n\n") : '<span class="hid">nothing exported</span>';
     $("hidnote").textContent = m.values_shown ? "" : "▒▒ value hidden: this is a real export, so only its shape is shown";
@@ -414,7 +427,7 @@
   const today = Date.UTC(gy, gm - 1, gd);
   let RT = single[0] && single[0].id;
   function paint5() {
-    const ret = D.retention.filter((r) => r.task === RT);
+    const ret = D.retention.filter((r) => r.task === RT && kindsNow().includes(r.kind));
     $("days").max = String(Math.max(60, ...D.retention.filter((r) => r.task === RT).map((r) => (r.days || 0) + 30)));
     $("retseg").innerHTML = single.map((t) => `<button aria-pressed="${t.id === RT}" data-t="${esc(t.id)}">${esc(TASKLABEL(t.id))}</button>`).join("");
     $("retseg").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { RT = b.dataset.t; paint5(); }));
@@ -427,7 +440,7 @@
       const files = r.files.map((f) => `<div class="file${gone ? " gone" : ""}"><span>${esc(f)}</span><span>${gone ? "erased" : "kept"}</span></div>`).join("");
       const life = r.days ? `kept <b>${r.days} days</b> (the purpose allows ${r.ceiling}) — erase on or after <b class="mono">${esc(r.erase_after)}</b>` : `<span class="kept-forever">no retention declared — it can never be scheduled for erasure</span>`;
       const log = gone ? `purge  ${esc(r.run_id)}  ${r.files.length} file(s) erased  ${esc(r.mechanism || "")}` : "";
-      return `<div class="card tech ${r.kind}"><div class="name">${esc(KIND[r.kind])}</div><div class="muted" style="margin:4px 0 8px">${life}</div>${files}<div class="log">${log}</div></div>`;
+      return `<div class="card tech ${base(r.kind)}"><div class="name">${esc(KIND(r.kind))}</div><div class="muted" style="margin:4px 0 8px">${life}</div>${files}<div class="log">${log}</div></div>`;
     }).join("");
   }
   $("days").addEventListener("input", paint5);
