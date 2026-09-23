@@ -61,7 +61,7 @@ from compliance.benchmark import bind_subject, run_benchmark
 from compliance.retention import purge_expired, schedules
 from compliance.models import Purpose
 from compliance.purpose_matrix import score_across_purposes
-from extraction.adapters.dataset_his import DatasetHISDataSource
+from extraction.adapters.dataset_his import DatasetHISDataSource, load_column_map
 from extraction.adapters.mock_his import MockHISDataSource
 from extraction.adapters.portal_his import PortalHISDataSource
 from extraction.technique import ExtractionTask, LayerFields
@@ -135,6 +135,8 @@ def stage(n: int, title: str) -> None:
 
 
 def _load_map(path: str | None) -> dict[str, str]:
+    """Portal field aliases. Column maps for --dataset use ``load_column_map``."""
+
     if not path:
         return {}
     import json
@@ -142,14 +144,23 @@ def _load_map(path: str | None) -> dict[str, str]:
     return {k: v for k, v in data.get("map", data).items() if v}
 
 
-def _load_file_maps(path: str | None) -> dict[str, dict[str, str]]:
-    """Per-file overrides: ``{"files": {"audit_trail.csv": {"Patient ID": "subject_mrn"}}}``."""
+def dataset_shortfall(source: DatasetHISDataSource, tasks: list[ExtractionTask]) -> str | None:
+    """Why the benchmark cannot be run on this export, or None when it can.
 
-    if not path:
-        return {}
-    import json
-    data = json.loads(Path(path).read_text(encoding="utf-8"))
-    return {f: {k: v for k, v in m.items() if v} for f, m in data.get("files", {}).items()}
+    Rules score an empty pull as compliant: pulling nothing breaks no rule. On
+    an export the adapter understood none of, every technique would score
+    perfectly on nothing and the headline would report a gap measured on no
+    data. So the pipeline stops, and says what to fix, instead.
+    """
+
+    if not source.layers():
+        return "the adapter understood none of the files"
+    needed = {(lf.layer, f) for t in tasks for lf in t.needed for f in lf.fields}
+    carried = {(layer, f) for layer, f in needed if f in source.fields(layer)}
+    if not carried:
+        return (f"the files it understood carry none of the {len(needed)} fields the tasks need "
+                f"({', '.join(sorted({f for _, f in needed}))})")
+    return None
 
 
 def run_downstream(scraper, pages: dict[str, str], dataset_note: str) -> None:
@@ -245,7 +256,7 @@ def run_downstream(scraper, pages: dict[str, str], dataset_note: str) -> None:
             print("  the export declared no retention, so nothing can be scheduled -- which the sidecar records")
 
 
-def main() -> None:
+def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--records", type=int, default=20)
     parser.add_argument("--seed", type=int, default=42)
@@ -265,11 +276,17 @@ def main() -> None:
 
     if args.dataset:
         stage(1, "DATASET -- an exported hospital dataset, handling checks enforced")
-        scraper = DatasetHISDataSource(args.dataset, column_map=_load_map(args.column_map),
-                                       file_maps=_load_file_maps(args.column_map))
+        column_map, file_maps = load_column_map(args.column_map)
+        scraper = DatasetHISDataSource(args.dataset, column_map=column_map, file_maps=file_maps)
         print(f"  {args.dataset}")
         stage(2, "UNDERSTAND -- what the adapter made of the files")
         print(scraper.describe())
+        shortfall = dataset_shortfall(scraper, TASKS)
+        if shortfall:
+            print()
+            print(f"  STOPPED: {shortfall}. Nothing was benchmarked and nothing was written.")
+            print(f"  Run scripts/check_source.py {args.dataset} --write-map <file>, fill the map, and re-run.")
+            return 2
         run_downstream(scraper, {}, f"dataset {args.dataset}")
 
     elif args.portal:
@@ -319,7 +336,8 @@ def main() -> None:
         f"identifiers pseudonymised, audited and scheduled for erasure, one pull judged\n"
         f"under three purposes, and an assistant whose refusals come from the same policy table."
     )
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

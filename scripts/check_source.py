@@ -34,22 +34,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import _present as present
 from compliance.handling import check_handling
-from data_synthetic.catalogue import FIELD_CATALOGUE, infer_layer
+from data_synthetic.catalogue import FIELD_CATALOGUE, SUBJECT_KEY
+from extraction.adapters.dataset_his import READABLE, load_column_map, normalise_dates, read_columns, read_table
 from interop.layers import HISLayer
 
 
 def _load_map(path: str | None) -> dict[str, str]:
+    """Portal field aliases (blanks are "not yet mapped"). Column maps use ``load_column_map``."""
+
     if not path:
         return {}
     data = json.loads(Path(path).read_text(encoding="utf-8"))
-    return {k: v for k, v in data.get("map", data).items() if v}   # blanks are "not yet mapped"
-
-
-def _load_file_maps(path: str | None) -> dict[str, dict[str, str]]:
-    if not path:
-        return {}
-    data = json.loads(Path(path).read_text(encoding="utf-8"))
-    return {f: {k: v for k, v in m.items() if v} for f, m in data.get("files", {}).items()}
+    return {k: v for k, v in data.get("map", data).items() if v}
 
 
 def _write_template(path: Path, unmatched: list[str], existing: dict[str, str], kind: str,
@@ -95,44 +91,53 @@ def check_directory(directory: Path, column_map: dict[str, str], write_map: Path
         print("\n  Not reading anything until the checks pass.")
         return 2
 
-    import pandas as pd
-    readers = {".csv": pd.read_csv, ".xlsx": pd.read_excel, ".xls": pd.read_excel}
     all_unmatched: list[str] = []
     print()
-    files = sorted(p for p in directory.iterdir() if p.suffix.lower() in readers)
+    files = sorted(p for p in directory.iterdir() if p.suffix.lower() in READABLE)
     if not files:
         print("  no CSV / Excel files found")
         return 1
-    from data_synthetic.catalogue import SUBJECT_KEY
-    from extraction.adapters.dataset_his import normalise_dates
     suggestions: dict[str, dict[str, str]] = {}
+    readable = 0
     for path in files:
-        frame = readers[path.suffix.lower()](path, nrows=200)
+        frame = read_table(path, nrows=200)
         headers = [str(c) for c in frame.columns]
         this_map = {**column_map, **file_maps.get(path.name, {})}
-        mapped = [this_map.get(h, h) for h in headers]
-        layer, confidence = infer_layer(mapped)
+        # The adapter's own classifier: what this prints is what the pipeline will do.
+        reading = read_columns(headers, this_map)
+        layer = reading.layer
+        mapped = list(reading.renamed.values())
         for line in _report_fields(f"{path.name}  ({len(frame)}+ rows sampled, {len(headers)} columns)",
-                                   mapped, layer, confidence):
+                                   mapped, layer, reading.confidence):
             print(line)
+        if reading.blanked:
+            print(f"    dropped by map : {', '.join(reading.blanked)}")
+        if reading.accepted:
+            readable += 1
+            print(f"    adapter        : reads it as {layer.value}")
+        else:
+            print(f"    adapter        : NOT READ -- {reading.reason}")
         if layer is not None:
             # A patient-id header mapped to the wrong layer's key: say exactly what to write.
             key = SUBJECT_KEY.get(layer)
-            for h, m in zip(headers, mapped):
+            for h, m in reading.renamed.items():
                 if m in SUBJECT_KEY.values() and m not in FIELD_CATALOGUE[layer] and key:
                     suggestions.setdefault(path.name, {})[h] = key
                     print(f"    per-file fix    : '{h}' is '{key}' on this layer -> files.\"{path.name}\".\"{h}\" = \"{key}\"")
-            sample = frame.rename(columns=this_map)
-            known = [c for c in sample.columns if c in FIELD_CATALOGUE[layer]]
+            sample = frame[list(reading.renamed)].rename(columns=reading.renamed)
+            known = [c for c in dict.fromkeys(sample.columns) if c in FIELD_CATALOGUE[layer]]
             _, unparsed = normalise_dates(sample[known])
             dated = [c for c in known if c in ("date_of_birth", "admission_datetime", "encounter_datetime", "event_timestamp")]
             if dated:
                 print(f"    dates           : {', '.join(dated)} parsed day-first and emitted in ISO form"
                       + (f"; could not parse: {', '.join(f'{c} x{n}' for c, n in unparsed.items())}" if unparsed else ""))
-        all_unmatched += [h for h, m in zip(headers, mapped) if m not in FIELD_CATALOGUE.get(layer, {}) if layer]
-        if layer is None:
-            all_unmatched += headers
+        known = FIELD_CATALOGUE.get(layer, {}) if layer else {}
+        all_unmatched += [h for h, m in reading.renamed.items() if m not in known]
         print()
+
+    print(f"  the adapter will read {readable} of {len(files)} file(s)"
+          + ("" if readable else " -- the pipeline will refuse to run on this until the map is filled"))
+    print()
 
     if write_map:
         merged = {**{f: dict(m) for f, m in file_maps.items()}}
@@ -188,8 +193,8 @@ def main() -> int:
         if not (args.user and args.password):
             parser.error("--user and --password are required for a portal")
         return check_portal(args.source, args.user, args.password, _load_map(args.aliases), args.write_map)
-    return check_directory(Path(args.source), _load_map(args.column_map), args.write_map,
-                           file_maps=_load_file_maps(args.column_map))
+    column_map, file_maps = load_column_map(args.column_map)
+    return check_directory(Path(args.source), column_map, args.write_map, file_maps=file_maps)
 
 
 if __name__ == "__main__":

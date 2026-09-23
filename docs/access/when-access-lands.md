@@ -19,6 +19,15 @@ defects it found on 2026-09-18 (a header that means different fields in
 different files, a split layer truncated, dates passed through unconverted,
 Excel unreadable) are fixed and pinned by `tests/extraction/test_day_one.py`.
 
+On 2026-09-23 a public export we did not generate (the Synthea sample: US-style,
+one file per clinical concept, a 28-column registration file) was put through
+the same procedure and found three more, now fixed and pinned by
+`tests/extraction/test_unseen_export.py`: identifiers read as numbers (`000123`
+became `123`, or `123.0` beside a blank, and the patient join failed silently);
+a blanked header still counting against a file, so a wide file could never be
+read; and an export understood not at all still producing a benchmark and a
+headline gap.
+
 ## A. A dataset (CSV / Excel files)
 
 1. **Put it under `data/`** — e.g. `data/hospital_export/`. Nowhere else: `data/`
@@ -35,7 +44,14 @@ Excel unreadable) are fixed and pinned by `tests/extraction/test_day_one.py`.
    recognised, and which were not (`<- map these`). The template it writes has
    every unrecognised header on the left and a blank on the right.
 4. **Fill the map.** Right-hand side is a catalogue field name (listed under
-   `_catalogue` in the same file). Leave blank to drop a column. A header that
+   `_catalogue` in the same file). Leave blank to drop a column: a blanked
+   column is not read and does not count against the file when its layer is
+   judged, and a blank under `"files"` drops a globally mapped header for that
+   one file. Each file's `adapter :` line is the adapter's own verdict: `reads
+   it as <layer>`, or `NOT READ` and why (too few of its kept columns are
+   catalogue fields; only the patient key is recognised, which is on four
+   layers). Every value is read as text, so record numbers and phones keep
+   their leading zeros. A header that
    means different fields in different files — a patient id that is `mrn` on
    the clinical file and `subject_mrn` on the audit trail — goes under
    `"files"`, per file name; the check prints the exact line to write. Re-run
@@ -50,7 +66,11 @@ Excel unreadable) are fixed and pinned by `tests/extraction/test_day_one.py`.
    ```
    Stages 1–2 report what was understood; stages 3–6 are the same benchmark,
    export audit, purpose matrix and assistant that run on synthetic data. The
-   benchmark writes `docs/benchmark_results/benchmark-dataset.{json,md}`.
+   benchmark writes `docs/benchmark_results/benchmark-dataset.{json,md}`. If
+   the adapter understood no file, or none of the fields the tasks need, the
+   pipeline stops after stage 2 with exit code 2 and writes nothing. The rules
+   score an empty pull as compliant, so benchmarking it would report a gap
+   measured on no data.
 6. **If the structure differs from ours** — a field the catalogue lacks, a layer
    split differently — the one place to change is `src/data_synthetic/catalogue.py`.
    Everything downstream reads it.

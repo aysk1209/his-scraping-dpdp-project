@@ -157,6 +157,10 @@ class BenchmarkResult(BaseModel):
         """State the compliance gap, then what it cost -- measured, not assumed."""
 
         best, worst = self.scores[0], self.scores[-1]
+        if self.source_ceiling() == 0.0:
+            # Rules score an empty pull as compliant; a gap measured on no data is not a result.
+            return ("No comparison: the source carries none of the fields the tasks require, so every "
+                    "technique pulled nothing and every score reflects its manifest alone.")
         gap = round(best.mean_compliance_score - worst.mean_compliance_score, 3)
         line = (
             f"{best.technique} scores {best.mean_compliance_score:.3f}; "
