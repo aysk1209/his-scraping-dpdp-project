@@ -317,3 +317,27 @@ def test_repeats_are_capped_at_the_samples_an_agent_actually_recorded(tmp_path):
     assert scores["m2-unaided"].repeats == 2 and scores["m2-unaided"].repeat_runs == 2   # 2 tasks x (2-1)
     assert scores["m2-unaided"].stable_runs == 0                                        # the two samples differ
     assert scores["compliance-aware"].repeats == 5 and scores["compliance-aware"].repeat_runs == 8
+
+
+def test_per_pass_counts_use_the_techniques_own_number_of_runs():
+    # An agent with two recorded samples runs twice even when the benchmark asks for five;
+    # its per-pass counts must be over its two runs, not divided by five.
+    from compliance.models import Purpose
+    from extraction.adapters.mock_his import MockHISDataSource
+    from extraction.technique import ExtractionTask, LayerFields
+    from extraction.techniques import CompliantExtractionTechnique
+    from interop.layers import HISLayer
+
+    class TwoSamples(CompliantExtractionTechnique):
+        name = "capped"
+
+        def max_repeats(self, tasks):
+            return 2
+
+    task = ExtractionTask(task_id="t", purpose=Purpose.CARE_COORDINATION,
+                          needed=[LayerFields(layer=HISLayer.PATIENT_ADMINISTRATION, fields=["mrn", "sex"])])
+    result = run_benchmark([TwoSamples()], [task], MockHISDataSource(records_per_layer=4, seed=1), repeats=5)
+    (score,) = result.scores
+    assert score.repeats == 2
+    assert score.cost.needed_fields == len(task.field_refs()) == 2      # one pass, not 2 x 2 / 5
+    assert score.cost.records == 4

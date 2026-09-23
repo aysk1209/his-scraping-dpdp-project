@@ -970,7 +970,9 @@ def run_benchmark(
                 trap_tasks += 1
                 trap_tasks_held += int(held_every_run)
 
-        cost = per_pass(combine(costs), max(1, repeats))
+        # Per pass of *this* technique's runs: an agent capped at the samples it has ran
+        # fewer passes than the benchmark's repeats, and its counts are over those.
+        cost = per_pass(combine(costs), max(1, n_repeats))
         cost.elapsed_ms = round(elapsed_ms, 3)
         pulled = merge(summaries) if summaries else None
         scores.append(

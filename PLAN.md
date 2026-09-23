@@ -87,15 +87,16 @@ which is the point.
 
 ## 4. Data situation
 
-**Expected by Review-II: a large dataset from the hospital**, and possibly live
-access. This is a change from the previous "assume nothing arrives" stance, and it
-reshapes what each data source is for:
+**Planning case, 2026-09-23: the worst case — no hospital dataset.** A hospital's
+export is real personal data and may never be released to a student project for
+privacy reasons. The project is complete without it; each source's role:
 
 | Source | Role |
 |---|---|
 | Synthetic generator | Development, tests, reproducible benchmark runs for the paper |
-| **Hospital dataset (expected)** | Volume and realism for the compliance benchmark |
+| **Public export (Synthea sample)** | Real-world *structure* we did not generate, through the real handling gate: the evidence the dataset path works on unseen data (`benchmark-public.json`, report §5.4 / §7.7) |
 | Rough mock portal | Demonstrating the *scraping* mechanism |
+| Hospital dataset (may never be released) | Upside only: one column map, the same pipeline; the deck's real-data slide and §7.7 accept it without other changes |
 | Live HIS (may not arrive) | Upside only; nothing depends on it |
 
 The adapter boundary already absorbs this: the dataset arrives as a
@@ -143,13 +144,12 @@ are weighted toward the contribution described in §2.
 | 9 | Interop normalisation wired into a run | 5 | 5 | 5 |
 | 10 | Rule-based staff-guidance agent | 10 | 10 | 10 |
 | 11 | End-to-end demonstration | 5 | 5 | 5 |
-| 12 | Project report + manuscript (compliance-focused) | 6 | 4 | 4 |
-| | **Total** | **100** | **98** | **98** |
+| 12 | Project report + manuscript (compliance-focused) | 6 | 5 | 5 |
+| | **Total** | **100** | **99** | **99** |
 
-Review-II's floor is ~75%; the project stands at 98. The residual 2 points are
-the report's second pass (trim to budget, section references verified against
-the Gazette text, cross-references at assembly) and the manuscript — Review-III
-work by definition, and the manuscript waits on a venue and page budget.
+Review-II's floor is ~75%; the project stands at 99. The residual point is the
+manuscript fitted to a venue's template and page budget, which waits on the venue
+decision (an external input, §8). Nothing in the ledger waits on a hospital dataset.
 
 *Updated 2026-09-12: W3 complete, component 2 closed — 41 to 45. W5 complete, component 3 closed — 45 to 52. W4 complete, component 10 at 8 of 10 — 52 to 60; the last two points are the navigation-map pages filled in once the portal exists. W1 complete, component 8 closed — 60 to 65. W2 (Tier 2) at 10 of 12 and W9 rough at 4 of 5, agent pages now filled — 65 to 81. **The 75% floor is crossed with a working end-to-end chain.** Interop shaping + export audit wired in, components 9 and 11 closed — 81 to 85. 2026-09-13: fifth-layer fields + schemas, dataset adapter against a synthetic export, label→field mapping — components 5, 6, 7 closed — 85 to 94. **Everything not requiring live access is built; the remaining points are the report and manuscript.** 2026-09-13 later: report outline with chapter→artefact mapping (`docs/report/outline.md`) and the DPDP section mapping drafted for verification — 94 to 95. 2026-09-15: all eight report chapters drafted (`docs/report/ch1`–`ch8`), sixteen references verified with DOIs, the deck's literature review at the template's fifteen — component 12 at 4 of 6 — 95 to 98. 2026-09-16: on the guide's direction the morality model is replaced by real AI agents (W7 reversed and built): Gemini recorded, both briefings, five runs per task; determinism measured as a column; chapters 4 and 7 rewritten on the real numbers. Component 2 absorbs the comparison at no change to its weight; the ledger stays at 98 because the comparison strengthens work already counted rather than adding a component. 2026-09-17: the benchmark made tougher and then made honest — manifest veracity against a capability register and four trap tasks (0 of 20 runs held by the agent); every repeat scored, stability and traps counted over runs; four register controls now *demonstrated* by the pipeline (observed TLS on a fixture that serves it, an audit log written by the harness, the export audit, a retention sidecar with a real purge — `scripts/purge_exports.py`); replay is the default agent mode so no demo can reach the network; CI reproduces the benchmark on every push. Ledger stays at 98: these harden components 2 and 11 rather than add one. **What remains is the report's second pass and the manuscript.***
 
@@ -163,7 +163,11 @@ work by definition, and the manuscript waits on a venue and page budget.
 
 *2026-09-22: the flagship is dropped. Across two keys and two days the free tier served one or two calls before reporting its 20/day spent (the cap is per project; failed retries count); no credit will be spent; its partial recordings are deleted. The reference model is the AI-agent comparison; the machinery for a further model stays. The Review-II deck is data-driven and was rebuilt on the demo machine after a clean dry run (2 min 0 s).*
 
-*Next, in order: the hospital dataset when it lands (rehearsal first); the report's second pass; the manuscript. Done 2026-09-17: the weight sweep in ch7, the Gazette check with three corrections, `docs/methodology/benchmark-protocol.md`. The hospital dataset is expected before Review-II: run `scripts/check_source.py` first, then `run_pipeline.py --dataset …`.*
+*2026-09-23 — the worst case planned for: no hospital dataset (it may never be released, for privacy). The dataset path was proven on a public export we did not generate (Synthea; `benchmark-public.json`), which found five adapter defects, all fixed and tested; two Claude models joined the comparison through a subscription's command line, no API credit; a per-pass counting bug for models with fewer runs was fixed; the report's second pass done — ch1, ch4, ch5, ch7, ch8 revised, §5.4 and §7.7 written on the public export, appendices A–E, tables generated from the artefacts and checked in CI (`tools/report_tables.py`); manuscript draft 1 (`docs/report/manuscript.md`). Component 12 at 5 of 6 — 98 to 99. The residual point is the manuscript fitted to the venue, once chosen.*
+
+*Next, in order: the venue decision and the manuscript to its format; a hospital dataset only if released (rehearsal first).
+
+*Earlier next-steps, kept for the record: Done 2026-09-17: the weight sweep in ch7, the Gazette check with three corrections, `docs/methodology/benchmark-protocol.md`. The hospital dataset is expected before Review-II: run `scripts/check_source.py` first, then `run_pipeline.py --dataset …`.*
 
 ## 6. Workstreams
 
@@ -456,8 +460,9 @@ Roughly in the order they block work.
 2. **`playwright install chromium`** on whichever machine demos — roughly 150 MB of
    browser binaries that `pip install` does not fetch. Done on the development machine
    2026-09-12; still needed on any other machine that presents.
-3. **Hospital dataset: format, size, and de-identification status** (§4). The
-   de-identification question should be settled *before* the data arrives, not after.
+3. **Hospital dataset** (§4) — not required (planning case 2026-09-23: it may never be
+   released). If it is, the de-identification question is settled *before* it arrives,
+   and `docs/access/when-access-lands.md` is the procedure.
 4. ~~Confirm W7~~ — **done**; the LLM agent is dropped and `anthropic` is removed from `requirements.txt`.
 5. ~~Review-II date~~ — the team tracks dates and timeline; the plan is ordered, not
    calendared, and that is by design.
@@ -484,7 +489,7 @@ Roughly in the order they block work.
 |---|---|---|
 | ~~Hand-written baseline reads as a strawman~~ | Closed: the panel accepts the baseline (2026-09-13) | — |
 | Real patient data mishandled | Serious, and acutely embarrassing for this project specifically | §4 — settle de-identification before arrival |
-| Hospital dataset never arrives | Benchmark rests on synthetic data only | Nothing depends on it; synthetic path stays complete |
+| Hospital dataset never arrives | Assumed (2026-09-23): the planning case | Synthetic path complete; the dataset path proven on a public export we did not generate; the day-one procedure rehearsed and ready if an export is ever released |
 | Portal is unrealistically clean | Robustness claims overstated | State the limitation in the deck; it demonstrates the mechanism, not robustness |
 | Agent scope creeps | Effort drains from the contribution | §2 — it is a completeness deliverable; keep it rule-based and small |
 | Wall-clock timings wobble between runs | Benchmark looks unreliable | §3 — deterministic metrics lead, wall-clock is secondary |

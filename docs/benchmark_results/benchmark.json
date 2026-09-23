@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-23T13:02:09.829163Z",
+  "generated_at": "2026-09-23T14:18:20.405583Z",
   "dataset_note": "50 records/layer x 5 layers, seed 42",
-  "elapsed_ms": 228.4,
+  "elapsed_ms": 250.5,
   "task_ids": [
     "patient-summary",
     "ward-census",
@@ -161,7 +161,7 @@
         "excess_ratio": 1.0,
         "records_necessary": 11,
         "record_excess": 1.0,
-        "elapsed_ms": 0.757
+        "elapsed_ms": 0.82
       },
       "tasks": 8,
       "repeats": 5,
@@ -244,18 +244,18 @@
         ]
       },
       "cost": {
-        "fetches": 5,
+        "fetches": 12,
         "page_loads": null,
-        "records": 64,
-        "fields_pulled": 188,
-        "distinct_fields": 22,
-        "needed_fields": 14,
-        "matched_fields": 11,
+        "records": 159,
+        "fields_pulled": 471,
+        "distinct_fields": 54,
+        "needed_fields": 35,
+        "matched_fields": 28,
         "coverage": 0.786,
         "excess_ratio": 1.557,
-        "records_necessary": 4,
+        "records_necessary": 11,
         "record_excess": 0.818,
-        "elapsed_ms": 2.198
+        "elapsed_ms": 2.458
       },
       "tasks": 8,
       "repeats": 2,
@@ -338,18 +338,18 @@
         ]
       },
       "cost": {
-        "fetches": 5,
+        "fetches": 12,
         "page_loads": null,
-        "records": 54,
-        "fields_pulled": 219,
-        "distinct_fields": 23,
-        "needed_fields": 14,
-        "matched_fields": 11,
+        "records": 135,
+        "fields_pulled": 548,
+        "distinct_fields": 58,
+        "needed_fields": 35,
+        "matched_fields": 28,
         "coverage": 0.814,
         "excess_ratio": 1.657,
-        "records_necessary": 4,
+        "records_necessary": 11,
         "record_excess": 0.909,
-        "elapsed_ms": 2.081
+        "elapsed_ms": 2.16
       },
       "tasks": 8,
       "repeats": 2,
@@ -443,7 +443,7 @@
         "excess_ratio": 1.429,
         "records_necessary": 11,
         "record_excess": 0.982,
-        "elapsed_ms": 2.088
+        "elapsed_ms": 2.297
       },
       "tasks": 8,
       "repeats": 5,
@@ -537,7 +537,7 @@
         "excess_ratio": 1.057,
         "records_necessary": 11,
         "record_excess": 0.945,
-        "elapsed_ms": 1.812
+        "elapsed_ms": 2.011
       },
       "tasks": 8,
       "repeats": 5,
@@ -631,7 +631,7 @@
         "excess_ratio": 1.057,
         "records_necessary": 11,
         "record_excess": 0.982,
-        "elapsed_ms": 1.837
+        "elapsed_ms": 2.216
       },
       "tasks": 8,
       "repeats": 5,
@@ -714,18 +714,18 @@
         ]
       },
       "cost": {
-        "fetches": 3,
+        "fetches": 15,
         "page_loads": null,
-        "records": 32,
-        "fields_pulled": 111,
-        "distinct_fields": 13,
-        "needed_fields": 7,
-        "matched_fields": 6,
+        "records": 162,
+        "fields_pulled": 554,
+        "distinct_fields": 64,
+        "needed_fields": 35,
+        "matched_fields": 30,
         "coverage": 0.857,
         "excess_ratio": 1.829,
-        "records_necessary": 2,
+        "records_necessary": 11,
         "record_excess": 1.091,
-        "elapsed_ms": 3.873
+        "elapsed_ms": 2.35
       },
       "tasks": 8,
       "repeats": 1,
@@ -808,18 +808,18 @@
         ]
       },
       "cost": {
-        "fetches": 3,
+        "fetches": 16,
         "page_loads": null,
-        "records": 42,
-        "fields_pulled": 119,
-        "distinct_fields": 11,
-        "needed_fields": 7,
-        "matched_fields": 6,
+        "records": 212,
+        "fields_pulled": 596,
+        "distinct_fields": 57,
+        "needed_fields": 35,
+        "matched_fields": 29,
         "coverage": 0.829,
         "excess_ratio": 1.629,
-        "records_necessary": 2,
+        "records_necessary": 11,
         "record_excess": 1.091,
-        "elapsed_ms": 2.507
+        "elapsed_ms": 2.392
       },
       "tasks": 8,
       "repeats": 1,
@@ -915,7 +915,7 @@
         "excess_ratio": 7.771,
         "records_necessary": 11,
         "record_excess": 136.364,
-        "elapsed_ms": 8.509
+        "elapsed_ms": 9.202
       },
       "tasks": 8,
       "repeats": 5,

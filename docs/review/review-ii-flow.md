@@ -31,7 +31,7 @@ the template lives outside the repository).
 | `python -m playwright install chromium` on the demo machine | Browser binaries are not in `pip install`; first run downloads ~150 MB |
 | `python scripts/run_pipeline.py` once, discard output | Warms Chromium and the Python imports; the first run is slowest |
 | Make sure **no `GEMINI_API_KEY` is needed** — the shell may carry one; it does not matter | `AI_AGENT_MODE` defaults to `replay`; nothing in the demo touches the network, with or without a key. Turn the Wi-Fi off if that is easier to say than to explain |
-| `python scripts/rehearse_day_one.py` once, watch the verdict line | Proves the real-data path on this machine: `identifier leaks: 0`. If the hospital's export has arrived, run the day-one procedure instead and rebuild the deck — the dataset slide reads from that run |
+| `python scripts/rehearse_day_one.py` once, watch the verdict line | Proves the real-data path on this machine: `identifier leaks: 0`. The deck's real-data slide is the public export's run (`benchmark-public.json`); only if a hospital export is ever released and run through the day-one procedure does that slide switch to it |
 | Open `docs/review/index.html` in the browser, then each demo page in its own tab (portal run, dataset, assistant), and press `A+` on each | The interactive half of the demo; every page is committed, offline and built from a real run. `python tools/build_review_pages.py` rebuilds all of them (~90 s) |
 | (dataset page detail) | Beat 3b. The committed copy is built from the public Synthea sample and needs no network; to rebuild it on this machine: `python scripts/fetch_public_dataset.py`, then `python tools/build_dataset_page.py data/public_synthea --column-map data/public_synthea/column_map.json --out docs/review/dataset-walkthrough.html` (~50 s) |
 | Open in browser tabs: `docs/benchmark_results/benchmark-portal.md`, `care-pull--compliance-aware--purpose-matrix.md`, `billing-pull--compliance-aware--purpose-matrix.md`, `navigation-map.json` | These are the same tables the live run prints — the fallback if anything fails |
@@ -112,12 +112,12 @@ processing-time request answered with a number that reproduces on any machine,
 and the guide's request answered with a column: deterministic, and better than
 just AI.)*
 
-If asked why one model: "One free-tier model; the flagship of the same family
-was tried and its free tier served one or two calls a day in practice, so it was
-dropped rather than paid for. The machinery is per model — a further one is one
-command and a key away. The model never sees a patient value, so the recordings
-replay unchanged on the hospital's data — nothing is re-recorded when it
-arrives."
+If asked about the models: "Three, from two providers, and none cost us API
+credit: Gemini on its free tier, and two Claude models recorded through a
+subscription's command line — headless, our brief as the entire system prompt,
+no tools. The Claude models were sampled twice per task, the minimum that
+measures whether a model repeats itself; the tables say so. The model never sees
+a patient value, so the recordings replay unchanged on any data."
 
 **[4] NORMALISE.** Point at the two `audit:` lines.
 "One patient's summary. Ours read that patient through the search box: two HL7
@@ -224,15 +224,17 @@ recognise it.
 
 ### Beat 6 — results, limitations, next (slide, 60 s)
 
-The `benchmark-portal.md` table on the slide, then the real-data slide. Say
-which it is: if the hospital's export has arrived, that slide *is* its run; if
-not, it is the rehearsal — "we ran the whole day-one procedure on an export
-shaped like a hospital's before any real data existed, found four defects, fixed
-them, and searched everything the run printed or wrote for one patient's
-identifiers: nothing." Then the limitations, said before anyone asks: the portal
-is cleaner than a real vendor system, so this demonstrates the mechanism, not
-robustness; one model, on a free tier, stated as such. Then
-next: the real data's own slide, the report's second pass, the manuscript.
+The `benchmark-portal.md` table on the slide, then the real-data slide: a
+public export we never saw. "A hospital's export is personal data and may never
+be released to a student project, which is exactly the risk this work is about.
+So we proved the path on data we did not generate: Synthea's public sample,
+through the real handling gate. It found five defects our own data had not, each
+now fixed and tested; SSN and passport columns never entered the pipeline." Then
+the limitations, said before anyone asks: the portal is cleaner than a real vendor
+system, so this demonstrates the mechanism, not robustness; three models, two of
+them sampled twice per task rather than five times, stated as such. Then next: the
+report's final pass and the manuscript. If a hospital export is ever released it
+is one column map, and that one slide rebuilds itself.
 
 ---
 
@@ -246,7 +248,7 @@ next: the real data's own slide, the report's second pass, the manuscript.
 | "Isn't the baseline a strawman?" | — | The panel has accepted that most real systems sit at the baseline; the models in between are real public AI agents, recorded |
 | "What exactly does the AI agent see?" | `build_user_prompt` in `techniques/ai_agent.py` | The job, the purpose, the field names of the canonical catalogue -- never a value, never a record number; the recording under `techniques/recordings/` is the literal answer it gave |
 | "It gave a different answer next time — so what does the score mean?" | The `stable` column; `per_task_range` in `benchmark.json` | Every repeat is scored; the score is a mean over runs; the range per task is in the artefact; ours is 32/32 by construction |
-| "Why only one model? Why not Claude or GPT?" | `techniques/ai_providers.py` | Three providers are wired through their official SDKs; only the free tier we hold has API access. The flagship of that family was tried and dropped — one or two calls a day in practice — and we chose not to spend credit; one agent = one model × one briefing, so a further model is one command away |
+| "Which AI models, and why these?" | `techniques/ai_providers.py`; the recordings' `sampling` field | Three models from two providers, none paid for: Gemini on its free API tier; Claude Haiku and Sonnet through a subscription's command line (`--provider claude-code`: headless, our brief as the whole system prompt, no tools, effort pinned). The Claude models are sampled twice per task, stated in every table; one agent = one model × one briefing, so another model is one command away |
 | "What did the rehearsal find?" | `scripts/rehearse_day_one.py`, `tests/extraction/test_day_one.py` | A header that means `mrn` in four files and `subject_mrn` in the audit trail (per-file map), a layer split across files read half (concatenated), dd/mm/yyyy dates reaching HL7 unparsed (ISO normalisation), `.xlsx` unreadable (`openpyxl`); the leak audit passed |
 | "Who wrote the audit log — the technique?" | Stage [3], the `audit log` lines; `compliance/audit.py` | The harness, at the metering boundary; a technique cannot log itself. Same for the observed TLS, the export audit and the retention sidecar — the four *demonstrated* controls |
 | "Why is compliance cheaper here — isn't that suspicious?" | `excess_ratio` | Fields pulled beyond the purpose are both the cost and the overreach the minimisation rule penalises — one quantity, two readings; the an agent that leaves out needed data is cheaper still and that cheapness *is* its failure (coverage below 1) |

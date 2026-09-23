@@ -77,12 +77,14 @@ read together; and that the same rules, applied at the point where data leaves
 the system and at the point where a person is instructed, do work outside the
 benchmark that a reader can see.
 
-We show this without live access to a hospital system. Every result in the
-report is produced against synthetic data of a realistic structure, served
-through a login-gated portal fixture that a real browser scrapes, and every
-result is regenerable from the repository. Where a hospital dataset is expected,
-the report marks the slot and states what would change; nothing in the argument
-depends on it.
+We show this without live access to a hospital system and without a
+hospital's data, which — being the personal data of its patients — may never be
+released to a student project, and which we do not assume. Every result is
+produced against synthetic data of a realistic structure, served through a
+login-gated portal fixture that a real browser scrapes, and against a public
+export we did not generate; every result is regenerable from the repository. A
+hospital export, if one is released, is read by the same pipeline with its own
+column map; nothing in the argument depends on it.
 
 ## 1.4 Contributions
 
@@ -99,14 +101,15 @@ them.
    rail — and, beyond it, whether a technique's declarations are ones the
    deployment can back, whether it holds the line when the wording asks for
    more than the purpose permits, and whether it reproduces its own decision.
-   These are what separate a rule-driven technique from a publicly available
-   AI agent that matches it on paperwork.
+   These are what separate a rule-driven technique from publicly available AI
+   models that match it on paperwork.
 3. **The purpose matrix** — one unchanged extraction, lawful under its declared
    purpose and unlawful under another, in both directions: compliance as a
    property of the pull and its purpose together.
 4. **Content-based structure discovery** — a browser infers each portal
    module's HIS layer from the field names it finds, never from the URL, and the
-   same classification reads a hospital's exported files.
+   same classification reads an export's files — a public one we did not write
+   among them.
 5. **Pseudonymisation on export, verified by audit** — the manifest's claim
    about the output checked against the output, so a declaration is never
    believed on its own word.

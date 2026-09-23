@@ -163,7 +163,7 @@ def dataset_shortfall(source: DatasetHISDataSource, tasks: list[ExtractionTask])
     return None
 
 
-def run_downstream(scraper, pages: dict[str, str], dataset_note: str) -> None:
+def run_downstream(scraper, pages: dict[str, str], dataset_note: str, artefact: str | None = None) -> None:
     """Stages 3-6: identical whatever the source was."""
 
     techniques = default_techniques(TASKS, scraper)
@@ -180,7 +180,7 @@ def run_downstream(scraper, pages: dict[str, str], dataset_note: str) -> None:
     result = run_benchmark(techniques, TASKS, scraper, dataset_note=dataset_note, audit=log)
     print(result.render_table())
     print()
-    name = "benchmark-portal" if isinstance(scraper, PortalHISDataSource) else "benchmark-dataset"
+    name = artefact or ("benchmark-portal" if isinstance(scraper, PortalHISDataSource) else "benchmark-dataset")
     print(present.wrote(result.to_json_file(name=name)))
     print(present.wrote(result.to_markdown_file(name=name)))
     print()
@@ -265,6 +265,8 @@ def main() -> int:
     parser.add_argument("--show", action="store_true", help="run the browser visibly")
     parser.add_argument("--dataset", help="directory of exported CSV/Excel files (real or synthetic)")
     parser.add_argument("--column-map", help="JSON header -> field map for --dataset")
+    parser.add_argument("--artefact", help="name the benchmark files (default benchmark-dataset / benchmark-portal); "
+                                           "the public export's run is benchmark-public")
     parser.add_argument("--portal", help="URL of an external portal instead of the local fixture")
     parser.add_argument("--user")
     parser.add_argument("--password")
@@ -287,7 +289,7 @@ def main() -> int:
             print(f"  STOPPED: {shortfall}. Nothing was benchmarked and nothing was written.")
             print(f"  Run scripts/check_source.py {args.dataset} --write-map <file>, fill the map, and re-run.")
             return 2
-        run_downstream(scraper, {}, f"dataset {args.dataset}")
+        run_downstream(scraper, {}, f"dataset {args.dataset}", artefact=args.artefact)
 
     elif args.portal:
         if not (args.user and args.password):

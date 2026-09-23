@@ -38,6 +38,9 @@ htmlcov/
 !/docs/benchmark_results/benchmark.md
 !/docs/benchmark_results/benchmark.json
 !/docs/benchmark_results/benchmark-portal.json
+# the public export's run (Synthea, public and synthetic): aggregate numbers only, safe to commit
+!/docs/benchmark_results/benchmark-public.json
+!/docs/benchmark_results/benchmark-public.md
 !/docs/benchmark_results/weight-sweep.md
 !/docs/benchmark_results/care-pull--compliance-aware--purpose-matrix.md
 !/docs/benchmark_results/billing-pull--compliance-aware--purpose-matrix.md

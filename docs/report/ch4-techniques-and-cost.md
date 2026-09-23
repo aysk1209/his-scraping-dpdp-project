@@ -46,8 +46,9 @@ testable: the techniques of §4.2 were written against the in-memory source
 and run against the browser-driven portal **unchanged**, and the test suite
 asserts it. A new hospital system is a new adapter; the compliance layer,
 the benchmark and the assistant do not know which adapter is underneath. The
-same property is what allows a real hospital export, when one arrives, to be
-benchmarked with no new code beyond a column mapping.
+same property is what allows an export we did not write — a public one in
+Chapter 7, a hospital's if one is ever released — to be benchmarked with no new
+code beyond a column mapping.
 
 One consequence of the boundary matters for this chapter specifically: because
 every technique reaches data only through `fetch`, everything a technique does
@@ -114,8 +115,8 @@ Three properties of the design are held to, and each is asserted by a test.
 - **The model never sees a patient value.** It decides at schema level — field
   names, purpose, obligations — and the pipeline performs the fetch. That is
   how an agent orchestrating a scraper works in any case, and it means the
-  comparison can be run against the hospital dataset with no personal data
-  leaving the machine.
+  comparison can be run against real personal data with none of it leaving the
+  machine.
 - **Decisions are recorded and replayed.** Each live decision — field names and
   manifest choices, nothing else — is written to a recording committed with
   the repository; the benchmark and the demonstrations replay it, so results
@@ -131,18 +132,25 @@ Three properties of the design are held to, and each is asserted by a test.
   wording asks. The third is the fairest comparison there is: the agent knows
   everything the rule-driven technique knows, and whether it *holds* to it is
   the only remaining question. Whether prompting closes the gap is then a
-  measured answer rather than an assumed one. The model is recorded on all
-  three, and the comparison is read per model at the *told the policy*
-  briefing; a further model, were one recorded, would take the *told the
-  policy* and *unaided* briefings and enter as its own row.
+  measured answer rather than an assumed one. The reference model is recorded
+  on all three; further models on *told the policy* and *unaided*; the
+  comparison is read per model at *told the policy*, one row per model.
 
-The provider adapters (`ai_providers.py`) cover three public models behind
-their official SDKs — Claude, OpenAI and Gemini — with the model identifier
-configurable, so the comparison can be re-run against whatever is current. The
-results in Chapter 7 are from `gemini-3.1-flash-lite`, five recorded runs per
-task per briefing, recorded 2026-09-18; the model tier is stated because it is
-part of the result. The flagship of the same family was attempted and dropped
-(§7.8): its free tier served one or two requests a day in practice.
+The provider adapters (`ai_providers.py`) cover three public model families
+behind their official SDKs — Claude, OpenAI and Gemini — with the model
+identifier configurable, and a fourth path that needs no API key: Claude
+through the Claude Code command line on a subscription sign-in, run headless
+from an empty directory with our brief as the entire system prompt, no tools,
+no MCP servers, no skills, and the effort level pinned rather than inherited
+from the user's settings. Each recording states how its samples were drawn.
+The results in Chapter 7 are from three models: `gemini-3.1-flash-lite` (Gemini
+API, free tier; five runs per task per briefing, recorded 2026-09-18), and
+`claude-haiku-4-5` and `claude-sonnet-5` (through the command line; two runs per
+task told the policy, one unaided, recorded 2026-09-23 — the minimum that puts a
+model in the tables and measures whether it repeats itself). The access path
+and the sample size are stated because they are part of the result. A
+free-tier flagship of the Gemini family was attempted and dropped (§7.8): it
+served one or two requests a day in practice.
 
 What the agent actually does is the substance of Chapter 7, but its character
 can be stated here. It is *good at the paperwork*: told what the deployment
@@ -155,22 +163,25 @@ identifier for the record number, the laboratory result and the attending
 clinician for a summary that did not ask for them. It *does what the wording
 asks* rather than what the purpose permits: told to reconcile an invoice
 "against the diagnosis", it takes the diagnosis; told the consultant wants a
-file kept for a year, it declares a year. And — put the same brief five times —
-it returns a different decision in a third to a half of them. None of the
+file kept for a year, it declares a year. And — put the same brief again —
+it returns a different decision: in a third of repeats for Gemini, a quarter
+for Sonnet, and, for Haiku, in every one. None of the
 three is visible in the compliance score alone; all three are visible in the
 columns §4.3 and §4.5 add, which is why the benchmark has them.
 
 The third briefing sharpens the second of these to a finding. Handed the
-policy verbatim, the agent obeys its *numbers* — every retention it declares
-sits exactly at the ceiling, the research registry is no longer declared as an
-onward use, and SL-01 and PL-01 both go to 1.00 — but not its *categories*:
-told that clinical data is not permitted for billing, and that
-`primary_diagnosis` is clinical, it still takes the diagnosis to reconcile the
-invoice in five runs of five, and the insurance number at the registration
-desk in five of five, each time with a rationale that says the pull complies
-with data minimisation. The wording of the request outranks the table in the
-same prompt. A rule cannot be outranked by a sentence, which is the design
-property under test.
+policy verbatim, every model obeys its *numbers* — every retention it declares
+sits exactly at the purpose's ceiling, the research registry is no longer
+declared as an onward use, and SL-01 and PL-01 both go to 1.00. Whether a model
+obeys its *categories* is where they differ. Told that clinical data is not
+permitted for billing, and that `primary_diagnosis` is clinical,
+`gemini-3.1-flash-lite` still takes the diagnosis to reconcile the invoice in
+five runs of five, and the insurance number at the registration desk in five of
+five, each time with a rationale saying the pull complies with data
+minimisation; `claude-sonnet-5` leaves the insurance number but takes the
+diagnosis in every run; `claude-haiku-4-5` holds both. For two of three models
+the wording of the request outranks the table in the same prompt. A rule cannot
+be outranked by a sentence, which is the design property under test.
 
 ### 4.2.3 The unconstrained baseline
 
@@ -265,10 +276,10 @@ comparison is simulated: those are pages a browser fetched.
 
 ## 4.4 Excess ratio and DM-01 are one quantity seen twice
 
-The metric that carries the argument is the excess ratio. On the pipeline's
-workload the compliant technique touches 13 distinct fields where the tasks
-require 13 — a ratio of 1.00; the baseline touches 93 for the same 13 — a ratio
-of 7.15. The observation the chapter exists to make is that this number is
+The metric that carries the argument is the excess ratio. On the portal
+workload the compliant technique touches 18 distinct fields where the tasks
+require 18 — a ratio of 1.00; the baseline touches 136 for the same 18 — a ratio
+of 7.56. The observation the chapter exists to make is that this number is
 **simultaneously a cost measure and a compliance measure**. Fields pulled beyond
 what the purpose requires are precisely the overreach that the data-minimisation
 rule (§3.3.1) penalises. The rule expresses it as a set-containment score over
@@ -282,33 +293,38 @@ affordable". It can say that on this workload **the compliant technique is the
 cheap one, and the overreach the baseline pays for in page loads is exactly the
 overreach the law objects to.** The claim does not depend on any particular
 number coming out any particular way — that is the point of it. It is a
-statement about what the excess ratio *is*, and it would hold on a hospital
-dataset with different fields and different counts.
+statement about what the excess ratio *is*, and it holds on the public export
+of Chapter 7, with different fields and different counts, as it would on any.
 
 **Coverage is the guard rail.** Excess ratio alone can be gamed: a technique that
 pulls nothing has an excess ratio of zero and a perfect DM-01, having extracted
 no category outside the purpose. Coverage — needed fields actually obtained over
 needed fields — closes that door, and it is the metric that catches the AI
-agents. On the four plain tasks their compliance scores sit within a few
-hundredths of ours, and their excess ratios over the workload are 1.00 and
-1.03 — read alone, exactly as economical as the compliant technique. Their
-coverage is 0.74–0.78: they
-obtained under three-quarters of what the tasks lawfully required, because they
-took a name where the task needed a record number, an e-mail where it needed a
-phone, and a visit timestamp where it needed the appointment time. A high
-compliance score on the wrong fields is not the job done; low cost here is
-partly a shortfall, not efficiency. Both metrics are needed to tell the story,
+models. Their compliance scores sit within a few hundredths of ours; told the
+policy, they take 1.43–1.66 times the fields the tasks need and still obtain
+only 74–81% of the fields the tasks need, because they take a name where the
+task needs a record number, an e-mail where it needs a phone, and a visit
+timestamp where it needs the appointment time. Over-collection and
+under-collection at once: a high compliance score on the wrong fields is not
+the job done, and a low excess ratio on its own would be partly a shortfall, not
+efficiency. Both metrics are needed to tell the story,
 and the benchmark's own summary line names the two cases separately — a
 technique that pulled more than the purpose needs, and a technique that pulled
 less than the task needs.
 
-A third case exists and the benchmark distinguishes it: a *source* that does not
-carry a needed field caps every technique at the same coverage, including the
-baseline that pulls everything it can see. When that happens the shortfall is a
-property of the dataset, not of any technique, and the report says so rather
-than marking the compliant technique down. This case was built for the hospital
-export, where a missing column is likely, and it is what keeps the benchmark
-honest on data we did not generate.
+A third case exists and the benchmark distinguishes it: a *source* that does
+not carry a needed field caps every technique's coverage. The ceiling is
+measured from the source, once per task and outside the meter
+(`benchmark.reachable_fields`): the needed fields the source carries, and — on
+a single-patient task — only those that patient's own records carry, since
+another patient's allergy does not complete this patient's summary. The
+shortfall is then reported as a property of the data, split into fields the
+source lacks and fields the patient lacks, and a technique that shows more
+coverage than the ceiling is reported as having read other patients' records to
+get there. An earlier version took the ceiling from the widest-reading
+technique; on the public export of Chapter 7 that set a ceiling no compliant
+pull could reach, and it was replaced. This is what keeps the benchmark honest
+on data we did not generate.
 
 ## 4.5 Two harder measures: what can be demonstrated, and what the wording could not talk it into
 

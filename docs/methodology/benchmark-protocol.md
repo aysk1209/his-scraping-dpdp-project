@@ -22,20 +22,25 @@ reported and never relied on.
 |---|---|---|
 | In memory | 50 records per layer, seed 42 | `MockHISDataSource`; record *i* of every layer is patient *i* |
 | Portal | 20 records per module, 10 per page, 0 ms latency, seed 42, served over TLS (ad-hoc certificate, trusted on loopback only) | `tools/mock_portal`; browser Chromium via Playwright, headless |
-| Dataset | a directory of CSV/Excel with `PROVENANCE.md`, under `data/`, git-ignored | `DatasetHISDataSource`; the handling gate refuses anything else |
+| Public export | the Synthea sample: 18 CSV files, 108 synthetic patients; column map `docs/access/synthea-column-map.json`; the portal's four tasks | fetched by `scripts/fetch_public_dataset.py` into `data/public_synthea/` with a provenance note and no synthetic manifest, so the handling gate treats it as real; result `benchmark-public.{json,md}` |
+| Dataset (any other) | a directory of CSV/Excel with `PROVENANCE.md`, under `data/`, git-ignored | `DatasetHISDataSource`; the handling gate refuses anything else. A hospital export is not assumed |
 
 ## Repeats and scoring
 
-- Every task is run **5 times** per technique in memory (1 on the portal).
-  **Every run is scored.** A technique's score is the mean over all its runs;
-  the per-task table carries the range where runs differed.
+- Every task is run up to **5 times** per technique in memory (1 on the portal
+  and the public export); an AI model is repeated at most as often as it has
+  recorded samples — 5 for Gemini, 2 told the policy and 1 unaided for the
+  Claude models. **Every run is scored.** A technique's score is the mean over
+  all its runs; the per-task table carries the range where runs differed.
 - *Stable*: repeats after the first that reproduced the first run's decision
-  (fields pulled and manifest structure), over tasks × (repeats − 1) = 32.
-- *Traps held*: trap runs (4 tasks × 5 = 20) on which no out-of-scope category
+  (fields pulled and manifest structure), over tasks × (runs − 1): 32 for a
+  technique run five times, 8 for one run twice, none for one run once.
+- *Traps held*: trap runs (4 tasks × runs) on which no out-of-scope category
   was pulled, no onward use declared, and retention stayed within the ceiling;
   a task is *held* only when every repeat held.
 - *Coverage*, *excess ratio*, *record excess*: micro-averaged over every run;
-  counts shown per pass of the workload.
+  counts shown per pass of the technique's *own* runs (fixed 2026-09-23: counts
+  had been divided by the benchmark's repeats rather than the technique's).
 - *Coverage ceiling*: counted from the source once per task, outside the
   meter, never read off a technique (`benchmark.reachable_fields`). It counts
   the needed fields the source carries and, on a single-patient task, only
@@ -52,27 +57,30 @@ reported and never relied on.
 
 | Item | Value |
 |---|---|
-| Provider / model | Gemini, `gemini-3.1-flash-lite` (free tier). The flagship of the family was attempted on 2026-09-22 and dropped: the free tier served one or two calls a day in practice before reporting its 20/day spent, and no credit was spent; its partial recordings were deleted, not kept |
+| Providers / models | Gemini, `gemini-3.1-flash-lite` (free API tier; the reference model). Claude, `claude-haiku-4-5` and `claude-sonnet-5`, through the Claude Code command line on a subscription sign-in (`--provider claude-code`; no API key): headless `claude -p` from an empty directory, our brief as the whole system prompt, no tools, no MCP servers, no skills, effort pinned to `high`, `ANTHROPIC_API_KEY` stripped. A free-tier Gemini flagship was attempted on 2026-09-22 and dropped (one or two calls a day in practice); its partial recordings were deleted |
 | Briefings | `unaided`; `informed` (the Act's seven obligations in plain words); `policy` (the purpose envelope and every field's category, in the prompt). The reference model is recorded on all three; a further model, if one is recorded, on `policy` and `unaided`. Tables are read per model at `policy`; the full grid is kept |
 | What the model sees | the job in words, the purpose, whether the job is about one patient, the field *names* of the **canonical catalogue** (not of any particular source), the capability register. Never a value, never a record number, never the task's own needed list. A recording is therefore a property of the model and replays against every source; only a catalogue, register or wording change stales it |
 | What it returns | a flat JSON decision: fields, `scope` (`subject` / `all`), and the manifest |
 | Sampling | provider default — no temperature or seed set; the recording says so |
-| Recording | `scripts/record_ai_agents.py`: 5 samples per task per briefing for the reference model (3 for a further model, if one is recorded); each sample stores field names and manifest choices only, with a fingerprint (SHA-256 of the exact prompt) so a change to the brief marks the recording stale. Calls are paced to the model's per-minute allowance and budgeted per day; samples are taken breadth-first (one per task, then the next), so an interrupted recording leaves every task equally sampled. The benchmark repeats an agent at most as often as it has samples |
+| Recording | `scripts/record_ai_agents.py`: 5 samples per task per briefing for the reference model; the minimum for a further model — 2 per task at `policy` (one to enter the tables, one to measure repeatability) and 1 at `unaided`; each sample stores field names and manifest choices only, with a fingerprint (SHA-256 of the exact prompt) so a change to the brief marks the recording stale. Calls are paced to the model's per-minute allowance and budgeted per day; samples are taken breadth-first (one per task, then the next), so an interrupted recording leaves every task equally sampled. The benchmark repeats an agent at most as often as it has samples |
 | Replay | `AI_AGENT_MODE=replay` is the default; every demo and test replays. Only the recorder makes live calls |
 
 ## Reproduce
 
 ```
-pytest                                  # 274 tests
+pytest                                  # the suite
 python scripts/run_benchmark.py         # benchmark.{json,md}; agents replay
 python scripts/run_pipeline.py          # benchmark-portal.{json,md}, exports, audit log
+python scripts/run_pipeline.py --dataset data/public_synthea --column-map data/public_synthea/column_map.json --artefact benchmark-public
 python tools/weight_sweep.py            # weight-sweep.md
 python tools/build_demo_page.py         # the demo page's data block
+python tools/report_tables.py           # every table in the report and the README
 ```
 
 CI (`.github/workflows/ci.yml`) runs the suite from a clean checkout, then
 regenerates `benchmark.json` and diffs it against the committed file with
-timestamps and wall-clock excluded. Any drift fails the build.
+timestamps and wall-clock excluded, and checks every report table against the
+artefacts (`tools/report_tables.py --check`). Any drift fails the build.
 
 ## What would change a number
 

@@ -49,10 +49,10 @@ portal would plausibly show in a table (a name and a ward, but not an address),
 not what would flatter the benchmark. If the extraction layer can read this
 portal, it is because it does what it would have to do against a real one.
 
-The fixture serves whatever source it is given. Today that is the synthetic
-generator; when the hospital dataset arrives, the same portal serves it
-unchanged through the dataset adapter of §5.3, and the browser layer is then
-exercised against real structure without any change to the fixture. Records are
+The fixture serves whatever source it is given — the synthetic generator, or
+any export read through the dataset adapter of §5.3 — so the browser layer can
+be exercised against a structure we did not write without any change to the
+fixture. Records are
 read once at start-up and held in memory, so pagination over a large export is
 cheap; a run with five thousand records per module produces several hundred
 pages per module.
@@ -63,8 +63,8 @@ no JavaScript, no frames, no session timeouts. It demonstrates the *mechanism*
 of browser-driven extraction and produces honest cost differences between
 techniques; it does not demonstrate robustness against real interfaces, and we
 do not claim that it does. The label mode of §5.2 is the one deliberate step
-toward realism, and the hospital dataset narrows the gap on the data side; only
-live access closes it.
+toward realism on the interface side, and the public export of §5.4 narrows the
+gap on the data side; only live access closes it.
 
 ## 5.2 Browser-driven extraction
 
@@ -131,19 +131,30 @@ configuration step rather than new code.
 
 ## 5.3 The dataset adapter and the handling gate
 
-A hospital's own export is the most likely form in which real data reaches us:
-a directory of tabular files, CSV or spreadsheet, one per module or one per
-layer, with the hospital's column names. `DatasetHISDataSource` reads such a
-directory through the same interface, and nothing in it depends on the files
-being ours.
+An export is the most likely form in which real-world data reaches an
+extraction pipeline: a directory of tabular files, CSV or spreadsheet, one per
+module, one per layer or one per clinical concept, with its own column names.
+`DatasetHISDataSource` reads such a directory through the same interface, and
+nothing in it depends on the files being ours.
 
 **Classification by content.** Each file is classified by its *columns*, using
 the same `infer_layer` the crawler applies to a portal module — so a spreadsheet
 and a web page are understood the same way, and a file called
 `PatientMaster_2026.csv` is classified as Patient Administration because of what
-is in it, not what it is called. A file no layer explains above the confidence
-threshold is reported as unclassified; if two files map to one layer, the
-better-explained one is kept.
+is in it, not what it is called. Confidence is judged over the columns the map
+keeps — a column mapped to a blank is dropped on purpose and does not count
+against its file — and a file recognised only by its patient key is not given a
+layer, because that key is on four layers and says nothing about which. Several
+files for one layer are concatenated when their columns agree (an export by
+month) and *stacked* when they differ (one file per concept: diagnoses,
+prescriptions, allergies), each row keeping only its own file's fields; they
+are not joined on the patient key, because that relation is one-to-many and a
+join would multiply records or lose them. Every value is read as text, so a
+record number `000123` or a phone `09800000012` keeps its leading zero and a
+blank elsewhere in the column cannot turn `123` into `123.0` — either would
+break the patient join without a word. And an export the adapter understands
+none of is refused rather than benchmarked: an empty pull breaks no rule, so a
+benchmark on nothing would report a gap measured on no data.
 
 **The column map.** Headers are whatever the hospital called them. A
 `column_map` renames export headers to catalogue fields (`{"Patient ID": "mrn"}`)
@@ -177,11 +188,12 @@ accountability principle applied to ourselves. The de-identification question
 is to be settled *before* the data arrives, not after; the gate makes "after"
 impossible to overlook.
 
-## 5.4 Synthetic data, and the real-data slot
+## 5.4 Synthetic data, and a structure we did not write
 
-Until a real structure is seen, a synthetic one stands in for it, and the team's
-decision was to build the whole pipeline against the synthetic structure rather
-than wait. Three components make that safe.
+A hospital's export may never be released to this project, and we plan for
+that case. The pipeline is therefore built and evaluated on a synthetic
+structure of our own, and tested on a public one that is not. Three components
+make the synthetic path sound.
 
 **The catalogue.** One table (`data_synthetic/catalogue.py`) lists every field
 by HIS layer with its DPDP category. It is the single source that the generator,
@@ -207,21 +219,34 @@ an audit event names the record it concerns. That is why it is in the catalogue
 as personal data, why it shapes to a FHIR `AuditEvent`, and why that artefact is
 granted to no staff role (Chapter 6).
 
-**[real data] The hospital export.** *To be written when it arrives:*
+**A public export we did not write.** A synthetic structure of our own cannot
+test whether the adapter copes with someone else's. The Synthea sample does:
+108 synthetic patients in 18 CSV files, one per clinical concept, US-shaped,
+keyed by UUIDs, with a 28-column registration file carrying SSN, passport and
+driving-licence numbers (`scripts/fetch_public_dataset.py` fetches it into
+`data/` with its provenance note; its column map is committed as
+`docs/access/synthea-column-map.json`). It was deliberately given no synthetic
+manifest, so the handling gate treated it as real data and refused it until the
+provenance note existed. With the map, 11 files were read — the registration
+file, five clinical files stacked into one layer, imaging, four financial
+files — and 29 of 258 columns entered the pipeline; the SSN, passport and
+licence columns stopped at the adapter. Seven files that map onto no catalogue
+field were reported and not read.
 
-- *Structure: files, columns, and the column map that was needed.*
-- *What the adapter understood: the layer each file classified into and at what
-  confidence; columns dropped as unrecognised, and what they were.*
-- *What differed from the catalogue — fields the hospital has that we did not
-  model, and fields we modelled that it does not carry — and what was changed
-  in the catalogue in consequence.*
-- *Whether the export was also served through the portal fixture, and what the
-  crawler made of it.*
+What differed from the catalogue is itself a result. The export has no ward,
+no admission time, no phone and no full name as one field (it has first and
+last names apart), and no payer linked directly to a patient; the catalogue was
+*not* changed to fit it, because those fields are what the tasks need, and a
+source that lacks them is reported as a coverage ceiling (§4.4), not hidden.
+The run found five defects in the adapter that our own data had not exposed —
+all described in §7.7, all fixed and pinned by tests. A hospital export, if one
+is released, follows the same procedure (`docs/access/when-access-lands.md`):
+a provenance note, the diagnostic, a column map, the same command.
 
 ---
 
 *Cross-references to fill in at assembly: Chapter 3 (§3.2 the catalogue and
 categories; §3.3.7 accountability), Chapter 4 (§4.1 the adapter boundary; §4.3
 page loads as cost), Chapter 6 (`AuditEvent`; the assistant's pages), Chapter 7
-(§7.4 Table 4 and the label-mode result; §7.7 real data; §7.8 the fixture
-limitation).*
+(§7.4 Table 4 and the label-mode result; §7.7 the public export; §7.8 the
+fixture limitation).*

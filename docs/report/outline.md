@@ -2,8 +2,9 @@
 
 The last item on the completion ledger (6 of 100), and Review-III's deliverable
 together with the manuscript. The compliance chapters need no real data and can
-be drafted now; the results chapter is written against the synthetic runs with a
-clearly marked slot for the hospital dataset. Group voice throughout ("we"); no
+be drafted now; the results chapter is written against the synthetic runs and a
+public export we did not generate. A hospital dataset is not assumed (planning
+case, 2026-09-23): it may never be released, and no section waits for it. Group voice throughout ("we"); no
 vendor names; DPDP cited by section only after the mapping in
 `docs/compliance/dpdp-provision-map.md` has been verified against the Gazette
 text.
@@ -16,7 +17,7 @@ of chapters 3–6 to conference length.
 
 ## 1. Introduction *(~900 words — draft now)*
 
-**Status: draft 1 written 2026-09-15 — `ch1-introduction.md`.** The claim that
+**Status: draft 2, 2026-09-23 — `ch1-introduction.md`; no hospital data assumed; the public export named.** The claim that
 the literature evaluates on speed/robustness/coverage and not compliance must
 be supported by chapter 2's survey.
 
@@ -90,7 +91,7 @@ mapping, once verified).
 
 ## 4. Extraction techniques and the cost axis *(~1800 words — draft now)*
 
-**Status: draft 4, 2026-09-17 — `ch4-techniques-and-cost.md`; §4.5 veracity and traps, demonstrated-vs-attested controls, record-axis scoping in §4.2.1, `record_excess` in §4.3.** Over
+**Status: draft 5, 2026-09-23 — `ch4-techniques-and-cost.md`; three models and the subscription CLI path (§4.2.2), the coverage ceiling measured from the source (§4.4), portal figures current.** Over
 length by ~a quarter; numbers are illustrations from the tracked artefacts, with
 the tables left to chapter 7.
 
@@ -118,7 +119,7 @@ and the minimisation overreach.
 
 ## 5. Acquisition: portal, browser, dataset *(~1600 words — draft now; extend with real data)*
 
-**Status: draft 1 written 2026-09-15 — `ch5-acquisition.md`.** §5.4 carries the
+**Status: draft 2, 2026-09-23 — `ch5-acquisition.md`; the adapter's stacking, text values, blank-means-drop and empty-export refusal (§5.3); §5.4 on the public export.** §5.4 carries the
 real-data slot with its contents fixed.
 
 **Argues.** Structure can be discovered rather than declared, and classified from
@@ -139,8 +140,9 @@ content rather than labels — which is the heterogeneity answer.
   handling gate (provenance, de-identification, ignore rules) — and why a
   compliance project must gate its own inputs.
 - 5.4 Synthetic data: catalogue, generator, per-layer schemas, the fifth layer as
-  audit events. **[Real-data slot: the hospital export — structure, column map,
-  what differed from the catalogue.]**
+  audit events; **a structure we did not write** — the public Synthea export,
+  what the adapter understood, what differed from the catalogue (written
+  2026-09-23).
 
 ## 6. Export and the staff assistant *(~1400 words — draft now)*
 
@@ -165,7 +167,7 @@ and what a member of staff may be told.
 
 ## 7. Evaluation *(~2200 words — draft on synthetic now; add real-data tables when available)*
 
-**Status: draft 4, 2026-09-17 — `ch7-evaluation.md`; every repeat scored, record axis, two more threats answered. Agent rows are from the previous brief and regenerate after the 2026-09-18 re-recording.** Six tables from
+**Status: draft 5, 2026-09-23 — `ch7-evaluation.md`; three models; §7.7 the public export; tables generated from the artefacts (`tools/report_tables.py`); §7.8 revised.** Six tables from
 the tracked artefacts; §7.7 is the real-data slot with its contents fixed.
 
 **Argues.** Compliance discriminates between techniques; purpose changes the
@@ -192,13 +194,16 @@ separates declared from actual.
 - 7.5 Export audit (Table 3): 0 of N vs N of N.
 - 7.6 Role gate and assistant: the three-roles-three-outcomes table; the
   decline-before-collect property.
-- 7.7 **[Real data: the same tables on the hospital dataset, and what changed.]**
-- 7.8 Threats to validity: self-authored fixture; hand-written baseline; synthetic
-  distributions; a single hospital; section mapping pending verification.
+- 7.7 A public export we did not generate: why not the hospital's; handling;
+  what the adapter understood; Table 7 on the export; the five defects it found
+  (written 2026-09-23; a hospital export, if released, regenerates this section).
+- 7.8 Threats to validity: self-authored fixture; no hospital data; three models
+  and small samples; the CLI access path; hand-written baseline; one setting;
+  section mapping.
 
 ## 8. Conclusion *(~700 words — draft now)*
 
-**Status: draft 1 written 2026-09-15 — `ch8-conclusion.md`.** The six-item
+**Status: draft 2, 2026-09-23 — `ch8-conclusion.md`; three models; §8.2 without a hospital's data, and with it.** The six-item
 contribution list is the one to reuse in chapter 1 and the abstract.
 
 Contributions, numbered: (1) a DPDP compliance framework as executable rules over
@@ -229,11 +234,16 @@ work — a fourth purpose (claims adjudication, with its own envelope), DICOM /
 2. Chapter 7 on synthetic data, with the real-data slots marked.
 3. Chapters 5 and 6.
 4. Chapters 1, 2, 8 and the appendices.
-5. When the hospital dataset lands: §5.4, §7.7, and a pass over §7.8.
+5. Done 2026-09-23 in place of the hospital dataset: §5.4 and §7.7 on the public
+   export, §7.8 revised; tables generated by `tools/report_tables.py`.
+6. Final pass: length against the targets, cross-references at assembly, the
+   appendices.
 
 ## The manuscript
 
 A compression of chapters 3–7 to conference length: framework (3), techniques and
 cost (4), evaluation (7), with acquisition and the assistant reduced to a
 paragraph each. The contribution list from §8 becomes the abstract's last
-sentence. Target venue and page budget to be decided with the guide.
+sentence. Draft 1 (2026-09-23): `docs/report/manuscript.md`, in a generic IEEE
+conference shape; target venue and page budget still to be decided with the
+guide.
