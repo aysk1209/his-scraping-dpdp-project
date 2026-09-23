@@ -96,9 +96,14 @@
   footer { margin-top: 28px; font-size: 12.5px; color: var(--ink-3); }
   footer code { font-family: var(--mono); color: var(--ink-2); }
   @media (max-width: 520px) { .grid-tasks { grid-template-columns: 1fr; } }
+  .sitenav { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; margin-bottom: 14px; }
+  .sitenav a { color: var(--ink-3); text-decoration: none; padding: 2px 0; border-bottom: 2px solid transparent; }
+  .sitenav a:hover { color: var(--ink); }
+  .sitenav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--ink); font-weight: 650; }
 </style>
 
 <div class="wrap">
+  <nav class="sitenav" aria-label="Demo pages"><a href="../review/index.html">All demos</a><a href="../review/portal-run.html">Portal run</a><a href="../review/dataset-walkthrough.html">Dataset</a><a href="../review/assistant.html">Assistant</a><a href="rules-vs-just-ai.html" aria-current="page">Rules vs just AI</a></nav>
   <h1>Rules vs Just AI</h1>
   <p class="sub" id="lead">Every technique did the same eight extraction jobs on the same hospital data and was scored by the same seven DPDP rules. One is ours — it reads the purpose policy. Each AI row is a public model given the job in words; the briefing selector chooses how much it was told — nothing, the Act, or the policy itself. One takes everything. Tick and untick techniques to overlay them.</p>
   <div class="prov" id="prov"></div>

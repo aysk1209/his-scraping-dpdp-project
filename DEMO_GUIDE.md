@@ -139,6 +139,26 @@ adapter boundary and the compliance layer doing what they were designed to do.
 
 First run on a new machine needs the browser: `python -m playwright install chromium`.
 
+### The demo pages (interactive; start at `docs/review/index.html`)
+
+Four self-contained pages, each built from a real run and committed, offline,
+with no raw identifier on any of them. `python tools/build_review_pages.py`
+rebuilds them all (~90 s; `--skip-portal` where there is no browser).
+
+- **`portal-run.html`**: the portal the scraper faces (login, TLS, robots.txt),
+  discovery module by module (hide the URLs; the layers are still inferred from
+  field names), and **the crawl**: press `3` then `space`, and every page each
+  technique loaded plays out on a map of the site. Ours 32, the AI agent 35, the
+  baseline 440, with each total checked against the meter when the page is built.
+- **`assistant.html`**: pick a role and type. The page runs the assistant's own
+  recogniser and gate, checked against 435 conversations recorded from the
+  Python assistant every time it opens; typing switches off if they ever differ.
+  The right-hand panel shows the three gate checks for each answer; the role ×
+  function table plays any conversation on click; `▶ Scenes` plays the
+  pipeline's four.
+- **`dataset-walkthrough.html`**: Demo F below.
+- **`../benchmark_results/rules-vs-just-ai.html`**: the AI-agent comparison.
+
 ### Demo F: an export we never saw, in the browser (interactive; hand the panel the mouse)
 
 Open `docs/review/dataset-walkthrough.html` by double-clicking it. It is one

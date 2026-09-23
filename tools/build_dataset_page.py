@@ -45,6 +45,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
@@ -67,10 +68,10 @@ from extraction.techniques import (                                        # noq
 )
 from interop.layers import HISLayer                                        # noqa: E402
 from interop.normalise import audit as audit_export, normalise              # noqa: E402
+from tools.page_kit import render, write                                   # noqa: E402
 
 TEMPLATE = ROOT / "tools" / "dataset_page.html"
 DEFAULT_OUT = ROOT / "docs" / "benchmark_results" / "dataset-walkthrough.html"
-PLACEHOLDER = "/*__DATA__*/null"
 
 LAYER_LABEL = {
     "patient_administration": "Patient administration",
@@ -445,15 +446,13 @@ def build(directory: Path, *, column_map: dict | None = None, file_maps: dict | 
             "rows_read": sum(source.file_rows.values()),
         },
     }
-    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-    page = TEMPLATE.read_text(encoding="utf-8").replace(PLACEHOLDER, payload)
+    page = render(TEMPLATE, data, current="dataset", out=out)
 
     # The page's own audit: nothing it must not show is on it.
     found = [v for v in _identifier_corpus(source, values_shown) if v in page]
     if found:
         raise PageLeak(f"{len(found)} value(s) that must not be shown would be on the page -- not written")
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(page, encoding="utf-8")
+    write(out, page)
     return data
 
 

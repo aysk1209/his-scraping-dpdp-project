@@ -32,7 +32,8 @@ the template lives outside the repository).
 | `python scripts/run_pipeline.py` once, discard output | Warms Chromium and the Python imports; the first run is slowest |
 | Make sure **no `GEMINI_API_KEY` is needed** — the shell may carry one; it does not matter | `AI_AGENT_MODE` defaults to `replay`; nothing in the demo touches the network, with or without a key. Turn the Wi-Fi off if that is easier to say than to explain |
 | `python scripts/rehearse_day_one.py` once, watch the verdict line | Proves the real-data path on this machine: `identifier leaks: 0`. If the hospital's export has arrived, run the day-one procedure instead and rebuild the deck — the dataset slide reads from that run |
-| Open `docs/review/dataset-walkthrough.html` in a browser tab, press `A+` once | Beat 3b. The committed copy is built from the public Synthea sample and needs no network; to rebuild it on this machine: `python scripts/fetch_public_dataset.py`, then `python tools/build_dataset_page.py data/public_synthea --column-map data/public_synthea/column_map.json --out docs/review/dataset-walkthrough.html` (~50 s) |
+| Open `docs/review/index.html` in the browser, then each demo page in its own tab (portal run, dataset, assistant), and press `A+` on each | The interactive half of the demo; every page is committed, offline and built from a real run. `python tools/build_review_pages.py` rebuilds all of them (~90 s) |
+| (dataset page detail) | Beat 3b. The committed copy is built from the public Synthea sample and needs no network; to rebuild it on this machine: `python scripts/fetch_public_dataset.py`, then `python tools/build_dataset_page.py data/public_synthea --column-map data/public_synthea/column_map.json --out docs/review/dataset-walkthrough.html` (~50 s) |
 | Open in browser tabs: `docs/benchmark_results/benchmark-portal.md`, `care-pull--compliance-aware--purpose-matrix.md`, `billing-pull--compliance-aware--purpose-matrix.md`, `navigation-map.json` | These are the same tables the live run prints — the fallback if anything fails |
 | Terminal: dark theme, font ≥ 16 pt, window at least 100 columns wide | The benchmark tables are wide |
 | `python scripts/run_pipeline.py` as the live command (defaults are 20 records, 10 per page) | ~2 min; enough pages to show pagination, and the baseline's 440 page loads are the visible cost |
@@ -153,6 +154,13 @@ copy, and here is the audit event. Storage limitation is something the pipeline
 does, not something it declares." *(If asked: the audit log itself was written
 by the harness at the metering boundary — a technique cannot log itself.)*
 
+**Then switch to the portal page** (`docs/review/portal-run.html`), press `3`,
+then `space`. Every page each technique loaded plays out on a map of the portal:
+ours stops at 32, the AI agent at 35, and the baseline keeps opening pages until
+440. The numbers are the meter's own (the builder checks). Press `2` if asked
+how the scraper knows what a module is: hide the URLs, and every module is still
+inferred from its field names.
+
 ### Beat 3b — an export we never saw (browser, ~90 s; hand over the mouse)
 
 `docs/review/dataset-walkthrough.html`. This is the answer to "and when the
@@ -186,7 +194,17 @@ data and not billing data; billing may see billing data and not clinical data.
 Neither purpose is "stricter". Out of scope means *not necessary for this
 purpose*, not *more sensitive*.
 
-### Beat 5 — hand the keyboard over (terminal, optional, 60 s)
+### Beat 5 — hand the keyboard over (browser or terminal, optional, 60 s)
+
+`docs/review/assistant.html`: pick *reception*, type "what is the patient's
+diagnosis". It refuses before asking for anything, and the right-hand panel
+shows the three checks: PL-01 fails, the rest are not reached. Switch to
+*nurse*, ask the same, and click "use MRN2867825": the steps are placed on the
+pages the crawler found. `▶ Scenes` plays the pipeline's four scenes. Clicking
+any cell in the role × function table plays that conversation. The badge at the
+top says the page's engine matched the Python assistant on every recorded
+conversation when it opened. If it ever does not, typing switches off by
+itself. Or, in the terminal:
 
 ```
 python scripts/ask_agent.py --interactive
