@@ -154,6 +154,11 @@ copy, and here is the audit event. Storage limitation is something the pipeline
 does, not something it declares." *(If asked: the audit log itself was written
 by the harness at the metering boundary — a technique cannot log itself.)*
 
+**Slide 10, "Live Demonstration"**, carries a picture of each page in the state
+worth pointing at. If the room's browser fails, stay on that slide and talk
+over the pictures. After rebuilding the pages, refresh the pictures and the deck:
+`python tools/capture_demo_pages.py`, then `REVIEW_TEMPLATE=… python tools/build_review_deck.py`.
+
 **Then switch to the portal page** (`docs/review/portal-run.html`), press `3`,
 then `space`. Every page each technique loaded plays out on a map of the portal:
 ours stops at 32, the AI agent at 35, and the baseline keeps opening pages until

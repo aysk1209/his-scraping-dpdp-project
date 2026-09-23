@@ -16,7 +16,10 @@ The numbers come from the artefacts the demo writes: the results table from
 briefing), the dataset slide from ``benchmark-dataset.json`` when it exists
 (the rehearsal writes one; the day the hospital's export lands the same file
 is written from the real run and the slide swaps itself), the test count from
-the suite. Rebuild after every regeneration; nothing here is typed in twice.
+the suite, and the demonstration slide's pictures from ``docs/review/img/``
+(``tools/capture_demo_pages.py`` photographs the four interactive pages; the
+slide is left out if they are missing). Rebuild after every regeneration;
+nothing here is typed in twice.
 
 Needs ``python-pptx`` (authoring tool only; not a project dependency).
 """
@@ -42,6 +45,22 @@ ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE_NAME = "Review-2 Template.pptx"
 TEMPLATE = Path(os.environ.get("REVIEW_TEMPLATE") or ROOT / TEMPLATE_NAME)
 REVIEW_I = ROOT / "Review-I.pptx"
+DEMO_IMG = ROOT / "docs" / "review" / "img"
+# The demonstration slide: picture, title, what the panel is shown, the page it comes from.
+DEMOS = [
+    ("portal-crawl.png", "1 · The portal run",
+     "Every page each technique loaded, replayed on a map of the portal: ours 32, the AI agent 35, the baseline 440 "
+     "— each total checked against the meter.", "portal-run.html"),
+    ("dataset-patient.png", "2 · An export we never saw",
+     "Synthea's public sample, one patient's bill: the agent takes the diagnosis; ours takes three fields; the "
+     "baseline reads 180,570 records.", "dataset-walkthrough.html"),
+    ("assistant-refusal.png", "3 · Ask the assistant",
+     "The panel types; reception asking for a diagnosis is refused before any detail is asked, with the three "
+     "checks shown. Verified against the Python assistant on load.", "assistant.html"),
+    ("rules-vs-ai.png", "4 · Rules vs just AI",
+     "Eight tasks, five repeats, every repeat scored: close on the score, apart on traps, coverage, minimisation "
+     "and repeatability.", "rules-vs-just-ai.html"),
+]
 TARGET = ROOT / "Review-II.pptx"
 
 NAVY = RGBColor(0x1D, 0x2F, 0x82)
@@ -400,6 +419,42 @@ _BEHAVIOUR = {
 }
 
 
+def draw_demo(slide) -> None:
+    """Four pictures of the interactive pages, each fitted to its cell with a caption beneath."""
+
+    from PIL import Image
+
+    cell_w, img_h, left0, top0, gap_x, row_h = 5.95, 2.05, 0.6, 1.3, 0.23, 2.72
+    for i, (name, title, blurb, page) in enumerate(DEMOS):
+        col, row = i % 2, i // 2
+        x, y = left0 + col * (cell_w + gap_x), top0 + row * row_h
+        with Image.open(DEMO_IMG / name) as im:
+            w, h = im.size
+        scale = min(cell_w / w, img_h / h)
+        pw, ph = w * scale, h * scale
+        pic = slide.shapes.add_picture(str(DEMO_IMG / name), Inches(x + (cell_w - pw) / 2), Inches(y + img_h - ph),
+                                       Inches(pw), Inches(ph))
+        pic.line.color.rgb = GREY
+        pic.line.width = Pt(0.5)
+        add_text(slide, x, y + img_h + 0.04, cell_w, 0.62, [f"{title}  —  {blurb}"], size=10, bold_first=False)
+        # The title in bold, the page name in grey: one paragraph, three runs.
+        para = slide.shapes[-1].text_frame.paragraphs[0]
+        text = para.runs[0].text
+        para.runs[0].text = title
+        para.runs[0].font.bold = True
+        para.runs[0].font.color.rgb = NAVY
+        r2 = para.add_run()
+        r2.text = text[len(title):]
+        r2.font.size = Pt(10)
+        r3 = para.add_run()
+        r3.text = f"  [{page}]"
+        r3.font.size = Pt(9)
+        r3.font.color.rgb = GREY
+    add_text(slide, 0.6, 6.78, 12.1, 0.35, [
+        "Open docs/review/index.html — every page is offline, built from a real run of the pipeline "
+        "(tools/build_review_pages.py), and shows no raw patient identifier."], size=10.5, color=NAVY)
+
+
 def benchmark_rows() -> tuple[list[list[str]], int, int]:
     """Results-slide rows from benchmark-portal.json -- the numbers the demo prints."""
 
@@ -570,13 +625,15 @@ def build() -> Path:
             "traps × stability), purpose_matrix, capabilities (register: demonstrated vs attested), audit (the "
             "harness logs every run), retention (sidecar + purge), pseudonymise (HMAC tokens), handling (real-data gate).",
             "extraction/ — HISDataSource interface (transport observed, where= for one patient); adapters mock / portal "
-            "(Playwright over TLS; search box) / dataset (CSV + Excel, column map, per-file overrides, day-first dates); "
+            "(Playwright over TLS; search box) / dataset (CSV + Excel, column map, per-file overrides, day-first dates, "
+            "values kept as text, per-concept files stacked); "
             "techniques compliant / ai_agent (one agent = model × briefing; recorded, replayed, rationed) / "
             "unconstrained; metering (fields, fetches, pages, records); tier2 browser + navigation discovery.",
             "interop/ — HL7 v2 (ADT, ORM, ORU, DFT) and FHIR R4 (12 resources incl. AuditEvent) shapers; normalise + "
             "export audit. agent/ — 13-function registry, session state machine, grounded guidance. "
             "tools/mock_portal — the Flask fixture built as a system we do not control. scripts/rehearse_day_one.py — "
-            "the real-data procedure rehearsed on a hospital-shaped export, with a leak audit.",
+            "the real-data procedure rehearsed on a hospital-shaped export, with a leak audit. tools/build_review_pages.py — "
+            "four offline demo pages built from real runs.",
         ]),
         ("Algorithms implemented:", [
             "Rule scoring: each principle → 0–1 with findings; weighted aggregate (a sweep shows the ranking survives any "
@@ -711,8 +768,11 @@ def build() -> Path:
                 "The rehearsal found four defects before any real data existed — a header meaning different fields in "
                 "different files, a split table read half, day-first dates reaching HL7 unparsed, .xlsx unreadable — and "
                 "each is now fixed and tested. Then everything printed or written was searched for one patient's record "
-                "number, name and phone: nothing. A recording is a property of the model, not of a source, so no agent is "
-                "re-recorded for the real data; the day it arrives this slide is rebuilt from its run and nothing else changes.",
+                "number, name and phone: nothing. A public export we had never seen (Synthea: 18 files, one per clinical "
+                "concept) found five more — identifiers read as numbers, a blanked column counted against a file, an empty "
+                "source still benchmarked, one table kept per layer, a coverage ceiling set by the wrong technique — all "
+                "fixed and tested. No agent is re-recorded for the real data: the day it arrives this slide is rebuilt from "
+                "its run and nothing else changes.",
             ]
         else:
             intro = [
@@ -747,7 +807,8 @@ def build() -> Path:
             "loads, excess ratio) and coverage guards against pulling nothing.",
             "Trusting our own claims — the manifest is scored against what the run produced (export audit, observed "
             "transport, harness-written audit log, retention sidecar), not against the declaration; and the real-data "
-            "procedure was rehearsed on a hospital-shaped export before any real data existed, which found four defects.",
+            "procedure was rehearsed on a hospital-shaped export before any real data existed (four defects found), then run "
+            "on a public export we had never seen (five more) — each fixed and pinned by a test.",
             "Public models on free tiers — the recorder is paced, budgeted per day and breadth-first, and a model enters "
             "the tables after one pass; the flagship of the family still served only one or two calls a day in practice, "
             "so it was dropped rather than paid for. The model never sees a patient value, so the recordings replay on "
@@ -771,6 +832,20 @@ def build() -> Path:
     rewrite_plain(shape_named(refs, "Text 3"), [
         "IEEE format. [1]–[12] and [14]–[16] are cited on the literature slides; [13] on the problem, methodology and results slides."
     ])
+
+    # ---- Live demonstration (after Implementation, where the talk goes live) ----
+    if all((DEMO_IMG / name).exists() for name, *_ in DEMOS):
+        impl = next(i for i, sl in enumerate(prs.slides)
+                    if any(sh.has_text_frame and sh.text_frame.text.startswith("Implementation") for sh in sl.shapes))
+        demo = duplicate_slide(prs, impl + 1)
+        move_slide(prs, demo, impl + 1)
+        for sh in list(demo.shapes):
+            if sh.name not in ("Text 0", "Text 1", "Image 0"):
+                sh._element.getparent().remove(sh._element)
+        rewrite_plain(shape_named(demo, "Text 1"), ["Live Demonstration — the Interactive Pages"])
+        draw_demo(demo)
+    else:
+        print("  demonstration slide left out: run tools/capture_demo_pages.py for its pictures")
 
     renumber(prs)
     prs.save(TARGET)
