@@ -193,3 +193,62 @@ def test_the_pipeline_stops_before_benchmarking_what_it_did_not_understand(tmp_p
     assert proc.returncode == 2, proc.stdout + proc.stderr
     assert "STOPPED" in proc.stdout and "[3] BENCHMARK" not in proc.stdout
     assert (artefact.stat().st_mtime if artefact.exists() else None) == before
+
+
+# ------------------------- 4. one file per concept -> the layer is stacked
+
+def _per_concept_export(directory: Path) -> None:
+    # How most HIS dumps look: a table per concept, many rows per patient.
+    _write(directory / "patients.csv", ["mrn", "date_of_birth", "sex"],
+           ["000123", "1978-01-16", "M"], ["000456", "2001-02-11", "F"])
+    _write(directory / "conditions.csv", ["mrn", "primary_diagnosis"],
+           ["000123", "hypertension"], ["000123", "asthma"], ["000456", "flu"])
+    _write(directory / "medications.csv", ["mrn", "medication"], ["000123", "amlodipine"], ["000456", "oseltamivir"])
+    _write(directory / "allergies.csv", ["mrn", "allergy"], ["000123", "penicillin"])
+    _write(directory / "observations.csv", ["mrn", "lab_result"], *[["000123", str(i)] for i in range(20)])
+
+
+def test_files_with_different_columns_for_one_layer_are_stacked_not_dropped(tmp_path):
+    _per_concept_export(tmp_path)
+    src = DatasetHISDataSource(tmp_path, enforce_handling=False)
+    assert src.stacked == {HISLayer.CLINICAL_EHR}
+    assert src.merged[HISLayer.CLINICAL_EHR] == ["allergies.csv", "conditions.csv", "medications.csv",
+                                                  "observations.csv"]
+    assert set(src.fields(HISLayer.CLINICAL_EHR)) == {"mrn", "allergy", "primary_diagnosis", "medication",
+                                                      "lab_result"}
+    assert "files stacked" in src.describe()
+    # Every fact is its own record, carrying only its own file's fields; none is lost.
+    rows = list(src.fetch(HISLayer.CLINICAL_EHR, fields=["mrn", "primary_diagnosis", "medication", "allergy"],
+                          where={"mrn": "000123"}))
+    assert sorted(tuple(sorted(r.items())) for r in rows) == sorted([
+        (("allergy", "penicillin"), ("mrn", "000123")),
+        (("mrn", "000123"), ("primary_diagnosis", "hypertension")),
+        (("mrn", "000123"), ("primary_diagnosis", "asthma")),
+        (("medication", "amlodipine"), ("mrn", "000123")),
+    ])
+
+
+def test_a_fetch_reads_only_the_files_that_carry_what_was_asked(tmp_path):
+    _per_concept_export(tmp_path)
+    src = DatasetHISDataSource(tmp_path, enforce_handling=False)
+    assert list(src.fetch(HISLayer.CLINICAL_EHR, fields=["mrn", "allergy"])) == [
+        {"mrn": "000123", "allergy": "penicillin"}]                      # not 20 observation rows of bare mrn
+    # Asked for the key alone (how the harness counts a patient's own records), every file counts.
+    assert len(list(src.fetch(HISLayer.CLINICAL_EHR, fields=["mrn"], where={"mrn": "000123"}))) == 24
+    # Asked for everything (the baseline), every row comes back.
+    assert len(list(src.fetch(HISLayer.CLINICAL_EHR))) == 26
+
+
+def test_the_patient_summary_is_complete_on_a_per_concept_export(tmp_path):
+    from compliance.benchmark import bind_subject
+    _per_concept_export(tmp_path)
+    src = DatasetHISDataSource(tmp_path, enforce_handling=False)
+    task = ExtractionTask(
+        task_id="patient-summary", purpose=Purpose.CARE_COORDINATION, single_subject=True,
+        needed=[LayerFields(layer=HISLayer.PATIENT_ADMINISTRATION, fields=["mrn", "date_of_birth", "sex"]),
+                LayerFields(layer=HISLayer.CLINICAL_EHR, fields=["primary_diagnosis", "medication", "allergy"])],
+    )
+    result = run_benchmark([CompliantExtractionTechnique(), UnconstrainedExtractionTechnique()],
+                           bind_subject([task], src), src)
+    ours = next(s for s in result.scores if s.short == "compliance-aware")
+    assert ours.cost.coverage == 1.0 and ours.mean_compliance_score == 1.0

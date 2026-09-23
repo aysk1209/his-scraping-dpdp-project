@@ -26,7 +26,9 @@ the same procedure and found three more, now fixed and pinned by
 became `123`, or `123.0` beside a blank, and the patient join failed silently);
 a blanked header still counting against a file, so a wide file could never be
 read; and an export understood not at all still producing a benchmark and a
-headline gap.
+headline gap. It also showed the adapter keeping one file per layer and
+dropping the rest (conditions, medications and encounters lost behind
+allergies). Files with different columns are now stacked.
 
 ## A. A dataset (CSV / Excel files)
 
@@ -56,8 +58,15 @@ headline gap.
    the clinical file and `subject_mrn` on the audit trail — goes under
    `"files"`, per file name; the check prints the exact line to write. Re-run
    the check until the layers are inferred with the confidence you expect.
-   Several files for one layer (an export by month) are concatenated when
-   their recognised columns agree; the check says so. Dates in any common form
+   Several files for one layer are concatenated when their recognised columns
+   agree (an export by month) and stacked when they differ (one file per
+   concept: diagnoses, prescriptions, allergies). A stacked row keeps only its
+   own file's fields, and a fetch reads only the files carrying a field it asked
+   for. Files are not joined on the patient key: a patient has many diagnoses,
+   so a join would multiply records or lose them. The pipeline's stage 2 says
+   which layers were stacked. Map a date column to `encounter_datetime` only
+   where it really is one: every file that carries it is read by a task that
+   asks for it. Dates in any common form
    are parsed day-first and emitted in ISO form; values it cannot parse are
    left as written and counted.
 5. **Run the pipeline on it:**

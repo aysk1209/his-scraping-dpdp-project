@@ -25,8 +25,13 @@ depends on the files being ours: every file is classified by its *content*.
                                 (``file_maps={"audit_trail.csv": {...}}``).
     One layer, several files?   Concatenated, when their recognised columns
                                 agree -- a hospital exports by month, not by
-                                layer. Files that disagree are reported and the
-                                better-explained one is kept.
+                                layer. Stacked, when they differ -- one file per
+                                concept (diagnoses, prescriptions, allergies),
+                                each row keeping the fields of its own file. Not
+                                joined on the patient key: that is one-to-many,
+                                and a join would multiply records or lose them.
+                                A fetch for some fields reads only the files
+                                that carry at least one of them.
     What do the dates look like? However the hospital wrote them. The
                                 catalogue's date and datetime fields are parsed
                                 (day first, as India writes them) and re-emitted
@@ -67,7 +72,7 @@ import pandas as pd
 
 from compliance.handling import require_safe_to_read
 
-from data_synthetic.catalogue import FIELD_CATALOGUE, infer_layer
+from data_synthetic.catalogue import FIELD_CATALOGUE, infer_layer, subject_key
 from extraction.base import HISDataSource
 from interop.layers import HISLayer
 
@@ -221,9 +226,11 @@ class DatasetHISDataSource(HISDataSource):
         self.min_confidence = min_confidence
         self.dayfirst = dayfirst
         self.files: dict[HISLayer, Path] = {}                 # the first file of each layer
-        self.merged: dict[HISLayer, list[str]] = {}          # layer -> every file concatenated into it
-        self.skipped: dict[str, str] = {}                     # file name -> why it was not used
-        self.confidence: dict[HISLayer, float] = {}
+        self.merged: dict[HISLayer, list[str]] = {}          # layer -> every file read into it, when several
+        self.stacked: set[HISLayer] = set()                   # layers whose files carry different columns
+        self.confidence: dict[HISLayer, float] = {}           # per layer: the least confident of its files
+        self.file_confidence: dict[str, float] = {}
+        self.file_rows: dict[str, int] = {}
         self.dropped_columns: dict[str, list[str]] = {}      # file name -> columns not understood
         self.blanked_columns: dict[str, list[str]] = {}      # file name -> columns the map drops on purpose
         self.unparsed_dates: dict[str, dict[str, int]] = {}   # file name -> column -> values left as they were
@@ -231,6 +238,8 @@ class DatasetHISDataSource(HISDataSource):
         self.unclassified: list[str] = []                     # files the adapter does not read
         self.unclassified_reason: dict[str, str] = {}         # file name -> why
         self._frames: dict[HISLayer, pd.DataFrame] = {}
+        self._row_file: dict[HISLayer, pd.Series] = {}                  # which file each row came from
+        self._file_fields: dict[HISLayer, dict[str, set[str]]] = {}     # layer -> file -> its fields
         self._load()
 
     def map_for(self, file_name: str) -> dict[str, str]:
@@ -243,6 +252,7 @@ class DatasetHISDataSource(HISDataSource):
     def _load(self) -> None:
         if not self.directory.is_dir():
             raise FileNotFoundError(f"export directory not found: {self.directory}")
+        parts: dict[HISLayer, list[tuple[Path, pd.DataFrame]]] = {}
         for path in sorted(self.directory.iterdir()):
             if path.suffix.lower() not in READABLE:
                 continue
@@ -265,25 +275,28 @@ class DatasetHISDataSource(HISDataSource):
             frame, unparsed = normalise_numbers(frame)
             if unparsed:
                 self.unparsed_numbers[path.name] = unparsed
-            frame = frame.astype(object).where(frame.notna(), None)
-            if layer in self._frames:
-                # A second file for the same layer: a hospital exports by
-                # month or by ward. Same recognised columns -> one table.
-                if set(known) == set(self._frames[layer].columns):
-                    self._frames[layer] = pd.concat([self._frames[layer], frame[list(self._frames[layer].columns)]],
-                                                    ignore_index=True)
-                    self.merged.setdefault(layer, [self.files[layer].name]).append(path.name)
-                    continue
-                # Different columns: keep the better-explained file, and say so.
-                if self.confidence[layer] >= confidence:
-                    self.skipped[path.name] = (f"also {layer.value}, but its columns differ from "
-                                               f"{self.files[layer].name}; not merged")
-                    continue
-                self.skipped[self.files[layer].name] = (f"also {layer.value}, but its columns differ from "
-                                                        f"{path.name}; not merged")
-            self.files[layer] = path
-            self.confidence[layer] = confidence
-            self._frames[layer] = frame
+            self.file_confidence[path.name] = confidence
+            self.file_rows[path.name] = len(frame)
+            parts.setdefault(layer, []).append((path, frame))
+
+        for layer, files in parts.items():
+            # Several files for one layer. Same columns: a hospital exporting by
+            # month or by ward -- one table. Different columns: one file per
+            # concept (diagnoses, prescriptions, allergies) -- stacked, each row
+            # carrying the fields of the file it came from. Not joined on the
+            # patient key: a patient has many diagnoses and many prescriptions,
+            # and a join would multiply them or drop them.
+            columns = list(dict.fromkeys(c for _, f in files for c in f.columns))
+            frame = pd.concat([f for _, f in files], ignore_index=True).reindex(columns=columns)
+            self._frames[layer] = frame.astype(object).where(frame.notna(), None)
+            self._row_file[layer] = pd.Series([p.name for p, f in files for _ in range(len(f))], dtype=object)
+            self._file_fields[layer] = {p.name: set(f.columns) for p, f in files}
+            self.files[layer] = files[0][0]
+            self.confidence[layer] = min(self.file_confidence[p.name] for p, _ in files)
+            if len(files) > 1:
+                self.merged[layer] = [p.name for p, _ in files]
+            if len({frozenset(f.columns) for _, f in files}) > 1:
+                self.stacked.add(layer)
 
     # ----------------------------------------------------------------- source
 
@@ -307,6 +320,13 @@ class DatasetHISDataSource(HISDataSource):
         frame = self._frames.get(layer)
         if frame is None:
             return
+        asked = set(fields or ()) - {subject_key(layer)}
+        if asked and layer in self.stacked:
+            # Asked for allergies: read the files that carry allergies, not every
+            # observation row as well -- as the portal opens only the modules
+            # that hold what was asked for.
+            relevant = [name for name, cols in self._file_fields[layer].items() if cols & asked]
+            frame = frame[self._row_file[layer].isin(relevant)]
         for k, v in (where or {}).items():
             frame = frame[frame[k].astype(str) == str(v)] if k in frame.columns else frame.iloc[0:0]
         wanted = [f for f in (fields or list(frame.columns)) if f in frame.columns]
@@ -315,13 +335,18 @@ class DatasetHISDataSource(HISDataSource):
 
     def describe(self) -> str:
         lines = [f"dataset at {self.directory}"]
-        for layer, path in self.files.items():
-            lines.append(
-                f"  {path.name:<34} -> {layer.value:<26} "
-                f"({self.confidence[layer]:.0%} of columns explained, {len(self._frames[layer])} rows)"
-            )
+        for layer, files in self._file_fields.items():
+            for name in files:
+                lines.append(
+                    f"  {name:<34} -> {layer.value:<26} "
+                    f"({self.file_confidence[name]:.0%} of columns explained, {self.file_rows[name]} rows)"
+                )
         for layer, names in self.merged.items():
-            lines.append(f"  {layer.value}: {len(names)} files concatenated ({', '.join(names)})")
+            if layer in self.stacked:
+                lines.append(f"  {layer.value}: {len(names)} files stacked ({', '.join(names)}) -- their columns "
+                             f"differ, so each row carries the fields of the file it came from")
+            else:
+                lines.append(f"  {layer.value}: {len(names)} files concatenated ({', '.join(names)})")
         for name, cols in self.dropped_columns.items():
             lines.append(f"  {name}: columns not understood and dropped: {', '.join(cols)}")
         for name, cols in self.blanked_columns.items():
@@ -332,8 +357,6 @@ class DatasetHISDataSource(HISDataSource):
         for name, cols in self.unparsed_numbers.items():
             lines.append(f"  {name}: numbers left as written (could not parse): "
                          + ", ".join(f"{c} x{n}" for c, n in cols.items()))
-        for name, why in self.skipped.items():
-            lines.append(f"  {name}: {why}")
         for name in self.unclassified:
             lines.append(f"  {name}: not read -- {self.unclassified_reason.get(name, 'no layer explains its columns')}")
         return "\n".join(lines)
