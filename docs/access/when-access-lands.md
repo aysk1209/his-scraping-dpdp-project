@@ -83,6 +83,16 @@ allergies). Files with different columns are now stacked.
 6. **If the structure differs from ours** — a field the catalogue lacks, a layer
    split differently — the one place to change is `src/data_synthetic/catalogue.py`.
    Everything downstream reads it.
+7. **Build the page for the room, if wanted:**
+   ```
+   python tools/build_dataset_page.py data/hospital_export --column-map data/hospital_export/column_map.json
+   ```
+   Built from a real export, the page shows structure, counts and pseudonyms,
+   never values: clinical, financial and quasi-identifying values are replaced
+   by their shape. It is written to a git-ignored path, and the builder refuses
+   any path git would track. It searches its own output for every identifier the
+   export holds before writing. Do not copy it into `docs/review/`; the
+   committed copy there is the public Synthea build.
 
 ## B. A portal (credentialed URL)
 

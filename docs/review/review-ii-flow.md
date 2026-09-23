@@ -32,6 +32,7 @@ the template lives outside the repository).
 | `python scripts/run_pipeline.py` once, discard output | Warms Chromium and the Python imports; the first run is slowest |
 | Make sure **no `GEMINI_API_KEY` is needed** — the shell may carry one; it does not matter | `AI_AGENT_MODE` defaults to `replay`; nothing in the demo touches the network, with or without a key. Turn the Wi-Fi off if that is easier to say than to explain |
 | `python scripts/rehearse_day_one.py` once, watch the verdict line | Proves the real-data path on this machine: `identifier leaks: 0`. If the hospital's export has arrived, run the day-one procedure instead and rebuild the deck — the dataset slide reads from that run |
+| Open `docs/review/dataset-walkthrough.html` in a browser tab, press `A+` once | Beat 3b. The committed copy is built from the public Synthea sample and needs no network; to rebuild it on this machine: `python scripts/fetch_public_dataset.py`, then `python tools/build_dataset_page.py data/public_synthea --column-map data/public_synthea/column_map.json --out docs/review/dataset-walkthrough.html` (~50 s) |
 | Open in browser tabs: `docs/benchmark_results/benchmark-portal.md`, `care-pull--compliance-aware--purpose-matrix.md`, `billing-pull--compliance-aware--purpose-matrix.md`, `navigation-map.json` | These are the same tables the live run prints — the fallback if anything fails |
 | Terminal: dark theme, font ≥ 16 pt, window at least 100 columns wide | The benchmark tables are wide |
 | `python scripts/run_pipeline.py` as the live command (defaults are 20 records, 10 per page) | ~2 min; enough pages to show pagination, and the baseline's 440 page loads are the visible cost |
@@ -152,6 +153,28 @@ copy, and here is the audit event. Storage limitation is something the pipeline
 does, not something it declares." *(If asked: the audit log itself was written
 by the harness at the metering boundary — a technique cannot log itself.)*
 
+### Beat 3b — an export we never saw (browser, ~90 s; hand over the mouse)
+
+`docs/review/dataset-walkthrough.html`. This is the answer to "and when the
+hospital's data comes?", shown on data we did not generate: Synthea's public
+sample, 18 files, a registration file with SSN and passport columns.
+
+> "The hospital's export is on its way. So we took a public dataset this code had
+> never seen and ran it through the same path. Step 1: every file was classified
+> by what its columns *are*; 29 of 258 columns got in, and SSN, passport and
+> licence numbers stopped at the door."
+
+Then let a panel member press `2` and switch off *provenance note*: the page shows
+the adapter's exact refusal. Press `3`, choose *claim reconciliation*: the AI
+agent takes the diagnosis for a billing job; ours does not; the baseline reads
+180,570 records for one patient. Switch the export view to Baseline to show red
+masked identifiers, then back to Ours for green pseudonyms. If there is time,
+press `5` and drag to day 30: the export is erased and logged.
+
+The line to end on: "This page follows the rules it shows. No raw identifier is
+on it, and built from the hospital's export it would show structure only, never
+values, and would refuse to be saved anywhere git could commit it."
+
 ### Beat 4 — both directions (terminal, 20 s)
 
 ```
@@ -204,7 +227,7 @@ next: the real data's own slide, the report's second pass, the manuscript.
 | "What did the rehearsal find?" | `scripts/rehearse_day_one.py`, `tests/extraction/test_day_one.py` | A header that means `mrn` in four files and `subject_mrn` in the audit trail (per-file map), a layer split across files read half (concatenated), dd/mm/yyyy dates reaching HL7 unparsed (ISO normalisation), `.xlsx` unreadable (`openpyxl`); the leak audit passed |
 | "Who wrote the audit log — the technique?" | Stage [3], the `audit log` lines; `compliance/audit.py` | The harness, at the metering boundary; a technique cannot log itself. Same for the observed TLS, the export audit and the retention sidecar — the four *demonstrated* controls |
 | "Why is compliance cheaper here — isn't that suspicious?" | `excess_ratio` | Fields pulled beyond the purpose are both the cost and the overreach the minimisation rule penalises — one quantity, two readings; the an agent that leaves out needed data is cheaper still and that cheapness *is* its failure (coverage below 1) |
-| "What happens when you get the real data?" | `extraction/adapters/dataset_his.py` | Drop it in `data/`, write a `column_map`, run the same pipeline; tested with hospital-named columns |
+| "What happens when you get the real data?" | Beat 3b's page; `extraction/adapters/dataset_his.py` | Drop it in `data/`, write a `column_map`, run the same pipeline. Shown on a public export we had never seen (Synthea), which found five defects, all fixed and pinned by `tests/extraction/test_unseen_export.py`. The page is rebuilt from the real export with values hidden |
 | "And a real portal?" | `PortalHISDataSource(field_aliases=…)` | Display labels map to fields as headers are read; tested against the fixture in label mode |
 | "Is the pseudonymisation real or declared?" | Stage [4], the audit line | `interop.normalise.audit` searches the emitted artefacts for raw identifiers |
 | "Which DPDP sections?" | `docs/compliance/dpdp-provision-map.md` | Rules cite principles; sections are pinned in the report, deliberately not in code |
@@ -217,6 +240,8 @@ next: the real data's own slide, the report's second pass, the manuscript.
 |---|---|---|
 | `scripts/run_pipeline.py` | **The whole chain**: portal → discover → benchmark → normalise + audit → purpose → assistant → retain | ~2 min |
 | `scripts/rehearse_day_one.py` | The real-data procedure on a hospital-shaped export, through the handling gate, with a leak audit | 5 s |
+| `scripts/fetch_public_dataset.py` | Downloads the public Synthea sample into `data/` with its provenance note and column map | 10 s |
+| `tools/build_dataset_page.py DIR --column-map FILE` | The interactive dataset page (Beat 3b) from a real run of the dataset path; audits itself for identifiers | ~50 s |
 | `scripts/run_benchmark.py` | Every technique on in-memory data: eight tasks, five repeats, every repeat scored; compliance × cost × veracity × traps × stability | 1 s |
 | `scripts/purge_exports.py [--as-of DATE] [--erase]` | The deletion mechanism: what is scheduled, what is due, what goes — and the audit event it leaves | 1 s |
 | `scripts/compare_purposes.py` | One pull judged under every purpose, both directions, plus the retention case | 2 s |

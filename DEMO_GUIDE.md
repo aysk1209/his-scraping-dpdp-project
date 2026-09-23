@@ -139,6 +139,46 @@ adapter boundary and the compliance layer doing what they were designed to do.
 
 First run on a new machine needs the browser: `python -m playwright install chromium`.
 
+### Demo F: an export we never saw, in the browser (interactive; hand the panel the mouse)
+
+Open `docs/review/dataset-walkthrough.html` by double-clicking it. It is one
+self-contained page and needs no network. It shows the dataset path run on
+**Synthea's public sample**: 18 files, 258 columns, a registration file with SSN,
+passport and licence numbers. Five steps; keys `1`–`5` or `←` `→` move between
+them, `A+` enlarges the text for a projector.
+
+1. **Files in.** Click a file. Each header shows as recognised (with its DPDP
+   category), dropped by the map, or not understood. On the registration file,
+   `SSN`, `PASSPORT` and `DRIVERS` stop at the door. Say: "the adapter classified
+   every file by what its columns *are*; 29 of 258 columns were let in."
+2. **The gate.** Let someone switch off "provenance note". The page shows the
+   exact refusal the adapter prints, and nothing is read.
+3. **One patient.** Choose *claim reconciliation* (⚠). The AI agent, told the
+   policy, still takes the diagnosis for a billing job (red chip, DM-01 fails)
+   and keeps it for 365 days. Ours takes three fields for 30 days. The baseline
+   reads 180,570 records to answer for one patient. Under "What left the
+   building", switch between Ours and Baseline: green `PSN-…` pseudonyms against
+   red masked raw identifiers.
+4. **The score.** The benchmark on this export, and the coverage ceiling: which
+   fields the export lacks and which the patient lacks.
+5. **Retention.** Drag the slider to day 30. Our export is erased and the purge
+   is logged; the baseline's can never be scheduled.
+
+The point to make out loud: **the page obeys the rules it demonstrates.** No raw
+identifier is on it (the builder checked its own output before writing it);
+patients appear as pseudonyms only. Built from a real export, it shows structure
+and counts, never values, and it refuses to be written anywhere git would commit.
+
+To rebuild it (or build it for the hospital's export when it lands):
+
+```
+python scripts/fetch_public_dataset.py
+python tools/build_dataset_page.py data/public_synthea --column-map data/public_synthea/column_map.json
+```
+
+That writes `docs/benchmark_results/dataset-walkthrough.html` (git-ignored). The
+committed copy in `docs/review/` is the fallback for the room.
+
 ### Demo 0 — one patient, end to end (show this first)
 
 ```

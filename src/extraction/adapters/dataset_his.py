@@ -317,9 +317,26 @@ class DatasetHISDataSource(HISDataSource):
         where: dict[str, Any] | None = None,
         **query: Any,
     ) -> Iterator[dict[str, Any]]:
-        frame = self._frames.get(layer)
+        frame = self._select(layer, fields, where)
         if frame is None:
             return
+        wanted = [f for f in (fields or list(frame.columns)) if f in frame.columns]
+        for record in frame[wanted].to_dict(orient="records"):
+            yield {k: v for k, v in record.items() if v is not None}
+
+    def rows_by_file(self, layer: HISLayer, *, fields: list[str] | None = None,
+                     where: dict[str, Any] | None = None) -> dict[str, int]:
+        """How many rows of each file the same ``fetch`` would yield -- for showing what was read."""
+
+        frame = self._select(layer, fields, where)
+        if frame is None:
+            return {}
+        return {str(k): int(v) for k, v in self._row_file[layer].loc[frame.index].value_counts(sort=False).items()}
+
+    def _select(self, layer: HISLayer, fields: list[str] | None, where: dict[str, Any] | None) -> pd.DataFrame | None:
+        frame = self._frames.get(layer)
+        if frame is None:
+            return None
         asked = set(fields or ()) - {subject_key(layer)}
         if asked and layer in self.stacked:
             # Asked for allergies: read the files that carry allergies, not every
@@ -329,9 +346,7 @@ class DatasetHISDataSource(HISDataSource):
             frame = frame[self._row_file[layer].isin(relevant)]
         for k, v in (where or {}).items():
             frame = frame[frame[k].astype(str) == str(v)] if k in frame.columns else frame.iloc[0:0]
-        wanted = [f for f in (fields or list(frame.columns)) if f in frame.columns]
-        for record in frame[wanted].to_dict(orient="records"):
-            yield {k: v for k, v in record.items() if v is not None}
+        return frame
 
     def describe(self) -> str:
         lines = [f"dataset at {self.directory}"]

@@ -21,6 +21,7 @@ against would be a serious and visible problem, so the default is to stop.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -62,6 +63,27 @@ def is_synthetic(directory: Path) -> bool:
     try:
         return json.loads(manifest.read_text(encoding="utf-8")).get("kind") == "synthetic"
     except (OSError, ValueError):
+        return False
+
+
+_SYNTHETIC_LINE = re.compile(r"^\s*[-*]?\s*\**\s*synthetic\s*\**\s*:\s*\**\s*yes\b", re.I | re.M)
+
+
+def declares_synthetic(directory: Path) -> bool:
+    """True if the export is synthetic by its manifest, or its provenance note says
+    ``Synthetic: yes`` on a line of its own.
+
+    Not a handling check -- a note-declared synthetic export still goes through
+    the gate like real data. It decides only what a demonstration page may show:
+    values from a synthetic export, never values from a real one.
+    """
+
+    if is_synthetic(directory):
+        return True
+    note = Path(directory) / PROVENANCE
+    try:
+        return bool(_SYNTHETIC_LINE.search(note.read_text(encoding="utf-8", errors="replace")))
+    except OSError:
         return False
 
 
@@ -132,4 +154,4 @@ def require_safe_to_read(directory: str | Path) -> HandlingReport:
     return report
 
 
-__all__ = ["HandlingReport", "check_handling", "require_safe_to_read", "UnsafeDataset", "PROVENANCE", "DATA_DIR"]
+__all__ = ["HandlingReport", "check_handling", "declares_synthetic", "git_ignores", "require_safe_to_read", "UnsafeDataset", "PROVENANCE", "DATA_DIR"]

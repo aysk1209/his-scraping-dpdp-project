@@ -1,0 +1,527 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One Export, Through</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f5f6f7; --card: #ffffff; --card-2: #eef0f2; --line: #d8dde2;
+    --ink: #17191c; --ink-2: #545c64; --ink-3: #8b939b;
+    --ours: #2a78d6; --agent: #8b5cf6; --base: #eda100;
+    --l0: #2a78d6; --l1: #1baf7a; --l2: #0e9aa7; --l3: #eb6834; --l4: #8a6d3b;
+    --bad: #d93838; --good: #1f9d55; --warn: #b7791f; --bad-bg: #fbe3e3; --good-bg: #e0f3e8; --warn-bg: #fdf1dc;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, "Courier New", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #17191c; --card: #1f2226; --card-2: #282c31; --line: #363c43;
+      --ink: #f0f2f4; --ink-2: #aab2ba; --ink-3: #70787f;
+      --ours: #3987e5; --agent: #a78bfa; --base: #c98500;
+      --l0: #3987e5; --l1: #199e70; --l2: #2bb3c0; --l3: #d95926; --l4: #b08a5a;
+      --bad: #e66767; --good: #3cb371; --warn: #d69e2e; --bad-bg: #3a2222; --good-bg: #1f3a2b; --warn-bg: #3a3020;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #17191c; --card: #1f2226; --card-2: #282c31; --line: #363c43;
+    --ink: #f0f2f4; --ink-2: #aab2ba; --ink-3: #70787f;
+    --ours: #3987e5; --agent: #a78bfa; --base: #c98500;
+    --l0: #3987e5; --l1: #199e70; --l2: #2bb3c0; --l3: #d95926; --l4: #b08a5a;
+    --bad: #e66767; --good: #3cb371; --warn: #d69e2e; --bad-bg: #3a2222; --good-bg: #1f3a2b; --warn-bg: #3a3020;
+  }
+  html { font-size: 15px; }
+  html.big { font-size: 18px; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 1rem; line-height: 1.45; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 24px 16px 56px; }
+  h1 { font-size: 1.75rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  h2 { font-size: 1.13rem; font-weight: 650; margin: 0; }
+  h3 { font-size: .93rem; font-weight: 650; margin: 0; color: var(--ink-2); }
+  p { margin: 0; color: var(--ink-2); max-width: 78ch; }
+  code, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .top { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: flex-start; justify-content: space-between; }
+  .sub { margin-top: 6px; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--ink-2); white-space: nowrap; }
+  .badge.good { background: var(--good-bg); color: var(--good); border-color: transparent; }
+  .badge.bad { background: var(--bad-bg); color: var(--bad); border-color: transparent; }
+  .badge.warn { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
+  .tools { display: flex; gap: 6px; }
+  .tools button { font: inherit; font-size: .85rem; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--card); color: var(--ink-2); cursor: pointer; }
+  .tools button:focus-visible, .seg button:focus-visible, .steps button:focus-visible, .tile:focus-visible, .chip-btn:focus-visible { outline: 2px solid var(--ours); outline-offset: 2px; }
+
+  .funnel { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 18px; }
+  .fn { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  .fn .v { font-size: 1.75rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .fn .l { font-size: .8rem; color: var(--ink-3); }
+  .fn.hero { border-color: var(--good); }
+  .fn.hero .v { color: var(--good); }
+
+  .steps { display: flex; gap: 0; margin-top: 18px; border-bottom: 1px solid var(--line); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+  .steps button { flex: 0 0 auto; background: none; border: none; border-bottom: 3px solid transparent; padding: 10px 14px; font: inherit; color: var(--ink-2); cursor: pointer; white-space: nowrap; margin-bottom: -1px; display: inline-flex; gap: 8px; align-items: center; }
+  .steps button .n { display: inline-grid; place-items: center; width: 1.4rem; height: 1.4rem; border-radius: 50%; background: var(--card-2); font-size: .8rem; font-weight: 700; }
+  .steps button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); font-weight: 650; }
+  .steps button[aria-selected="true"] .n { background: var(--ink); color: var(--bg); }
+  .pane { padding-top: 18px; display: grid; gap: 14px; }
+  .pane[hidden] { display: none; }
+  .lead { font-size: 1.02rem; color: var(--ink); max-width: 90ch; }
+  .lead b { font-weight: 650; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px; min-width: 0; }
+  .card .head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 14px; margin-bottom: 10px; }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 14px; align-items: start; }
+  @media (max-width: 860px) { .split { grid-template-columns: 1fr; } }
+  .muted { color: var(--ink-3); font-size: .85rem; }
+  .note { font-size: .88rem; color: var(--ink-2); background: var(--card-2); border-radius: 6px; padding: 8px 10px; }
+
+  /* 1 -- files */
+  .tiles { display: grid; gap: 14px; }
+  .group h3 { margin-bottom: 6px; display: flex; gap: 8px; align-items: center; }
+  .group .sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .tilegrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .tile { text-align: left; font: inherit; background: var(--card); border: 1px solid var(--line); border-top: 4px solid var(--ink-3); border-radius: 6px; padding: 8px 10px; cursor: pointer; color: var(--ink); display: grid; gap: 4px; }
+  .tile.off { border-top-color: var(--line); background: var(--card-2); color: var(--ink-2); }
+  .tile[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--ink); }
+  .tile .nm { font-family: var(--mono); font-size: .82rem; font-weight: 600; overflow-wrap: anywhere; }
+  .tile .meta { font-size: .76rem; color: var(--ink-3); }
+  .bar3 { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: var(--card-2); }
+  .bar3 i { display: block; height: 100%; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { display: inline-flex; gap: 6px; align-items: baseline; font-size: .82rem; padding: 3px 8px; border-radius: 5px; border: 1px solid var(--line); background: var(--card); }
+  .chip .h { font-family: var(--mono); }
+  .chip.in { border-color: transparent; background: var(--good-bg); }
+  .chip.in .to { font-family: var(--mono); color: var(--good); font-weight: 600; }
+  .chip.blank { color: var(--ink-3); text-decoration: line-through; background: var(--card-2); border-color: transparent; }
+  .chip.drop { color: var(--ink-3); border-style: dashed; }
+  .cat { font-size: .7rem; letter-spacing: .03em; text-transform: uppercase; color: var(--ink-2); padding: 0 5px; border-radius: 3px; background: var(--card); }
+  .cat.direct_identifier, .cat.contact { color: var(--bad); }
+  .cat.clinical { color: var(--l1); }
+  .cat.financial { color: var(--l3); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .8rem; color: var(--ink-2); margin-top: 10px; }
+  .legend span { display: inline-flex; gap: 6px; align-items: center; }
+  .lk { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+  th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: .8rem; color: var(--ink-2); font-weight: 650; white-space: nowrap; }
+  td.n, th.n { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .scroll { overflow-x: auto; }
+
+  /* 2 -- gate */
+  .checks { display: grid; gap: 8px; }
+  .check { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
+  .switch { position: relative; width: 46px; height: 26px; border-radius: 13px; background: var(--good); border: none; cursor: pointer; transition: background .15s; }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 23px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left .15s; }
+  .switch[aria-checked="false"] { background: var(--bad); }
+  .switch[aria-checked="false"]::after { left: 3px; }
+  .check .t { font-weight: 650; }
+  .check .d { font-size: .85rem; color: var(--ink-2); }
+  .term { font-family: var(--mono); font-size: .84rem; white-space: pre-wrap; overflow-wrap: anywhere; background: #111418; color: #d7dde3; border-radius: 8px; padding: 12px 14px; line-height: 1.5; }
+  .term .ok { color: #5fd38d; } .term .no { color: #ff7b7b; } .term .dim { color: #8b949e; }
+  .verdict { font-size: 1.25rem; font-weight: 700; padding: 12px 14px; border-radius: 8px; }
+  .verdict.ok { background: var(--good-bg); color: var(--good); }
+  .verdict.no { background: var(--bad-bg); color: var(--bad); }
+
+  /* 3 -- one patient */
+  .controls { display: grid; gap: 10px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+  .row > .lab { font-size: .8rem; color: var(--ink-3); min-width: 64px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; background: var(--card); flex-wrap: wrap; }
+  .seg button { font: inherit; font-size: .88rem; border: none; background: none; padding: 6px 12px; cursor: pointer; color: var(--ink-2); border-right: 1px solid var(--line); }
+  .seg button:last-child { border-right: none; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .chip-btn { font: inherit; font-size: .84rem; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 7px; padding: 6px 10px; cursor: pointer; display: grid; text-align: left; gap: 1px; }
+  .chip-btn[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+  .chip-btn .tk { font-family: var(--mono); font-size: .8rem; color: var(--good); }
+  .chip-btn .sm { font-size: .74rem; color: var(--ink-3); }
+  .who { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  @media (max-width: 900px) { .who { grid-template-columns: 1fr; } }
+  .tech { border-top: 4px solid var(--ink-3); }
+  .tech.ours { border-top-color: var(--ours); } .tech.agent { border-top-color: var(--agent); } .tech.baseline { border-top-color: var(--base); }
+  .tech .name { font-weight: 700; }
+  .tech .score { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .kv { display: grid; grid-template-columns: max-content 1fr; gap: 3px 10px; font-size: .84rem; margin-top: 8px; }
+  .kv dt { color: var(--ink-3); } .kv dd { margin: 0; }
+  .readbar { height: 10px; border-radius: 5px; background: var(--card-2); overflow: hidden; margin-top: 4px; }
+  .readbar i { display: block; height: 100%; }
+  .files-read { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; font-size: .8rem; margin-top: 6px; }
+  .files-read .f { font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); }
+  .fchips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+  .fchip { font-family: var(--mono); font-size: .76rem; padding: 2px 6px; border-radius: 4px; background: var(--card-2); }
+  .fchip.need { background: var(--good-bg); color: var(--good); }
+  .fchip.extra { background: var(--warn-bg); color: var(--warn); }
+  .fchip.oos { background: var(--bad-bg); color: var(--bad); font-weight: 700; }
+  .rules { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+  .rule { font-family: var(--mono); font-size: .7rem; padding: 2px 5px; border-radius: 4px; }
+  .rule.pass { background: var(--good-bg); color: var(--good); }
+  .rule.fail { background: var(--bad-bg); color: var(--bad); }
+  .rule.partial { background: var(--warn-bg); color: var(--warn); }
+  .rule.not_applicable { background: var(--card-2); color: var(--ink-3); }
+  .exportline { margin-top: 8px; font-size: .84rem; padding: 6px 8px; border-radius: 6px; }
+  .exportline.ok { background: var(--good-bg); color: var(--good); }
+  .exportline.no { background: var(--bad-bg); color: var(--bad); }
+  pre.code { margin: 0; font-family: var(--mono); font-size: .8rem; line-height: 1.5; background: var(--card-2); border-radius: 6px; padding: 10px 12px; overflow: auto; max-height: 420px; white-space: pre; }
+  .tok { background: var(--good-bg); color: var(--good); border-radius: 3px; padding: 0 2px; font-weight: 600; }
+  .raw { background: var(--bad-bg); color: var(--bad); border-radius: 3px; padding: 0 2px; font-weight: 700; }
+  .hid { color: var(--ink-3); }
+
+  /* 4 -- score */
+  .barrow { display: grid; grid-template-columns: minmax(150px, 260px) 1fr 56px; gap: 10px; align-items: center; font-size: .88rem; padding: 4px 0; }
+  .track { height: 16px; background: var(--card-2); border-radius: 4px; overflow: hidden; position: relative; }
+  .track i { display: block; height: 100%; border-radius: 4px; }
+  .stack { display: flex; height: 26px; border-radius: 6px; overflow: hidden; }
+  .stack div { display: grid; place-items: center; font-size: .78rem; font-weight: 650; color: #fff; min-width: 0; white-space: nowrap; overflow: hidden; }
+  .heat td.c { text-align: center; font-family: var(--mono); font-size: .8rem; }
+
+  /* 5 -- retention */
+  .slider { width: 100%; accent-color: var(--ink); }
+  .ret { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .file { font-family: var(--mono); font-size: .8rem; padding: 3px 0; display: flex; justify-content: space-between; gap: 8px; }
+  .file.gone { text-decoration: line-through; color: var(--ink-3); }
+  .kept-forever { color: var(--bad); font-weight: 650; }
+  .log { font-family: var(--mono); font-size: .8rem; margin-top: 6px; color: var(--good); min-height: 1.2em; }
+
+  footer { margin-top: 28px; font-size: .8rem; color: var(--ink-3); }
+  kbd { font-family: var(--mono); font-size: .75rem; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--card); }
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>One export, through the pipeline</h1>
+      <p class="sub" id="sub"></p>
+    </div>
+    <div class="tools">
+      <button id="bigger" title="Larger text for a projector">A+</button>
+      <button id="theme" title="Light / dark">◐</button>
+    </div>
+  </div>
+  <div class="funnel" id="funnel"></div>
+
+  <nav class="steps" role="tablist" id="steps">
+    <button role="tab" data-step="1" aria-selected="true"><span class="n">1</span>Files in</button>
+    <button role="tab" data-step="2"><span class="n">2</span>The gate</button>
+    <button role="tab" data-step="3"><span class="n">3</span>One patient</button>
+    <button role="tab" data-step="4"><span class="n">4</span>The score</button>
+    <button role="tab" data-step="5"><span class="n">5</span>Retention</button>
+  </nav>
+
+  <section class="pane" id="pane-1">
+    <p class="lead" id="lead-1"></p>
+    <div class="split">
+      <div class="tiles" id="tiles"></div>
+      <div class="card" id="filedetail"></div>
+    </div>
+    <div class="card">
+      <div class="head"><h2>What each HIS layer became</h2><p class="muted">One file per concept is stacked; one file split by month is concatenated. Nothing is joined on the patient key.</p></div>
+      <div class="scroll"><table id="layers"></table></div>
+    </div>
+  </section>
+
+  <section class="pane" id="pane-2" hidden>
+    <p class="lead">Before a single row is read, the export has to pass four checks — <b>enforced in code</b>, not remembered. Switch any one off and watch what the adapter says.</p>
+    <div class="split">
+      <div class="checks" id="checks"></div>
+      <div style="display:grid;gap:10px">
+        <div class="verdict" id="verdict"></div>
+        <div class="term" id="term"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pane" id="pane-3" hidden>
+    <p class="lead" id="lead-3"></p>
+    <div class="card controls">
+      <div class="row"><span class="lab">Task</span><div class="seg" id="taskseg"></div><span class="muted" id="taskdesc"></span></div>
+      <div class="row"><span class="lab">Patient</span><div class="row" id="patients" style="gap:8px"></div></div>
+    </div>
+    <div class="who" id="who"></div>
+    <div class="card">
+      <div class="head">
+        <h2>What left the building</h2>
+        <div class="row" style="gap:8px"><div class="seg" id="outtech"></div><div class="seg" id="outfmt"></div></div>
+      </div>
+      <p class="muted" id="outnote" style="margin-bottom:8px"></p>
+      <pre class="code" id="outcode"></pre>
+      <div class="legend"><span><span class="tok">PSN-…</span> pseudonym — the raw value never left</span><span><span class="raw">ab••••yz</span> a raw identifier that left (masked on this page)</span><span class="hid" id="hidnote"></span></div>
+    </div>
+  </section>
+
+  <section class="pane" id="pane-4" hidden>
+    <p class="lead" id="lead-4"></p>
+    <div class="cols">
+      <div class="card"><div class="head"><h2>Compliance score</h2><p class="muted">same seven DPDP rules, same export</p></div><div id="scorebars"></div></div>
+      <div class="card"><div class="head"><h2>Fields pulled per field needed</h2><p class="muted">1.0× is exactly the job; more is over-collection</p></div><div id="excessbars"></div></div>
+    </div>
+    <div class="card">
+      <div class="head"><h2>How much of the job this export allows</h2><p class="muted" id="ceilnote"></p></div>
+      <div class="stack" id="ceiling"></div>
+      <div class="legend" id="ceillegend"></div>
+      <div class="scroll" style="margin-top:12px"><table id="covtable"></table></div>
+      <p class="muted" style="margin-top:6px">× patient's own: on the single-patient tasks, records read ÷ the records that patient has in the layers the task touches. Below 1 means it read only the rows carrying what the job needs.</p>
+    </div>
+    <div class="card">
+      <div class="head"><h2>Rule by rule</h2><p class="muted">mean over the four tasks; 1.00 = passed everywhere</p></div>
+      <div class="scroll"><table class="heat" id="heat"></table></div>
+    </div>
+    <div class="note" id="takeaway"></div>
+  </section>
+
+  <section class="pane" id="pane-5" hidden>
+    <p class="lead">An export is not kept “for now”. Each technique's manifest names how long its export may live; the pipeline writes that date beside the files and a purge erases them on the day — and logs it. <b>Drag time forward.</b></p>
+    <div class="card">
+      <div class="row" style="justify-content:space-between"><span><b id="daylabel"></b> <span class="muted" id="datelabel"></span></span><div class="seg" id="retseg"></div></div>
+      <input type="range" class="slider" id="days" min="0" max="400" value="0" aria-label="Days from today">
+    </div>
+    <div class="ret" id="ret"></div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script id="data" type="application/json">/*__DATA__*/null</script>
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById("data").textContent);
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const num = (n) => (n === null || n === undefined) ? "–" : Number(n).toLocaleString("en-US");
+  const f2 = (n) => (n === null || n === undefined) ? "–" : Number(n).toFixed(2);
+  const pct = (n) => (n === null || n === undefined) ? "–" : Math.round(n * 100) + "%";
+  const LAYERS = Object.keys(D.layer_labels);
+  const lcol = (l) => `var(--l${Math.max(0, LAYERS.indexOf(l))})`;
+  const KIND = { ours: "Ours — reads the purpose policy", agent: "AI agent — told the policy", baseline: "Baseline — takes everything" };
+  const KSHORT = { ours: "Ours", agent: "AI agent", baseline: "Baseline" };
+  const kcol = (k) => `var(--${k === "baseline" ? "base" : k})`;
+  const TASKLABEL = (id) => id.replace(/-/g, " ");
+
+  /* ------------------------------------------------------------- header */
+  const m = D.meta;
+  $("sub").innerHTML = `<b>${esc(m.dataset)}</b> — an export this pipeline had never seen, run through the same adapter, rules and export path the hospital's data will take. `
+    + (m.values_shown ? `<span class="badge warn">synthetic export: values shown</span>` : `<span class="badge bad">real export: values hidden, structure only</span>`)
+    + ` <span class="badge good">no raw identifier on this page</span>`;
+  const F = D.funnel;
+  const bl = D.traces[Object.keys(D.traces).find((k) => k.endsWith("|baseline"))] || null;
+  const oursAudit = Object.entries(D.traces).filter(([k]) => k.endsWith("|ours")).every(([, v]) => v.export.leaked === 0);
+  $("funnel").innerHTML = [
+    [num(F.files), "files handed over"],
+    [`${num(F.files_read)}`, `files understood (${F.files - F.files_read} not read)`],
+    [num(F.columns), "columns in those files"],
+    [num(F.columns_in), "columns let in"],
+    [num(F.columns_blank + F.columns_drop), "columns stopped at the door"],
+    [oursAudit ? "0" : "!", "raw identifiers in our exports", oursAudit],
+  ].map(([v, l, hero]) => `<div class="fn${hero ? " hero" : ""}"><div class="v">${v}</div><div class="l">${esc(l)}</div></div>`).join("");
+
+  /* ------------------------------------------------------------- steps */
+  const steps = [...document.querySelectorAll("#steps button")];
+  function go(n) {
+    steps.forEach((b) => b.setAttribute("aria-selected", String(b.dataset.step === String(n))));
+    for (let i = 1; i <= 5; i++) $("pane-" + i).hidden = String(i) !== String(n);
+    try { history.replaceState(null, "", "#" + n); } catch (e) {}
+  }
+  steps.forEach((b) => b.addEventListener("click", () => go(b.dataset.step)));
+  const cur = () => Number(steps.find((b) => b.getAttribute("aria-selected") === "true").dataset.step);
+  document.addEventListener("keydown", (e) => {
+    if (e.target.matches("input, textarea, select") || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (/^[1-5]$/.test(e.key)) go(e.key);
+    else if (e.key === "ArrowRight" && !e.target.matches("[role=slider], input")) go(Math.min(5, cur() + 1));
+    else if (e.key === "ArrowLeft" && !e.target.matches("[role=slider], input")) go(Math.max(1, cur() - 1));
+  });
+  $("bigger").addEventListener("click", () => document.documentElement.classList.toggle("big"));
+  $("theme").addEventListener("click", () => {
+    const r = document.documentElement, dark = r.dataset.theme === "dark" || (!r.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
+    r.dataset.theme = dark ? "light" : "dark";
+  });
+
+  /* ------------------------------------------------------------- 1 files */
+  const reg = D.files.find((f) => f.layer === "patient_administration");
+  const stoppedAtReg = reg ? reg.columns.filter((c) => c.s !== "in").map((c) => c.h) : [];
+  $("lead-1").innerHTML = `The export arrived as <b>${num(F.files)} files</b> with <b>${num(F.columns)} columns</b>. `
+    + `Each file is classified by what its columns <i>are</i>, not what it is called. `
+    + `<b>${num(F.columns_in)}</b> columns were let in, each tied to a DPDP category; the other <b>${num(F.columns_blank + F.columns_drop)}</b> were dropped at the adapter`
+    + (stoppedAtReg.length ? ` — on the registration file alone, <span class="mono">${stoppedAtReg.slice(0, 4).map(esc).join(", ")}</span>${stoppedAtReg.length > 4 ? ` and ${stoppedAtReg.length - 4} more` : ""}` : "")
+    + `: no technique ever saw them, and nothing exported them. Click a file.`;
+  const groups = {};
+  D.files.forEach((f) => { (groups[f.layer || "_none"] ||= []).push(f); });
+  const order = [...LAYERS.filter((l) => groups[l]), ...(groups._none ? ["_none"] : [])];
+  let sel = (reg && reg.read ? reg : null)?.name || (D.files.filter((f) => f.read).sort((a, b) => b.columns.filter((c) => c.s !== "in").length - a.columns.filter((c) => c.s !== "in").length)[0] || D.files[0])?.name;
+  function tiles() {
+    $("tiles").innerHTML = order.map((g) => {
+      const label = g === "_none" ? "Not read — no layer could be told from the columns" : D.layer_labels[g];
+      const sw = g === "_none" ? "var(--line)" : lcol(g);
+      return `<div class="group"><h3><span class="sw" style="background:${sw}"></span>${esc(label)}</h3><div class="tilegrid">`
+        + groups[g].map((f) => {
+          const n = f.columns.length, a = f.columns.filter((c) => c.s === "in").length, b = f.columns.filter((c) => c.s === "blank").length;
+          return `<button class="tile${f.read ? "" : " off"}" style="${f.read ? `border-top-color:${lcol(f.layer)}` : ""}" data-f="${esc(f.name)}" aria-pressed="${f.name === sel}">`
+            + `<span class="nm">${esc(f.name)}</span><span class="meta">${num(f.rows)} rows · ${a} of ${n} columns in</span>`
+            + `<span class="bar3"><i style="width:${100 * a / n}%;background:var(--good)"></i><i style="width:${100 * b / n}%;background:var(--ink-3)"></i></span></button>`;
+        }).join("") + `</div></div>`;
+    }).join("");
+    $("tiles").querySelectorAll(".tile").forEach((t) => t.addEventListener("click", () => { sel = t.dataset.f; tiles(); detail(); }));
+  }
+  function detail() {
+    const f = D.files.find((x) => x.name === sel);
+    if (!f) { $("filedetail").innerHTML = ""; return; }
+    const ins = f.columns.filter((c) => c.s === "in"), out = f.columns.filter((c) => c.s !== "in");
+    const head = f.read
+      ? `<span class="badge" style="border-color:${lcol(f.layer)}">${esc(D.layer_labels[f.layer])}</span> <span class="muted">${Math.round((f.confidence || 0) * 100)}% of the columns it keeps are catalogue fields</span>`
+      : `<span class="badge bad">not read</span> <span class="muted">${esc(f.reason)}</span>`;
+    $("filedetail").innerHTML = `<div class="head"><h2 class="mono">${esc(f.name)}</h2><span class="muted">${num(f.rows)} rows</span></div>`
+      + `<div style="margin-bottom:10px">${head}</div>`
+      + (ins.length ? `<h3 style="margin-bottom:6px">Let in (${ins.length})</h3><div class="chips">`
+        + ins.map((c) => `<span class="chip in"><span class="h">${esc(c.h)}</span>→<span class="to">${esc(c.to)}</span><span class="cat ${esc(c.cat)}">${esc(c.cat.replace(/_/g, " "))}</span></span>`).join("") + `</div>` : "")
+      + (out.length ? `<h3 style="margin:12px 0 6px">Stopped at the door (${out.length})</h3><div class="chips">`
+        + out.map((c) => `<span class="chip ${c.s}" title="${c.s === "blank" ? "dropped by the column map" : "not a catalogue field"}"><span class="h">${esc(c.h)}</span></span>`).join("") + `</div>` : "")
+      + `<div class="legend"><span><span class="lk" style="background:var(--good-bg)"></span>recognised, with its DPDP category</span><span><span class="lk" style="background:var(--card-2)"></span>dropped by the column map</span><span><span class="lk" style="border:1px dashed var(--ink-3)"></span>not understood — dropped and reported</span></div>`;
+  }
+  tiles(); detail();
+  $("layers").innerHTML = `<tr><th>Layer</th><th>Files</th><th>How</th><th class="n">Rows</th><th>Fields it carries</th></tr>`
+    + D.layers.map((l) => `<tr><td><span class="lk" style="background:${lcol(l.layer)};margin-right:6px"></span>${esc(l.label)}</td><td class="mono" style="font-size:.8rem">${l.files.map(esc).join("<br>")}</td>`
+      + `<td>${l.files.length > 1 ? (l.stacked ? "stacked" : "concatenated") : "one file"}</td><td class="n">${num(l.rows)}</td><td class="mono" style="font-size:.8rem">${l.fields.map(esc).join(", ")}</td></tr>`).join("");
+
+  /* ------------------------------------------------------------- 2 gate */
+  const gate = D.gate.checks.map((c) => ({ ...c, on: c.ok }));
+  function gatePaint() {
+    $("checks").innerHTML = gate.map((c, i) => `<div class="check"><button class="switch" role="switch" aria-checked="${c.on}" data-i="${i}" aria-label="${esc(c.name)}"></button>`
+      + `<div><div class="t">${esc(c.name)}</div><div class="d">${esc(c.on ? c.detail : c.fail)}</div></div></div>`).join("");
+    $("checks").querySelectorAll(".switch").forEach((s) => s.addEventListener("click", () => { gate[s.dataset.i].on = !gate[s.dataset.i].on; gatePaint(); }));
+    const ok = gate.every((c) => c.on);
+    $("verdict").className = "verdict " + (ok ? "ok" : "no");
+    $("verdict").textContent = ok ? "All checks pass — the adapter may read the export" : "REFUSED — nothing is read, nothing is scored";
+    $("term").innerHTML = `<span class="dim">$ python scripts/check_source.py data/${esc(m.dataset)}</span>\n  handling checks for data/${esc(m.dataset)}:\n`
+      + gate.map((c) => `    <span class="${c.on ? "ok" : "no"}">[${c.on ? "x" : " "}]</span> ${esc(c.name)}: ${esc(c.on ? c.detail : c.fail)}`).join("\n")
+      + `\n  ${ok ? '<span class="ok">all checks pass -- safe to read</span>' : '<span class="no">REFUSED -- fix the unchecked items first</span>\n\n  Not reading anything until the checks pass.'}`;
+  }
+  gatePaint();
+
+  /* ------------------------------------------------------------- 3 one patient */
+  const single = D.tasks.filter((t) => t.single);
+  const kinds = ["ours", "agent", "baseline"].filter((k) => Object.keys(D.traces).some((x) => x.endsWith("|" + k)));
+  let T = single[0]?.id, P = D.patients[0]?.token, OT = "ours", FMT = "hl7";
+  $("lead-3").innerHTML = `Pick a job and a patient. The same request goes to three techniques: <b>ours</b>, a real public <b>AI agent</b> handed the purpose policy, and the <b>baseline</b> most systems amount to. `
+    + `Each is scored by the harness exactly as in the benchmark — including how many records it read to answer for one patient.`;
+  function segs() {
+    $("taskseg").innerHTML = single.map((t) => `<button aria-pressed="${t.id === T}" data-t="${esc(t.id)}">${esc(TASKLABEL(t.id))}${t.trap ? " ⚠" : ""}</button>`).join("");
+    $("taskseg").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { T = b.dataset.t; paint3(); }));
+    const t = single.find((x) => x.id === T);
+    $("taskdesc").innerHTML = `${esc(t.description)} <span class="badge">${esc(t.purpose.replace(/_/g, " "))}</span>` + (t.trap ? ` <span class="badge bad">trap: ${esc(t.trap)}</span>` : "");
+    $("patients").innerHTML = D.patients.map((p, i) => {
+      const own = Object.values(p.records).reduce((a, b) => a + b, 0);
+      return `<button class="chip-btn" aria-pressed="${p.token === P}" data-p="${esc(p.token)}"><span class="tk">${esc(p.token)}</span><span class="sm">${i === 0 ? "the benchmark's patient · " : ""}${esc(p.label)}${p.label ? " · " : ""}${num(own)} records in the export</span></button>`;
+    }).join("");
+    $("patients").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { P = b.dataset.p; paint3(); }));
+    $("outtech").innerHTML = kinds.map((k) => `<button aria-pressed="${k === OT}" data-k="${k}">${KSHORT[k]}</button>`).join("");
+    $("outtech").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { OT = b.dataset.k; paint3(); }));
+    $("outfmt").innerHTML = [["hl7", "HL7 v2"], ["fhir", "FHIR"]].map(([k, l]) => `<button aria-pressed="${k === FMT}" data-k="${k}">${l}</button>`).join("");
+    $("outfmt").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { FMT = b.dataset.k; paint3(); }));
+  }
+  function readNote(v) {
+    const x = v.record_excess, own = num(v.own);
+    if (x === null || x === undefined) return "";
+    if (x > 1.05) return `<b style="color:var(--bad)">${x >= 10 ? num(Math.round(x)) : f2(x)}×</b> the ${own} records this patient has in these layers — the rest are other patients'`;
+    if (x < 0.95) return `only the rows carrying what the job needs, of the ${own} this patient has in these layers`;
+    return `this patient's own records in these layers (${own})`;
+  }
+  function techCard(k, v, maxRead) {
+    const fnames = Object.entries(v.read).sort((a, b) => b[1] - a[1]);
+    const files = fnames.slice(0, 5).map(([f, n]) => `<span class="f">${esc(f)}</span><span class="mono">${num(n)}</span>`).join("")
+      + (fnames.length > 5 ? `<span class="f muted">+ ${fnames.length - 5} more files</span><span></span>` : "");
+    const w = maxRead ? Math.max(1.5, 100 * Math.log10(1 + v.records) / Math.log10(1 + maxRead)) : 0;
+    const worst = {};
+    v.fields.forEach((f) => { const r = !f.allowed ? 2 : f.needed ? 0 : 1; if (!(f.field in worst) || r > worst[f.field].r) worst[f.field] = { ...f, r }; });
+    const uniq = Object.values(worst);
+    const chips = uniq.map((f) => `<span class="fchip ${!f.allowed ? "oos" : f.needed ? "need" : "extra"}" title="${esc(f.layer)} · ${esc(f.cat || "")}${!f.allowed ? " · OUT OF SCOPE for this purpose" : f.needed ? " · needed" : " · not needed"}">${esc(f.field)}</span>`).join("");
+    const oos = uniq.filter((f) => !f.allowed).length;
+    const rules = v.rules.map((r) => `<span class="rule ${esc(r.status)}" title="${esc(r.title)}: ${esc(r.status)}${r.finding ? " — " + esc(r.finding) : ""}">${esc(r.id)}</span>`).join("");
+    const ex = v.export, clean = ex.leaked === 0;
+    const x = v.record_excess;
+    return `<div class="card tech ${k}"><div class="head"><span class="name">${esc(KIND[k])}</span></div>`
+      + `<div class="score" style="color:${kcol(k)}">${f2(v.score)}</div><div class="muted">compliance score on this task</div>`
+      + `<dl class="kv"><dt>read</dt><dd><b>${num(v.records)}</b> records</dd><dt></dt><dd class="muted">${readNote(v)}</dd></dl>`
+      + `<div class="readbar"><i style="width:${w}%;background:${kcol(k)}"></i></div>`
+      + `<div class="files-read">${files}</div>`
+      + `<div class="muted" style="margin-top:10px">took ${uniq.length} field${uniq.length === 1 ? "" : "s"}${oos ? ` — <b style="color:var(--bad)">${oos} out of scope for this purpose</b>` : ""}</div><div class="fchips">${chips || '<span class="muted">nothing</span>'}</div>`
+      + `<div class="muted" style="margin-top:10px">rules</div><div class="rules">${rules}</div>`
+      + `<dl class="kv"><dt>retention</dt><dd>${v.manifest.retention_days ? v.manifest.retention_days + " days" : '<b style="color:var(--bad)">none declared</b>'}</dd>`
+      + `<dt>onward use</dt><dd>${v.manifest.onward.length ? `<b style="color:var(--bad)">${v.manifest.onward.map(esc).join(", ")}</b>` : "none"}</dd></dl>`
+      + `<div class="exportline ${clean ? "ok" : "no"}">${clean ? "✓" : "✗"} export: ${num(ex.counts.hl7_messages)} HL7 · ${num(ex.counts.fhir_resources)} FHIR — ${clean ? "no raw identifier left" : `${num(ex.leaked)} raw identifiers left`}</div></div>`;
+  }
+  function hilite(s) {
+    return esc(s)
+      .replace(/PSN-[0-9a-f]{12}/g, (t) => `<span class="tok">${t}</span>`)
+      .replace(/[^\s|^"~\\&;:,{}\[\]]{0,2}•+[^\s|^"~\\&;:,{}\[\]]{0,2}/g, (t) => `<span class="raw">${t}</span>`)
+      .replace(/(▒▒|‹[a-z_]+›)/g, (t) => `<span class="hid">${t}</span>`);
+  }
+  function paint3() {
+    segs();
+    const vs = kinds.map((k) => [k, D.traces[`${T}|${P}|${k}`]]).filter(([, v]) => v);
+    const maxRead = Math.max(...vs.map(([, v]) => v.records), 1);
+    $("who").innerHTML = vs.map(([k, v]) => techCard(k, v, maxRead)).join("");
+    const v = D.traces[`${T}|${P}|${OT}`];
+    if (!v) { $("outcode").textContent = ""; return; }
+    const items = v.export[FMT];
+    const total = FMT === "hl7" ? v.export.counts.hl7_messages : v.export.counts.fhir_resources;
+    $("outnote").innerHTML = `${KSHORT[OT]}: showing ${items.length} of ${num(total)} ${FMT === "hl7" ? "HL7 v2 messages" : "FHIR resources"} it exported. ${esc(v.export.audit)}.`
+      + (OT === "baseline" ? ` <b>These are other patients' records</b> — it read everyone to answer for one.` : "");
+    $("outcode").innerHTML = items.length ? items.map((it) => `<span class="hid">── ${esc(D.layer_labels[it.layer] || it.layer)} ──</span>\n${hilite(it.text)}`).join("\n\n") : '<span class="hid">nothing exported</span>';
+    $("hidnote").textContent = m.values_shown ? "" : "▒▒ value hidden: this is a real export, so only its shape is shown";
+  }
+  if (single.length && D.patients.length) paint3(); else $("pane-3").innerHTML = '<p class="lead">No single-patient task could be traced on this export.</p>';
+
+  /* ------------------------------------------------------------- 4 score */
+  const B = D.benchmark;
+  const rows = B.by_model;
+  const kindOf = (r) => r.kind;
+  $("lead-4").innerHTML = `The benchmark, run on <b>this export</b>: four tasks, every technique, the same seven DPDP rules, cost metered at the adapter.`;
+  $("scorebars").innerHTML = rows.map((r) => `<div class="barrow"><span>${esc(r.name)}${r.flagged ? " *" : ""}</span><div class="track"><i style="width:${100 * r.score}%;background:${kcol(kindOf(r))}"></i></div><span class="mono">${r.score.toFixed(3)}</span></div>`).join("");
+  const maxEx = Math.max(...rows.map((r) => r.excess || 0), 1);
+  $("excessbars").innerHTML = rows.map((r) => `<div class="barrow"><span>${esc(r.name)}</span><div class="track"><i style="width:${100 * (r.excess || 0) / maxEx}%;background:${kcol(kindOf(r))}"></i></div><span class="mono">${f2(r.excess)}×</span></div>`).join("");
+  const C = B.ceiling;
+  if (C.needed) {
+    const got = C.reachable, notPat = C.in_source - C.reachable, absent = C.needed - C.in_source;
+    const seg = (n, color, label) => n ? `<div style="flex:${n};background:${color}" title="${label}: ${n}">${n >= 2 ? `${n} ${label}` : n}</div>` : "";
+    $("ceiling").innerHTML = seg(got, "var(--good)", "obtainable") + seg(notPat, "var(--warn)", "not in the patient's records") + seg(absent, "var(--ink-3)", "not in the export");
+    $("ceilnote").textContent = `${C.needed} fields the four tasks need`;
+    $("ceillegend").innerHTML = `<span><span class="lk" style="background:var(--good)"></span>${got} obtainable from this export</span>`
+      + (notPat ? `<span><span class="lk" style="background:var(--warn)"></span>${notPat} in the export, not in that one patient's records</span>` : "")
+      + (absent ? `<span><span class="lk" style="background:var(--ink-3)"></span>${absent} the export does not carry</span>` : "");
+  }
+  $("covtable").innerHTML = `<tr><th>Technique</th><th class="n">coverage</th><th class="n">records read</th><th class="n">× patient's own</th><th class="n">traps held</th></tr>`
+    + rows.map((r) => `<tr><td><span class="lk" style="background:${kcol(kindOf(r))};margin-right:6px"></span>${esc(r.name)}</td><td class="n">${pct(r.coverage)}</td><td class="n">${num(r.records)}</td><td class="n">${r.record_excess === null ? "–" : f2(r.record_excess)}</td><td class="n">${esc(r.traps)}</td></tr>`).join("");
+  const heat = (v) => v === null || v === undefined ? "" : `background:color-mix(in srgb, var(--good) ${Math.round(v * 70)}%, var(--bad-bg))`;
+  $("heat").innerHTML = `<tr><th>Technique</th>${B.rule_ids.map((r) => `<th class="n">${esc(r)}</th>`).join("")}</tr>`
+    + rows.map((r) => `<tr><td>${esc(r.name)}</td>${B.rule_ids.map((id) => `<td class="c" style="${heat(r.rules[id])}">${r.rules[id] === null || r.rules[id] === undefined ? "n/a" : f2(r.rules[id])}</td>`).join("")}</tr>`).join("");
+  $("takeaway").textContent = B.takeaway;
+
+  /* ------------------------------------------------------------- 5 retention */
+  const [gy, gm, gd] = m.generated.split("-").map(Number);
+  const today = Date.UTC(gy, gm - 1, gd);
+  let RT = single[0] && single[0].id;
+  function paint5() {
+    const ret = D.retention.filter((r) => r.task === RT);
+    $("days").max = String(Math.max(60, ...D.retention.filter((r) => r.task === RT).map((r) => (r.days || 0) + 30)));
+    $("retseg").innerHTML = single.map((t) => `<button aria-pressed="${t.id === RT}" data-t="${esc(t.id)}">${esc(TASKLABEL(t.id))}</button>`).join("");
+    $("retseg").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { RT = b.dataset.t; paint5(); }));
+    const d = Number($("days").value);
+    const when = new Date(today + d * 86400000);
+    $("daylabel").textContent = d === 0 ? "Today" : `+${d} days`;
+    $("datelabel").textContent = when.toISOString().slice(0, 10);
+    $("ret").innerHTML = ret.map((r) => {
+      const gone = r.days && d >= r.days;          // "erase on or after": due on the day
+      const files = r.files.map((f) => `<div class="file${gone ? " gone" : ""}"><span>${esc(f)}</span><span>${gone ? "erased" : "kept"}</span></div>`).join("");
+      const life = r.days ? `kept <b>${r.days} days</b> (the purpose allows ${r.ceiling}) — erase on or after <b class="mono">${esc(r.erase_after)}</b>` : `<span class="kept-forever">no retention declared — it can never be scheduled for erasure</span>`;
+      const log = gone ? `purge  ${esc(r.run_id)}  ${r.files.length} file(s) erased  ${esc(r.mechanism || "")}` : "";
+      return `<div class="card tech ${r.kind}"><div class="name">${esc(KIND[r.kind])}</div><div class="muted" style="margin:4px 0 8px">${life}</div>${files}<div class="log">${log}</div></div>`;
+    }).join("");
+  }
+  $("days").addEventListener("input", paint5);
+  paint5();
+
+  $("foot").innerHTML = `Built ${esc(m.generated)} by <code>tools/build_dataset_page.py</code> from a real run of the dataset path: the handling gate, <code>DatasetHISDataSource</code>, <code>run_benchmark</code>, and the harness's own per-task runs. `
+    + `The builder searched this page for every direct identifier and contact value in the export before writing it. Keys: <kbd>1</kbd>–<kbd>5</kbd> or <kbd>←</kbd> <kbd>→</kbd> to move between steps.`;
+
+  const h = location.hash.replace("#", "");
+  if (/^[1-5]$/.test(h)) go(h);
+})();
+</script>
