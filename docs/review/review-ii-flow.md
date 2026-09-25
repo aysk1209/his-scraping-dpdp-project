@@ -159,11 +159,11 @@ worth pointing at. If the room's browser fails, stay on that slide and talk
 over the pictures. After rebuilding the pages, refresh the pictures and the deck:
 `python tools/capture_demo_pages.py`, then `REVIEW_TEMPLATE=… python tools/build_review_deck.py`.
 
-**Then switch to the portal page** (`docs/review/portal-run.html`), press `3`,
-then `space`. Every page each technique loaded plays out on a map of the portal:
+**Then switch to the portal page** (`docs/review/portal-run.html`) and press `3`:
+the crawl plays by itself (`space` replays it). Every page each technique loaded plays out on a map of the portal:
 ours stops at 32, the AI agent at 35, and the baseline keeps opening pages until
 440. The numbers are the meter's own (the builder checks). Press `2` if asked
-how the scraper knows what a module is: hide the URLs, and every module is still
+how the scraper knows what a module is: the URLs are hidden, and every module is still
 inferred from its field names.
 
 ### Beat 3b — an export we never saw (browser, ~90 s; hand over the mouse)
@@ -182,7 +182,7 @@ the adapter's exact refusal. Press `3`, choose *claim reconciliation*: the AI
 agent takes the diagnosis for a billing job; ours does not; the baseline reads
 180,570 records for one patient. Switch the export view to Baseline to show red
 masked identifiers, then back to Ours for green pseudonyms. If there is time,
-press `5` and drag to day 30: the export is erased and logged.
+press `5` and `▶ Play`: past day 30 the export is erased and logged.
 
 The line to end on: "This page follows the rules it shows. No raw identifier is
 on it, and built from the hospital's export it would show structure only, never

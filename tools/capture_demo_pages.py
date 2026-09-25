@@ -26,7 +26,8 @@ VIEWPORT = {"width": 1366, "height": 900}
 SHOTS = {
     "portal-crawl": (REVIEW / "portal-run.html", """
         document.querySelector('#steps button[data-step="3"]').click();
-        document.getElementById('speed').value = '3';
+        await new Promise(r => setTimeout(r, 500));
+        document.querySelector('#speedseg button[data-v="3"]').click();
         document.getElementById('play').click();
         await new Promise(r => { const t = setInterval(() => { if (!document.getElementById('play').disabled) { clearInterval(t); r(); } }, 100); });
         document.querySelectorAll('.sq b.now').forEach(b => b.classList.remove('now'));
@@ -56,7 +57,7 @@ def capture() -> list[Path]:
             page.wait_for_load_state("load")
             if script.strip():
                 page.evaluate(f"async () => {{ {script} }}")
-            page.wait_for_timeout(300)
+            page.wait_for_timeout(2500)          # the pages animate in; capture them settled
             target = OUT / f"{name}.png"
             if cut:
                 # Only the part that carries the point: down to the lowest element matching ``cut``.

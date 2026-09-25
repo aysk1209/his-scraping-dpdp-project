@@ -4,43 +4,71 @@
 <title>Review-II Demos</title>
 <style>
 /*__BASE__*/
-  .demos { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 18px; }
-  .demo { display: grid; gap: 8px; align-content: start; text-decoration: none; color: inherit; border-top: 4px solid var(--ink-3); transition: box-shadow .12s; }
-  .demo:hover { box-shadow: 0 0 0 2px var(--ink); }
-  .demo .no { font-size: .78rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; }
-  .demo h2 { font-size: 1.25rem; }
-  .demo .go { font-weight: 650; color: var(--ours); }
-  .demo.portal { border-top-color: var(--ours); } .demo.dataset { border-top-color: var(--good); }
-  .demo.assistant { border-top-color: var(--agent); } .demo.rules { border-top-color: var(--base); }
-  pre { margin: 0; font-family: var(--mono); font-size: .84rem; background: #111418; color: #d7dde3; border-radius: 6px; padding: 8px 10px; overflow-x: auto; }
-  .cmds { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
-  .cmd h3 { margin-bottom: 6px; }
-  .cmd p { font-size: .85rem; margin-top: 6px; }
+  .hero { margin-top: 26px; }
+  .hero h1 { font-size: 2.6rem; }
+  .hero p { font-size: 1.1rem; margin-top: 10px; }
+  .demos { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 26px; }
+  .demo { display: grid; gap: 8px; align-content: start; text-decoration: none; color: inherit; position: relative; overflow: hidden; padding: 20px 18px 18px; transition: transform .15s, box-shadow .15s; animation: rise .5s both; }
+  .demo:nth-child(2) { animation-delay: .07s; } .demo:nth-child(3) { animation-delay: .14s; } .demo:nth-child(4) { animation-delay: .21s; }
+  .demo::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 5px; background: var(--c); }
+  .demo:hover { transform: translateY(-4px); box-shadow: var(--shadow-up); }
+  .demo .no { font-size: .72rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+  .demo h2 { font-size: 1.3rem; }
+  .demo .v { font-size: 2.6rem; font-weight: 780; letter-spacing: -0.04em; line-height: 1; color: var(--c); font-variant-numeric: tabular-nums; margin-top: 6px; }
+  .demo .v small { font-size: 1.1rem; color: var(--ink-3); font-weight: 600; letter-spacing: 0; }
+  .demo .vl { font-size: .74rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; font-weight: 650; }
+  .demo p { font-size: .9rem; margin-top: 4px; }
+  .demo .go { font-weight: 700; color: var(--c); margin-top: 6px; }
+  .demo.portal { --c: var(--ours); } .demo.dataset { --c: var(--good); }
+  .demo.assistant { --c: var(--agent); } .demo.rules { --c: var(--base); }
+  .cmds { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 10px; margin-top: 12px; }
+  .cmd { padding: 12px 14px; animation: rise .5s both .3s; }
+  .cmd .k { font-size: .72rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; font-weight: 650; }
+  .cmd pre { margin: 6px 0 0; font-family: var(--mono); font-size: .8rem; background: #0d1014; color: #d7dde3; border-radius: 8px; padding: 7px 10px; overflow-x: auto; }
 </style>
 
 <div class="wrap">
   <!--__NAV__-->
-  <div class="top">
+  <div class="top hero">
     <div>
-      <h1>DPDP-compliant HIS extraction — the demos</h1>
-      <p class="sub">Every page here is built from a real run of the pipeline, opens by double-click, and needs no network. Each shows no raw patient identifier. Press <kbd>A+</kbd> on any page for projector-size text.</p>
+      <h1>DPDP-compliant HIS extraction</h1>
+      <p>Four live demos. Offline, from real runs, no raw patient identifier on any page.</p>
+    </div>
+    <div class="tools">
+      <button id="bigger" title="Larger text for a projector">A+</button>
+      <button id="theme" title="Light / dark">◐</button>
     </div>
   </div>
 
-  <div class="demos">
-    <a class="card demo portal" href="portal-run.html"><span class="no">1 · the pipeline, live</span><h2>The portal run</h2><p>A real browser logs into a portal it was never told about, works out each module from its field names, and every technique scrapes it. Replay the crawl: 32 page loads against 440.</p><span class="go">Open →</span></a>
-    <a class="card demo dataset" href="dataset-walkthrough.html"><span class="no">2 · when the hospital's data comes</span><h2>An export we never saw</h2><p>Synthea's public sample through the real handling gate and adapter: which columns got in, the refusal when a check fails, one patient through three techniques, and the export's erasure.</p><span class="go">Open →</span></a>
-    <a class="card demo assistant" href="assistant.html"><span class="no">3 · the staff assistant</span><h2>Ask the assistant</h2><p>Pick a role and type. It answers with steps placed on the pages the crawler found, or refuses with the rule before asking for anything. Checked against the Python assistant every time it opens.</p><span class="go">Open →</span></a>
-    <a class="card demo rules" href="../benchmark_results/rules-vs-just-ai.html"><span class="no">4 · the result</span><h2>Rules vs just AI</h2><p>Eight tasks, five repeats, every repeat scored: where a public AI model, even when told the policy, takes the data the purpose does not allow, and how often it changes its mind.</p><span class="go">Open →</span></a>
+  <div class="demos" id="demos"></div>
+
+  <h2 style="margin-top:30px">In the terminal</h2>
+  <div class="cmds">
+    <div class="card cmd"><div class="k">The whole chain · ~2 min</div><pre>python scripts/run_pipeline.py</pre></div>
+    <div class="card cmd"><div class="k">Hand over the keyboard</div><pre>python scripts/ask_agent.py --interactive</pre></div>
+    <div class="card cmd"><div class="k">Day-one rehearsal · 5 s</div><pre>python scripts/rehearse_day_one.py</pre></div>
+    <div class="card cmd"><div class="k">Rebuild these pages</div><pre>python tools/build_review_pages.py</pre></div>
   </div>
 
-  <h2 style="margin-top:28px">In the terminal</h2>
-  <div class="cmds" style="margin-top:10px">
-    <div class="card cmd"><h3>The whole chain, one command (~2 min)</h3><pre>python scripts/run_pipeline.py</pre><p>Portal → discovery → benchmark → HL7/FHIR with an export audit → purpose matrix → assistant → retention.</p></div>
-    <div class="card cmd"><h3>Hand a panel member the keyboard</h3><pre>python scripts/ask_agent.py --interactive</pre><p>The same assistant as page 3, in the terminal.</p></div>
-    <div class="card cmd"><h3>The day-one rehearsal (5 s)</h3><pre>python scripts/rehearse_day_one.py</pre><p>A hospital-shaped export through the real procedure, then a search of everything it printed or wrote for one patient's identifiers.</p></div>
-    <div class="card cmd"><h3>Rebuild every page here</h3><pre>python tools/build_review_pages.py</pre><p>About two minutes; the dataset page needs <code>scripts/fetch_public_dataset.py</code> once.</p></div>
-  </div>
-
-  <footer>Built by <code>tools/build_review_pages.py</code>.</footer>
+  <footer>Built by <code>tools/build_review_pages.py</code> · numbers read from <code>docs/benchmark_results/</code></footer>
 </div>
+
+<script id="data" type="application/json">/*__DATA__*/null</script>
+<script>
+/*__KIT__*/
+</script>
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById("data").textContent);
+  const c = Kit.count;
+  const tiles = [
+    ["portal", "portal-run.html", "1 · the pipeline, live", "The portal run", `${c(D.portal.ours)} <small>vs</small> ${c(D.portal.baseline)}`, "page loads · ours vs baseline", "A real browser signs in, finds every module, and each technique scrapes it."],
+    ["dataset", "dataset-walkthrough.html", "2 · an export we never saw", "The dataset", `${c(D.dataset.ours, 2)} <small>vs</small> ${c(D.dataset.baseline, 2)}`, "compliance · ours vs baseline", "A public export through the real gate, one patient, and its erasure."],
+    ["assistant", "assistant.html", "3 · the staff assistant", "Ask the assistant", `${c(D.assistant.functions)} <small>functions · ${D.assistant.roles} roles</small>`, "gated before anything is asked", "Pick a role and type. Steps, or a refusal with the rule."],
+    ["rules", D.rules_href, "4 · the result", "Rules vs AI", `${c(D.rules.ours_held)}/${D.rules.ours_traps} <small>vs</small> ${c(D.rules.agents_held)}/${D.rules.agents_traps}`, "trap runs held · ours vs AI unaided", `${D.rules.models} public models, every run scored.`],
+  ];
+  document.getElementById("demos").innerHTML = tiles.map(([k, href, no, h, v, vl, p]) =>
+    `<a class="card demo ${k}" href="${href}"><span class="no">${no}</span><h2>${h}</h2><div class="v">${v}</div><div class="vl">${vl}</div><p>${p}</p><span class="go">Open →</span></a>`).join("");
+  Kit.countIn(document.getElementById("demos"));
+})();
+</script>

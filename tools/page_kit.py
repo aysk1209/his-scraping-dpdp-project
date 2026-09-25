@@ -1,9 +1,9 @@
 """Shared by the demo-page builders: one look, one navigation bar, one data block.
 
 Every page stays a single self-contained file -- it opens by double-click, with
-no network -- so the shared stylesheet (``tools/page_base.css``) is inlined at
-build time rather than linked, and the navigation bar's links are computed
-relative to wherever the page is written.
+no network -- so the shared stylesheet and script (``tools/page_base.css``,
+``tools/page_base.js``) are inlined at build time rather than linked, and the
+navigation bar's links are computed relative to wherever the page is written.
 """
 
 from __future__ import annotations
@@ -14,15 +14,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE_CSS = ROOT / "tools" / "page_base.css"
+BASE_JS = ROOT / "tools" / "page_base.js"
 REVIEW_DIR = ROOT / "docs" / "review"
 
 # The demo pages, in the order the Review-II flow shows them.
 PAGES = [
-    ("index", REVIEW_DIR / "index.html", "All demos"),
+    ("index", REVIEW_DIR / "index.html", "Demos"),
     ("portal", REVIEW_DIR / "portal-run.html", "Portal run"),
     ("dataset", REVIEW_DIR / "dataset-walkthrough.html", "Dataset"),
     ("assistant", REVIEW_DIR / "assistant.html", "Assistant"),
-    ("rules", ROOT / "docs" / "benchmark_results" / "rules-vs-just-ai.html", "Rules vs just AI"),
+    ("rules", ROOT / "docs" / "benchmark_results" / "rules-vs-just-ai.html", "Rules vs AI"),
 ]
 
 
@@ -43,6 +44,7 @@ def render(template: Path, data: dict | None, *, current: str, out: Path) -> str
 
     html = template.read_text(encoding="utf-8")
     html = html.replace("/*__BASE__*/", BASE_CSS.read_text(encoding="utf-8"))
+    html = html.replace("/*__KIT__*/", BASE_JS.read_text(encoding="utf-8"))
     html = html.replace("<!--__NAV__-->", nav_html(current, out))
     if data is not None:
         payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")

@@ -4,61 +4,82 @@
 <title>The Portal Run</title>
 <style>
 /*__BASE__*/
-  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-  .fact .k { font-size: .78rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .04em; }
-  .fact .v { font-size: 1.05rem; font-weight: 650; margin-top: 2px; }
-  .fact .d { font-size: .84rem; color: var(--ink-2); margin-top: 4px; }
-  .login { display: grid; gap: 8px; max-width: 280px; }
-  .login .f { border: 1px solid var(--line); border-radius: 6px; padding: 6px 9px; font-family: var(--mono); font-size: .85rem; background: var(--bg); }
-  .login .b { background: var(--ink); color: var(--bg); border-radius: 6px; padding: 6px 9px; text-align: center; font-size: .85rem; font-weight: 650; }
-  .term { font-family: var(--mono); font-size: .82rem; white-space: pre-wrap; background: #111418; color: #d7dde3; border-radius: 8px; padding: 10px 12px; }
-  .crumbs { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-family: var(--mono); font-size: .76rem; }
-  .crumbs span { padding: 2px 6px; border-radius: 4px; background: var(--card-2); }
-  .crumbs i { color: var(--ink-3); font-style: normal; }
+  /* 1 -- the portal */
+  .stage { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 14px; align-items: stretch; }
+  @media (max-width: 900px) { .stage { grid-template-columns: 1fr; } }
+  .browser { padding: 0; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+  .chrome { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: var(--card-2); }
+  .dots { display: flex; gap: 5px; } .dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); display: block; }
+  .addr { flex: 1; font-family: var(--mono); font-size: .8rem; background: var(--card); border-radius: 999px; padding: 4px 12px; color: var(--ink-2); display: flex; gap: 6px; align-items: center; min-width: 0; overflow: hidden; white-space: nowrap; }
+  .mini { font: inherit; font-size: .85rem; border: none; background: var(--card); color: var(--ink-2); border-radius: 50%; width: 1.8rem; height: 1.8rem; cursor: pointer; }
+  .addr .lock { color: var(--good); font-weight: 700; }
+  .view { padding: 22px; display: grid; place-items: center; min-height: 250px; position: relative; }
+  .login { display: grid; gap: 9px; width: min(280px, 100%); }
+  .login .t { font-weight: 700; font-size: 1.05rem; margin-bottom: 4px; }
+  .login .f { border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px; font-family: var(--mono); font-size: .88rem; background: var(--bg); min-height: 2.3rem; }
+  .login .f.on { border-color: var(--ours); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ours) 20%, transparent); }
+  .login .b { background: var(--ink); color: var(--bg); border-radius: 8px; padding: 8px 11px; text-align: center; font-weight: 650; transition: transform .1s; }
+  .login .b.press { transform: scale(.96); }
+  .caret::after { content: "▍"; animation: pulse 1s steps(1) infinite; color: var(--ours); }
+  .crumbs { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; font-family: var(--mono); font-size: .76rem; }
+  .crumbs span { padding: 3px 8px; border-radius: 999px; background: var(--card-2); animation: pop .35s both; }
+  .crumbs span.cur { background: var(--ours); color: #fff; }
+  .facts { display: grid; gap: 10px; align-content: start; }
+  .fact { display: grid; grid-template-columns: 2.4rem 1fr; gap: 10px; align-items: center; }
+  .fact .ic { width: 2.4rem; height: 2.4rem; border-radius: 10px; display: grid; place-items: center; font-size: 1.1rem; background: var(--card-2); }
+  .fact .k { font-size: .7rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; font-weight: 650; }
+  .fact .v { font-weight: 680; }
+  .term { font-family: var(--mono); font-size: .78rem; white-space: pre-wrap; background: #0d1014; color: #d7dde3; border-radius: 8px; padding: 8px 10px; margin-top: 4px; }
 
-  .mods { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
-  .mod .url { font-family: var(--mono); font-size: .84rem; color: var(--ink-3); }
-  .mod .url.off { text-decoration: line-through; opacity: .6; }
-  .mod .layer { font-size: 1.1rem; font-weight: 700; margin: 4px 0 2px; }
-  .conf { height: 8px; border-radius: 4px; background: var(--card-2); overflow: hidden; margin: 6px 0 10px; }
-  .conf i { display: block; height: 100%; background: var(--good); }
+  /* 2 -- discovery */
+  .mods { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+  .mod { position: relative; overflow: hidden; animation: rise .45s both; }
+  .mod::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--c, var(--ink-3)); }
+  .mod .url { font-family: var(--mono); font-size: .82rem; color: var(--ink-3); transition: opacity .2s; }
+  .mod .url.off { opacity: .35; }
+  .mod .layer { font-size: 1.2rem; font-weight: 750; margin: 4px 0 2px; letter-spacing: -0.01em; }
+  .mod .pc { font-size: 1.5rem; font-weight: 750; color: var(--c); font-variant-numeric: tabular-nums; }
+  .conf { height: 8px; border-radius: 999px; background: var(--card-2); overflow: hidden; margin: 8px 0 12px; }
+  .conf i { display: block; height: 100%; background: var(--c, var(--good)); transform-origin: left; animation: grow 1s cubic-bezier(.2, .8, .2, 1) both .15s; }
   .fields { display: flex; flex-wrap: wrap; gap: 5px; }
-  .fld { font-family: var(--mono); font-size: .76rem; padding: 2px 7px; border-radius: 4px; border: 1px solid transparent; }
-  .fld.unique { background: var(--good-bg); color: var(--good); font-weight: 600; }
-  .fld.shared { background: var(--card-2); color: var(--ink-2); }
+  .fld { font-family: var(--mono); font-size: .74rem; padding: 2px 8px; border-radius: 999px; border: 1px solid transparent; }
+  .fld.unique { background: var(--good-bg); color: var(--good); font-weight: 650; }
+  .fld.shared { background: var(--card-2); color: var(--ink-3); }
   .fld.detail { border-style: dashed; border-color: var(--ink-3); }
+  .keyrow { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .76rem; color: var(--ink-3); align-items: center; }
+  .keyrow span { display: inline-flex; gap: 5px; align-items: center; }
+  .keyrow b { width: 11px; height: 11px; display: inline-block; background: var(--ink-3); border-radius: 2px; }
 
-  .crawlbar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
-  .crawlbar button.play { font: inherit; font-weight: 700; padding: 8px 16px; border-radius: 8px; border: none; background: var(--ink); color: var(--bg); cursor: pointer; }
-  .crawlbar button.play:disabled { opacity: .5; }
+  /* 3 -- the crawl */
+  .crawlbar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+  .play { font: inherit; font-weight: 700; padding: 9px 18px; border-radius: 999px; border: none; background: var(--ours); color: #fff; cursor: pointer; box-shadow: var(--shadow); transition: transform .12s; }
+  .play:hover { transform: translateY(-1px); }
+  .play:disabled { opacity: .55; cursor: default; transform: none; }
   .lanes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
   @media (max-width: 980px) { .lanes { grid-template-columns: 1fr; } }
-  .lane { border-top: 4px solid var(--ink-3); }
-  .lane.ours { border-top-color: var(--ours); } .lane.agent { border-top-color: var(--agent); } .lane.baseline { border-top-color: var(--base); }
-  .lane .ln { font-weight: 700; font-size: .92rem; }
-  .lane .count { font-size: 2.2rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; line-height: 1.1; }
-  .lane .cl { font-size: .78rem; color: var(--ink-3); }
-  .site { display: grid; gap: 6px; margin-top: 10px; }
+  .lane { position: relative; overflow: hidden; }
+  .lane::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--c); }
+  .lane.ours { --c: var(--ours); } .lane.agent { --c: var(--agent); } .lane.baseline { --c: var(--base); }
+  .lane .ln { font-weight: 650; font-size: .86rem; color: var(--ink-2); }
+  .lane .count { font-size: 2.8rem; font-weight: 780; font-variant-numeric: tabular-nums; letter-spacing: -0.04em; line-height: 1; color: var(--c); margin-top: 4px; }
+  .lane .cl { font-size: .74rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+  .prog { height: 4px; border-radius: 999px; background: var(--card-2); margin-top: 8px; overflow: hidden; }
+  .prog i { display: block; height: 100%; width: 0; background: var(--c); transition: width .1s linear; }
+  .site { display: grid; gap: 6px; margin-top: 12px; }
   .srow { display: grid; grid-template-columns: 5.2rem 1fr; gap: 6px; align-items: start; }
-  .srow .sl { font-family: var(--mono); font-size: .7rem; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-top: 2px; }
+  .srow .sl { font-family: var(--mono); font-size: .7rem; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-top: 1px; }
   .sq { display: flex; flex-wrap: wrap; gap: 2px; }
-  .sq b { width: 11px; height: 11px; border-radius: 2px; background: var(--card-2); display: inline-block; transition: background .12s; }
-  .sq b.lst { border-radius: 2px 2px 5px 5px; }
+  .sq b { width: 11px; height: 11px; border-radius: 3px; background: var(--card-2); display: inline-block; transition: background .15s, transform .15s; }
+  .sq b.lst { border-radius: 2px 2px 6px 6px; }
   .sq b.srch { border-radius: 50%; }
   .sq b.sep { width: 4px; background: none; }
   .sq b.h1 { background: color-mix(in srgb, var(--c) 45%, var(--card-2)); }
-  .sq b.h2 { background: color-mix(in srgb, var(--c) 70%, var(--card-2)); }
+  .sq b.h2 { background: color-mix(in srgb, var(--c) 72%, var(--card-2)); }
   .sq b.h3 { background: var(--c); }
-  .sq b.now { outline: 2px solid var(--ink); outline-offset: 1px; }
-  .lane.ours { --c: var(--ours); } .lane.agent { --c: var(--agent); } .lane.baseline { --c: var(--base); }
-  .keyrow { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .78rem; color: var(--ink-2); }
-  .keyrow span { display: inline-flex; gap: 5px; align-items: center; }
-  .keyrow b { width: 11px; height: 11px; display: inline-block; background: var(--ink-3); border-radius: 2px; }
-  .done { font-size: .8rem; color: var(--ink-2); margin-top: 8px; min-height: 1.2em; }
-
-  .barrow { display: grid; grid-template-columns: minmax(150px, 280px) 1fr 64px; gap: 10px; align-items: center; font-size: .88rem; padding: 4px 0; }
-  .track { height: 16px; background: var(--card-2); border-radius: 4px; overflow: hidden; }
-  .track i { display: block; height: 100%; border-radius: 4px; }
+  .sq b.now { transform: scale(1.5); box-shadow: 0 0 0 2px var(--card), 0 0 0 3.5px var(--c); position: relative; z-index: 1; }
+  .done { font-size: .82rem; color: var(--ink-2); margin-top: 10px; min-height: 1.3em; }
+  .done b { color: var(--ink); }
+  .done.show { animation: rise .35s both; }
 </style>
 
 <div class="wrap">
@@ -66,7 +87,7 @@
   <div class="top">
     <div>
       <h1>The portal run</h1>
-      <p class="sub">A real browser logs into a hospital portal it has never been told about, works out what is where, and every technique scrapes it. <span class="badge good">every page load recorded</span></p>
+      <p class="sub">A real browser, a portal it was never told about. <span class="badge good" id="tlsbadge"></span><span class="badge good">every page load recorded</span></p>
     </div>
     <div class="tools">
       <button id="bigger" title="Larger text for a projector">A+</button>
@@ -76,51 +97,57 @@
   <div class="funnel" id="funnel"></div>
 
   <nav class="steps" role="tablist" id="steps">
-    <button role="tab" data-step="1" aria-selected="true"><span class="n">1</span>The portal</button>
+    <button role="tab" data-step="1" aria-selected="true"><span class="n">1</span>Sign in</button>
     <button role="tab" data-step="2"><span class="n">2</span>Discovery</button>
     <button role="tab" data-step="3"><span class="n">3</span>The crawl</button>
     <button role="tab" data-step="4"><span class="n">4</span>The score</button>
   </nav>
 
   <section class="pane" id="pane-1">
-    <p class="lead">We wrote this portal — and built it as a system we <b>do not control</b>. The scraper holds a username and a password and nothing else: no API, no data attributes, no hooks. If it can read the portal, it is because it does what it would do against a real one.</p>
-    <div class="facts" id="facts"></div>
-    <div class="card"><div class="head"><h2>Discovery, page by page</h2><p class="muted" id="discnote"></p></div><div class="crumbs" id="crumbs"></div></div>
+    <p class="lead">A username and a password. <b>Nothing else.</b></p>
+    <div class="stage">
+      <div class="card browser">
+        <div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="addr" id="addr"></span><button class="mini" id="replay1" title="Replay the sign-in">↻</button></div>
+        <div class="view" id="view"></div>
+      </div>
+      <div class="card facts" id="facts"></div>
+    </div>
+    <div class="card"><div class="head"><h2>Discovery</h2><span class="muted" id="discnote"></span></div><div class="crumbs" id="crumbs"></div></div>
   </section>
 
   <section class="pane" id="pane-2" hidden>
-    <p class="lead">The URL says <code>/m/registration/</code>; the scraper never reads it that way. It infers each module's HIS layer from the <b>field names it finds</b> in the tables and records. <label class="muted" style="margin-left:8px"><input type="checkbox" id="hideurl" checked> hide the URLs</label></p>
+    <div class="crawlbar"><p class="lead">Each module's layer comes from <b>its fields</b>, not its URL.</p><div class="seg" id="urlseg"><button data-v="hide" aria-pressed="true">URLs hidden</button><button data-v="show" aria-pressed="false">show</button></div></div>
     <div class="mods" id="mods"></div>
-    <div class="keyrow"><span><span class="fld unique">field</span> only this layer has it — decides the layer</span><span><span class="fld shared">mrn</span> on several layers — no evidence either way</span><span><span class="fld detail shared">phone</span> dashed: only on the record page, costs a page load to read</span></div>
+    <div class="keyrow"><span><span class="fld unique">field</span> decides the layer</span><span><span class="fld shared">mrn</span> on several layers</span><span><span class="fld detail shared">phone</span> record page only</span></div>
   </section>
 
   <section class="pane" id="pane-3" hidden>
-    <p class="lead" id="lead-3"></p>
     <div class="card crawlbar">
-      <button class="play" id="play">▶ Play the crawl</button>
-      <label class="muted">Task <select id="task"></select></label>
-      <label class="muted">AI agent <select id="agent"></select></label>
-      <label class="muted">Speed <select id="speed"><option value="30">slow</option><option value="12" selected>normal</option><option value="3">fast</option></select></label>
-      <div class="keyrow"><span><b style="border-radius:2px 2px 5px 5px"></b>list page</span><span><b style="border-radius:50%"></b>search results</span><span><b></b>a record's page</span></div>
+      <button class="play" id="play">▶ Play</button>
+      <select id="task" aria-label="Task"></select>
+      <select id="agent" aria-label="AI agent"></select>
+      <div class="seg" id="speedseg"><button data-v="30" aria-pressed="false">slow</button><button data-v="12" aria-pressed="true">normal</button><button data-v="3" aria-pressed="false">fast</button></div>
+      <div class="keyrow"><span><b style="border-radius:2px 2px 5px 5px"></b>list page</span><span><b style="border-radius:50%"></b>search</span><span><b></b>record page</span></div>
     </div>
     <div class="lanes" id="lanes"></div>
     <p class="muted" id="harness"></p>
   </section>
 
   <section class="pane" id="pane-4" hidden>
-    <p class="lead">The benchmark from this same run: every technique, the four pipeline tasks, the same seven DPDP rules, cost counted in real page loads.</p>
     <div class="cols">
-      <div class="card"><div class="head"><h2>Compliance score</h2></div><div id="scorebars"></div></div>
-      <div class="card"><div class="head"><h2>Page loads</h2><p class="muted">the whole four-task workload</p></div><div id="pagebars"></div></div>
+      <div class="card"><div class="head"><h2>Compliance score</h2><span class="muted">7 DPDP rules</span></div><div id="scorebars"></div></div>
+      <div class="card"><div class="head"><h2>Page loads</h2><span class="muted">all four tasks</span></div><div id="pagebars"></div></div>
     </div>
     <div class="card"><div class="scroll"><table id="table"></table></div></div>
-    <div class="note" id="takeaway"></div>
   </section>
 
   <footer id="foot"></footer>
 </div>
 
 <script id="data" type="application/json">/*__DATA__*/null</script>
+<script>
+/*__KIT__*/
+</script>
 <script>
 (() => {
   const D = JSON.parse(document.getElementById("data").textContent);
@@ -129,80 +156,98 @@
   const num = (n) => (n === null || n === undefined) ? "–" : Number(n).toLocaleString("en-US");
   const f2 = (n) => (n === null || n === undefined) ? "–" : Number(n).toFixed(2);
   const pct = (n) => (n === null || n === undefined) ? "–" : Math.round(n * 100) + "%";
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const M = D.meta;
   const T = Object.fromEntries(D.techniques.map((t) => [t.name, t]));
   const kcol = (k) => `var(--${k === "baseline" ? "base" : k})`;
   const LAYER = { patient_administration: "Patient administration", clinical_ehr: "Clinical / EHR", ancillary_departmental: "Ancillary / departmental", administrative_financial: "Administrative / financial", infrastructure_integration: "Infrastructure / audit" };
+  const LCOL = { patient_administration: "var(--l0)", clinical_ehr: "var(--l1)", ancillary_departmental: "var(--l2)", administrative_financial: "var(--l3)", infrastructure_integration: "var(--l4)" };
+  const shortName = (n) => T[n] && T[n].kind === "ours" ? "ours (rules)" : T[n] && T[n].kind === "baseline" ? "baseline (take all)" : n.replace(/^ai agent: /, "");
 
   /* ------------------------------------------------------------- header */
-  const loadsBy = (name) => D.visits.filter((v) => v.who === name).length;
+  $("tlsbadge").textContent = M.tls ? "TLS observed" : "not encrypted";
   const ours = D.techniques.find((t) => t.kind === "ours"), base = D.techniques.find((t) => t.kind === "baseline");
   $("funnel").innerHTML = [
-    [D.modules.length, "modules found — never told"],
-    [num(M.discovery_loads), "page loads to discover them"],
-    [num(ours.pages), "page loads: ours, four tasks", "ours"],
-    [num(base.pages), "page loads: the baseline", "baseline"],
-    [f2(ours.score) + " / " + f2(base.score), "compliance: ours / baseline"],
-  ].map(([v, l, k]) => `<div class="fn"${k ? ` style="border-top:4px solid ${kcol(k)}"` : ""}><div class="v">${v}</div><div class="l">${esc(l)}</div></div>`).join("");
+    [Kit.count(D.modules.length), "modules found"],
+    [Kit.count(M.discovery_loads), "loads to find them"],
+    [Kit.count(ours.pages), "loads · ours", "ours"],
+    [Kit.count(base.pages), "loads · baseline", "base"],
+    [`${Kit.count(ours.score, 2)} <span style="color:var(--ink-3);font-weight:500">/</span> ${Kit.count(base.score, 2)}`, "score · ours / baseline"],
+  ].map(([v, l, k]) => `<div class="fn"${k ? ` style="--c:var(--${k});--c-v:var(--${k})"` : ""}><div class="v">${v}</div><div class="l">${esc(l)}</div></div>`).join("");
+  Kit.countIn($("funnel"));
 
-  /* ------------------------------------------------------------- steps */
-  const steps = [...document.querySelectorAll("#steps button")];
-  function go(n) {
-    steps.forEach((b) => b.setAttribute("aria-selected", String(b.dataset.step === String(n))));
-    for (let i = 1; i <= 4; i++) $("pane-" + i).hidden = String(i) !== String(n);
-  }
-  steps.forEach((b) => b.addEventListener("click", () => go(b.dataset.step)));
-  const cur = () => Number(steps.find((b) => b.getAttribute("aria-selected") === "true").dataset.step);
-  document.addEventListener("keydown", (e) => {
-    if (e.target.matches("input, select, textarea") || e.metaKey || e.ctrlKey || e.altKey) return;
-    if (/^[1-4]$/.test(e.key)) go(e.key);
-    else if (e.key === "ArrowRight") go(Math.min(4, cur() + 1));
-    else if (e.key === "ArrowLeft") go(Math.max(1, cur() - 1));
-    else if (e.key === " " && cur() === 3) { e.preventDefault(); $("play").click(); }
-  });
-  $("bigger").addEventListener("click", () => document.documentElement.classList.toggle("big"));
-  $("theme").addEventListener("click", () => {
-    const r = document.documentElement, dark = r.dataset.theme === "dark" || (!r.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
-    r.dataset.theme = dark ? "light" : "dark";
-  });
-
-  /* ------------------------------------------------------------- 1 the portal */
+  /* ------------------------------------------------------------- 1 sign in */
   $("facts").innerHTML = [
-    ["Credentials", `<div class="login"><div class="f">${esc(M.account)}</div><div class="f">••••••••</div><div class="b">Sign in</div></div>`, "A login form; the browser fills it and carries the session token like a person's would."],
-    ["Transport", M.tls ? "TLS — observed" : "not encrypted", "Self-signed certificate, trusted on loopback only. The adapter sees the scheme; a manifest that claims encryption is checked against it."],
-    ["robots.txt", `<div class="term">${esc(M.robots)}</div>`, "It says no to crawlers, as a credentialed portal would; this is authorised access with an account, not scraping the public web."],
-    ["What it serves", `${D.modules.length} modules · ${num(M.records)} records each`, `Server-rendered HTML tables, ${M.page_size} rows a page, "Next" links, a search box, a page per record.`],
-  ].map(([k, v, d]) => `<div class="card fact"><div class="k">${esc(k)}</div><div class="v">${v}</div><div class="d">${esc(d)}</div></div>`).join("");
+    ["🔒", "Transport", M.tls ? "TLS, observed at the adapter" : "not encrypted"],
+    ["🗂", "Serves", `${D.modules.length} modules · ${num(M.records)} records each · ${M.page_size} a page`],
+    ["🚫", "No API, no hooks", "HTML tables, Next links, a search box"],
+    ["🤖", "robots.txt", `<div class="term">${esc(M.robots)}</div>`],
+  ].map(([i, k, v]) => `<div class="fact"><span class="ic">${i}</span><div><div class="k">${esc(k)}</div><div class="v">${v}</div></div></div>`).join("");
   const disc = D.visits.filter((v) => v.who === "discover");
   const label = (v) => v.kind === "login" ? "GET /login" : v.kind === "login-submit" ? "POST sign in" : v.kind === "home" ? "/" : v.kind === "list" ? `/m/${v.module}/${v.n > 1 ? "?page=" + v.n : ""}` : v.kind === "detail" ? `/m/${v.module}/record/${v.n}` : v.kind === "search" ? `/m/${v.module}/?q=${v.q}` : (v.path || v.kind);
-  $("crumbs").innerHTML = disc.map((v, i) => `${i ? "<i>→</i>" : ""}<span>${esc(label(v))}</span>`).join("");
-  $("discnote").textContent = `${disc.length} page loads: sign in, the home page, then one list page and one record of each module it found`;
+  $("discnote").innerHTML = `${Kit.count(disc.length)} page loads`;
+  let run1 = 0;
+  async function signIn() {
+    const me = ++run1;
+    const alive = () => me === run1 && !$("pane-1").hidden;
+    $("crumbs").innerHTML = "";
+    $("addr").innerHTML = `<span class="lock">${M.tls ? "🔒" : ""}</span>https://127.0.0.1/login`;
+    $("view").innerHTML = `<div class="login"><div class="t">Hospital portal</div><div class="f" id="u"></div><div class="f" id="p"></div><div class="b" id="b">Sign in</div></div>`;
+    await wait(500);
+    const put = async (id, text) => { $(id).classList.add("on", "caret"); for (const ch of text) { if (!alive()) return; $(id).textContent += ch; await wait(70); } $(id).classList.remove("on", "caret"); };
+    await put("u", M.account); if (!alive()) return;
+    await put("p", "••••••••"); if (!alive()) return;
+    $("b").classList.add("press"); await wait(160); $("b").classList.remove("press");
+    for (let i = 0; i < disc.length; i++) {
+      if (!alive()) return;
+      const l = label(disc[i]);
+      $("addr").innerHTML = `<span class="lock">${M.tls ? "🔒" : ""}</span>https://127.0.0.1${esc(l.replace(/^(GET|POST) /, "").replace("sign in", "/login"))}`;
+      if (i === 2) $("view").innerHTML = `<div style="text-align:center"><div style="font-size:2.2rem">🏥</div><div style="font-weight:700;margin-top:6px">Signed in as ${esc(M.account)}</div><div class="muted">reading the home page…</div></div>`;
+      if (i > 2) $("view").innerHTML = `<div style="text-align:center"><div class="mono" style="font-size:1rem;font-weight:650">${esc(l)}</div><div class="muted" style="margin-top:6px">${disc[i].kind === "detail" ? "a record page — which fields live here?" : "a list page — which columns?"}</div></div>`;
+      $("crumbs").querySelectorAll(".cur").forEach((c) => c.classList.remove("cur"));
+      $("crumbs").insertAdjacentHTML("beforeend", `<span class="cur">${esc(l)}</span>`);
+      await wait(i < 3 ? 420 : 260);
+    }
+    if (!alive()) return;
+    $("crumbs").querySelectorAll(".cur").forEach((c) => c.classList.remove("cur"));
+    $("view").innerHTML = `<div style="text-align:center;animation:pop .4s both"><div style="font-size:2.6rem;font-weight:780;color:var(--good)">${D.modules.length} modules</div><div class="muted">found in ${disc.length} page loads — none named in advance</div></div>`;
+  }
+  $("replay1").addEventListener("click", signIn);
 
   /* ------------------------------------------------------------- 2 discovery */
+  let hide = true;
   function paintMods() {
-    const hide = $("hideurl").checked;
-    $("mods").innerHTML = D.modules.map((m) => {
+    $("mods").innerHTML = D.modules.map((m, i) => {
       const fields = Object.entries(m.evidence).map(([f, layers]) => {
         const cls = layers.length === 1 ? "unique" : "shared";
         return `<span class="fld ${cls}${m.detail_only.includes(f) ? " detail" : ""}" title="${esc(f)}: in ${layers.map((l) => LAYER[l]).join(", ")}">${esc(f)}</span>`;
       }).join("");
-      return `<div class="card mod"><div class="url${hide ? " off" : ""}">${hide ? "/m/•••••/" : esc(m.path)}</div>`
-        + `<div class="layer">${esc(LAYER[m.layer] || "not inferred")}</div><div class="muted">${Math.round(m.confidence * 100)}% of the fields it found belong to this layer · ${m.pages} pages · ${m.records} records</div>`
+      return `<div class="card mod" style="--c:${LCOL[m.layer] || "var(--ink-3)"};animation-delay:${i * 60}ms"><div class="head" style="margin-bottom:0"><span class="url${hide ? " off" : ""}">${hide ? "/m/•••••/" : esc(m.path)}</span><span class="pc">${Kit.count(Math.round(m.confidence * 100), 0, "%")}</span></div>`
+        + `<div class="layer">${esc(LAYER[m.layer] || "not inferred")}</div><div class="muted">${m.pages} pages · ${m.records} records</div>`
         + `<div class="conf"><i style="width:${m.confidence * 100}%"></i></div><div class="fields">${fields}</div></div>`;
     }).join("");
+    Kit.countIn($("mods"));
   }
-  $("hideurl").addEventListener("change", paintMods);
-  paintMods();
+  $("urlseg").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
+    hide = b.dataset.v === "hide";
+    $("urlseg").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    document.querySelectorAll(".mod .url").forEach((u, i) => { u.classList.toggle("off", hide); u.textContent = hide ? "/m/•••••/" : D.modules[i].path; });
+  }));
 
   /* ------------------------------------------------------------- 3 the crawl */
   const agents = D.techniques.filter((t) => t.kind === "agent");
   const headAgent = D.headline.find((n) => T[n] && T[n].kind === "agent") || (agents[0] && agents[0].name);
-  $("agent").innerHTML = agents.map((a) => `<option value="${esc(a.name)}"${a.name === headAgent ? " selected" : ""}>${esc(a.name.replace(/^ai agent: /, ""))}</option>`).join("");
-  $("task").innerHTML = `<option value="">all four tasks</option>` + D.tasks.map((t) => `<option value="${esc(t.id)}">${esc(t.id.replace(/-/g, " "))}${t.single ? " (one patient)" : ""}${t.trap ? " ⚠" : ""}</option>`).join("");
-  $("lead-3").innerHTML = `Every page each technique loaded, on a map of the portal, in the order it loaded them. <b>Ours</b> reads one patient through the search box, the way a person would; the <b>baseline</b> opens every page of every module. Press <kbd>▶</kbd> (or <kbd>space</kbd>).`;
+  $("agent").innerHTML = agents.map((a) => `<option value="${esc(a.name)}"${a.name === headAgent ? " selected" : ""}>${esc(shortName(a.name))}</option>`).join("");
+  $("task").innerHTML = `<option value="">all four tasks</option>` + D.tasks.map((t) => `<option value="${esc(t.id)}">${esc(t.id.replace(/-/g, " "))}${t.single ? " · one patient" : ""}${t.trap ? " ⚠" : ""}</option>`).join("");
+  let speed = 12;
+  $("speedseg").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
+    speed = Number(b.dataset.v);
+    $("speedseg").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  }));
   const lanesFor = () => [ours.name, $("agent").value, base.name].filter((n) => n && T[n]);
-  let timer = null;
+  let timer = null, played = false;
   function sqId(li, v) { return `q-${li}-${v.module}-${v.kind}-${v.kind === "search" ? 0 : v.n}`; }
+  const LANE = { ours: "Ours", baseline: "Baseline" };
   function paintLanes() {
     const task = $("task").value;
     $("lanes").innerHTML = lanesFor().map((name, li) => {
@@ -213,30 +258,30 @@
         return `<div class="srow"><span class="sl" title="${esc(m.path)}">${esc(m.slug)}</span><div class="sq">${lists}<b class="srch" id="q-${li}-${m.slug}-search-0" title="search results"></b><b class="sep"></b>${recs}</div></div>`;
       }).join("");
       const total = D.visits.filter((v) => v.who === name && (!task || v.task === task)).length;
-      return `<div class="card lane ${t.kind}"><div class="ln">${esc(name)}</div><div class="count" id="c-${li}">0</div><div class="cl">page loads of <span id="t-${li}">${num(total)}</span></div><div class="site">${rows}</div><div class="done" id="d-${li}"></div></div>`;
+      return `<div class="card lane ${t.kind}"><div class="ln">${esc(LANE[t.kind] || shortName(name))}</div><div class="count" id="c-${li}">0</div><div class="cl">of <span>${num(total)}</span> page loads</div><div class="prog"><i id="p-${li}"></i></div><div class="site">${rows}</div><div class="done" id="d-${li}"></div></div>`;
     }).join("");
     const h = D.visits.filter((v) => v.who === "harness").length;
-    $("harness").textContent = `Not charged to any technique: ${h} page loads the harness made itself, outside the meter — counting one patient's own records and measuring the coverage ceiling.`;
+    $("harness").textContent = `+ ${h} harness page loads, outside the meter — charged to no technique.`;
   }
+  function stop() { if (timer) { clearInterval(timer); timer = null; } $("play").disabled = false; }
   function play() {
-    if (timer) { clearInterval(timer); timer = null; }
-    paintLanes();
+    stop(); paintLanes(); played = true;
     const task = $("task").value, names = lanesFor();
     const queues = names.map((n) => D.visits.filter((v) => v.who === n && (!task || v.task === task)));
     const heat = {}, counts = names.map(() => 0);
     let tick = 0;
-    $("play").disabled = true;
-    const speed = Number($("speed").value);
+    $("play").disabled = true; $("play").textContent = "▶ Playing…";
     const step = speed <= 3 ? 4 : 1;
     timer = setInterval(() => {
       let live = false;
       for (let s = 0; s < step; s++) {
         names.forEach((_, li) => {
-          const v = queues[li][tick];
+          const q = queues[li], v = q[tick];
           if (!v) return;
           live = true;
           counts[li]++;
           $("c-" + li).textContent = num(counts[li]);
+          $("p-" + li).style.width = (100 * counts[li] / q.length) + "%";
           document.querySelectorAll(`#lanes .lane:nth-child(${li + 1}) b.now`).forEach((b) => b.classList.remove("now"));
           if (["list", "detail", "search"].includes(v.kind)) {
             const el = document.getElementById(sqId(li, v));
@@ -245,29 +290,42 @@
               el.classList.remove("h1", "h2", "h3"); el.classList.add(heat[key] >= 6 ? "h3" : heat[key] >= 2 ? "h2" : "h1", "now");
             }
           }
-          if (tick + 1 === queues[li].length) {
+          if (tick + 1 === q.length) {
             const t = T[names[li]];
-            $("d-" + li).innerHTML = `done — <b>${num(counts[li])}</b> page loads${t.record_excess ? `; on the one-patient tasks it read <b>${t.record_excess >= 10 ? num(Math.round(t.record_excess)) : f2(t.record_excess)}×</b> the patient's own records` : ""}`;
+            document.querySelectorAll(`#lanes .lane:nth-child(${li + 1}) b.now`).forEach((b) => b.classList.remove("now"));
+            $("d-" + li).classList.add("show");
+            $("d-" + li).innerHTML = `✓ <b>${num(counts[li])}</b> loads${t.record_excess ? ` · <b>${t.record_excess >= 10 ? num(Math.round(t.record_excess)) : f2(t.record_excess)}×</b> the patient's own records` : ""}`;
           }
         });
         tick++;
       }
-      if (!live) { clearInterval(timer); timer = null; $("play").disabled = false; $("play").textContent = "↻ Play again"; }
+      if (!live) { stop(); $("play").textContent = "↻ Again"; }
     }, speed);
   }
   $("play").addEventListener("click", play);
-  ["task", "agent"].forEach((id) => $(id).addEventListener("change", () => { if (timer) { clearInterval(timer); timer = null; $("play").disabled = false; } paintLanes(); }));
+  ["task", "agent"].forEach((id) => $(id).addEventListener("change", () => { stop(); $("play").textContent = "▶ Play"; paintLanes(); }));
+  document.addEventListener("keydown", (e) => { if (e.key === " " && steps.now() === 3 && !e.target.matches("input, select, textarea, button")) { e.preventDefault(); $("play").click(); } });
   paintLanes();
 
   /* ------------------------------------------------------------- 4 the score */
   const rows = D.headline.map((n) => T[n]).filter(Boolean);
-  $("scorebars").innerHTML = rows.map((t) => `<div class="barrow"><span>${esc(t.name)}</span><div class="track"><i style="width:${100 * t.score}%;background:${kcol(t.kind)}"></i></div><span class="mono">${t.score.toFixed(3)}</span></div>`).join("");
-  const maxP = Math.max(...rows.map((t) => t.pages || 0), 1);
-  $("pagebars").innerHTML = rows.map((t) => `<div class="barrow"><span>${esc(t.name)}</span><div class="track"><i style="width:${100 * (t.pages || 0) / maxP}%;background:${kcol(t.kind)}"></i></div><span class="mono">${num(t.pages)}</span></div>`).join("");
-  $("table").innerHTML = `<tr><th>Technique</th><th class="n">score</th><th class="n">page loads</th><th class="n">coverage</th><th class="n">fields ÷ needed</th><th class="n">× patient's own</th><th class="n">traps held</th></tr>`
-    + D.techniques.map((t) => `<tr><td><span class="lk" style="background:${kcol(t.kind)};margin-right:6px"></span>${esc(t.name)}</td><td class="n">${t.score.toFixed(3)}</td><td class="n">${num(t.pages)}</td><td class="n">${pct(t.coverage)}</td><td class="n">${f2(t.excess)}</td><td class="n">${f2(t.record_excess)}</td><td class="n">${esc(t.traps)}</td></tr>`).join("");
-  $("takeaway").textContent = D.takeaway;
+  const paint4 = () => {
+    $("scorebars").innerHTML = rows.map((t) => `<div class="barrow"><span>${esc(shortName(t.name))}</span><div class="track"><i style="width:${100 * t.score}%;background:${kcol(t.kind)}"></i></div><span class="mono">${Kit.count(t.score, 3)}</span></div>`).join("");
+    const maxP = Math.max(...rows.map((t) => t.pages || 0), 1);
+    $("pagebars").innerHTML = rows.map((t) => `<div class="barrow"><span>${esc(shortName(t.name))}</span><div class="track"><i style="width:${100 * (t.pages || 0) / maxP}%;background:${kcol(t.kind)}"></i></div><span class="mono">${Kit.count(t.pages || 0)}</span></div>`).join("");
+  };
+  $("table").innerHTML = `<tr><th>Technique</th><th class="n">score</th><th class="n">page loads</th><th class="n">coverage</th><th class="n">fields ÷ needed</th><th class="n">× own records</th><th class="n">traps</th></tr>`
+    + D.techniques.map((t) => `<tr><td><span class="lk" style="background:${kcol(t.kind)};margin-right:8px"></span>${esc(shortName(t.name))}</td><td class="n">${t.score.toFixed(3)}</td><td class="n">${num(t.pages)}</td><td class="n">${pct(t.coverage)}</td><td class="n">${f2(t.excess)}</td><td class="n">${f2(t.record_excess)}</td><td class="n">${esc(t.traps)}</td></tr>`).join("");
 
-  $("foot").innerHTML = `Built ${esc(M.generated)} by <code>tools/build_portal_page.py</code>: the fixture portal served over TLS, the Tier 2 browser (<code>PortalHISDataSource</code>), and <code>run_benchmark</code> — the same run as <code>scripts/run_pipeline.py</code> stages 1–3. Every page load was captured at <code>PortalBrowser.goto</code>; each technique's total was checked against the benchmark's own count. A search is shown as a pseudonym, never the record number typed. Keys: <kbd>1</kbd>–<kbd>4</kbd>, <kbd>←</kbd> <kbd>→</kbd>, <kbd>space</kbd> to play.`;
+  const steps = Kit.steps(4, (k, pane) => {
+    if (k !== 3) stop();
+    if (k === 1) signIn();
+    if (k === 2) paintMods();
+    if (k === 3 && !played) setTimeout(play, 350);
+    if (k === 4) { paint4(); Kit.countIn(pane); }
+  });
+  steps.start();
+
+  $("foot").innerHTML = `Built ${esc(M.generated)} by <code>tools/build_portal_page.py</code> from a real run · every load captured at <code>PortalBrowser.goto</code> and checked against the meter · searches shown as pseudonyms · <kbd>1</kbd>–<kbd>4</kbd> <kbd>←</kbd> <kbd>→</kbd> <kbd>space</kbd>`;
 })();
 </script>

@@ -6,105 +6,130 @@
 /*__BASE__*/
   /* 1 -- files */
   .tiles { display: grid; gap: 14px; }
-  .group h3 { margin-bottom: 6px; display: flex; gap: 8px; align-items: center; }
+  .group h3 { margin-bottom: 7px; display: flex; gap: 8px; align-items: center; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
   .group .sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
-  .tilegrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
-  .tile { text-align: left; font: inherit; background: var(--card); border: 1px solid var(--line); border-top: 4px solid var(--ink-3); border-radius: 6px; padding: 8px 10px; cursor: pointer; color: var(--ink); display: grid; gap: 4px; }
-  .tile.off { border-top-color: var(--line); background: var(--card-2); color: var(--ink-2); }
-  .tile[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--ink); }
-  .tile .nm { font-family: var(--mono); font-size: .82rem; font-weight: 600; overflow-wrap: anywhere; }
-  .tile .meta { font-size: .76rem; color: var(--ink-3); }
-  .bar3 { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: var(--card-2); }
-  .bar3 i { display: block; height: 100%; }
+  .tilegrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+  .tile { text-align: left; font: inherit; background: var(--card); border: none; border-radius: 10px; padding: 9px 11px; cursor: pointer; color: var(--ink); display: grid; gap: 5px; box-shadow: var(--shadow); position: relative; overflow: hidden; animation: pop .35s both; transition: transform .12s, box-shadow .12s; }
+  .tile::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--c, var(--ink-3)); }
+  .tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-up); }
+  .tile.off { background: var(--card-2); color: var(--ink-2); box-shadow: none; }
+  .tile.off::before { background: transparent; }
+  .tile[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--ink), var(--shadow-up); }
+  .tile .nm { font-family: var(--mono); font-size: .8rem; font-weight: 650; overflow-wrap: anywhere; }
+  .tile .meta { font-size: .72rem; color: var(--ink-3); }
+  .bar3 { display: flex; height: 5px; border-radius: 999px; overflow: hidden; background: var(--card-2); }
+  .bar3 i { display: block; height: 100%; transform-origin: left; animation: grow .8s both .2s; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { display: inline-flex; gap: 6px; align-items: baseline; font-size: .82rem; padding: 3px 8px; border-radius: 5px; border: 1px solid var(--line); background: var(--card); }
+  .chip { display: inline-flex; gap: 6px; align-items: baseline; font-size: .8rem; padding: 3px 9px; border-radius: 999px; background: var(--card-2); animation: pop .3s both; }
   .chip .h { font-family: var(--mono); }
-  .chip.in { border-color: transparent; background: var(--good-bg); }
-  .chip.in .to { font-family: var(--mono); color: var(--good); font-weight: 600; }
-  .chip.blank { color: var(--ink-3); text-decoration: line-through; background: var(--card-2); border-color: transparent; }
-  .chip.drop { color: var(--ink-3); border-style: dashed; }
-  .cat { font-size: .7rem; letter-spacing: .03em; text-transform: uppercase; color: var(--ink-2); padding: 0 5px; border-radius: 3px; background: var(--card); }
+  .chip.in { background: var(--good-bg); }
+  .chip.in .to { font-family: var(--mono); color: var(--good); font-weight: 650; }
+  .chip.blank { color: var(--ink-3); text-decoration: line-through; }
+  .chip.drop { color: var(--ink-3); border: 1px dashed var(--ink-3); }
+  .cat { font-size: .66rem; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); padding: 0 6px; border-radius: 999px; background: var(--card); }
   .cat.direct_identifier, .cat.contact { color: var(--bad); }
   .cat.clinical { color: var(--l1); }
   .cat.financial { color: var(--l3); }
+  .bigcount { display: flex; gap: 18px; margin: 4px 0 14px; }
+  .bigcount div { display: grid; }
+  .bigcount b { font-size: 1.8rem; font-weight: 760; letter-spacing: -0.03em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .bigcount > div > span { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); font-weight: 600; }
+  .layerstrip { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+  .lcard { padding: 12px 14px; border-radius: 12px; background: var(--card); box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .lcard::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--c); }
+  .lcard .ll { font-weight: 680; font-size: .9rem; }
+  .lcard .lr { font-size: 1.5rem; font-weight: 760; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .lcard .lm { font-size: .74rem; color: var(--ink-3); }
 
   /* 2 -- gate */
-  .checks { display: grid; gap: 8px; }
-  .check { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
-  .switch { position: relative; width: 46px; height: 26px; border-radius: 13px; background: var(--good); border: none; cursor: pointer; transition: background .15s; }
-  .switch::after { content: ""; position: absolute; top: 3px; left: 23px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left .15s; }
+  .checks { display: grid; gap: 10px; }
+  .check { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; padding: 12px 14px; border-radius: 12px; background: var(--card); box-shadow: var(--shadow); transition: background .2s; }
+  .check.offc { background: var(--bad-bg); }
+  .switch { position: relative; width: 50px; height: 28px; border-radius: 14px; background: var(--good); border: none; cursor: pointer; transition: background .2s; flex: none; }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 25px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: left .2s cubic-bezier(.2, .8, .2, 1); box-shadow: 0 1px 3px rgba(0,0,0,.25); }
   .switch[aria-checked="false"] { background: var(--bad); }
   .switch[aria-checked="false"]::after { left: 3px; }
-  .check .t { font-weight: 650; }
-  .check .d { font-size: .85rem; color: var(--ink-2); }
-  .term { font-family: var(--mono); font-size: .84rem; white-space: pre-wrap; overflow-wrap: anywhere; background: #111418; color: #d7dde3; border-radius: 8px; padding: 12px 14px; line-height: 1.5; }
+  .check .t { font-weight: 680; }
+  .check .d { font-size: .8rem; color: var(--ink-2); }
+  .term { font-family: var(--mono); font-size: .82rem; white-space: pre-wrap; overflow-wrap: anywhere; background: #0d1014; color: #d7dde3; border-radius: 12px; padding: 14px 16px; line-height: 1.6; min-height: 190px; box-shadow: var(--shadow); }
+  .term .ln { display: block; animation: rise .25s both; }
   .term .ok { color: #5fd38d; } .term .no { color: #ff7b7b; } .term .dim { color: #8b949e; }
-  .verdict { font-size: 1.25rem; font-weight: 700; padding: 12px 14px; border-radius: 8px; }
+  .verdict { font-size: 1.35rem; font-weight: 760; padding: 16px 18px; border-radius: 12px; display: flex; align-items: center; gap: 12px; letter-spacing: -0.01em; animation: pop .35s both; }
+  .verdict .ico { font-size: 1.8rem; }
   .verdict.ok { background: var(--good-bg); color: var(--good); }
   .verdict.no { background: var(--bad-bg); color: var(--bad); }
 
   /* 3 -- one patient */
   .controls { display: grid; gap: 10px; }
-  .row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
-  .row > .lab { font-size: .8rem; color: var(--ink-3); min-width: 64px; }
-  .chip-btn { font: inherit; font-size: .84rem; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 7px; padding: 6px 10px; cursor: pointer; display: grid; text-align: left; gap: 1px; }
-  .chip-btn[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
-  .chip-btn .tk { font-family: var(--mono); font-size: .8rem; color: var(--good); }
-  .chip-btn .sm { font-size: .74rem; color: var(--ink-3); }
+  .row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+  .row > .lab { font-size: .7rem; color: var(--ink-3); min-width: 64px; text-transform: uppercase; letter-spacing: .06em; font-weight: 650; }
+  .chip-btn { font: inherit; font-size: .82rem; border: none; background: var(--card-2); color: var(--ink); border-radius: 10px; padding: 6px 11px; cursor: pointer; display: grid; text-align: left; gap: 1px; transition: background .15s; }
+  .chip-btn[aria-pressed="true"] { background: var(--card); box-shadow: 0 0 0 2px var(--ink); }
+  .chip-btn .tk { font-family: var(--mono); font-size: .78rem; color: var(--good); font-weight: 650; }
+  .chip-btn .sm { font-size: .72rem; color: var(--ink-3); }
   .who { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
   @media (max-width: 900px) { .who { grid-template-columns: 1fr; } }
-  .tech { border-top: 4px solid var(--ink-3); }
-  .tech.ours { border-top-color: var(--ours); } .tech.agent { border-top-color: var(--agent); } .tech.baseline { border-top-color: var(--base); }
-  .tech .name { font-weight: 700; }
-  .tech .score { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-  .kv { display: grid; grid-template-columns: max-content 1fr; gap: 3px 10px; font-size: .84rem; margin-top: 8px; }
-  .kv dt { color: var(--ink-3); } .kv dd { margin: 0; }
-  .readbar { height: 10px; border-radius: 5px; background: var(--card-2); overflow: hidden; margin-top: 4px; }
-  .readbar i { display: block; height: 100%; }
-  .files-read { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; font-size: .8rem; margin-top: 6px; }
-  .files-read .f { font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); }
-  .fchips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
-  .fchip { font-family: var(--mono); font-size: .76rem; padding: 2px 6px; border-radius: 4px; background: var(--card-2); }
+  .tech { position: relative; overflow: hidden; animation: rise .4s both; }
+  .tech:nth-child(2) { animation-delay: .06s; } .tech:nth-child(3) { animation-delay: .12s; }
+  .tech::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--c, var(--ink-3)); }
+  .tech.ours { --c: var(--ours); } .tech.agent { --c: var(--agent); } .tech.baseline { --c: var(--base); }
+  .tech .name { font-weight: 650; font-size: .86rem; color: var(--ink-2); }
+  .tech .score { font-size: 2.6rem; font-weight: 780; font-variant-numeric: tabular-nums; letter-spacing: -0.04em; line-height: 1.05; color: var(--c); }
+  .kl { font-size: .68rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; font-weight: 650; margin-top: 12px; }
+  .readn { display: flex; align-items: baseline; gap: 8px; margin-top: 2px; }
+  .readn b { font-size: 1.3rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+  .readn .x { font-weight: 700; font-size: .85rem; }
+  .readn .x.bad { color: var(--bad); } .readn .x.ok { color: var(--good); }
+  .readbar { height: 8px; border-radius: 999px; background: var(--card-2); overflow: hidden; margin-top: 5px; }
+  .readbar i { display: block; height: 100%; border-radius: 999px; transform-origin: left; animation: grow 1s cubic-bezier(.2, .8, .2, 1) both .15s; }
+  .fchips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+  .fchip { font-family: var(--mono); font-size: .72rem; padding: 2px 7px; border-radius: 999px; background: var(--card-2); animation: pop .3s both; }
   .fchip.need { background: var(--good-bg); color: var(--good); }
   .fchip.extra { background: var(--warn-bg); color: var(--warn); }
-  .fchip.oos { background: var(--bad-bg); color: var(--bad); font-weight: 700; }
-  .rules { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
-  .rule { font-family: var(--mono); font-size: .7rem; padding: 2px 5px; border-radius: 4px; }
+  .fchip.oos { background: var(--bad); color: #fff; font-weight: 700; }
+  .rules { display: flex; gap: 4px; margin-top: 5px; flex-wrap: wrap; }
+  .rule { font-family: var(--mono); font-size: .68rem; font-weight: 650; padding: 2px 6px; border-radius: 999px; }
   .rule.pass { background: var(--good-bg); color: var(--good); }
-  .rule.fail { background: var(--bad-bg); color: var(--bad); }
+  .rule.fail { background: var(--bad); color: #fff; }
   .rule.partial { background: var(--warn-bg); color: var(--warn); }
   .rule.not_applicable { background: var(--card-2); color: var(--ink-3); }
-  .exportline { margin-top: 8px; font-size: .84rem; padding: 6px 8px; border-radius: 6px; }
+  .facts2 { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .exportline { margin-top: 12px; font-size: .82rem; font-weight: 650; padding: 7px 10px; border-radius: 10px; }
   .exportline.ok { background: var(--good-bg); color: var(--good); }
   .exportline.no { background: var(--bad-bg); color: var(--bad); }
-  pre.code { margin: 0; font-family: var(--mono); font-size: .8rem; line-height: 1.5; background: var(--card-2); border-radius: 6px; padding: 10px 12px; overflow: auto; max-height: 420px; white-space: pre; }
-  .tok { background: var(--good-bg); color: var(--good); border-radius: 3px; padding: 0 2px; font-weight: 600; }
+  pre.code { margin: 0; font-family: var(--mono); font-size: .78rem; line-height: 1.55; background: var(--card-2); border-radius: 10px; padding: 12px 14px; overflow: auto; max-height: 380px; white-space: pre; }
+  .tok { background: var(--good-bg); color: var(--good); border-radius: 3px; padding: 0 2px; font-weight: 650; }
   .raw { background: var(--bad-bg); color: var(--bad); border-radius: 3px; padding: 0 2px; font-weight: 700; }
   .hid { color: var(--ink-3); }
 
   /* 4 -- score */
-  .barrow { display: grid; grid-template-columns: minmax(150px, 260px) 1fr 56px; gap: 10px; align-items: center; font-size: .88rem; padding: 4px 0; }
-  .track { height: 16px; background: var(--card-2); border-radius: 4px; overflow: hidden; position: relative; }
-  .track i { display: block; height: 100%; border-radius: 4px; }
-  .stack { display: flex; height: 26px; border-radius: 6px; overflow: hidden; }
-  .stack div { display: grid; place-items: center; font-size: .78rem; font-weight: 650; color: #fff; min-width: 0; white-space: nowrap; overflow: hidden; }
-  .heat td.c { text-align: center; font-family: var(--mono); font-size: .8rem; }
+  .stack { display: flex; height: 30px; border-radius: 999px; overflow: hidden; gap: 2px; }
+  .stack div { display: grid; place-items: center; font-size: .78rem; font-weight: 700; color: #fff; min-width: 0; white-space: nowrap; overflow: hidden; transform-origin: left; animation: grow .9s both .1s; }
+  .heat td.c { text-align: center; font-family: var(--mono); font-size: .8rem; border-bottom: 2px solid var(--card); border-left: 2px solid var(--card); }
 
   /* 5 -- retention */
+  .timebar { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; }
   .slider { width: 100%; accent-color: var(--ink); }
+  .day { font-size: 1.6rem; font-weight: 760; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; min-width: 7.5rem; }
   .ret { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
-  .file { font-family: var(--mono); font-size: .8rem; padding: 3px 0; display: flex; justify-content: space-between; gap: 8px; }
-  .file.gone { text-decoration: line-through; color: var(--ink-3); }
-  .kept-forever { color: var(--bad); font-weight: 650; }
-  .log { font-family: var(--mono); font-size: .8rem; margin-top: 6px; color: var(--good); min-height: 1.2em; }
-
+  .life { height: 10px; border-radius: 999px; background: var(--card-2); position: relative; margin: 10px 0 12px; overflow: hidden; }
+  .life i { position: absolute; inset: 0 auto 0 0; background: var(--c); border-radius: 999px; transition: width .15s linear; }
+  .life.gone i { background: var(--ink-3); }
+  .file { font-family: var(--mono); font-size: .78rem; padding: 4px 0; display: flex; justify-content: space-between; gap: 8px; transition: opacity .3s, color .3s; }
+  .file .st { font-weight: 700; color: var(--good); }
+  .file.gone { text-decoration: line-through; color: var(--ink-3); opacity: .7; }
+  .file.gone .st { color: var(--ink-3); }
+  .kept-forever { color: var(--bad); font-weight: 700; }
+  .log { font-family: var(--mono); font-size: .76rem; margin-top: 8px; color: var(--good); min-height: 1.2em; }
+  .log:not(:empty) { animation: rise .3s both; }
+  .play { font: inherit; font-weight: 700; padding: 8px 16px; border-radius: 999px; border: none; background: var(--ink); color: var(--bg); cursor: pointer; }
 </style>
 
 <div class="wrap">
   <!--__NAV__-->
   <div class="top">
     <div>
-      <h1>One export, through the pipeline</h1>
+      <h1>An export we never saw</h1>
       <p class="sub" id="sub"></p>
     </div>
     <div class="tools">
@@ -123,22 +148,19 @@
   </nav>
 
   <section class="pane" id="pane-1">
-    <p class="lead" id="lead-1"></p>
+    <p class="lead">Classified by what the columns <b>are</b>, not what the files are called.</p>
     <div class="split">
       <div class="tiles" id="tiles"></div>
       <div class="card" id="filedetail"></div>
     </div>
-    <div class="card">
-      <div class="head"><h2>What each HIS layer became</h2><p class="muted">One file per concept is stacked; one file split by month is concatenated. Nothing is joined on the patient key.</p></div>
-      <div class="scroll"><table id="layers"></table></div>
-    </div>
+    <div class="layerstrip" id="layers"></div>
   </section>
 
   <section class="pane" id="pane-2" hidden>
-    <p class="lead">Before a single row is read, the export has to pass four checks — <b>enforced in code</b>, not remembered. Switch any one off and watch what the adapter says.</p>
+    <p class="lead">Four checks, <b>enforced in code</b>. Flip one.</p>
     <div class="split">
       <div class="checks" id="checks"></div>
-      <div style="display:grid;gap:10px">
+      <div style="display:grid;gap:12px;align-content:start">
         <div class="verdict" id="verdict"></div>
         <div class="term" id="term"></div>
       </div>
@@ -146,11 +168,10 @@
   </section>
 
   <section class="pane" id="pane-3" hidden>
-    <p class="lead" id="lead-3"></p>
     <div class="card controls">
-      <div class="row"><span class="lab">Task</span><div class="seg" id="taskseg"></div><span class="muted" id="taskdesc"></span></div>
+      <div class="row"><span class="lab">Job</span><div class="seg" id="taskseg"></div><span id="taskdesc"></span></div>
       <div class="row"><span class="lab">Patient</span><div class="row" id="patients" style="gap:8px"></div></div>
-      <div class="row" id="agentrow"><span class="lab">AI agent</span><div class="seg" id="agentseg"></div><span class="muted">each handed the purpose policy</span></div>
+      <div class="row" id="agentrow"><span class="lab">AI agent</span><div class="seg" id="agentseg"></div></div>
     </div>
     <div class="who" id="who"></div>
     <div class="card">
@@ -160,35 +181,36 @@
       </div>
       <p class="muted" id="outnote" style="margin-bottom:8px"></p>
       <pre class="code" id="outcode"></pre>
-      <div class="legend"><span><span class="tok">PSN-…</span> pseudonym — the raw value never left</span><span><span class="raw">ab••••yz</span> a raw identifier that left (masked on this page)</span><span class="hid" id="hidnote"></span></div>
+      <div class="legend"><span><span class="tok">PSN-…</span> pseudonym</span><span><span class="raw">ab••••yz</span> raw identifier (masked here)</span><span class="hid" id="hidnote"></span></div>
     </div>
   </section>
 
   <section class="pane" id="pane-4" hidden>
-    <p class="lead" id="lead-4"></p>
     <div class="cols">
-      <div class="card"><div class="head"><h2>Compliance score</h2><p class="muted">same seven DPDP rules, same export</p></div><div id="scorebars"></div></div>
-      <div class="card"><div class="head"><h2>Fields pulled per field needed</h2><p class="muted">1.0× is exactly the job; more is over-collection</p></div><div id="excessbars"></div></div>
+      <div class="card"><div class="head"><h2>Compliance score</h2><span class="muted">7 DPDP rules</span></div><div id="scorebars"></div></div>
+      <div class="card"><div class="head"><h2>Fields pulled ÷ needed</h2><span class="muted">1.0× is the job</span></div><div id="excessbars"></div></div>
     </div>
     <div class="card">
-      <div class="head"><h2>How much of the job this export allows</h2><p class="muted" id="ceilnote"></p></div>
+      <div class="head"><h2>How much of the job this export allows</h2><span class="muted" id="ceilnote"></span></div>
       <div class="stack" id="ceiling"></div>
       <div class="legend" id="ceillegend"></div>
       <div class="scroll" style="margin-top:12px"><table id="covtable"></table></div>
-      <p class="muted" style="margin-top:6px">× patient's own: on the single-patient tasks, records read ÷ the records that patient has in the layers the task touches. Below 1 means it read only the rows carrying what the job needs.</p>
     </div>
     <div class="card">
-      <div class="head"><h2>Rule by rule</h2><p class="muted">mean over the four tasks; 1.00 = passed everywhere</p></div>
+      <div class="head"><h2>Rule by rule</h2><span class="muted">mean over the four tasks</span></div>
       <div class="scroll"><table class="heat" id="heat"></table></div>
     </div>
-    <div class="note" id="takeaway"></div>
   </section>
 
   <section class="pane" id="pane-5" hidden>
-    <p class="lead">An export is not kept “for now”. Each technique's manifest names how long its export may live; the pipeline writes that date beside the files and a purge erases them on the day — and logs it. <b>Drag time forward.</b></p>
+    <p class="lead">Every export has an end date. <b>Move time forward.</b></p>
     <div class="card">
-      <div class="row" style="justify-content:space-between"><span><b id="daylabel"></b> <span class="muted" id="datelabel"></span></span><div class="seg" id="retseg"></div></div>
-      <input type="range" class="slider" id="days" min="0" max="400" value="0" aria-label="Days from today">
+      <div class="timebar">
+        <button class="play" id="retplay">▶ Play</button>
+        <input type="range" class="slider" id="days" min="0" max="400" value="0" aria-label="Days from today">
+        <div class="day"><span id="daylabel"></span><div class="muted mono" id="datelabel"></div></div>
+      </div>
+      <div class="row" style="margin-top:10px"><div class="seg" id="retseg"></div></div>
     </div>
     <div class="ret" id="ret"></div>
   </section>
@@ -197,6 +219,9 @@
 </div>
 
 <script id="data" type="application/json">/*__DATA__*/null</script>
+<script>
+/*__KIT__*/
+</script>
 <script>
 (() => {
   const D = JSON.parse(document.getElementById("data").textContent);
@@ -210,133 +235,108 @@
   const AGENTS = D.meta.agents || [];
   const base = (k) => (k && k.startsWith("agent") ? "agent" : k);
   const agentName = (k) => (AGENTS.find((a) => a.key === k) || {}).name || "AI agent";
-  const KIND = (k) => ({ ours: "Ours — reads the purpose policy", baseline: "Baseline — takes everything" }[k]
-    || `AI agent — ${agentName(k)}, told the policy`);
+  const KIND = (k) => ({ ours: "Ours · reads the policy", baseline: "Baseline · takes everything" }[k] || `${agentName(k)} · told the policy`);
   const KSHORT = (k) => ({ ours: "Ours", baseline: "Baseline" }[k] || agentName(k));
   const kcol = (k) => `var(--${base(k) === "baseline" ? "base" : base(k)})`;
   const TASKLABEL = (id) => id.replace(/-/g, " ");
+  const rowName = (r) => r.kind === "ours" ? "ours (rules)" : r.kind === "baseline" ? "baseline (take all)" : r.name.replace(/^ai agent: /, "");
 
   /* ------------------------------------------------------------- header */
   const m = D.meta;
-  $("sub").innerHTML = `<b>${esc(m.dataset)}</b> — an export this pipeline had never seen, run through the same adapter, rules and export path the hospital's data will take. `
-    + (m.values_shown ? `<span class="badge warn">synthetic export: values shown</span>` : `<span class="badge bad">real export: values hidden, structure only</span>`)
+  $("sub").innerHTML = `<span class="mono">${esc(m.dataset)}</span> · same adapter, rules and export path as a hospital's.`
+    + (m.values_shown ? ` <span class="badge warn">synthetic · values shown</span>` : ` <span class="badge bad">real export · structure only</span>`)
     + ` <span class="badge good">no raw identifier on this page</span>`;
   const F = D.funnel;
-  const bl = D.traces[Object.keys(D.traces).find((k) => k.endsWith("|baseline"))] || null;
   const oursAudit = Object.entries(D.traces).filter(([k]) => k.endsWith("|ours")).every(([, v]) => v.export.leaked === 0);
   $("funnel").innerHTML = [
-    [num(F.files), "files handed over"],
-    [`${num(F.files_read)}`, `files understood (${F.files - F.files_read} not read)`],
-    [num(F.columns), "columns in those files"],
-    [num(F.columns_in), "columns let in"],
-    [num(F.columns_blank + F.columns_drop), "columns stopped at the door"],
-    [oursAudit ? "0" : "!", "raw identifiers in our exports", oursAudit],
-  ].map(([v, l, hero]) => `<div class="fn${hero ? " hero" : ""}"><div class="v">${v}</div><div class="l">${esc(l)}</div></div>`).join("");
-
-  /* ------------------------------------------------------------- steps */
-  const steps = [...document.querySelectorAll("#steps button")];
-  function go(n) {
-    steps.forEach((b) => b.setAttribute("aria-selected", String(b.dataset.step === String(n))));
-    for (let i = 1; i <= 5; i++) $("pane-" + i).hidden = String(i) !== String(n);
-    try { history.replaceState(null, "", "#" + n); } catch (e) {}
-  }
-  steps.forEach((b) => b.addEventListener("click", () => go(b.dataset.step)));
-  const cur = () => Number(steps.find((b) => b.getAttribute("aria-selected") === "true").dataset.step);
-  document.addEventListener("keydown", (e) => {
-    if (e.target.matches("input, textarea, select") || e.metaKey || e.ctrlKey || e.altKey) return;
-    if (/^[1-5]$/.test(e.key)) go(e.key);
-    else if (e.key === "ArrowRight" && !e.target.matches("[role=slider], input")) go(Math.min(5, cur() + 1));
-    else if (e.key === "ArrowLeft" && !e.target.matches("[role=slider], input")) go(Math.max(1, cur() - 1));
-  });
-  $("bigger").addEventListener("click", () => document.documentElement.classList.toggle("big"));
-  $("theme").addEventListener("click", () => {
-    const r = document.documentElement, dark = r.dataset.theme === "dark" || (!r.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
-    r.dataset.theme = dark ? "light" : "dark";
-  });
+    [Kit.count(F.files), "files handed over"],
+    [Kit.count(F.files_read), "files understood"],
+    [Kit.count(F.columns), "columns"],
+    [Kit.count(F.columns_in), "columns let in", "var(--good)"],
+    [Kit.count(F.columns_blank + F.columns_drop), "stopped at the door", "var(--bad)"],
+    [oursAudit ? "0" : "!", "raw IDs in our exports", "hero"],
+  ].map(([v, l, c]) => `<div class="fn${c === "hero" ? " hero" : ""}"${c && c !== "hero" ? ` style="--c:${c}"` : ""}><div class="v">${v}</div><div class="l">${esc(l)}</div></div>`).join("");
+  Kit.countIn($("funnel"));
 
   /* ------------------------------------------------------------- 1 files */
   const reg = D.files.find((f) => f.layer === "patient_administration");
-  const stoppedAtReg = reg ? reg.columns.filter((c) => c.s !== "in").map((c) => c.h) : [];
-  $("lead-1").innerHTML = `The export arrived as <b>${num(F.files)} files</b> with <b>${num(F.columns)} columns</b>. `
-    + `Each file is classified by what its columns <i>are</i>, not what it is called. `
-    + `<b>${num(F.columns_in)}</b> columns were let in, each tied to a DPDP category; the other <b>${num(F.columns_blank + F.columns_drop)}</b> were dropped at the adapter`
-    + (stoppedAtReg.length ? ` — on the registration file alone, <span class="mono">${stoppedAtReg.slice(0, 4).map(esc).join(", ")}</span>${stoppedAtReg.length > 4 ? ` and ${stoppedAtReg.length - 4} more` : ""}` : "")
-    + `: no technique ever saw them, and nothing exported them. Click a file.`;
   const groups = {};
   D.files.forEach((f) => { (groups[f.layer || "_none"] ||= []).push(f); });
   const order = [...LAYERS.filter((l) => groups[l]), ...(groups._none ? ["_none"] : [])];
-  let sel = (reg && reg.read ? reg : null)?.name || (D.files.filter((f) => f.read).sort((a, b) => b.columns.filter((c) => c.s !== "in").length - a.columns.filter((c) => c.s !== "in").length)[0] || D.files[0])?.name;
+  let sel = (reg && reg.read ? reg : null)?.name || (D.files.filter((f) => f.read)[0] || D.files[0])?.name;
   function tiles() {
+    let n = 0;
     $("tiles").innerHTML = order.map((g) => {
-      const label = g === "_none" ? "Not read — no layer could be told from the columns" : D.layer_labels[g];
+      const label = g === "_none" ? "Not read — no layer in its columns" : D.layer_labels[g];
       const sw = g === "_none" ? "var(--line)" : lcol(g);
       return `<div class="group"><h3><span class="sw" style="background:${sw}"></span>${esc(label)}</h3><div class="tilegrid">`
         + groups[g].map((f) => {
-          const n = f.columns.length, a = f.columns.filter((c) => c.s === "in").length, b = f.columns.filter((c) => c.s === "blank").length;
-          return `<button class="tile${f.read ? "" : " off"}" style="${f.read ? `border-top-color:${lcol(f.layer)}` : ""}" data-f="${esc(f.name)}" aria-pressed="${f.name === sel}">`
-            + `<span class="nm">${esc(f.name)}</span><span class="meta">${num(f.rows)} rows · ${a} of ${n} columns in</span>`
-            + `<span class="bar3"><i style="width:${100 * a / n}%;background:var(--good)"></i><i style="width:${100 * b / n}%;background:var(--ink-3)"></i></span></button>`;
+          const c = f.columns.length, a = f.columns.filter((x) => x.s === "in").length, b = f.columns.filter((x) => x.s === "blank").length;
+          return `<button class="tile${f.read ? "" : " off"}" style="--c:${f.read ? lcol(f.layer) : "transparent"};animation-delay:${(n++) * 25}ms" data-f="${esc(f.name)}" aria-pressed="${f.name === sel}">`
+            + `<span class="nm">${esc(f.name)}</span><span class="meta">${num(f.rows)} rows · ${a}/${c} in</span>`
+            + `<span class="bar3"><i style="width:${100 * a / c}%;background:var(--good)"></i><i style="width:${100 * b / c}%;background:var(--ink-3)"></i></span></button>`;
         }).join("") + `</div></div>`;
     }).join("");
-    $("tiles").querySelectorAll(".tile").forEach((t) => t.addEventListener("click", () => { sel = t.dataset.f; tiles(); detail(); }));
+    $("tiles").querySelectorAll(".tile").forEach((t) => t.addEventListener("click", () => {
+      sel = t.dataset.f;
+      $("tiles").querySelectorAll(".tile").forEach((x) => x.setAttribute("aria-pressed", String(x === t)));
+      detail();
+    }));
   }
   function detail() {
     const f = D.files.find((x) => x.name === sel);
     if (!f) { $("filedetail").innerHTML = ""; return; }
     const ins = f.columns.filter((c) => c.s === "in"), out = f.columns.filter((c) => c.s !== "in");
     const head = f.read
-      ? `<span class="badge" style="border-color:${lcol(f.layer)}">${esc(D.layer_labels[f.layer])}</span> <span class="muted">${Math.round((f.confidence || 0) * 100)}% of the columns it keeps are catalogue fields</span>`
+      ? `<span class="badge" style="background:color-mix(in srgb, ${lcol(f.layer)} 18%, transparent);color:${lcol(f.layer)}">${esc(D.layer_labels[f.layer])}</span>`
       : `<span class="badge bad">not read</span> <span class="muted">${esc(f.reason)}</span>`;
-    $("filedetail").innerHTML = `<div class="head"><h2 class="mono">${esc(f.name)}</h2><span class="muted">${num(f.rows)} rows</span></div>`
-      + `<div style="margin-bottom:10px">${head}</div>`
-      + (ins.length ? `<h3 style="margin-bottom:6px">Let in (${ins.length})</h3><div class="chips">`
-        + ins.map((c) => `<span class="chip in"><span class="h">${esc(c.h)}</span>→<span class="to">${esc(c.to)}</span><span class="cat ${esc(c.cat)}">${esc(c.cat.replace(/_/g, " "))}</span></span>`).join("") + `</div>` : "")
-      + (out.length ? `<h3 style="margin:12px 0 6px">Stopped at the door (${out.length})</h3><div class="chips">`
-        + out.map((c) => `<span class="chip ${c.s}" title="${c.s === "blank" ? "dropped by the column map" : "not a catalogue field"}"><span class="h">${esc(c.h)}</span></span>`).join("") + `</div>` : "")
-      + `<div class="legend"><span><span class="lk" style="background:var(--good-bg)"></span>recognised, with its DPDP category</span><span><span class="lk" style="background:var(--card-2)"></span>dropped by the column map</span><span><span class="lk" style="border:1px dashed var(--ink-3)"></span>not understood — dropped and reported</span></div>`;
+    $("filedetail").innerHTML = `<div class="head"><h2 class="mono">${esc(f.name)}</h2>${head}</div>`
+      + `<div class="bigcount"><div><b>${Kit.count(f.rows)}</b><span>rows</span></div><div><b style="color:var(--good)">${Kit.count(ins.length)}</b><span>let in</span></div><div><b style="color:var(--ink-3)">${Kit.count(out.length)}</b><span>stopped</span></div></div>`
+      + (ins.length ? `<div class="chips">` + ins.map((c, i) => `<span class="chip in" style="animation-delay:${i * 30}ms"><span class="h">${esc(c.h)}</span>→<span class="to">${esc(c.to)}</span><span class="cat ${esc(c.cat)}">${esc(c.cat.replace(/_/g, " "))}</span></span>`).join("") + `</div>` : "")
+      + (out.length ? `<div class="chips" style="margin-top:10px">` + out.map((c, i) => `<span class="chip ${c.s}" style="animation-delay:${(ins.length + i) * 15}ms" title="${c.s === "blank" ? "dropped by the column map" : "not a catalogue field"}"><span class="h">${esc(c.h)}</span></span>`).join("") + `</div>` : "");
+    Kit.countIn($("filedetail"));
   }
   tiles(); detail();
-  $("layers").innerHTML = `<tr><th>Layer</th><th>Files</th><th>How</th><th class="n">Rows</th><th>Fields it carries</th></tr>`
-    + D.layers.map((l) => `<tr><td><span class="lk" style="background:${lcol(l.layer)};margin-right:6px"></span>${esc(l.label)}</td><td class="mono" style="font-size:.8rem">${l.files.map(esc).join("<br>")}</td>`
-      + `<td>${l.files.length > 1 ? (l.stacked ? "stacked" : "concatenated") : "one file"}</td><td class="n">${num(l.rows)}</td><td class="mono" style="font-size:.8rem">${l.fields.map(esc).join(", ")}</td></tr>`).join("");
+  $("layers").innerHTML = D.layers.map((l) => `<div class="lcard" style="--c:${lcol(l.layer)}" title="${esc(l.fields.join(", "))}"><div class="ll">${esc(l.label)}</div><div class="lr">${Kit.count(l.rows)}</div>`
+    + `<div class="lm">rows · ${l.files.length} file${l.files.length > 1 ? "s" : ""}${l.files.length > 1 ? (l.stacked ? ", stacked" : ", concatenated") : ""} · ${l.fields.length} fields</div></div>`).join("");
 
   /* ------------------------------------------------------------- 2 gate */
   const gate = D.gate.checks.map((c) => ({ ...c, on: c.ok }));
-  function gatePaint() {
-    $("checks").innerHTML = gate.map((c, i) => `<div class="check"><button class="switch" role="switch" aria-checked="${c.on}" data-i="${i}" aria-label="${esc(c.name)}"></button>`
+  function gatePaint(animate) {
+    $("checks").innerHTML = gate.map((c, i) => `<div class="check${c.on ? "" : " offc"}"><button class="switch" role="switch" aria-checked="${c.on}" data-i="${i}" aria-label="${esc(c.name)}"></button>`
       + `<div><div class="t">${esc(c.name)}</div><div class="d">${esc(c.on ? c.detail : c.fail)}</div></div></div>`).join("");
-    $("checks").querySelectorAll(".switch").forEach((s) => s.addEventListener("click", () => { gate[s.dataset.i].on = !gate[s.dataset.i].on; gatePaint(); }));
+    $("checks").querySelectorAll(".switch").forEach((s) => s.addEventListener("click", () => { gate[s.dataset.i].on = !gate[s.dataset.i].on; gatePaint(true); }));
     const ok = gate.every((c) => c.on);
     $("verdict").className = "verdict " + (ok ? "ok" : "no");
-    $("verdict").textContent = ok ? "All checks pass — the adapter may read the export" : "REFUSED — nothing is read, nothing is scored";
-    $("term").innerHTML = `<span class="dim">$ python scripts/check_source.py data/${esc(m.dataset)}</span>\n  handling checks for data/${esc(m.dataset)}:\n`
-      + gate.map((c) => `    <span class="${c.on ? "ok" : "no"}">[${c.on ? "x" : " "}]</span> ${esc(c.name)}: ${esc(c.on ? c.detail : c.fail)}`).join("\n")
-      + `\n  ${ok ? '<span class="ok">all checks pass -- safe to read</span>' : '<span class="no">REFUSED -- fix the unchecked items first</span>\n\n  Not reading anything until the checks pass.'}`;
+    $("verdict").innerHTML = ok ? `<span class="ico">✓</span>Safe to read` : `<span class="ico">⛔</span>Refused — nothing is read`;
+    // The adapter's own output, line for line (scripts/check_source.py).
+    const lines = [`<span class="dim">$ python scripts/check_source.py data/${esc(m.dataset)}</span>`, `  handling checks for data/${esc(m.dataset)}:`]
+      .concat(gate.map((c) => `    <span class="${c.on ? "ok" : "no"}">[${c.on ? "x" : " "}]</span> ${esc(c.name)}: ${esc(c.on ? c.detail : c.fail)}`))
+      .concat(ok ? [`  <span class="ok">all checks pass -- safe to read</span>`] : [`  <span class="no">REFUSED -- fix the unchecked items first</span>`, ``, `  Not reading anything until the checks pass.`]);
+    $("term").innerHTML = lines.map((l, i) => `<span class="ln" style="animation-delay:${animate ? i * 70 : 0}ms">${l || " "}</span>`).join("");
   }
-  gatePaint();
+  gatePaint(true);
 
   /* ------------------------------------------------------------- 3 one patient */
   const single = D.tasks.filter((t) => t.single);
   let AG = AGENTS[0] ? AGENTS[0].key : null;
   const kindsNow = () => ["ours", AG, "baseline"].filter((k) => k && Object.keys(D.traces).some((x) => x.endsWith("|" + k)));
   let T = single[0]?.id, P = D.patients[0]?.token, OT = "ours", FMT = "hl7";
-  $("lead-3").innerHTML = `Pick a job and a patient. The same request goes to three techniques: <b>ours</b>, a real public <b>AI agent</b> handed the purpose policy, and the <b>baseline</b> most systems amount to. `
-    + `Each is scored by the harness exactly as in the benchmark — including how many records it read to answer for one patient.`;
   function segs() {
     $("taskseg").innerHTML = single.map((t) => `<button aria-pressed="${t.id === T}" data-t="${esc(t.id)}">${esc(TASKLABEL(t.id))}${t.trap ? " ⚠" : ""}</button>`).join("");
     $("taskseg").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { T = b.dataset.t; paint3(); }));
     const t = single.find((x) => x.id === T);
-    $("taskdesc").innerHTML = `${esc(t.description)} <span class="badge">${esc(t.purpose.replace(/_/g, " "))}</span>` + (t.trap ? ` <span class="badge bad">trap: ${esc(t.trap)}</span>` : "");
-    $("patients").innerHTML = D.patients.map((p, i) => {
+    $("taskdesc").innerHTML = `<span class="badge">${esc(t.purpose.replace(/_/g, " "))}</span>` + (t.trap ? ` <span class="badge bad" title="${esc(t.trap)}">⚠ trap</span>` : "");
+    $("patients").innerHTML = D.patients.map((p) => {
       const own = Object.values(p.records).reduce((a, b) => a + b, 0);
-      return `<button class="chip-btn" aria-pressed="${p.token === P}" data-p="${esc(p.token)}"><span class="tk">${esc(p.token)}</span><span class="sm">${i === 0 ? "the benchmark's patient · " : ""}${esc(p.label)}${p.label ? " · " : ""}${num(own)} records in the export</span></button>`;
+      return `<button class="chip-btn" aria-pressed="${p.token === P}" data-p="${esc(p.token)}"><span class="tk">${esc(p.token)}</span><span class="sm">${esc(p.label)}${p.label ? " · " : ""}${num(own)} records</span></button>`;
     }).join("");
     $("patients").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { P = b.dataset.p; paint3(); }));
     if (AGENTS.length > 1) {
       $("agentseg").innerHTML = AGENTS.map((a) => `<button aria-pressed="${a.key === AG}" data-a="${esc(a.key)}">${esc(a.name)}</button>`).join("");
       $("agentseg").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
         if (OT === AG) OT = b.dataset.a;
-        AG = b.dataset.a; paint3(); if (typeof paint5 === "function") paint5();
+        AG = b.dataset.a; paint3(); paint5();
       }));
     } else { $("agentrow").hidden = true; }
     $("outtech").innerHTML = kindsNow().map((k) => `<button aria-pressed="${k === OT}" data-k="${k}">${esc(KSHORT(k))}</button>`).join("");
@@ -344,36 +344,26 @@
     $("outfmt").innerHTML = [["hl7", "HL7 v2"], ["fhir", "FHIR"]].map(([k, l]) => `<button aria-pressed="${k === FMT}" data-k="${k}">${l}</button>`).join("");
     $("outfmt").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { FMT = b.dataset.k; paint3(); }));
   }
-  function readNote(v) {
-    const x = v.record_excess, own = num(v.own);
-    if (x === null || x === undefined) return "";
-    if (x > 1.05) return `<b style="color:var(--bad)">${x >= 10 ? num(Math.round(x)) : f2(x)}×</b> the ${own} records this patient has in these layers — the rest are other patients'`;
-    if (x < 0.95) return `only the rows carrying what the job needs, of the ${own} this patient has in these layers`;
-    return `this patient's own records in these layers (${own})`;
-  }
   function techCard(k, v, maxRead) {
-    const fnames = Object.entries(v.read).sort((a, b) => b[1] - a[1]);
-    const files = fnames.slice(0, 5).map(([f, n]) => `<span class="f">${esc(f)}</span><span class="mono">${num(n)}</span>`).join("")
-      + (fnames.length > 5 ? `<span class="f muted">+ ${fnames.length - 5} more files</span><span></span>` : "");
     const w = maxRead ? Math.max(1.5, 100 * Math.log10(1 + v.records) / Math.log10(1 + maxRead)) : 0;
     const worst = {};
     v.fields.forEach((f) => { const r = !f.allowed ? 2 : f.needed ? 0 : 1; if (!(f.field in worst) || r > worst[f.field].r) worst[f.field] = { ...f, r }; });
-    const uniq = Object.values(worst);
-    const chips = uniq.map((f) => `<span class="fchip ${!f.allowed ? "oos" : f.needed ? "need" : "extra"}" title="${esc(f.layer)} · ${esc(f.cat || "")}${!f.allowed ? " · OUT OF SCOPE for this purpose" : f.needed ? " · needed" : " · not needed"}">${esc(f.field)}</span>`).join("");
+    const uniq = Object.values(worst).sort((a, b) => b.r - a.r);
+    const chips = uniq.map((f, i) => `<span class="fchip ${!f.allowed ? "oos" : f.needed ? "need" : "extra"}" style="animation-delay:${150 + i * 20}ms" title="${esc(f.layer)} · ${esc(f.cat || "")}${!f.allowed ? " · OUT OF SCOPE for this purpose" : f.needed ? " · needed" : " · not needed"}">${esc(f.field)}</span>`).join("");
     const oos = uniq.filter((f) => !f.allowed).length;
     const rules = v.rules.map((r) => `<span class="rule ${esc(r.status)}" title="${esc(r.title)}: ${esc(r.status)}${r.finding ? " — " + esc(r.finding) : ""}">${esc(r.id)}</span>`).join("");
-    const ex = v.export, clean = ex.leaked === 0;
-    const x = v.record_excess;
-    return `<div class="card tech ${base(k)}"><div class="head"><span class="name">${esc(KIND(k))}</span></div>`
-      + `<div class="score" style="color:${kcol(k)}">${f2(v.score)}</div><div class="muted">compliance score on this task</div>`
-      + `<dl class="kv"><dt>read</dt><dd><b>${num(v.records)}</b> records</dd><dt></dt><dd class="muted">${readNote(v)}</dd></dl>`
+    const ex = v.export, clean = ex.leaked === 0, x = v.record_excess;
+    const xs = x === null || x === undefined ? "" : x > 1.05 ? `<span class="x bad">${x >= 10 ? num(Math.round(x)) : f2(x)}× own</span>` : `<span class="x ok">${x < 0.95 ? "≤" : ""}1× own</span>`;
+    const ret = v.manifest.retention_days ? `<span class="badge">keeps ${v.manifest.retention_days} d</span>` : `<span class="badge bad">no retention</span>`;
+    const onward = v.manifest.onward.length ? `<span class="badge bad">onward: ${v.manifest.onward.map(esc).join(", ")}</span>` : "";
+    return `<div class="card tech ${base(k)}"><div class="name">${esc(KIND(k))}</div>`
+      + `<div class="score">${Kit.count(v.score, 2)}</div>`
+      + `<div class="kl">records read</div><div class="readn"><b>${Kit.count(v.records)}</b>${xs}</div>`
       + `<div class="readbar"><i style="width:${w}%;background:${kcol(k)}"></i></div>`
-      + `<div class="files-read">${files}</div>`
-      + `<div class="muted" style="margin-top:10px">took ${uniq.length} field${uniq.length === 1 ? "" : "s"}${oos ? ` — <b style="color:var(--bad)">${oos} out of scope for this purpose</b>` : ""}</div><div class="fchips">${chips || '<span class="muted">nothing</span>'}</div>`
-      + `<div class="muted" style="margin-top:10px">rules</div><div class="rules">${rules}</div>`
-      + `<dl class="kv"><dt>retention</dt><dd>${v.manifest.retention_days ? v.manifest.retention_days + " days" : '<b style="color:var(--bad)">none declared</b>'}</dd>`
-      + `<dt>onward use</dt><dd>${v.manifest.onward.length ? `<b style="color:var(--bad)">${v.manifest.onward.map(esc).join(", ")}</b>` : "none"}</dd></dl>`
-      + `<div class="exportline ${clean ? "ok" : "no"}">${clean ? "✓" : "✗"} export: ${num(ex.counts.hl7_messages)} HL7 · ${num(ex.counts.fhir_resources)} FHIR — ${clean ? "no raw identifier left" : `${num(ex.leaked)} raw identifiers left`}</div></div>`;
+      + `<div class="kl">fields · ${uniq.length}${oos ? ` · <span style="color:var(--bad)">${oos} out of scope</span>` : ""}</div><div class="fchips">${chips || '<span class="muted">nothing</span>'}</div>`
+      + `<div class="kl">rules</div><div class="rules">${rules}</div>`
+      + `<div class="facts2">${ret}${onward}</div>`
+      + `<div class="exportline ${clean ? "ok" : "no"}">${clean ? "✓ no raw identifier left" : `✗ ${num(ex.leaked)} raw identifiers left`}</div></div>`;
   }
   function hilite(s) {
     return esc(s)
@@ -386,70 +376,86 @@
     const vs = kindsNow().map((k) => [k, D.traces[`${T}|${P}|${k}`]]).filter(([, v]) => v);
     const maxRead = Math.max(...vs.map(([, v]) => v.records), 1);
     $("who").innerHTML = vs.map(([k, v]) => techCard(k, v, maxRead)).join("");
+    Kit.countIn($("who"));
     const v = D.traces[`${T}|${P}|${OT}`];
     if (!v) { $("outcode").textContent = ""; return; }
     const items = v.export[FMT];
     const total = FMT === "hl7" ? v.export.counts.hl7_messages : v.export.counts.fhir_resources;
-    $("outnote").innerHTML = `${esc(KSHORT(OT))}: showing ${items.length} of ${num(total)} ${FMT === "hl7" ? "HL7 v2 messages" : "FHIR resources"} it exported. ${esc(v.export.audit)}.`
-      + (OT === "baseline" ? ` <b>These are other patients' records</b> — it read everyone to answer for one.` : "");
+    $("outnote").innerHTML = `${esc(KSHORT(OT))} · ${items.length} of ${num(total)} ${FMT === "hl7" ? "HL7 v2 messages" : "FHIR resources"}`
+      + (OT === "baseline" ? ` · <b style="color:var(--bad)">other patients' records</b>` : "");
     $("outcode").innerHTML = items.length ? items.map((it) => `<span class="hid">── ${esc(D.layer_labels[it.layer] || it.layer)} ──</span>\n${hilite(it.text)}`).join("\n\n") : '<span class="hid">nothing exported</span>';
-    $("hidnote").textContent = m.values_shown ? "" : "▒▒ value hidden: this is a real export, so only its shape is shown";
+    $("hidnote").textContent = m.values_shown ? "" : "▒▒ value hidden (real export)";
   }
   if (single.length && D.patients.length) paint3(); else $("pane-3").innerHTML = '<p class="lead">No single-patient task could be traced on this export.</p>';
 
   /* ------------------------------------------------------------- 4 score */
   const B = D.benchmark;
   const rows = B.by_model;
-  const kindOf = (r) => r.kind;
-  $("lead-4").innerHTML = `The benchmark, run on <b>this export</b>: four tasks, every technique, the same seven DPDP rules, cost metered at the adapter.`;
-  $("scorebars").innerHTML = rows.map((r) => `<div class="barrow"><span>${esc(r.name)}${r.flagged ? " *" : ""}</span><div class="track"><i style="width:${100 * r.score}%;background:${kcol(kindOf(r))}"></i></div><span class="mono">${r.score.toFixed(3)}</span></div>`).join("");
-  const maxEx = Math.max(...rows.map((r) => r.excess || 0), 1);
-  $("excessbars").innerHTML = rows.map((r) => `<div class="barrow"><span>${esc(r.name)}</span><div class="track"><i style="width:${100 * (r.excess || 0) / maxEx}%;background:${kcol(kindOf(r))}"></i></div><span class="mono">${f2(r.excess)}×</span></div>`).join("");
-  const C = B.ceiling;
-  if (C.needed) {
-    const got = C.reachable, notPat = C.in_source - C.reachable, absent = C.needed - C.in_source;
-    const seg = (n, color, label) => n ? `<div style="flex:${n};background:${color}" title="${label}: ${n}">${n >= 2 ? `${n} ${label}` : n}</div>` : "";
-    $("ceiling").innerHTML = seg(got, "var(--good)", "obtainable") + seg(notPat, "var(--warn)", "not in the patient's records") + seg(absent, "var(--ink-3)", "not in the export");
-    $("ceilnote").textContent = `${C.needed} fields the four tasks need`;
-    $("ceillegend").innerHTML = `<span><span class="lk" style="background:var(--good)"></span>${got} obtainable from this export</span>`
-      + (notPat ? `<span><span class="lk" style="background:var(--warn)"></span>${notPat} in the export, not in that one patient's records</span>` : "")
-      + (absent ? `<span><span class="lk" style="background:var(--ink-3)"></span>${absent} the export does not carry</span>` : "");
+  function paint4() {
+    $("scorebars").innerHTML = rows.map((r) => `<div class="barrow"><span>${esc(rowName(r))}${r.flagged ? " *" : ""}</span><div class="track"><i style="width:${100 * r.score}%;background:${kcol(r.kind)}"></i></div><span class="mono">${Kit.count(r.score, 3)}</span></div>`).join("");
+    const maxEx = Math.max(...rows.map((r) => r.excess || 0), 1);
+    $("excessbars").innerHTML = rows.map((r) => `<div class="barrow"><span>${esc(rowName(r))}</span><div class="track"><i style="width:${100 * (r.excess || 0) / maxEx}%;background:${kcol(r.kind)}"></i></div><span class="mono">${Kit.count(r.excess || 0, 2, "×")}</span></div>`).join("");
+    const C = B.ceiling;
+    if (C.needed) {
+      const got = C.reachable, notPat = C.in_source - C.reachable, absent = C.needed - C.in_source;
+      const seg = (n, color, label) => n ? `<div style="flex:${n};background:${color}" title="${label}: ${n}">${n >= 2 ? `${n} ${label}` : n}</div>` : "";
+      $("ceiling").innerHTML = seg(got, "var(--good)", "obtainable") + seg(notPat, "var(--warn)", "not this patient's") + seg(absent, "var(--ink-3)", "not in the export");
+      $("ceilnote").textContent = `${C.needed} fields needed`;
+      $("ceillegend").innerHTML = `<span><span class="lk" style="background:var(--good)"></span>${got} obtainable</span>`
+        + (notPat ? `<span><span class="lk" style="background:var(--warn)"></span>${notPat} not in that patient's records</span>` : "")
+        + (absent ? `<span><span class="lk" style="background:var(--ink-3)"></span>${absent} not in the export</span>` : "");
+    }
   }
-  $("covtable").innerHTML = `<tr><th>Technique</th><th class="n">coverage</th><th class="n">records read</th><th class="n">× patient's own</th><th class="n">traps held</th></tr>`
-    + rows.map((r) => `<tr><td><span class="lk" style="background:${kcol(kindOf(r))};margin-right:6px"></span>${esc(r.name)}</td><td class="n">${pct(r.coverage)}</td><td class="n">${num(r.records)}</td><td class="n">${r.record_excess === null ? "–" : f2(r.record_excess)}</td><td class="n">${esc(r.traps)}</td></tr>`).join("");
+  $("covtable").innerHTML = `<tr><th>Technique</th><th class="n">coverage</th><th class="n">records read</th><th class="n">× own records</th><th class="n">traps held</th></tr>`
+    + rows.map((r) => `<tr><td><span class="lk" style="background:${kcol(r.kind)};margin-right:8px"></span>${esc(rowName(r))}</td><td class="n">${pct(r.coverage)}</td><td class="n">${num(r.records)}</td><td class="n">${r.record_excess === null ? "–" : f2(r.record_excess)}</td><td class="n">${esc(r.traps)}</td></tr>`).join("");
   const heat = (v) => v === null || v === undefined ? "" : `background:color-mix(in srgb, var(--good) ${Math.round(v * 70)}%, var(--bad-bg))`;
-  $("heat").innerHTML = `<tr><th>Technique</th>${B.rule_ids.map((r) => `<th class="n">${esc(r)}</th>`).join("")}</tr>`
-    + rows.map((r) => `<tr><td>${esc(r.name)}</td>${B.rule_ids.map((id) => `<td class="c" style="${heat(r.rules[id])}">${r.rules[id] === null || r.rules[id] === undefined ? "n/a" : f2(r.rules[id])}</td>`).join("")}</tr>`).join("");
-  $("takeaway").textContent = B.takeaway;
+  $("heat").innerHTML = `<tr><th>Technique</th>${B.rule_ids.map((r) => `<th class="n" style="text-align:center">${esc(r)}</th>`).join("")}</tr>`
+    + rows.map((r) => `<tr><td>${esc(rowName(r))}</td>${B.rule_ids.map((id) => `<td class="c" style="${heat(r.rules[id])}">${r.rules[id] === null || r.rules[id] === undefined ? "n/a" : f2(r.rules[id])}</td>`).join("")}</tr>`).join("");
 
   /* ------------------------------------------------------------- 5 retention */
   const [gy, gm, gd] = m.generated.split("-").map(Number);
   const today = Date.UTC(gy, gm - 1, gd);
-  let RT = single[0] && single[0].id;
+  let RT = single[0] && single[0].id, retTimer = null;
   function paint5() {
-    const ret = D.retention.filter((r) => r.task === RT && kindsNow().includes(r.kind));
-    $("days").max = String(Math.max(60, ...D.retention.filter((r) => r.task === RT).map((r) => (r.days || 0) + 30)));
+    const all = D.retention.filter((r) => r.task === RT);
+    const ret = all.filter((r) => kindsNow().includes(r.kind));
+    $("days").max = String(Math.max(60, ...all.map((r) => (r.days || 0) + 30)));
     $("retseg").innerHTML = single.map((t) => `<button aria-pressed="${t.id === RT}" data-t="${esc(t.id)}">${esc(TASKLABEL(t.id))}</button>`).join("");
     $("retseg").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { RT = b.dataset.t; paint5(); }));
-    const d = Number($("days").value);
+    const d = Number($("days").value), max = Number($("days").max);
     const when = new Date(today + d * 86400000);
     $("daylabel").textContent = d === 0 ? "Today" : `+${d} days`;
     $("datelabel").textContent = when.toISOString().slice(0, 10);
     $("ret").innerHTML = ret.map((r) => {
       const gone = r.days && d >= r.days;          // "erase on or after": due on the day
-      const files = r.files.map((f) => `<div class="file${gone ? " gone" : ""}"><span>${esc(f)}</span><span>${gone ? "erased" : "kept"}</span></div>`).join("");
-      const life = r.days ? `kept <b>${r.days} days</b> (the purpose allows ${r.ceiling}) — erase on or after <b class="mono">${esc(r.erase_after)}</b>` : `<span class="kept-forever">no retention declared — it can never be scheduled for erasure</span>`;
-      const log = gone ? `purge  ${esc(r.run_id)}  ${r.files.length} file(s) erased  ${esc(r.mechanism || "")}` : "";
-      return `<div class="card tech ${base(r.kind)}"><div class="name">${esc(KIND(r.kind))}</div><div class="muted" style="margin:4px 0 8px">${life}</div>${files}<div class="log">${log}</div></div>`;
+      const files = r.files.map((f) => `<div class="file${gone ? " gone" : ""}"><span>${esc(f)}</span><span class="st">${gone ? "erased" : "kept"}</span></div>`).join("");
+      const life = r.days ? `<span class="badge">${r.days} d of ${r.ceiling} allowed</span> <span class="badge">erase ≥ ${esc(r.erase_after)}</span>` : `<span class="badge bad">no retention — never erased</span>`;
+      const fill = r.days ? Math.min(100, 100 * d / r.days) : Math.min(100, 100 * d / max);
+      const log = gone ? `purge ${esc(r.run_id)} · ${r.files.length} file(s) erased` : "";
+      return `<div class="card tech ${base(r.kind)}" style="animation:none"><div class="name">${esc(KIND(r.kind))}</div><div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${life}</div>`
+        + `<div class="life${gone ? " gone" : ""}"><i style="width:${fill}%"></i></div>${files}<div class="log">${log}</div></div>`;
     }).join("");
   }
-  $("days").addEventListener("input", paint5);
+  $("days").addEventListener("input", () => { if (retTimer) { clearInterval(retTimer); retTimer = null; $("retplay").textContent = "▶ Play"; } paint5(); });
+  $("retplay").addEventListener("click", () => {
+    if (retTimer) { clearInterval(retTimer); retTimer = null; $("retplay").textContent = "▶ Play"; return; }
+    if (Number($("days").value) >= Number($("days").max)) $("days").value = "0";
+    $("retplay").textContent = "❚❚ Pause";
+    retTimer = setInterval(() => {
+      const d = Number($("days").value) + 2;
+      $("days").value = String(Math.min(d, Number($("days").max)));
+      paint5();
+      if (d >= Number($("days").max)) { clearInterval(retTimer); retTimer = null; $("retplay").textContent = "↻ Again"; }
+    }, 30);
+  });
   paint5();
 
-  $("foot").innerHTML = `Built ${esc(m.generated)} by <code>tools/build_dataset_page.py</code> from a real run of the dataset path: the handling gate, <code>DatasetHISDataSource</code>, <code>run_benchmark</code>, and the harness's own per-task runs. `
-    + `The builder searched this page for every direct identifier and contact value in the export before writing it. Keys: <kbd>1</kbd>–<kbd>5</kbd> or <kbd>←</kbd> <kbd>→</kbd> to move between steps.`;
+  const steps = Kit.steps(5, (k) => {
+    if (k === 2) gatePaint(true);
+    if (k === 4) { paint4(); Kit.countIn($("pane-4")); }
+  });
+  steps.start();
 
-  const h = location.hash.replace("#", "");
-  if (/^[1-5]$/.test(h)) go(h);
+  $("foot").innerHTML = `Built ${esc(m.generated)} by <code>tools/build_dataset_page.py</code> from a real run of the dataset path · the page was searched for every identifier in the export before it was written · <kbd>1</kbd>–<kbd>5</kbd> <kbd>←</kbd> <kbd>→</kbd>`;
 })();
 </script>

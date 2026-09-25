@@ -1,0 +1,422 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rules vs Just AI</title>
+<style>
+/*__BASE__*/
+  :root { --a0: #eb6834; --a1: #1baf7a; --a2: #8b5cf6; --a3: #0e9aa7; --a4: #d6409f; --a5: #8a6d3b; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --a0: #e0662f; --a1: #22b07e; --a2: #a78bfa; --a3: #2bb3c0; --a4: #e879b9; --a5: #b08a5a; } }
+  :root[data-theme="dark"] { --a0: #e0662f; --a1: #22b07e; --a2: #a78bfa; --a3: #2bb3c0; --a4: #e879b9; --a5: #b08a5a; }
+  .prov { font-family: var(--mono); font-size: .72rem; color: var(--ink-3); margin-top: 8px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin-top: 16px; }
+  .legend { margin-top: 0; gap: 6px; }
+  .legend label { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px; border-radius: 999px; background: var(--card); box-shadow: var(--shadow); cursor: pointer; font-size: .84rem; color: var(--ink); user-select: none; transition: opacity .15s; }
+  .legend label.off { opacity: .4; box-shadow: none; }
+  .legend input { display: none; }
+  .sw { width: 11px; height: 11px; border-radius: 50%; display: inline-block; flex: none; }
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+  svg { width: 100%; height: auto; display: block; overflow: visible; }
+  svg text { font-family: var(--font); font-size: 12px; fill: var(--ink-2); }
+  svg .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  svg .grid { stroke: var(--line); stroke-width: 1; fill: none; }
+  .hidden-series { display: none; }
+  #radar .s { transform-origin: 210px 178px; animation: radarIn .9s cubic-bezier(.2, .8, .2, 1) both; }
+  #radar .s:nth-child(n) { animation-delay: calc(var(--i, 0) * 70ms); }
+  @keyframes radarIn { from { transform: scale(0); opacity: 0; } to { transform: none; opacity: 1; } }
+  svg rect.bar { transform-box: fill-box; transform-origin: left center; animation: grow .8s cubic-bezier(.2, .8, .2, 1) both; }
+  svg polyline.line { stroke-dasharray: 2200; stroke-dashoffset: 2200; animation: draw 1.3s ease-out forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+
+  .fault { position: relative; overflow: hidden; }
+  .fault::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--bad); }
+  .fault .title { font-size: 1.1rem; font-weight: 720; letter-spacing: -0.01em; }
+  .fault .why { font-size: .84rem; color: var(--ink-3); margin-top: 2px; }
+  .grid-tasks { display: grid; grid-template-columns: max-content 1fr; gap: 10px 16px; align-items: start; font-size: .86rem; margin-top: 12px; }
+  .cells { display: flex; gap: 4px; flex-wrap: wrap; }
+  .cell { width: 26px; height: 24px; border-radius: 6px; display: grid; place-items: center; font-size: .72rem; font-weight: 650; font-family: var(--mono); color: var(--ink); animation: pop .3s both; }
+  .cell.held { background: var(--good-bg); color: var(--good); }
+  .cell.fell { background: var(--bad); color: #fff; }
+  .cell.same { background: var(--card-2); }
+  .cell.diff { border: 1.5px dashed var(--bad); color: var(--bad); }
+  .stab td { vertical-align: middle; }
+  .stab i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin: 1px; background: var(--c); animation: pop .3s both; }
+  .stab i.diff { background: transparent; border: 1.5px dashed var(--bad); }
+  .rowlab { display: inline-flex; align-items: center; gap: 7px; color: var(--ink-2); }
+  .tname { font-weight: 680; text-transform: capitalize; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+  .stat { display: grid; gap: 4px; padding: 10px 12px; border-radius: 12px; background: var(--card-2); animation: rise .4s both; }
+  .stat .lab { font-size: .76rem; color: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+  .bignum { font-size: 1.9rem; font-weight: 780; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.05; }
+  .pills { display: flex; flex-wrap: wrap; gap: 4px; }
+  .pill { font-size: .7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; font-variant-numeric: tabular-nums; }
+  .pill.good { background: var(--good-bg); color: var(--good); }
+  .pill.bad { background: var(--bad-bg); color: var(--bad); }
+  .pill.warn { background: var(--warn-bg); color: var(--warn); }
+
+  table { font-size: .86rem; }
+  th, td { white-space: nowrap; }
+  tr.layer td { background: var(--card-2); font-size: .7rem; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); font-weight: 650; }
+  .dot { display: inline-block; width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--ink-3); vertical-align: middle; box-sizing: border-box; animation: pop .3s both; }
+  .dot.take { background: var(--ink-3); }
+  .dot.extra { background: var(--base); border-color: var(--base); }
+  .dot.missed { border-color: var(--bad); border-style: dashed; }
+  .oos { color: var(--bad); }
+  .heat span { display: inline-block; min-width: 48px; text-align: center; padding: 4px 0; border-radius: 6px; font-family: var(--mono); font-size: .8rem; }
+  .tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); font-size: .8rem; padding: 6px 10px; border-radius: 8px; transform: translate(-50%, calc(-100% - 10px)); white-space: nowrap; opacity: 0; z-index: 5; font-family: var(--mono); transition: opacity .1s; }
+  .tip.on { opacity: 1; }
+  @media (max-width: 520px) { .grid-tasks { grid-template-columns: 1fr; } }
+</style>
+
+<div class="wrap">
+  <!--__NAV__-->
+  <div class="top">
+    <div>
+      <h1>Rules vs just AI</h1>
+      <p class="sub">Same eight jobs, same data, same seven DPDP rules.</p>
+      <div class="prov" id="prov"></div>
+    </div>
+    <div class="tools">
+      <button id="bigger" title="Larger text for a projector">A+</button>
+      <button id="theme" title="Light / dark">◐</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="legend" id="legend"></div>
+    <div class="seg" id="briefing" role="group" aria-label="AI briefing"></div>
+  </div>
+
+  <nav class="steps" role="tablist" id="steps">
+    <button role="tab" data-step="1" aria-selected="true"><span class="n">1</span>Overview</button>
+    <button role="tab" data-step="2"><span class="n">2</span>Where AI fails</button>
+    <button role="tab" data-step="3"><span class="n">3</span>Per rule</button>
+    <button role="tab" data-step="4"><span class="n">4</span>Field by field</button>
+    <button role="tab" data-step="5"><span class="n">5</span>The numbers</button>
+  </nav>
+
+  <div class="pane" id="pane-1">
+    <div class="two">
+      <div class="card">
+        <div class="head"><h2>Five axes</h2><span class="muted">further out is better</span></div>
+        <div id="radar"></div>
+      </div>
+      <div class="card">
+        <div class="head"><h2>The score hides it</h2><span class="muted">score · traps held · same answer twice</span></div>
+        <div class="stats" id="stats"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pane" id="pane-2" hidden>
+    <div class="card fault">
+      <div class="title">It does what it is asked, not what is lawful</div>
+      <div class="why">Four jobs worded to invite a violation · <span id="trapNote"></span></div>
+      <div id="traps"></div>
+    </div>
+    <div class="two">
+      <div class="card fault">
+        <div class="head" style="margin-bottom:4px"><div><div class="title">It keeps data as long as it likes</div><div class="why">declared retention vs the legal ceiling</div></div><select id="retTask" aria-label="Task"></select></div>
+        <div id="retention"></div>
+      </div>
+      <div class="card fault">
+        <div class="head" style="margin-bottom:4px"><div><div class="title">It does the wrong job, scoring well</div><div class="why">needed · missed · extra, first run</div></div><select id="covTask" aria-label="Task"></select></div>
+        <div id="coverage"></div>
+      </div>
+    </div>
+    <div class="card fault">
+      <div class="title">It changes its mind</div>
+      <div class="why">same brief, repeated · one square per run · dashed = differs from run 1</div>
+      <div id="stability"></div>
+    </div>
+  </div>
+
+  <div class="pane" id="pane-3" hidden>
+    <div class="card">
+      <div class="head"><h2>Score per rule</h2><span class="muted">mean over the eight tasks</span></div>
+      <div id="rulelines"></div>
+    </div>
+    <div class="card scroll"><table class="heat" id="heat"></table></div>
+  </div>
+
+  <div class="pane" id="pane-4" hidden>
+    <div class="card">
+      <div class="head"><h2>What each technique took</h2><select id="matTask" aria-label="Task"></select></div>
+      <p id="matDesc" style="font-size:.88rem"></p>
+      <div class="legend" style="margin:8px 0 10px">
+        <span><i class="dot take"></i> taken, needed</span><span><i class="dot"></i> needed</span><span><i class="dot extra"></i> taken, not needed</span><span><i class="dot missed"></i> needed, missed</span><span><i class="dot extra" style="background:var(--bad);border-color:var(--bad)"></i> out of scope</span>
+      </div>
+      <div class="scroll"><table id="matrix"></table></div>
+    </div>
+  </div>
+
+  <div class="pane" id="pane-5" hidden>
+    <div class="card scroll"><table id="numbers"></table></div>
+  </div>
+
+  <footer id="foot"></footer>
+</div>
+<div class="tip" id="tip"></div>
+
+<script id="data" type="application/json">/*__DATA__*/null</script>
+<script>
+/*__KIT__*/
+</script>
+<script>
+(function () {
+  const D = JSON.parse(document.getElementById('data').textContent);
+  // Series come from the data: ours, one per recorded MODEL, the baseline. The
+  // briefing selector decides which of a model's recordings the row shows; a
+  // model without that briefing falls back to its best one and says so.
+  const BRIEF_ORDER = ['unaided', 'informed', 'policy'];
+  const BRIEF_LABEL = { unaided: 'unaided', informed: 'told the Act', policy: 'told the policy' };
+  const MODELS = [];
+  D.agents.forEach(a => { let m = MODELS.find(x => x.model === a.model); if (!m) { m = { model: a.model, short: a.model, briefs: {} }; MODELS.push(m); } m.briefs[a.briefing] = a.k; });
+  MODELS.forEach((m, i) => { m.color = `var(--a${i % 6})`; m.mk = 'model-' + i; });
+  const briefSeg = document.getElementById('briefing');
+  const briefsPresent = BRIEF_ORDER.filter(b => MODELS.some(m => m.briefs[b]));
+  let BRIEF = briefsPresent.includes('policy') ? 'policy' : briefsPresent[briefsPresent.length - 1];
+  try { const b = localStorage.getItem('rvai-brief'); if (b && briefsPresent.includes(b)) BRIEF = b; } catch (e) {}
+  const pick = m => { if (m.briefs[BRIEF]) return { k: m.briefs[BRIEF], fallback: false, b: BRIEF }; const b = [...BRIEF_ORDER].reverse().find(x => m.briefs[x]); return { k: m.briefs[b], fallback: true, b }; };
+  // T is rebuilt on every briefing change; series keys are per MODEL (stable across briefings) so legend state survives.
+  let T = [], A = [];
+  function buildSeries() {
+    A = MODELS.map(m => { const p = pick(m); return { k: m.mk, rk: p.k, model: m.model, color: m.color, fallback: p.fallback, name: `${m.short}${p.fallback ? ' *' : ''}` }; });
+    T = [{ k: 'compliance-aware', rk: 'compliance-aware', name: 'ours (rules)', color: 'var(--ours)' }, ...A, { k: 'unconstrained', rk: 'unconstrained', name: 'baseline (take all)', color: 'var(--base)' }];
+  }
+  buildSeries();
+  const AGENT_RUNS = (td, rk) => td.runs[rk] || [];
+  const N_RUNS = Math.max(1, ...Object.values(D.tasks).flatMap(td => Object.values(td.runs).map(r => r.length)));
+  const memRaw = Object.fromEntries(D.memory.map(s => [s.short, s]));
+  const porRaw = Object.fromEntries(D.portal.map(s => [s.short, s]));
+  const mem = new Proxy({}, { get: (_, k) => { const t = T.find(x => x.k === k); return memRaw[t ? t.rk : k]; } });
+  const por = new Proxy({}, { get: (_, k) => { const t = T.find(x => x.k === k); return porRaw[t ? t.rk : k]; } });
+  const shown = new Set(T.map(t => t.k));
+  const tip = document.getElementById('tip');
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const hover = (el, text) => { el.addEventListener('mousemove', e => { tip.textContent = text; tip.style.left = e.clientX + 'px'; tip.style.top = e.clientY + 'px'; tip.classList.add('on'); }); el.addEventListener('mouseleave', () => tip.classList.remove('on')); };
+  const tasks = Object.keys(D.tasks);
+  const trapTasks = tasks.filter(t => D.tasks[t].trap);
+  const short = t => t.replace(/-/g, ' ');
+  const applyShown = sel => document.querySelectorAll(sel).forEach(el => el.classList.toggle('hidden-series', !shown.has(el.dataset.series)));
+
+  document.getElementById('prov').textContent = `${D.meta.models.join(' · ')} · recorded ${D.meta.generated} · ${D.meta.tasks} tasks × ${(() => { const r = D.meta.repeats_by_model || {}; const fewer = Object.entries(r).filter(([, n]) => n < D.meta.repeats); return fewer.length ? `${D.meta.repeats} runs (${fewer.map(([m, n]) => `${m.replace(/^(gemini|claude)-/, '')}: ${n}`).join(', ')})` : `${D.meta.repeats} runs`; })()}`;
+
+  // ---- briefing selector (segmented)
+  function renderBrief() {
+    briefSeg.innerHTML = briefsPresent.map(b => `<button data-b="${b}" aria-pressed="${b === BRIEF}">${BRIEF_LABEL[b]}</button>`).join('');
+    briefSeg.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => {
+      BRIEF = btn.dataset.b; try { localStorage.setItem('rvai-brief', BRIEF); } catch (e) {}
+      renderBrief(); renderAll();
+    }));
+  }
+  renderBrief();
+
+  // ---- legend toggles (shared across every chart)
+  const legend = document.getElementById('legend');
+  function renderLegend() {
+    legend.innerHTML = T.map(t => `<label data-k="${t.k}" class="${shown.has(t.k) ? '' : 'off'}"><input type="checkbox" ${shown.has(t.k) ? 'checked' : ''}><i class="sw" style="background:${t.color}"></i>${esc(t.name)}</label>`).join('');
+    legend.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => {
+      const k = cb.closest('label').dataset.k;
+      cb.checked ? shown.add(k) : shown.delete(k);
+      cb.closest('label').classList.toggle('off', !cb.checked);
+      document.querySelectorAll(`[data-series="${k}"]`).forEach(el => el.classList.toggle('hidden-series', !cb.checked));
+    }));
+  }
+  renderLegend();
+
+  // ---- radar
+  const axes = [
+    { lab: 'compliance score', get: s => s.mean_compliance_score, fmt: v => v.toFixed(3) },
+    { lab: 'did the job', get: s => s.cost.coverage, fmt: v => `coverage ${v.toFixed(2)}` },
+    { lab: 'took only what was needed', get: s => Math.min(1, 1 / s.cost.excess_ratio), fmt: v => `excess ${(1 / v).toFixed(2)}×` },
+    { lab: 'held the traps', get: s => s.traps ? s.traps_resisted / s.traps : 0, fmt: (v, s) => `${s.traps_resisted} of ${s.traps} trap runs held` },
+    { lab: 'same answer twice', get: s => s.repeat_runs ? s.stable_runs / s.repeat_runs : 1, fmt: (v, s) => `${s.stable_runs} of ${s.repeat_runs} repeats` },
+  ];
+  function renderRadar() {
+    const W = 420, H = 360, cx = 210, cy = 178, R = 118, n = axes.length;
+    const ang = i => -Math.PI / 2 + i * 2 * Math.PI / n;
+    const pt = (i, r) => [cx + Math.cos(ang(i)) * r * R, cy + Math.sin(ang(i)) * r * R];
+    let g = '';
+    [0.25, 0.5, 0.75, 1].forEach(r => { g += `<polygon class="grid" points="${axes.map((_, i) => pt(i, r).join(',')).join(' ')}"></polygon>`; });
+    axes.forEach((a, i) => { const [x, y] = pt(i, 1); const [lx, ly] = pt(i, 1.24); g += `<line class="grid" x1="${cx}" y1="${cy}" x2="${x}" y2="${y}"></line><text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="12" font-weight="600">${esc(a.lab)}</text>`; });
+    let series = '';
+    T.forEach((t, si) => {
+      const s = mem[t.k]; const pts = axes.map((a, i) => pt(i, Math.max(0.02, a.get(s))));
+      series += `<g class="s" style="--i:${si}" data-series="${t.k}"><polygon points="${pts.map(p => p.join(',')).join(' ')}" fill="${t.color}" fill-opacity="0.13" stroke="${t.color}" stroke-width="2.4" stroke-linejoin="round"></polygon>` +
+        pts.map((p, i) => `<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="${t.color}" stroke="var(--card)" stroke-width="1.5" data-t="${esc(t.name)} · ${esc(axes[i].lab)} · ${esc(axes[i].fmt(axes[i].get(s), s))}"></circle>`).join('') + '</g>';
+    });
+    document.getElementById('radar').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="radar of five metrics">${g}${series}</svg>`;
+    document.querySelectorAll('#radar [data-t]').forEach(el => hover(el, el.dataset.t));
+    applyShown('#radar [data-series]');
+  }
+
+  // ---- stats: the score looks alike; the pills do not
+  function renderStats() {
+    const pill = (a, b, label) => { if (!b) return `<span class="pill warn">${label} n/a</span>`; const r = a / b; return `<span class="pill ${r >= 0.999 ? 'good' : r >= 0.5 ? 'warn' : 'bad'}">${label} ${a}/${b}</span>`; };
+    document.getElementById('stats').innerHTML = T.map((t, i) => { const s = mem[t.k]; return `<div class="stat" data-series="${t.k}" style="animation-delay:${i * 50}ms"><span class="lab"><i class="sw" style="background:${t.color}"></i>${esc(t.name)}</span><span class="bignum">${Kit.count(s.mean_compliance_score, 3)}</span><span class="pills">${pill(s.traps_resisted, s.traps, 'traps')}${pill(s.stable_runs, s.repeat_runs, 'same')}</span></div>`; }).join('');
+    Kit.countIn(document.getElementById('stats'));
+    applyShown('#stats [data-series]');
+  }
+
+  // ---- traps grid
+  function renderTraps() {
+    document.getElementById('trapNote').textContent = `every model ${BRIEF_LABEL[BRIEF]} · green held, red took the bait`;
+    if (!A.length) { document.getElementById('traps').innerHTML = '<p class="muted">no agent recording yet</p>'; return; }
+    let h = '<div class="grid-tasks">', n = 0;
+    trapTasks.forEach(t => {
+      const td = D.tasks[t];
+      let block = '';
+      A.forEach(tk => {
+        const runs = AGENT_RUNS(td, tk.rk);
+        const cells = runs.map((r, i) => { const fell = r.oos.length || r.onward.length || (r.retention !== null && r.retention > td.ceiling); const why = fell ? [r.oos.length ? 'took ' + r.oos.join(', ') + ' data' : '', r.onward.length ? 'declared onward use: ' + r.onward.join(', ') : '', (r.retention !== null && r.retention > td.ceiling) ? `retention ${r.retention} d (ceiling ${td.ceiling})` : ''].filter(Boolean).join('; ') : 'held'; return `<span class="cell ${fell ? 'fell' : 'held'}" style="animation-delay:${Math.min(n++, 50) * 14}ms" data-t="${esc(tk.name)} · ${esc(short(t))} · run ${i + 1}: ${esc(why)}">${fell ? '✗' : '✓'}</span>`; }).join('');
+        block += `<div data-series="${tk.k}" style="display:grid;grid-template-columns:190px 1fr;gap:8px;align-items:center;margin-bottom:5px"><div class="rowlab"><i class="sw" style="background:${tk.color}"></i>${esc(tk.name)}</div><div class="cells">${cells}</div></div>`;
+      });
+      const ours = Array.from({ length: N_RUNS }, (_, i) => `<span class="cell held" style="animation-delay:${Math.min(n++, 50) * 14}ms" data-t="ours · ${esc(short(t))} · run ${i + 1}: held — reads the policy, not the prose">✓</span>`).join('');
+      h += `<div><span class="tname">${esc(short(t))}</span><div class="muted oos" style="white-space:normal;max-width:30ch;font-size:.76rem">${esc(td.trap)}</div></div>` +
+           `<div>${block}<div data-series="compliance-aware" style="display:grid;grid-template-columns:190px 1fr;gap:8px;align-items:center"><div class="rowlab"><i class="sw" style="background:var(--ours)"></i>ours (rules)</div><div class="cells">${ours}</div></div></div>`;
+    });
+    document.getElementById('traps').innerHTML = h + '</div>';
+    document.querySelectorAll('#traps .cell').forEach(el => hover(el, el.dataset.t));
+    applyShown('#traps [data-series]');
+  }
+
+  // ---- retention chart
+  const retSel = document.getElementById('retTask');
+  retSel.innerHTML = trapTasks.map(t => `<option value="${t}">${esc(short(t))}</option>`).join('');
+  retSel.value = 'desk-registration';
+  function renderRetention() {
+    const t = retSel.value; const td = D.tasks[t]; const ceiling = td.ceiling;
+    const vals = [{ k: 'compliance-aware', v: Array.from({ length: N_RUNS }, () => 30) }, ...A.map(a => ({ k: a.k, v: AGENT_RUNS(td, a.rk).map(r => r.retention ?? 0) }))];
+    const max = Math.max(ceiling * 1.2, ...vals.flatMap(x => x.v));
+    const W = 460, rowH = 13, padL = 150, padR = 50, top = 26; const H = top + vals.reduce((a, s) => a + rowH * Math.max(1, s.v.length) + 12, 0);
+    const x = v => padL + (W - padL - padR) * v / max;
+    let g = `<line x1="${x(ceiling)}" x2="${x(ceiling)}" y1="${top - 14}" y2="${H - 6}" stroke="var(--bad)" stroke-width="1.5" stroke-dasharray="4 3"></line><text x="${x(ceiling)}" y="${top - 16}" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--bad)">ceiling ${ceiling} d</text>`;
+    let y0 = top, n = 0;
+    vals.forEach((s) => {
+      const tk = T.find(t => t.k === s.k);
+      g += `<g data-series="${s.k}"><text x="${padL - 8}" y="${y0 + rowH * Math.max(1, s.v.length) / 2}" text-anchor="end" dominant-baseline="middle" font-size="11.5">${esc(tk.name)}</text>`;
+      s.v.forEach((v, i) => { const y = y0 + i * rowH; const w = Math.max(1, x(v) - padL); const over = v > ceiling; g += `<rect class="bar" style="animation-delay:${(n++) * 30}ms" x="${padL}" y="${y}" width="${w.toFixed(1)}" height="${rowH - 4}" rx="3" fill="${over ? 'var(--bad)' : tk.color}" data-t="${esc(tk.name)} · run ${i + 1} · ${v ? v + ' days' : 'not declared'}${over ? ' · over the ceiling' : ''}"></rect><text class="mono" x="${(x(v) + 5).toFixed(1)}" y="${y + rowH / 2 - 2}" dominant-baseline="middle" font-size="10.5">${v ? v + ' d' : '—'}</text>`; });
+      g += '</g>';
+      y0 += rowH * Math.max(1, s.v.length) + 12;
+    });
+    document.getElementById('retention').innerHTML = `<svg viewBox="0 0 ${W} ${H}">${g}</svg>`;
+    document.querySelectorAll('#retention rect').forEach(el => hover(el, el.dataset.t));
+    applyShown('#retention [data-series]');
+  }
+  retSel.addEventListener('change', renderRetention);
+
+  // ---- coverage chart (needed taken / missed / extra), first run
+  const covSel = document.getElementById('covTask');
+  covSel.innerHTML = tasks.map(t => `<option value="${t}">${esc(short(t))}</option>`).join('');
+  covSel.value = 'appointment-reminder';
+  function renderCoverage() {
+    const t = covSel.value; const td = D.tasks[t]; const needed = new Set(td.needed);
+    const all = Object.entries(D.catalogue).flatMap(([l, f]) => Object.keys(f).map(n => `${l}/${n}`));
+    const rows = [
+      { k: 'compliance-aware', f: td.needed },
+      ...A.map(a => ({ k: a.k, f: (AGENT_RUNS(td, a.rk)[0] || { fields: [] }).fields })),
+      { k: 'unconstrained', f: all },
+    ].map(r => { const f = new Set(r.f); const taken = [...needed].filter(x => f.has(x)).length; const missed = needed.size - taken; const extra = [...f].filter(x => !needed.has(x)).length; return { ...r, taken, missed, extra, missedList: [...needed].filter(x => !f.has(x)).map(x => x.split('/')[1]), extraList: [...f].filter(x => !needed.has(x)).map(x => x.split('/')[1]) }; });
+    const max = Math.max(...rows.map(r => r.taken + r.missed + r.extra));
+    const W = 460, rowH = 30, padL = 150, top = 8; const H = top + rows.length * rowH + 4;
+    const x = v => padL + (W - padL - 75) * v / max;
+    let g = '', n = 0;
+    rows.forEach((r, i) => {
+      const tk = T.find(t => t.k === r.k); const y = top + i * rowH;
+      g += `<g data-series="${r.k}"><text x="${padL - 8}" y="${y + 11}" text-anchor="end" dominant-baseline="middle" font-size="11.5">${esc(tk.name)}</text>`;
+      let cur = 0;
+      const seg = (k, fill, dash, label) => { if (!k) return; const w = x(cur + k) - x(cur) - 2; g += `<rect class="bar" style="animation-delay:${(n++) * 40}ms" x="${x(cur)}" y="${y}" width="${Math.max(1, w).toFixed(1)}" height="20" rx="3" fill="${fill}" ${dash ? 'stroke="var(--bad)" stroke-dasharray="3 2" fill-opacity="0.15"' : ''} data-t="${esc(tk.name)} · ${label}"></rect>`; cur += k; };
+      seg(r.taken, tk.color, false, `${r.taken} of ${needed.size} needed fields taken`);
+      seg(r.missed, 'var(--bad)', true, `missed: ${esc(r.missedList.join(', '))}`);
+      seg(r.extra, 'var(--base)', false, `extra: ${esc(r.extraList.slice(0, 6).join(', '))}${r.extraList.length > 6 ? ' …' : ''}`);
+      g += `<text class="mono" x="${(x(cur) + 6).toFixed(1)}" y="${y + 11}" dominant-baseline="middle" font-size="11">${r.taken}/${needed.size}${r.extra ? ' +' + r.extra : ''}</text></g>`;
+    });
+    document.getElementById('coverage').innerHTML = `<svg viewBox="0 0 ${W} ${H}">${g}</svg>`;
+    document.querySelectorAll('#coverage rect').forEach(el => hover(el, el.dataset.t));
+    applyShown('#coverage [data-series]');
+  }
+  covSel.addEventListener('change', renderCoverage);
+
+  // ---- stability grid: technique x task, one square per run
+  function renderStability() {
+    const key = r => JSON.stringify([r.fields, r.structure]);
+    let n = 0;
+    const sq = (runs, color, label, t) => { const first = runs.length ? key(runs[0]) : null; return runs.map((r, i) => { const same = key(r) === first; return `<i class="${same ? 'same' : 'diff'}" style="--c:${color};animation-delay:${Math.min(n++, 80) * 8}ms" data-t="${esc(label)} · ${esc(short(t))} · run ${i + 1} · ${r.fields.length} fields${i === 0 ? '' : same ? ' · same as run 1' : ' · differs from run 1'}"></i>`; }).join(''); };
+    const row = (k, name, color, runsOf) => {
+      let same = 0, rep = 0;
+      const cells = tasks.map(t => { const runs = runsOf(t); rep += Math.max(0, runs.length - 1); same += runs.slice(1).filter(r => key(r) === key(runs[0])).length; return `<td>${sq(runs, color, name, t)}</td>`; }).join('');
+      return `<tr data-series="${k}"><td><i class="sw" style="background:${color};margin-right:8px"></i>${esc(name)}</td>${cells}<td class="n"><b>${same}/${rep}</b></td></tr>`;
+    };
+    const oursRuns = t => Array.from({ length: N_RUNS }, () => ({ fields: D.tasks[t].needed, structure: 'ours' }));
+    let h = `<thead><tr><th></th>${tasks.map(t => `<th style="white-space:normal;min-width:70px">${esc(short(t))}${D.tasks[t].trap ? ' <span class="oos">⚠</span>' : ''}</th>`).join('')}<th class="n">same</th></tr></thead><tbody>`;
+    h += row('compliance-aware', 'ours (rules)', 'var(--ours)', oursRuns);
+    A.forEach(a => { h += row(a.k, a.name, a.color, t => AGENT_RUNS(D.tasks[t], a.rk)); });
+    document.getElementById('stability').innerHTML = `<div class="scroll" style="margin-top:10px"><table class="stab">${h}</tbody></table></div>`;
+    document.querySelectorAll('#stability i[data-t]').forEach(el => hover(el, el.dataset.t));
+    applyShown('#stability [data-series]');
+  }
+
+  // ---- per-rule overlaid lines
+  function renderRules() {
+    const W = 1000, H = 280, padL = 44, padR = 30, top = 16, bottom = 40; const n = D.rules.length;
+    const x = i => padL + (W - padL - padR) * i / (n - 1); const y = v => top + (H - top - bottom) * (1 - v);
+    let g = '';
+    [0, 0.25, 0.5, 0.75, 1].forEach(v => { g += `<line class="grid" x1="${padL}" x2="${W - padR}" y1="${y(v)}" y2="${y(v)}"></line><text class="mono" x="${padL - 6}" y="${y(v)}" text-anchor="end" dominant-baseline="middle" font-size="11">${v.toFixed(2)}</text>`; });
+    D.rules.forEach((r, i) => { g += `<text x="${x(i)}" y="${H - bottom + 16}" text-anchor="middle" font-size="11.5" font-weight="600">${r}</text><text x="${x(i)}" y="${H - bottom + 30}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)">${({ 'DM-01': 'minimise', 'LB-01': 'basis', 'SL-01': 'storage', 'SS-01': 'safeguards', 'PL-01': 'purpose', 'NT-01': 'notice', 'AC-01': 'account.' })[r]}</text>`; });
+    T.forEach((t, si) => { const s = mem[t.k]; const pts = D.rules.map((r, i) => [x(i), y(s.per_rule_mean[r])]); g += `<g data-series="${t.k}"><polyline class="line" style="animation-delay:${si * 90}ms" points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="${t.color}" stroke-width="2.6" stroke-linejoin="round"></polyline>${pts.map((p, i) => `<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="${t.color}" stroke="var(--card)" stroke-width="1.5" data-t="${esc(t.name)} · ${D.rules[i]} · ${s.per_rule_mean[D.rules[i]].toFixed(2)}"></circle>`).join('')}</g>`; });
+    document.getElementById('rulelines').innerHTML = `<svg viewBox="0 0 ${W} ${H}">${g}</svg>`;
+    // heat table
+    const seq = v => v >= 0.999 ? '#0d366b' : v >= 0.9 ? '#1c5cab' : v >= 0.75 ? '#3987e5' : v >= 0.5 ? '#6da7ec' : v >= 0.25 ? '#9ec5f4' : '#cde2fb';
+    let h = '<thead><tr><th>technique</th>' + D.rules.map(r => `<th class="n">${r}</th>`).join('') + '<th class="n">score</th></tr></thead><tbody>';
+    T.forEach(t => { const s = mem[t.k]; h += `<tr data-series="${t.k}"><td><i class="sw" style="background:${t.color};margin-right:8px"></i>${esc(t.name)}</td>` + D.rules.map(r => { const v = s.per_rule_mean[r]; return `<td class="n"><span style="background:${seq(v)};color:${v >= 0.75 ? '#fff' : '#17191c'}">${v.toFixed(2)}</span></td>`; }).join('') + `<td class="n"><b>${s.mean_compliance_score.toFixed(3)}</b></td></tr>`; });
+    document.getElementById('heat').innerHTML = h + '</tbody>';
+    document.querySelectorAll('#rulelines [data-t]').forEach(el => hover(el, el.dataset.t));
+    applyShown('#rulelines [data-series], #heat [data-series]');
+  }
+
+  // ---- field matrix
+  const matSel = document.getElementById('matTask');
+  matSel.innerHTML = tasks.map(t => `<option value="${t}">${esc(short(t))}${D.tasks[t].trap ? ' ⚠' : ''}</option>`).join('');
+  matSel.value = 'claim-reconciliation';
+  function renderMatrix() {
+    const t = matSel.value; const td = D.tasks[t]; const needed = new Set(td.needed);
+    document.getElementById('matDesc').innerHTML = `<span class="badge">${esc(td.purpose.replace('_', ' '))}</span>${td.trap ? ` <span class="badge bad">⚠ ${esc(td.trap)}</span>` : ''}`;
+    const takes = { 'compliance-aware': needed, 'unconstrained': null };
+    A.forEach(a => { takes[a.k] = new Set((AGENT_RUNS(td, a.rk)[0] || { fields: [] }).fields); });
+    let h = '<thead><tr><th>field</th><th>category</th>' + T.map(t => `<th style="text-align:center"><i class="sw" style="background:${t.color};margin-right:5px"></i>${esc(t.name)}</th>`).join('') + '</tr></thead><tbody>';
+    Object.entries(D.catalogue).forEach(([l, fields]) => {
+      const relevant = Object.keys(fields).some(n => needed.has(`${l}/${n}`) || T.some(t => takes[t.k] && takes[t.k].has(`${l}/${n}`)));
+      if (!relevant) return;
+      h += `<tr class="layer"><td colspan="${2 + T.length}">${l.replace('_', ' ')}</td></tr>`;
+      Object.entries(fields).forEach(([n, cat]) => {
+        const ref = `${l}/${n}`; const need = needed.has(ref); const ok = td.allowed.includes(cat);
+        h += `<tr><td>${esc(n)}${need ? ' <span class="muted">· needed</span>' : ''}</td><td class="${ok ? 'muted' : 'oos'}">${esc(cat.replace('_', ' '))}${ok ? '' : ' · out of scope'}</td>`;
+        T.forEach(t => { const took = takes[t.k] === null ? true : takes[t.k].has(ref); let cls = '', lab = ''; if (took && need) { cls = 'take'; lab = 'taken, needed'; } else if (took && !need) { cls = 'extra'; lab = ok ? 'taken, not needed' : 'taken — OUT OF SCOPE for this purpose'; } else if (!took && need) { cls = 'missed'; lab = 'needed, not taken'; } h += `<td style="text-align:center" data-series="${t.k}">${cls ? `<i class="dot ${cls}" data-t="${esc(t.name)} · ${esc(n)} · ${lab}"${cls === 'extra' && !ok ? ' style="background:var(--bad);border-color:var(--bad)"' : ''}></i>` : ''}</td>`; });
+        h += '</tr>';
+      });
+    });
+    document.getElementById('matrix').innerHTML = h + '</tbody>';
+    document.querySelectorAll('#matrix .dot').forEach(el => hover(el, el.dataset.t));
+    applyShown('#matrix [data-series]');
+  }
+  matSel.addEventListener('change', renderMatrix);
+
+  // ---- numbers
+  function renderNumbers() {
+    const cols = ['compliance', 'substantiated', 'coverage', 'excess', 'traps held', 'stable', 'page loads (portal)'];
+    let h = '<thead><tr><th>technique</th>' + cols.map(c => `<th class="n">${c}</th>`).join('') + '</tr></thead><tbody>';
+    T.forEach(t => { const s = mem[t.k], p = por[t.k]; h += `<tr data-series="${t.k}"><td><i class="sw" style="background:${t.color};margin-right:8px"></i>${esc(t.name)}</td><td class="n">${s.mean_compliance_score.toFixed(3)}</td><td class="n">${s.substantiated_score.toFixed(3)}</td><td class="n">${s.cost.coverage.toFixed(2)}</td><td class="n">${s.cost.excess_ratio.toFixed(2)}×</td><td class="n">${s.trap_tasks_held}/${s.trap_tasks} tasks · ${s.traps_resisted}/${s.traps} runs</td><td class="n">${s.stable_runs}/${s.repeat_runs}</td><td class="n">${p ? p.cost.page_loads : '—'}</td></tr>`; });
+    if (A.some(a => a.fallback)) h += `<tr><td colspan="${cols.length + 1}" class="muted">* not recorded at this briefing; shown at the best briefing it has</td></tr>`;
+    document.getElementById('numbers').innerHTML = h + '</tbody>';
+    applyShown('#numbers [data-series]');
+  }
+
+  // ---- render on entry, so every chart animates when its step is shown
+  const PAINT = { 1: () => { renderRadar(); renderStats(); }, 2: () => { renderTraps(); renderRetention(); renderCoverage(); renderStability(); }, 3: renderRules, 4: renderMatrix, 5: renderNumbers };
+  function renderAll() { buildSeries(); renderLegend(); PAINT[steps.now()](); }
+  const steps = Kit.steps(5, k => PAINT[k]());
+  steps.start();
+
+  document.getElementById('foot').innerHTML = `From <code>benchmark.json</code>, <code>benchmark-portal.json</code> and the recordings in <code>src/extraction/techniques/recordings/</code> · models briefed with field names only, never a patient value · <kbd>1</kbd>–<kbd>5</kbd> <kbd>←</kbd> <kbd>→</kbd>`;
+})();
+</script>

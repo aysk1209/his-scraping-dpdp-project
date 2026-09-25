@@ -1,14 +1,15 @@
-"""Refresh the data embedded in the Review-II demo page.
+"""Build the Review-II "rules vs just AI" page.
 
     python tools/build_demo_page.py
 
 ``docs/benchmark_results/rules-vs-just-ai.html`` is a single self-contained
-page: its charts read one JSON block. This script rebuilds that block from the
-committed artefacts -- ``benchmark.json`` (in memory, eight tasks, five
+page, rendered from ``tools/rules_page.html`` with the shared look of the other
+demo pages (``tools/page_kit.py``). Its charts read one JSON block, built here
+from the committed artefacts -- ``benchmark.json`` (in memory, eight tasks, five
 repeats), ``benchmark-portal.json`` (the live pipeline), the recorded agent
-decisions, the task definitions and the field catalogue -- and writes it back
-in place. Run it after ``scripts/run_benchmark.py`` or ``run_pipeline.py`` so
-the page and the tables never disagree.
+decisions, the task definitions and the field catalogue. Run it after
+``scripts/run_benchmark.py`` or ``run_pipeline.py`` so the page and the tables
+never disagree.
 
 Nothing personal is embedded: field names, categories, scores and manifest
 structure only. Rationales are the model's own words about field names.
@@ -17,13 +18,13 @@ structure only. Rationales are the model's own words about field names.
 from __future__ import annotations
 
 import json
-import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
+sys.path.insert(0, str(ROOT))
 
 from compliance.benchmark import manifest_structure                      # noqa: E402
 from compliance.checkers import run_all                                  # noqa: E402
@@ -36,10 +37,11 @@ from extraction.techniques.ai_agent import (  # noqa: E402
 )
 from extraction.techniques.ai_providers import PROVIDERS            # noqa: E402
 from run_benchmark import TASKS                                          # noqa: E402
+from tools.page_kit import render, write                                 # noqa: E402
 
 PAGE = ROOT / "docs" / "benchmark_results" / "rules-vs-just-ai.html"
+TEMPLATE = ROOT / "tools" / "rules_page.html"
 RESULTS = ROOT / "docs" / "benchmark_results"
-_BLOCK = re.compile(r'(<script id="data" type="application/json">)(.*?)(</script>)', re.S)
 
 
 def _score_fields(technique_short: str, scores: list[dict]) -> dict:
@@ -143,13 +145,10 @@ def build_data() -> dict:
 
 def main() -> None:
     data = build_data()
-    html = PAGE.read_text(encoding="utf-8")
-    payload = json.dumps(data, separators=(",", ":"))
-    html, n = _BLOCK.subn(lambda m: m.group(1) + payload + m.group(3), html)
-    assert n == 1, "data block not found"
+    write(PAGE, render(TEMPLATE, data, current="rules", out=PAGE))
     meta = data["meta"]
-    PAGE.write_text(html, encoding="utf-8")
-    print(f"wrote {PAGE}  ({len(payload) / 1024:.0f} KB of data; {meta['tasks']} tasks, {meta['repeats']} repeats, "
+    size = len(json.dumps(data, separators=(",", ":")))
+    print(f"wrote {PAGE}  ({size / 1024:.0f} KB of data; {meta['tasks']} tasks, {meta['repeats']} repeats, "
           f"agents: {', '.join(a['k'] for a in data['agents']) or 'none'})")
 
 

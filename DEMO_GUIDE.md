@@ -145,10 +145,10 @@ Four self-contained pages, each built from a real run and committed, offline,
 with no raw identifier on any of them. `python tools/build_review_pages.py`
 rebuilds them all (~90 s; `--skip-portal` where there is no browser).
 
-- **`portal-run.html`**: the portal the scraper faces (login, TLS, robots.txt),
-  discovery module by module (hide the URLs; the layers are still inferred from
-  field names), and **the crawl**: press `3` then `space`, and every page each
-  technique loaded plays out on a map of the site. Ours 32, the AI agent 35, the
+- **`portal-run.html`**: the sign-in and discovery replay on their own (step 1),
+  then each module with its URL hidden (step 2; the layers are still inferred
+  from field names), and **the crawl**: press `3` and every page each technique
+  loaded plays out on a map of the site (`space` replays; `fast` for a quick run). Ours 32, the AI agent 35, the
   baseline 440, with each total checked against the meter when the page is built.
 - **`assistant.html`**: pick a role and type. The page runs the assistant's own
   recogniser and gate, checked against 435 conversations recorded from the
@@ -181,7 +181,7 @@ them, `A+` enlarges the text for a projector.
    red masked raw identifiers.
 4. **The score.** The benchmark on this export, and the coverage ceiling: which
    fields the export lacks and which the patient lacks.
-5. **Retention.** Drag the slider to day 30. Our export is erased and the purge
+5. **Retention.** Press `▶ Play`, or drag the slider past day 30. Our export is erased and the purge
    is logged; the baseline's can never be scheduled.
 
 The point to make out loud: **the page obeys the rules it demonstrates.** No raw

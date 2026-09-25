@@ -5,135 +5,265 @@
 <style>
   :root {
     color-scheme: light;
-    --bg: #f5f6f7; --card: #ffffff; --card-2: #eef0f2; --line: #d8dde2;
-    --ink: #17191c; --ink-2: #545c64; --ink-3: #8b939b;
-    --ours: #2a78d6; --agent: #8b5cf6; --base: #eda100;
+    --bg: #f3f4f6; --bg-2: #e9ecf1; --card: #ffffff; --card-2: #f0f2f5; --line: #e1e5ea;
+    --ink: #121417; --ink-2: #4d5560; --ink-3: #8a929c;
+    --ours: #2a78d6; --agent: #8b5cf6; --base: #e39a00;
     --l0: #2a78d6; --l1: #1baf7a; --l2: #0e9aa7; --l3: #eb6834; --l4: #8a6d3b;
-    --bad: #d93838; --good: #1f9d55; --warn: #b7791f; --bad-bg: #fbe3e3; --good-bg: #e0f3e8; --warn-bg: #fdf1dc;
-    --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --bad: #d93838; --good: #1f9d55; --warn: #b7791f; --bad-bg: #fbe5e5; --good-bg: #e1f4e9; --warn-bg: #fcf1dd;
+    --shadow: 0 1px 2px rgba(16, 20, 26, .05), 0 6px 20px -8px rgba(16, 20, 26, .12);
+    --shadow-up: 0 2px 4px rgba(16, 20, 26, .06), 0 14px 32px -10px rgba(16, 20, 26, .22);
+    --r: 14px;
+    --font: system-ui, -apple-system, "Segoe UI Variable Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --mono: ui-monospace, "Cascadia Mono", Consolas, "Courier New", monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
-      --bg: #17191c; --card: #1f2226; --card-2: #282c31; --line: #363c43;
-      --ink: #f0f2f4; --ink-2: #aab2ba; --ink-3: #70787f;
-      --ours: #3987e5; --agent: #a78bfa; --base: #c98500;
-      --l0: #3987e5; --l1: #199e70; --l2: #2bb3c0; --l3: #d95926; --l4: #b08a5a;
-      --bad: #e66767; --good: #3cb371; --warn: #d69e2e; --bad-bg: #3a2222; --good-bg: #1f3a2b; --warn-bg: #3a3020;
+      --bg: #0f1114; --bg-2: #15181d; --card: #1a1d22; --card-2: #23272d; --line: #2c3138;
+      --ink: #f1f3f5; --ink-2: #a9b1ba; --ink-3: #6f7780;
+      --ours: #4b95ee; --agent: #a78bfa; --base: #d99a1a;
+      --l0: #4b95ee; --l1: #22b07e; --l2: #2bb3c0; --l3: #e0662f; --l4: #b08a5a;
+      --bad: #ee6b6b; --good: #3cc279; --warn: #dca13a; --bad-bg: #3a2023; --good-bg: #173527; --warn-bg: #3a2f1c;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -10px rgba(0, 0, 0, .6);
+      --shadow-up: 0 2px 4px rgba(0, 0, 0, .5), 0 16px 36px -10px rgba(0, 0, 0, .8);
     }
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --bg: #17191c; --card: #1f2226; --card-2: #282c31; --line: #363c43;
-    --ink: #f0f2f4; --ink-2: #aab2ba; --ink-3: #70787f;
-    --ours: #3987e5; --agent: #a78bfa; --base: #c98500;
-    --l0: #3987e5; --l1: #199e70; --l2: #2bb3c0; --l3: #d95926; --l4: #b08a5a;
-    --bad: #e66767; --good: #3cb371; --warn: #d69e2e; --bad-bg: #3a2222; --good-bg: #1f3a2b; --warn-bg: #3a3020;
+    --bg: #0f1114; --bg-2: #15181d; --card: #1a1d22; --card-2: #23272d; --line: #2c3138;
+    --ink: #f1f3f5; --ink-2: #a9b1ba; --ink-3: #6f7780;
+    --ours: #4b95ee; --agent: #a78bfa; --base: #d99a1a;
+    --l0: #4b95ee; --l1: #22b07e; --l2: #2bb3c0; --l3: #e0662f; --l4: #b08a5a;
+    --bad: #ee6b6b; --good: #3cc279; --warn: #dca13a; --bad-bg: #3a2023; --good-bg: #173527; --warn-bg: #3a2f1c;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -10px rgba(0, 0, 0, .6);
+    --shadow-up: 0 2px 4px rgba(0, 0, 0, .5), 0 16px 36px -10px rgba(0, 0, 0, .8);
   }
   html { font-size: 15px; }
   html.big { font-size: 18px; }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 1rem; line-height: 1.45; }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 24px 16px 56px; }
-  h1 { font-size: 1.75rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
-  h2 { font-size: 1.13rem; font-weight: 650; margin: 0; }
-  h3 { font-size: .93rem; font-weight: 650; margin: 0; color: var(--ink-2); }
+  body { margin: 0; min-height: 100vh; color: var(--ink); font-family: var(--font); font-size: 1rem; line-height: 1.45;
+    background: radial-gradient(1200px 420px at 50% -120px, var(--bg-2), transparent 70%), var(--bg); }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 18px 16px 48px; }
+  h1 { font-size: 2rem; font-weight: 750; margin: 0; letter-spacing: -0.025em; line-height: 1.1; }
+  h2 { font-size: 1.05rem; font-weight: 680; margin: 0; letter-spacing: -0.01em; }
+  h3 { font-size: .9rem; font-weight: 650; margin: 0; color: var(--ink-2); }
   p { margin: 0; color: var(--ink-2); max-width: 78ch; }
   code, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
-  .top { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: flex-start; justify-content: space-between; }
-  .sub { margin-top: 6px; }
-  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--ink-2); white-space: nowrap; }
-  .badge.good { background: var(--good-bg); color: var(--good); border-color: transparent; }
-  .badge.bad { background: var(--bad-bg); color: var(--bad); border-color: transparent; }
-  .badge.warn { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
+  .top { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: flex-end; justify-content: space-between; margin-top: 10px; }
+  .sub { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; font-size: 1rem; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--card-2); color: var(--ink-2); white-space: nowrap; }
+  .badge.good { background: var(--good-bg); color: var(--good); }
+  .badge.bad { background: var(--bad-bg); color: var(--bad); }
+  .badge.warn { background: var(--warn-bg); color: var(--warn); }
   .tools { display: flex; gap: 6px; }
-  .tools button { font: inherit; font-size: .85rem; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--card); color: var(--ink-2); cursor: pointer; }
-  .tools button:focus-visible, .seg button:focus-visible, .steps button:focus-visible, .tile:focus-visible, .chip-btn:focus-visible { outline: 2px solid var(--ours); outline-offset: 2px; }
+  .tools button { font: inherit; font-size: .85rem; font-weight: 650; width: 2.3rem; height: 2.3rem; border-radius: 50%; border: none; background: var(--card); color: var(--ink-2); cursor: pointer; box-shadow: var(--shadow); }
+  .tools button:hover { color: var(--ink); }
+  :focus-visible { outline: 2px solid var(--ours); outline-offset: 2px; }
 
-  .funnel { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 18px; }
-  .fn { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
-  .fn .v { font-size: 1.75rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
-  .fn .l { font-size: .8rem; color: var(--ink-3); }
-  .fn.hero { border-color: var(--good); }
-  .fn.hero .v { color: var(--good); }
+  /* the navigation bar: one pill per page */
+  .sitenav { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 4px; border-radius: 999px; background: var(--card); box-shadow: var(--shadow); font-size: .82rem; }
+  .sitenav a { color: var(--ink-2); text-decoration: none; padding: 5px 13px; border-radius: 999px; transition: background .15s, color .15s; }
+  .sitenav a:hover { color: var(--ink); background: var(--card-2); }
+  .sitenav a[aria-current="page"] { color: var(--bg); background: var(--ink); font-weight: 650; }
 
-  .steps { display: flex; gap: 0; margin-top: 18px; border-bottom: 1px solid var(--line); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
-  .steps button { flex: 0 0 auto; background: none; border: none; border-bottom: 3px solid transparent; padding: 10px 14px; font: inherit; color: var(--ink-2); cursor: pointer; white-space: nowrap; margin-bottom: -1px; display: inline-flex; gap: 8px; align-items: center; }
-  .steps button .n { display: inline-grid; place-items: center; width: 1.4rem; height: 1.4rem; border-radius: 50%; background: var(--card-2); font-size: .8rem; font-weight: 700; }
-  .steps button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); font-weight: 650; }
-  .steps button[aria-selected="true"] .n { background: var(--ink); color: var(--bg); }
-  .pane { padding-top: 18px; display: grid; gap: 14px; }
+  /* hero numbers */
+  .funnel { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 18px; }
+  .fn { background: var(--card); border-radius: var(--r); padding: 12px 14px 11px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .fn::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--c, var(--line)); }
+  .fn .v { font-size: 2rem; font-weight: 760; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; line-height: 1.1; color: var(--c-v, var(--ink)); }
+  .fn .l { font-size: .72rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; margin-top: 3px; }
+  .fn.hero { --c: var(--good); --c-v: var(--good); }
+
+  /* the stepper */
+  .steps { display: flex; gap: 6px; margin-top: 20px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; padding: 2px; }
+  .steps button { flex: 1 0 auto; font: inherit; font-size: .92rem; font-weight: 600; background: var(--card); border: none; border-radius: 999px; padding: 8px 14px 8px 8px; color: var(--ink-2); cursor: pointer; white-space: nowrap; display: inline-flex; gap: 9px; align-items: center; box-shadow: var(--shadow); transition: background .2s, color .2s, transform .15s; }
+  .steps button:hover { transform: translateY(-1px); color: var(--ink); }
+  .steps button .n { display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--card-2); font-size: .8rem; font-weight: 750; transition: background .2s, color .2s; }
+  .steps button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+  .steps button[aria-selected="true"] .n { background: var(--bg); color: var(--ink); }
+  .steps button.seen:not([aria-selected="true"]) .n { background: var(--good-bg); color: var(--good); }
+  .pane { padding-top: 16px; display: grid; gap: 14px; }
   .pane[hidden] { display: none; }
-  .lead { font-size: 1.02rem; color: var(--ink); max-width: 90ch; }
-  .lead b { font-weight: 650; }
+  .lead { font-size: 1.05rem; color: var(--ink-2); max-width: 90ch; }
+  .lead b { color: var(--ink); font-weight: 650; }
 
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px; min-width: 0; }
-  .card .head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 14px; margin-bottom: 10px; }
+  .card { background: var(--card); border-radius: var(--r); padding: 16px; min-width: 0; box-shadow: var(--shadow); }
+  .card .head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 14px; margin-bottom: 12px; }
   .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
   .split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 14px; align-items: start; }
   @media (max-width: 860px) { .split { grid-template-columns: 1fr; } }
-  .muted { color: var(--ink-3); font-size: .85rem; }
-  .note { font-size: .88rem; color: var(--ink-2); background: var(--card-2); border-radius: 6px; padding: 8px 10px; }
-
+  .muted { color: var(--ink-3); font-size: .84rem; }
+  .note { font-size: .88rem; color: var(--ink-2); background: var(--card-2); border-radius: 10px; padding: 8px 12px; }
 
   /* shared pieces */
-  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .8rem; color: var(--ink-2); margin-top: 10px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .78rem; color: var(--ink-3); margin-top: 10px; }
   .legend span { display: inline-flex; gap: 6px; align-items: center; }
-  .lk { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  .lk { width: 11px; height: 11px; border-radius: 3px; display: inline-block; flex: none; }
   table { border-collapse: collapse; width: 100%; font-size: .88rem; }
-  th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { font-size: .8rem; color: var(--ink-2); font-weight: 650; white-space: nowrap; }
+  th, td { padding: 7px 9px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  th { font-size: .72rem; color: var(--ink-3); font-weight: 650; white-space: nowrap; text-transform: uppercase; letter-spacing: .05em; }
   td.n, th.n { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tbody tr, table tr { transition: background .12s; }
   .scroll { overflow-x: auto; }
-  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; background: var(--card); flex-wrap: wrap; }
-  .seg button { font: inherit; font-size: .88rem; border: none; background: none; padding: 6px 12px; cursor: pointer; color: var(--ink-2); border-right: 1px solid var(--line); }
-  .seg button:last-child { border-right: none; }
-  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
-  footer { margin-top: 28px; font-size: .8rem; color: var(--ink-3); }
-  kbd { font-family: var(--mono); font-size: .75rem; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--card); }
-  .sitenav { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .8rem; margin-bottom: 14px; }
-  .sitenav a { color: var(--ink-3); text-decoration: none; padding: 2px 0; border-bottom: 2px solid transparent; }
-  .sitenav a:hover { color: var(--ink); }
-  .sitenav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--ink); font-weight: 650; }
+  .seg { display: inline-flex; border-radius: 999px; background: var(--card-2); flex-wrap: wrap; padding: 3px; gap: 2px; }
+  .seg button { font: inherit; font-size: .86rem; font-weight: 600; border: none; background: none; padding: 5px 12px; cursor: pointer; color: var(--ink-2); border-radius: 999px; transition: background .15s, color .15s; }
+  .seg button:hover { color: var(--ink); }
+  .seg button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+  select { font: inherit; font-size: .88rem; padding: 5px 10px; border: none; border-radius: 999px; background: var(--card-2); color: var(--ink); }
+  footer { margin-top: 28px; font-size: .76rem; color: var(--ink-3); }
+  footer code { font-family: var(--mono); }
+  kbd { font-family: var(--mono); font-size: .72rem; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--card); }
 
-  .demos { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 18px; }
-  .demo { display: grid; gap: 8px; align-content: start; text-decoration: none; color: inherit; border-top: 4px solid var(--ink-3); transition: box-shadow .12s; }
-  .demo:hover { box-shadow: 0 0 0 2px var(--ink); }
-  .demo .no { font-size: .78rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; }
-  .demo h2 { font-size: 1.25rem; }
-  .demo .go { font-weight: 650; color: var(--ours); }
-  .demo.portal { border-top-color: var(--ours); } .demo.dataset { border-top-color: var(--good); }
-  .demo.assistant { border-top-color: var(--agent); } .demo.rules { border-top-color: var(--base); }
-  pre { margin: 0; font-family: var(--mono); font-size: .84rem; background: #111418; color: #d7dde3; border-radius: 6px; padding: 8px 10px; overflow-x: auto; }
-  .cmds { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
-  .cmd h3 { margin-bottom: 6px; }
-  .cmd p { font-size: .85rem; margin-top: 6px; }
+  /* bars: grow in whenever their pane is shown */
+  .track { height: 14px; background: var(--card-2); border-radius: 999px; overflow: hidden; }
+  .track i { display: block; height: 100%; border-radius: 999px; transform-origin: left center; animation: grow .9s cubic-bezier(.2, .8, .2, 1) both; }
+  .barrow { display: grid; grid-template-columns: minmax(140px, 250px) 1fr 64px; gap: 10px; align-items: center; font-size: .88rem; padding: 5px 0; }
+  .barrow:nth-child(2) .track i { animation-delay: .05s; } .barrow:nth-child(3) .track i { animation-delay: .1s; }
+  .barrow:nth-child(4) .track i { animation-delay: .15s; } .barrow:nth-child(5) .track i { animation-delay: .2s; }
+  .barrow:nth-child(n+6) .track i { animation-delay: .25s; }
+
+  /* motion: a pane's children rise in when it is shown */
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes pop { 0% { transform: scale(.9); opacity: 0; } 60% { transform: scale(1.03); opacity: 1; } 100% { transform: scale(1); } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+  .pane > *, .funnel > * { animation: rise .45s cubic-bezier(.2, .8, .2, 1) both; }
+  .pane > :nth-child(2), .funnel > :nth-child(2) { animation-delay: .05s; }
+  .pane > :nth-child(3), .funnel > :nth-child(3) { animation-delay: .1s; }
+  .pane > :nth-child(4), .funnel > :nth-child(4) { animation-delay: .15s; }
+  .pane > :nth-child(5), .funnel > :nth-child(5) { animation-delay: .2s; }
+  .pane > :nth-child(n+6), .funnel > :nth-child(n+6) { animation-delay: .25s; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+  .hero { margin-top: 26px; }
+  .hero h1 { font-size: 2.6rem; }
+  .hero p { font-size: 1.1rem; margin-top: 10px; }
+  .demos { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 26px; }
+  .demo { display: grid; gap: 8px; align-content: start; text-decoration: none; color: inherit; position: relative; overflow: hidden; padding: 20px 18px 18px; transition: transform .15s, box-shadow .15s; animation: rise .5s both; }
+  .demo:nth-child(2) { animation-delay: .07s; } .demo:nth-child(3) { animation-delay: .14s; } .demo:nth-child(4) { animation-delay: .21s; }
+  .demo::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 5px; background: var(--c); }
+  .demo:hover { transform: translateY(-4px); box-shadow: var(--shadow-up); }
+  .demo .no { font-size: .72rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+  .demo h2 { font-size: 1.3rem; }
+  .demo .v { font-size: 2.6rem; font-weight: 780; letter-spacing: -0.04em; line-height: 1; color: var(--c); font-variant-numeric: tabular-nums; margin-top: 6px; }
+  .demo .v small { font-size: 1.1rem; color: var(--ink-3); font-weight: 600; letter-spacing: 0; }
+  .demo .vl { font-size: .74rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; font-weight: 650; }
+  .demo p { font-size: .9rem; margin-top: 4px; }
+  .demo .go { font-weight: 700; color: var(--c); margin-top: 6px; }
+  .demo.portal { --c: var(--ours); } .demo.dataset { --c: var(--good); }
+  .demo.assistant { --c: var(--agent); } .demo.rules { --c: var(--base); }
+  .cmds { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 10px; margin-top: 12px; }
+  .cmd { padding: 12px 14px; animation: rise .5s both .3s; }
+  .cmd .k { font-size: .72rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; font-weight: 650; }
+  .cmd pre { margin: 6px 0 0; font-family: var(--mono); font-size: .8rem; background: #0d1014; color: #d7dde3; border-radius: 8px; padding: 7px 10px; overflow-x: auto; }
 </style>
 
 <div class="wrap">
-  <nav class="sitenav" aria-label="Demo pages"><a href="index.html" aria-current="page">All demos</a><a href="portal-run.html">Portal run</a><a href="dataset-walkthrough.html">Dataset</a><a href="assistant.html">Assistant</a><a href="../benchmark_results/rules-vs-just-ai.html">Rules vs just AI</a></nav>
-  <div class="top">
+  <nav class="sitenav" aria-label="Demo pages"><a href="index.html" aria-current="page">Demos</a><a href="portal-run.html">Portal run</a><a href="dataset-walkthrough.html">Dataset</a><a href="assistant.html">Assistant</a><a href="../benchmark_results/rules-vs-just-ai.html">Rules vs AI</a></nav>
+  <div class="top hero">
     <div>
-      <h1>DPDP-compliant HIS extraction — the demos</h1>
-      <p class="sub">Every page here is built from a real run of the pipeline, opens by double-click, and needs no network. Each shows no raw patient identifier. Press <kbd>A+</kbd> on any page for projector-size text.</p>
+      <h1>DPDP-compliant HIS extraction</h1>
+      <p>Four live demos. Offline, from real runs, no raw patient identifier on any page.</p>
+    </div>
+    <div class="tools">
+      <button id="bigger" title="Larger text for a projector">A+</button>
+      <button id="theme" title="Light / dark">◐</button>
     </div>
   </div>
 
-  <div class="demos">
-    <a class="card demo portal" href="portal-run.html"><span class="no">1 · the pipeline, live</span><h2>The portal run</h2><p>A real browser logs into a portal it was never told about, works out each module from its field names, and every technique scrapes it. Replay the crawl: 32 page loads against 440.</p><span class="go">Open →</span></a>
-    <a class="card demo dataset" href="dataset-walkthrough.html"><span class="no">2 · when the hospital's data comes</span><h2>An export we never saw</h2><p>Synthea's public sample through the real handling gate and adapter: which columns got in, the refusal when a check fails, one patient through three techniques, and the export's erasure.</p><span class="go">Open →</span></a>
-    <a class="card demo assistant" href="assistant.html"><span class="no">3 · the staff assistant</span><h2>Ask the assistant</h2><p>Pick a role and type. It answers with steps placed on the pages the crawler found, or refuses with the rule before asking for anything. Checked against the Python assistant every time it opens.</p><span class="go">Open →</span></a>
-    <a class="card demo rules" href="../benchmark_results/rules-vs-just-ai.html"><span class="no">4 · the result</span><h2>Rules vs just AI</h2><p>Eight tasks, five repeats, every repeat scored: where a public AI model, even when told the policy, takes the data the purpose does not allow, and how often it changes its mind.</p><span class="go">Open →</span></a>
+  <div class="demos" id="demos"></div>
+
+  <h2 style="margin-top:30px">In the terminal</h2>
+  <div class="cmds">
+    <div class="card cmd"><div class="k">The whole chain · ~2 min</div><pre>python scripts/run_pipeline.py</pre></div>
+    <div class="card cmd"><div class="k">Hand over the keyboard</div><pre>python scripts/ask_agent.py --interactive</pre></div>
+    <div class="card cmd"><div class="k">Day-one rehearsal · 5 s</div><pre>python scripts/rehearse_day_one.py</pre></div>
+    <div class="card cmd"><div class="k">Rebuild these pages</div><pre>python tools/build_review_pages.py</pre></div>
   </div>
 
-  <h2 style="margin-top:28px">In the terminal</h2>
-  <div class="cmds" style="margin-top:10px">
-    <div class="card cmd"><h3>The whole chain, one command (~2 min)</h3><pre>python scripts/run_pipeline.py</pre><p>Portal → discovery → benchmark → HL7/FHIR with an export audit → purpose matrix → assistant → retention.</p></div>
-    <div class="card cmd"><h3>Hand a panel member the keyboard</h3><pre>python scripts/ask_agent.py --interactive</pre><p>The same assistant as page 3, in the terminal.</p></div>
-    <div class="card cmd"><h3>The day-one rehearsal (5 s)</h3><pre>python scripts/rehearse_day_one.py</pre><p>A hospital-shaped export through the real procedure, then a search of everything it printed or wrote for one patient's identifiers.</p></div>
-    <div class="card cmd"><h3>Rebuild every page here</h3><pre>python tools/build_review_pages.py</pre><p>About two minutes; the dataset page needs <code>scripts/fetch_public_dataset.py</code> once.</p></div>
-  </div>
-
-  <footer>Built by <code>tools/build_review_pages.py</code>.</footer>
+  <footer>Built by <code>tools/build_review_pages.py</code> · numbers read from <code>docs/benchmark_results/</code></footer>
 </div>
+
+<script id="data" type="application/json">{"portal":{"ours":32,"baseline":440},"dataset":{"ours":1.0,"baseline":0.113},"assistant":{"functions":13,"roles":3},"rules":{"ours_held":20,"ours_traps":20,"agents_held":0,"agents_traps":28,"models":3},"rules_href":"../benchmark_results/rules-vs-just-ai.html"}</script>
+<script>
+/* Shared by every demo page (inlined at build time): the header buttons, the
+   stepper, and numbers that count up when their pane comes into view. */
+window.Kit = (() => {
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // <span data-count="440" data-dp="0" data-suffix="×">440</span> counts up from zero.
+  function countIn(root) {
+    (root || document).querySelectorAll("[data-count]").forEach((el) => {
+      const to = Number(el.dataset.count), dp = Number(el.dataset.dp || 0), suf = el.dataset.suffix || "";
+      const fmt = (v) => (dp ? v.toFixed(dp) : Math.round(v).toLocaleString("en-US")) + suf;
+      if (still || !isFinite(to)) { el.textContent = fmt(to); return; }
+      const t0 = performance.now(), dur = 900;
+      const tick = (t) => {
+        const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+        el.textContent = fmt(to * e);
+        if (k < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+  }
+  const count = (v, dp = 0, suffix = "") => `<span data-count="${v}" data-dp="${dp}" data-suffix="${suffix}">${dp ? Number(v).toFixed(dp) : Number(v).toLocaleString("en-US")}${suffix}</span>`;
+
+  // Tabs as steps: number keys and arrows move, the hash remembers, each pane animates on entry.
+  function steps(n, onEnter) {
+    const btns = [...document.querySelectorAll("#steps button")];
+    let now = 1;
+    function go(k) {
+      k = Number(k);
+      if (k < 1 || k > n) return;
+      btns.forEach((b) => {
+        const on = Number(b.dataset.step) === k;
+        b.setAttribute("aria-selected", String(on));
+        if (Number(b.dataset.step) === now && !on) b.classList.add("seen");
+      });
+      for (let i = 1; i <= n; i++) document.getElementById("pane-" + i).hidden = i !== k;
+      now = k;
+      try { history.replaceState(null, "", "#" + k); } catch (e) {}
+      const pane = document.getElementById("pane-" + k);
+      countIn(pane);
+      if (onEnter) onEnter(k, pane);
+    }
+    btns.forEach((b) => b.addEventListener("click", () => go(b.dataset.step)));
+    document.addEventListener("keydown", (e) => {
+      if (e.target.matches("input, select, textarea") || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (new RegExp(`^[1-${n}]$`).test(e.key)) go(e.key);
+      else if (e.key === "ArrowRight") go(now + 1);
+      else if (e.key === "ArrowLeft") go(now - 1);
+    });
+    const h = Number(location.hash.replace("#", ""));
+    return { go, now: () => now, start: () => go(h >= 1 && h <= n ? h : 1) };
+  }
+
+  function tools() {
+    const big = document.getElementById("bigger"), theme = document.getElementById("theme");
+    if (big) big.addEventListener("click", () => document.documentElement.classList.toggle("big"));
+    if (theme) theme.addEventListener("click", () => {
+      const r = document.documentElement, dark = r.dataset.theme === "dark" || (!r.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
+      r.dataset.theme = dark ? "light" : "dark";
+    });
+  }
+  tools();
+  return { countIn, count, steps, still };
+})();
+
+</script>
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById("data").textContent);
+  const c = Kit.count;
+  const tiles = [
+    ["portal", "portal-run.html", "1 · the pipeline, live", "The portal run", `${c(D.portal.ours)} <small>vs</small> ${c(D.portal.baseline)}`, "page loads · ours vs baseline", "A real browser signs in, finds every module, and each technique scrapes it."],
+    ["dataset", "dataset-walkthrough.html", "2 · an export we never saw", "The dataset", `${c(D.dataset.ours, 2)} <small>vs</small> ${c(D.dataset.baseline, 2)}`, "compliance · ours vs baseline", "A public export through the real gate, one patient, and its erasure."],
+    ["assistant", "assistant.html", "3 · the staff assistant", "Ask the assistant", `${c(D.assistant.functions)} <small>functions · ${D.assistant.roles} roles</small>`, "gated before anything is asked", "Pick a role and type. Steps, or a refusal with the rule."],
+    ["rules", D.rules_href, "4 · the result", "Rules vs AI", `${c(D.rules.ours_held)}/${D.rules.ours_traps} <small>vs</small> ${c(D.rules.agents_held)}/${D.rules.agents_traps}`, "trap runs held · ours vs AI unaided", `${D.rules.models} public models, every run scored.`],
+  ];
+  document.getElementById("demos").innerHTML = tiles.map(([k, href, no, h, v, vl, p]) =>
+    `<a class="card demo ${k}" href="${href}"><span class="no">${no}</span><h2>${h}</h2><div class="v">${v}</div><div class="vl">${vl}</div><p>${p}</p><span class="go">Open →</span></a>`).join("");
+  Kit.countIn(document.getElementById("demos"));
+})();
+</script>

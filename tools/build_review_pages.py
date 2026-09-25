@@ -1,6 +1,6 @@
 """Rebuild every Review-II demo page in docs/review/, in one command.
 
-    python tools/build_review_pages.py                  # index, portal run, assistant, dataset (Synthea)
+    python tools/build_review_pages.py                  # index, rules vs AI, assistant, portal run, dataset (Synthea)
     python tools/build_review_pages.py --skip-portal    # no browser on this machine
 
 The portal run needs Chromium (``python -m playwright install chromium``) and
@@ -24,6 +24,32 @@ sys.path.insert(0, str(ROOT / "src"))
 from tools.page_kit import REVIEW_DIR, render, write   # noqa: E402
 
 SYNTHEA = ROOT / "data" / "public_synthea"
+RESULTS = ROOT / "docs" / "benchmark_results"
+
+
+def index_data() -> dict:
+    """The index's one number per demo, read from the committed artefacts -- never typed."""
+
+    import json
+    from agent.functions import REGISTRY
+    from compliance.roles import StaffRole
+
+    def scores(name):
+        return {s["short"]: s for s in json.loads((RESULTS / f"{name}.json").read_text(encoding="utf-8"))["scores"]}
+
+    portal, public, memory = scores("benchmark-portal"), scores("benchmark-public"), scores("benchmark")
+    unaided = [s for s in memory.values() if s.get("briefing") == "unaided"]
+    return {
+        "portal": {"ours": portal["compliance-aware"]["cost"]["page_loads"],
+                   "baseline": portal["unconstrained"]["cost"]["page_loads"]},
+        "dataset": {"ours": public["compliance-aware"]["mean_compliance_score"],
+                    "baseline": public["unconstrained"]["mean_compliance_score"]},
+        "assistant": {"functions": len(REGISTRY), "roles": len(StaffRole)},
+        "rules": {"ours_held": memory["compliance-aware"]["traps_resisted"], "ours_traps": memory["compliance-aware"]["traps"],
+                  "agents_held": sum(s["traps_resisted"] for s in unaided), "agents_traps": sum(s["traps"] for s in unaided),
+                  "models": len({s["model"] for s in memory.values() if s.get("model")})},
+        "rules_href": "../benchmark_results/rules-vs-just-ai.html",
+    }
 
 
 def main() -> int:
@@ -32,8 +58,11 @@ def main() -> int:
     args = parser.parse_args()
 
     index = REVIEW_DIR / "index.html"
-    write(index, render(ROOT / "tools" / "review_index.html", None, current="index", out=index))
+    write(index, render(ROOT / "tools" / "review_index.html", index_data(), current="index", out=index))
     print(f"  wrote {index.relative_to(ROOT)}")
+
+    from tools import build_demo_page
+    build_demo_page.main()
 
     from tools import build_assistant_page
     build_assistant_page.build()
