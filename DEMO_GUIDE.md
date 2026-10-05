@@ -393,6 +393,24 @@ The point to make out loud: **an update needs a new crawl, not new code** -- and
 what the crawl cannot understand is withheld with a reason, never guessed. The
 DPDP gate does not move: the release changed the screens, not who may do what.
 
+The scraper keeps up too: `python scripts/run_pipeline.py --layout v2` benchmarks
+every technique on the updated portal, and all fourteen rows match the original on
+compliance, coverage and traps (`benchmark-portal-v2.md`); only the page loads move.
+The browser version of all of this is `docs/review/his-update.html`.
+
+### Demo D3 — a patient asks what was done with their data
+
+```
+python scripts/answer_access_request.py
+```
+
+The data-protection contact's answer to an access request, built from the audit
+log (which names, per run, the patients read -- as keyed tokens, never record
+numbers) and the export retention sidecars: what was read, for which purpose,
+which categories, what was exported and when it will be erased. Then a patient no
+task was about: read by ours in 2 of 8 runs, by the baseline in 8 of 8. With
+`--mrn` it answers from the real log.
+
 ### The mock hospital portal (what the scraper will point at)
 
 ```

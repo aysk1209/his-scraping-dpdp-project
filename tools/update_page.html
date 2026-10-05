@@ -1,0 +1,174 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The HIS Is Updated</title>
+<style>
+/*__BASE__*/
+  .chg { display: grid; gap: 6px; }
+  .chg div { font-size: .9rem; color: var(--ink); padding-left: 14px; position: relative; }
+  .chg div::before { content: "–"; position: absolute; left: 0; color: var(--ink-3); }
+  .tlist { display: grid; gap: 2px; max-height: 520px; overflow-y: auto; }
+  .tlist button { font: inherit; font-size: .9rem; text-align: left; display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 6px 10px; border: 1px solid transparent; border-radius: var(--r); background: none; color: var(--ink); cursor: pointer; }
+  .tlist button:hover { border-color: var(--line); }
+  .tlist button[aria-pressed="true"] { border-color: var(--ours); background: color-mix(in srgb, var(--ours) 7%, var(--card)); }
+  .tlist .grp { font-size: .76rem; font-weight: 600; color: var(--ink-3); margin: 10px 0 2px 10px; }
+  .tag { font-size: .74rem; font-weight: 600; padding: 1px 7px; border-radius: var(--rr); white-space: nowrap; }
+  .tag.re-worded { background: var(--good-bg); color: var(--good); }
+  .tag.withheld { background: var(--bad-bg); color: var(--bad); }
+  .tag.unchanged { background: var(--card-2); color: var(--ink-2); }
+  .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 760px) { .ba { grid-template-columns: 1fr; } }
+  .ba h3 { margin-bottom: 6px; }
+  .st { display: grid; grid-template-columns: 1.4rem 1fr; gap: 2px 6px; padding: 7px 8px; border-radius: var(--r); margin-bottom: 4px; font-size: .88rem; }
+  .st .no { color: var(--ink-3); font-variant-numeric: tabular-nums; font-weight: 600; }
+  .st .w { grid-column: 2; font-family: var(--mono); font-size: .72rem; color: var(--ink-3); }
+  .st.diff { background: var(--good-bg); }
+  .st.held { background: var(--bad-bg); }
+  .st.held .tx { color: var(--bad); }
+  .prop { display: grid; gap: 8px; align-content: start; }
+  .prop .big { font-family: var(--display); font-size: 1.25rem; font-weight: 600; }
+  .prop code { font-size: .86rem; }
+  .confirm { font: inherit; font-weight: 600; font-size: .9rem; padding: 6px 14px; border-radius: var(--r); border: 1px solid var(--ours); background: var(--ours); color: var(--on-fill); cursor: pointer; justify-self: start; }
+  .confirm[aria-pressed="true"] { background: var(--card); color: var(--ours); }
+  tr.ours td { background: color-mix(in srgb, var(--ours) 7%, transparent); }
+  td.same { color: var(--good); font-weight: 600; }
+  td.diff { color: var(--bad); font-weight: 600; }
+  .heard { white-space: pre-wrap; font-size: .86rem; color: var(--ink-2); }
+</style>
+
+<div class="wrap">
+  <!--__NAV__-->
+  <div class="top">
+    <div>
+      <h1>The HIS is updated</h1>
+      <p class="sub">A vendor release renames, moves and splits the screens. One new crawl; nothing in the code changes.</p>
+    </div>
+    <div class="tools">
+      <button id="bigger" title="Larger text for a projector">A+</button>
+      <button id="theme"></button>
+    </div>
+  </div>
+  <div class="funnel" id="funnel"></div>
+
+  <nav class="steps" role="tablist" id="steps">
+    <button role="tab" data-step="1" aria-selected="true"><span class="n">1</span>What changed</button>
+    <button role="tab" data-step="2"><span class="n">2</span>Your tasks</button>
+    <button role="tab" data-step="3"><span class="n">3</span>Withheld, then confirmed</button>
+    <button role="tab" data-step="4"><span class="n">4</span>The scraper</button>
+  </nav>
+
+  <section class="pane" id="pane-1">
+    <p class="lead">Two crawls of the same portal, compared the way someone who knew the old screens would: modules matched by what they hold, not by their names.</p>
+    <div class="cols" id="groups"></div>
+  </section>
+
+  <section class="pane" id="pane-2" hidden>
+    <div class="head" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div class="seg" id="roles"></div><span class="muted" id="rolecount"></span></div>
+    <div class="split">
+      <div class="card"><div class="tlist" id="tlist"></div></div>
+      <div class="card"><div class="head"><h2 id="tname"></h2><span id="tstatus"></span></div><div class="ba" id="ba"></div></div>
+    </div>
+    <div class="card"><div class="head"><h2>Asked "what changed?"</h2><span class="muted">only what touches this role's tasks</span></div><div class="heard" id="heard"></div></div>
+  </section>
+
+  <section class="pane" id="pane-3" hidden>
+    <p class="lead">Two changes nothing could predict. The assistant withholds the steps they touch, with the reason, and proposes what each probably is. A person decides.</p>
+    <div class="cols" id="props"></div>
+    <button class="confirm" id="confirm" aria-pressed="false">Confirm both proposals</button>
+    <div class="card"><div class="head"><h2 id="fixname"></h2><span id="fixstatus"></span></div><div id="fixsteps"></div></div>
+  </section>
+
+  <section class="pane" id="pane-4" hidden>
+    <p class="lead">Every technique benchmarked on the updated portal: compliance, coverage and traps unchanged. Only the cost moved, because the release put fields on record pages.</p>
+    <div class="card scroll"><table id="scraper"></table></div>
+  </section>
+
+  <footer>Built by <code>tools/build_update_page.py</code> from <code>agent.drift</code>, <code>agent.guidance</code> and <code>benchmark-portal(-v2).json</code> · layouts in <code>tools/mock_portal/layouts.py</code></footer>
+</div>
+
+<script id="data" type="application/json">/*__DATA__*/null</script>
+<script>
+/*__KIT__*/
+</script>
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById("data").textContent);
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const T = Object.fromEntries(D.tasks.map((t) => [t.id, t]));
+  const M = D.meta;
+
+  $("funnel").innerHTML = [
+    [M.modules, "modules renamed, moved or split"], [M.buttons, "button changes"],
+    [`${M.reworded} / ${M.tasks}`, "tasks re-worded by themselves"], [M.withheld, "withheld, not guessed"],
+    [`${M.restored} / ${M.tasks}`, "after two confirmations"],
+    [`${M.scraper_same} / ${M.scraper_rows}`, "scraper rows unchanged"],
+  ].map(([v, l], i) => `<div class="fn${i === 5 ? " hero" : ""}"><div class="v">${esc(v)}</div><div class="l">${esc(l)}</div></div>`).join("");
+
+  const heads = { module: "Modules", field: "Fields", button: "Buttons", unmapped: "Needs a person" };
+  $("groups").innerHTML = Object.keys(heads).filter((k) => D.groups[k]).map((k) =>
+    `<div class="card"><div class="head"><h2>${heads[k]}</h2><span class="muted">${D.groups[k].length}</span></div><div class="chg">${D.groups[k].map((t) => `<div>${esc(t)}</div>`).join("")}</div></div>`).join("");
+
+  function stepList(steps, other, cls) {
+    return steps.map((s, i) => {
+      const o = other ? other[i] : null;
+      const changed = o && (o.text !== s.text || o.where !== s.where);
+      const k = s.withheld ? "held" : (changed && cls === "after" ? "diff" : "");
+      return `<div class="st ${k}"><span class="no">${i + 1}</span><span class="tx">${esc(s.text)}</span>${s.where ? `<span class="w">${esc(s.where)}</span>` : ""}</div>`;
+    }).join("");
+  }
+
+  let role = D.roles[0].id, task = null;
+  function paintRoles() {
+    $("roles").innerHTML = D.roles.map((r) => `<button data-r="${r.id}" aria-pressed="${r.id === role}">${esc(r.id)}</button>`).join("");
+    $("roles").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { role = b.dataset.r; task = null; paintRoles(); paintTasks(); }));
+  }
+  function paintTasks() {
+    const R = D.roles.find((r) => r.id === role);
+    const ids = R.tasks;
+    task = task || ids.find((id) => T[id].status === "withheld") || ids[0];
+    let html = "", g = null;
+    for (const id of ids) {
+      const t = T[id];
+      if (t.group !== g) { g = t.group; html += `<div class="grp">${esc(g)}</div>`; }
+      html += `<button data-t="${id}" aria-pressed="${id === task}"><span>${esc(t.label)}</span><span class="tag ${t.status}">${t.status}</span></button>`;
+    }
+    $("tlist").innerHTML = html;
+    $("tlist").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { task = b.dataset.t; paintTasks(); }));
+    const counts = ids.reduce((a, id) => (a[T[id].status] = (a[T[id].status] || 0) + 1, a), {});
+    $("rolecount").textContent = Object.entries(counts).map(([k, n]) => `${n} ${k}`).join(" · ");
+    const t = T[task];
+    $("tname").textContent = t.label;
+    $("tstatus").innerHTML = `<span class="tag ${t.status}">${t.status}</span>`;
+    $("ba").innerHTML = `<div><h3>Before the release</h3>${stepList(t.before, null, "before")}</div><div><h3>After it, from the new crawl</h3>${stepList(t.after, t.before, "after")}</div>`;
+    $("heard").textContent = R.heard;
+  }
+
+  let confirmed = false;
+  const fixTask = D.tasks.find((t) => t.status === "withheld" && t.reasons.some((r) => r.includes("button"))) || D.tasks.find((t) => t.status === "withheld");
+  function paintProps() {
+    const fields = Object.entries(D.proposals.fields).map(([h, f]) => `<div class="card prop"><h3>An unmapped column</h3><div class="big">"${esc(h)}"</div><div>proposed: <code>${esc(f)}</code> — it vanished from the same module in the same release</div></div>`);
+    const buttons = Object.entries(D.proposals.buttons).map(([b, a]) => `<div class="card prop"><h3>A button outside the vocabulary</h3><div class="big">"${esc(b)}"</div><div>proposed: <code>${esc(a)}</code> — the only button of that kind to disappear</div></div>`);
+    $("props").innerHTML = fields.concat(buttons).join("");
+    $("confirm").setAttribute("aria-pressed", String(confirmed));
+    $("confirm").textContent = confirmed ? "Confirmed — undo" : "Confirm both proposals";
+    if (!fixTask) return;
+    $("fixname").textContent = fixTask.label;
+    const st = confirmed ? fixTask.fixed_status : fixTask.status;
+    $("fixstatus").innerHTML = `<span class="tag ${st}">${confirmed ? "restored" : st}</span>`;
+    $("fixsteps").innerHTML = stepList(confirmed ? fixTask.fixed : fixTask.after, fixTask.after, confirmed ? "after" : "before");
+  }
+  $("confirm").addEventListener("click", () => { confirmed = !confirmed; paintProps(); });
+
+  function paintScraper() {
+    const S = D.scraper;
+    if (!S.available) { $("scraper").innerHTML = `<tr><td>Run <code>python scripts/run_pipeline.py --layout v2</code> to benchmark the updated portal.</td></tr>`; return; }
+    const pct = (v) => (v * 100).toFixed(0) + "%";
+    $("scraper").innerHTML = `<tr><th>Technique</th><th class="n">Compliance v1 → v2</th><th class="n">Coverage</th><th class="n">Traps held</th><th class="n">Page loads</th><th>Same result</th></tr>`
+      + S.rows.map((r) => `<tr class="${r.kind === "ours" ? "ours" : ""}"><td>${esc(r.name)}</td><td class="n">${r.score[0].toFixed(3)} → ${r.score[1].toFixed(3)}</td><td class="n">${pct(r.coverage[0])} → ${pct(r.coverage[1])}</td><td class="n">${esc(r.traps[0])} → ${esc(r.traps[1])}</td><td class="n">${r.pages[0]} → ${r.pages[1]}</td><td class="${r.same ? "same" : "diff"}">${r.same ? "yes" : "no"}</td></tr>`).join("");
+  }
+
+  paintRoles(); paintTasks(); paintProps(); paintScraper();
+  Kit.steps(4).start();
+})();
+</script>

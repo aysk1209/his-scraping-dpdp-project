@@ -58,15 +58,21 @@ def _rx(v) -> str:
 
 
 def table_agents() -> str:
+    from compliance.stats import interval_text
     r = _load("benchmark")
     rows = ["| Technique | Runs per task | Compliance | Trap runs held | Coverage | Excess | Record excess | Stable |",
             "|---|---|---|---|---|---|---|---|"]
     for s, flagged in r.by_model():
+        samples = s.short not in ("compliance-aware", "unconstrained")      # only the models sample
+        traps = f"{s.traps_resisted} / {s.traps}" + (f" ({interval_text(s.traps_resisted, s.traps)})" if samples and s.traps else "")
+        stable = _stable(s) + (f" ({interval_text(s.stable_runs, s.repeat_runs)})" if samples and s.repeat_runs else "")
         rows.append(f"| {_name(s)}{' *' if flagged else ''} | {s.repeats} | {_bold_ours(s, f'{s.mean_compliance_score:.3f}')} "
-                    f"| {_bold_ours(s, f'{s.traps_resisted} / {s.traps}')} | {s.cost.coverage:.2f} | "
-                    f"{s.cost.excess_ratio:.2f} | {_rx(s.cost.record_excess)} | {_bold_ours(s, _stable(s))} |")
+                    f"| {_bold_ours(s, traps)} | {s.cost.coverage:.2f} | "
+                    f"{s.cost.excess_ratio:.2f} | {_rx(s.cost.record_excess)} | {_bold_ours(s, stable)} |")
+    rows += ["", "Brackets: 95% Wilson interval on the share of runs, for the models only -- ours and the baseline do "
+                 "not sample. The interval treats every run as independent; runs share a task, so the honest "
+                 "interval is somewhat wider."]
     return "\n".join(rows) + "\n"
-
 
 def table_rules() -> str:
     r = _load("benchmark")

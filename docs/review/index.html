@@ -135,7 +135,7 @@
   .demo h2 { font-size: 1.12rem; }
   .demo .v { font-family: var(--display); font-size: 1.4rem; font-weight: 600; letter-spacing: -0.015em; color: var(--c); font-variant-numeric: tabular-nums; }
   .demo.portal { --c: var(--ours); } .demo.dataset { --c: var(--good); } .demo.real { --c: var(--l3); }
-  .demo.assistant { --c: var(--agent); } .demo.journey { --c: var(--l2); } .demo.rules { --c: var(--base); }
+  .demo.assistant { --c: var(--agent); } .demo.journey { --c: var(--l2); } .demo.rules { --c: var(--base); } .demo.update { --c: var(--l1); }
   .demo .v small { font-size: .85rem; color: var(--ink-3); font-weight: 400; }
   .demo .vl { font-size: .8rem; color: var(--ink-2); }
   .demo p { font-size: .9rem; }
@@ -150,7 +150,7 @@
 </style>
 
 <div class="wrap">
-  <nav class="sitenav" aria-label="Demo pages"><a href="index.html" aria-current="page">Demos</a><a href="portal-run.html">Portal run</a><a href="dataset-walkthrough.html">Dataset</a><a href="real-data.html">Real data</a><a href="journey.html">Journey</a><a href="assistant.html">Assistant</a><a href="../benchmark_results/rules-vs-just-ai.html">Rules vs AI</a></nav>
+  <nav class="sitenav" aria-label="Demo pages"><a href="index.html" aria-current="page">Demos</a><a href="portal-run.html">Portal run</a><a href="dataset-walkthrough.html">Dataset</a><a href="real-data.html">Real data</a><a href="journey.html">Journey</a><a href="assistant.html">Assistant</a><a href="his-update.html">HIS update</a><a href="../benchmark_results/rules-vs-just-ai.html">Rules vs AI</a></nav>
   <div class="top">
     <div>
       <h1>DPDP-compliant HIS extraction</h1>
@@ -175,7 +175,7 @@
   <footer>Built by <code>tools/build_review_pages.py</code> · numbers read from <code>docs/benchmark_results/</code></footer>
 </div>
 
-<script id="data" type="application/json">{"real":{"days":731,"carried":1,"needed":18},"portal":{"ours":32,"baseline":440},"dataset":{"ours":1.0,"baseline":0.113},"assistant":{"functions":29,"roles":3},"rules":{"ours_held":20,"ours_traps":20,"agents_held":18,"agents_traps":80,"models":4},"rules_href":"../benchmark_results/rules-vs-just-ai.html"}</script>
+<script id="data" type="application/json">{"real":{"days":731,"carried":1,"needed":18},"portal":{"ours":32,"baseline":440},"dataset":{"ours":1.0,"baseline":0.113},"assistant":{"functions":29,"roles":3},"update":{"restored":29,"tasks":29},"rules":{"ours_held":20,"ours_traps":20,"agents_held":18,"agents_traps":80,"models":4},"rules_href":"../benchmark_results/rules-vs-just-ai.html"}</script>
 <script>
 /* Shared by every demo page (inlined at build time): the header buttons, the
    stepper, and one drawn icon family. */
@@ -277,6 +277,7 @@ window.Kit = (() => {
     ["real", "real-data.html", "The real export", `${c(D.real.days)} <small>days · 0 identifiers</small>`, "real hospital register, through the gate", "A real register with no patient in it: lawful for one purpose of three, six questions answered, four gated."],
     ["journey", "journey.html", "The journey", `7 <small>stages · one entry</small>`, "from the file to its erasure", "One line of the export, followed through every stage; pick any column and watch its fate."],
     ["assistant", "assistant.html", "Ask the assistant", `${c(D.assistant.functions)} <small>functions · ${D.assistant.roles} roles</small>`, "gated before anything is asked", "Pick a role and type. Steps, or a refusal with the rule."],
+    ["update", "his-update.html", "The HIS is updated", `${c(D.update.restored)}/${D.update.tasks} <small>tasks</small>`, "placed again after one crawl and two confirmations", "A vendor release; nothing in the code changes. The scraper's results hold."],
     ["rules", D.rules_href, "Rules vs AI", `${c(D.rules.ours_held)}/${D.rules.ours_traps} <small>vs</small> ${c(D.rules.agents_held)}/${D.rules.agents_traps}`, "trap runs held · ours vs AI unaided", `${D.rules.models} public models, every run scored.`],
   ].filter((t) => t[0] !== "real" || D.real.days);
   document.getElementById("demos").innerHTML = tiles.map(([k, href, h, v, vl, p]) =>

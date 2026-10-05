@@ -112,11 +112,13 @@ Tables 1 and 2 keep every briefing.
 | Technique | Runs per task | Compliance | Trap runs held | Coverage | Excess | Record excess | Stable |
 |---|---|---|---|---|---|---|---|
 | compliance-aware (ours) | 5 | **1.000** | **20 / 20** | 1.00 | 1.00 | 1.00 | **32 / 32** |
-| claude-sonnet-5-5, told the policy | 5 | 1.000 | 20 / 20 | 0.71 | 1.04 | 0.64 | 18 / 32 |
-| claude-opus-5-5, told the policy | 5 | 0.997 | 20 / 20 | 0.76 | 1.42 | 0.73 | 17 / 32 |
-| claude-haiku-4-5, told the policy | 5 | 0.995 | 20 / 20 | 0.78 | 1.61 | 0.91 | 5 / 32 |
-| gemini-3.1-flash-lite, told the policy | 5 | 0.984 | 10 / 20 | 0.74 | 1.43 | 0.98 | 21 / 32 |
+| claude-sonnet-5-5, told the policy | 5 | 1.000 | 20 / 20 (0.84–1.00) | 0.71 | 1.04 | 0.64 | 18 / 32 (0.39–0.72) |
+| claude-opus-5-5, told the policy | 5 | 0.997 | 20 / 20 (0.84–1.00) | 0.76 | 1.42 | 0.73 | 17 / 32 (0.36–0.69) |
+| claude-haiku-4-5, told the policy | 5 | 0.995 | 20 / 20 (0.84–1.00) | 0.78 | 1.61 | 0.91 | 5 / 32 (0.07–0.32) |
+| gemini-3.1-flash-lite, told the policy | 5 | 0.984 | 10 / 20 (0.30–0.70) | 0.74 | 1.43 | 0.98 | 21 / 32 (0.48–0.80) |
 | unconstrained (baseline) | 5 | 0.100 | 0 / 20 | 1.00 | 7.77 | 136.4 | 32 / 32 |
+
+Brackets: 95% Wilson interval on the share of runs, for the models only -- ours and the baseline do not sample. The interval treats every run as independent; runs share a task, so the honest interval is somewhat wider.
 <!-- /table:agents -->
 
 **Table 1.** Compliance per rule, in memory — eight tasks, four of them
@@ -243,7 +245,8 @@ taking the diagnosis to reconcile an invoice, the insurance number at the desk,
 declaring the registry as an onward use and a year's retention for the
 consultant. `claude-sonnet-5-5` held 7 of 20 under each, and `claude-opus-5-5`
 11 unaided and 10 told the Act. Over the eight unaided and told-the-Act
-conditions, 35 of 160 trap runs were held. Told the policy, the models part:
+conditions, 35 of 160 trap runs were held (95% interval 0.16–0.29 of runs).
+Told the policy, the models part:
 the three Claude models held all four traps in every run (20 of 20 each);
 `gemini-3.1-flash-lite` held the two traps that turn on a number or a
 declaration in every run and the two that turn on taking a field in none (10 of
@@ -289,7 +292,8 @@ structure — in 18–21 of 32 repeats across its briefings; `claude-opus-5-5` i
 15–17; `claude-sonnet-5-5` in 8–18; `claude-haiku-4-5` in **2–5**: told the
 policy it held every trap in every run while reproducing its first decision in
 only 5 of 32 repeats. No model reproduced itself in more than two thirds of
-repeats under any briefing. The compliant technique reproduced itself 32 of 32,
+repeats under any briefing, and every model's 95% interval on that share stops
+at 0.80 or below (Table 1): the instability is not an artefact of five samples. The compliant technique reproduced itself 32 of 32,
 as did the baseline: neither samples. A rule-driven technique is deterministic by
 construction; a model's compliance is a sample from a distribution, and a
 hospital that deploys one is deploying the distribution.
@@ -547,7 +551,12 @@ changes if a real structure differs.
 under each of three briefings — 120 decisions per model, 480 in all. Five
 samples show how often a decision varies; they do not characterise the
 distribution, and a trap count out of 20 or a stability count out of 32 carries
-real uncertainty. Every run is scored, so the tables report means over runs,
+real uncertainty — Table 1 prints a 95% Wilson interval beside each model's
+count (`compliance/stats.py`). The interval treats runs as independent; runs
+share a task, so the honest interval is somewhat wider. Where the argument
+leans on a count, the interval carries it: the pooled unaided and told-the-Act
+trap share is 0.16–0.29, the three Claude models told the policy pool to
+60 of 60 (0.94–1.00), and no model's repeatability interval reaches 0.81. Every run is scored, so the tables report means over runs,
 not a draw. The direction of the unaided and told-the-Act result — 35 of 160
 trap runs held across four models — is strong enough that a larger sample is
 unlikely to reverse it; so is the told-the-policy result that the three Claude

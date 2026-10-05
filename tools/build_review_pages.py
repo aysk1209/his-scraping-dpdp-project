@@ -27,6 +27,21 @@ SYNTHEA = ROOT / "data" / "public_synthea"
 RESULTS = ROOT / "docs" / "benchmark_results"
 
 
+def _update_numbers() -> dict:
+    """The HIS-update page's headline, read back from the page itself when it has been built."""
+
+    import json
+    import re
+    from agent.functions import REGISTRY
+    page = REVIEW_DIR / "his-update.html"
+    if page.exists():
+        m = re.search(r'<script id="data" type="application/json">(.*?)</script>', page.read_text(encoding="utf-8"), re.S)
+        if m:
+            meta = json.loads(m.group(1).replace(r"<\/", "</"))["meta"]
+            return {"restored": meta["restored"], "tasks": meta["tasks"]}
+    return {"restored": len(REGISTRY), "tasks": len(REGISTRY)}
+
+
 def index_data() -> dict:
     """The index's one number per demo, read from the committed artefacts -- never typed."""
 
@@ -51,6 +66,7 @@ def index_data() -> dict:
         "dataset": {"ours": public["compliance-aware"]["mean_compliance_score"],
                     "baseline": public["unconstrained"]["mean_compliance_score"]},
         "assistant": {"functions": len(REGISTRY), "roles": len(StaffRole)},
+        "update": _update_numbers(),
         "rules": {"ours_held": memory["compliance-aware"]["traps_resisted"], "ours_traps": memory["compliance-aware"]["traps"],
                   "agents_held": sum(s["traps_resisted"] for s in unaided), "agents_traps": sum(s["traps"] for s in unaided),
                   "models": len({s["model"] for s in memory.values() if s.get("model")})},
@@ -69,6 +85,11 @@ def main() -> int:
         print(f"  wrote {build_real_page.build(real_dir).relative_to(ROOT)}")
     else:
         print("  real-data page: no real export here (or no benchmark-real.json); committed copy kept")
+
+    if not args.skip_portal:            # the update page crawls the fixture in a browser
+        from tools import build_update_page
+        build_update_page.build()
+        print(f"  wrote {build_update_page.DEFAULT_OUT.relative_to(ROOT)}")
 
     index = REVIEW_DIR / "index.html"
     write(index, render(ROOT / "tools" / "review_index.html", index_data(), current="index", out=index))

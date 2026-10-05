@@ -81,8 +81,19 @@ class NavigationMap(BaseModel):
                 best = module
         return best
 
+    def modules_for(self, layer: HISLayer) -> list[ModuleMap]:
+        """Every module the crawl filed under ``layer``, most confident first.
+
+        Usually one. A portal that splits a layer across modules -- billing as
+        "Accounts" and "Insurance & Payers" -- gives two, and the adapter reads
+        a field from whichever holds it.
+        """
+
+        found = [m for m in self.modules if m.inferred_layer == layer]
+        return sorted(found, key=lambda m: -m.layer_confidence)
+
     def layers(self) -> tuple[HISLayer, ...]:
-        return tuple(m.inferred_layer for m in self.modules if m.inferred_layer is not None)
+        return tuple(dict.fromkeys(m.inferred_layer for m in self.modules if m.inferred_layer is not None))
 
     def agent_pages(self) -> dict[str, str]:
         """Artefact key -> portal page, for ``agent.Session(navigation=...)``.

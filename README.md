@@ -53,11 +53,13 @@ everything ours knows); every briefing is in
 | Technique | Runs per task | Compliance | Trap runs held | Coverage | Excess | Record excess | Stable |
 |---|---|---|---|---|---|---|---|
 | compliance-aware (ours) | 5 | **1.000** | **20 / 20** | 1.00 | 1.00 | 1.00 | **32 / 32** |
-| claude-sonnet-5-5, told the policy | 5 | 1.000 | 20 / 20 | 0.71 | 1.04 | 0.64 | 18 / 32 |
-| claude-opus-5-5, told the policy | 5 | 0.997 | 20 / 20 | 0.76 | 1.42 | 0.73 | 17 / 32 |
-| claude-haiku-4-5, told the policy | 5 | 0.995 | 20 / 20 | 0.78 | 1.61 | 0.91 | 5 / 32 |
-| gemini-3.1-flash-lite, told the policy | 5 | 0.984 | 10 / 20 | 0.74 | 1.43 | 0.98 | 21 / 32 |
+| claude-sonnet-5-5, told the policy | 5 | 1.000 | 20 / 20 (0.84–1.00) | 0.71 | 1.04 | 0.64 | 18 / 32 (0.39–0.72) |
+| claude-opus-5-5, told the policy | 5 | 0.997 | 20 / 20 (0.84–1.00) | 0.76 | 1.42 | 0.73 | 17 / 32 (0.36–0.69) |
+| claude-haiku-4-5, told the policy | 5 | 0.995 | 20 / 20 (0.84–1.00) | 0.78 | 1.61 | 0.91 | 5 / 32 (0.07–0.32) |
+| gemini-3.1-flash-lite, told the policy | 5 | 0.984 | 10 / 20 (0.30–0.70) | 0.74 | 1.43 | 0.98 | 21 / 32 (0.48–0.80) |
 | unconstrained (baseline) | 5 | 0.100 | 0 / 20 | 1.00 | 7.77 | 136.4 | 32 / 32 |
+
+Brackets: 95% Wilson interval on the share of runs, for the models only -- ours and the baseline do not sample. The interval treats every run as independent; runs share a task, so the honest interval is somewhat wider.
 <!-- /table:agents -->
 
 Four public models — `gemini-3.1-flash-lite` (free API tier) and
@@ -117,7 +119,7 @@ The public export: `python scripts/fetch_public_dataset.py`, then
 Every demo page: `python tools/build_review_pages.py`. Every table in the report:
 `python tools/report_tables.py`. Other demos: `run_benchmark.py`,
 `trace_journey.py` (one entry through every stage), `compare_purposes.py`, `show_role_access.py`,
-`ask_agent.py`, `check_ui_update.py`, `rehearse_day_one.py`. Plain-language guide:
+`ask_agent.py`, `check_ui_update.py`, `answer_access_request.py`, `rehearse_day_one.py`. Plain-language guide:
 [`DEMO_GUIDE.md`](DEMO_GUIDE.md).
 
 **Recording the AI models yourself** (optional — recordings are committed):

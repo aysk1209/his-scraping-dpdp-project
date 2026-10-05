@@ -224,10 +224,48 @@ changed?" hears only the changes that touch their own functions. Through all
 of it the gate does not move: a release changes the screens, not who may do
 what (`scripts/check_ui_update.py`; `tests/agent/test_tasks_and_updates.py`).
 
+The scraper keeps up for the same reason: it too reads the crawl, not a
+hard-coded screen (§5.2). Benchmarked on the updated portal
+(`python scripts/run_pipeline.py --layout v2`, with the alias file once the
+"Unit" proposal is confirmed), every one of the fourteen technique rows has the
+same compliance score, coverage, trap result and field count as on the
+original — fourteen of fourteen. Only the cost moved: the compliant technique
+needs 53 page loads rather than 32, because the release put the ward and the
+diagnosis on record pages and split billing in two, so the same fields now sit
+behind more pages; the baseline, which already opened every record, moved from
+440 to 448. A release changed what the work costs and nothing about whether it
+is lawful, which is the property a compliance claim needs to survive an update.
+`docs/review/his-update.html` shows both halves.
+
 The assistant remains deliberately rule-based: no model, and no patient data
 leaves the machine. Its value to the project is still the moment in Chapter 7's
 Table 6 where the compliance layer visibly does work outside the benchmark: a
 decline, with the rule cited, before a single detail is asked for.
+
+## 6.5 Answering the patient
+
+The desk logs a patient's request for a copy of their data and routes it to the
+hospital's data-protection contact (§6.4). The contact's answer is built from
+evidence the pipeline wrote, not from anyone's recollection
+(`compliance/access_report.py`; `scripts/answer_access_request.py`). The
+patient's record number is turned into the audit log's token, and the log is
+read back for every extraction that read the patient's records — when, by which
+technique, for which purpose, and which fields by data category — every export
+made from those runs, whether it was pseudonymised, and the date its retention
+sidecar says it will be erased, and every erasure already carried out. Runs
+that read records carrying no patient key are reported as runs the log cannot
+answer for. The answer reproduces no value from the record and shows the record
+number only masked: the reply to an access request must not itself become a
+disclosure.
+
+The same evidence shows minimisation from the patient's side. Over the
+benchmark's eight tasks, a patient whom no task was about had their records
+read by the compliant technique in two runs — the two tasks that cover a whole
+ward or registry — and by the baseline in all eight, six of them about somebody
+else. A data principal asking what was done with their data is the Act's right
+of access; a pipeline that names, per run and per patient, whose data it read
+is what lets a fiduciary answer it.
+
 
 ---
 

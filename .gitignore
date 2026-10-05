@@ -45,6 +45,8 @@ htmlcov/
 !/docs/benchmark_results/care-pull--compliance-aware--purpose-matrix.md
 !/docs/benchmark_results/billing-pull--compliance-aware--purpose-matrix.md
 !/docs/benchmark_results/benchmark-portal.md
+!/docs/benchmark_results/benchmark-portal-v2.json
+!/docs/benchmark_results/benchmark-portal-v2.md
 !/docs/benchmark_results/navigation-map.json
 !/docs/benchmark_results/navigation-map.md
 !/docs/benchmark_results/ui-update-check.md

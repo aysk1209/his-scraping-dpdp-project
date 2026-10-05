@@ -368,7 +368,11 @@ and a manifest that claims TLS over a plain connection is unsubstantiated
 whatever the register lists. The **audit log** (`compliance/audit.py`) is
 written by the benchmark harness at the metering boundary — the technique
 cannot log itself, it simply is logged — with the fields pulled, the record
-count and a digest of the manifest declared, never a value. Pseudonymisation
+count, the patients read and a digest of the manifest declared, never a value.
+Patients appear only as keyed tokens of their record number, so the log can
+answer a patient who asks what was done with their data (§6.5) without holding
+a record number itself; records that carried no patient key are counted as
+unattributed, so the log says what it cannot answer for. Pseudonymisation
 is checked by the **export audit** (§6). And the **deletion mechanism** is
 real (`compliance/retention.py`): every export carries a sidecar with the
 retention the manifest declared and the date after which it must go, and

@@ -25,6 +25,7 @@ PAGES = [
     ("real", REVIEW_DIR / "real-data.html", "Real data"),
     ("journey", REVIEW_DIR / "journey.html", "Journey"),
     ("assistant", REVIEW_DIR / "assistant.html", "Assistant"),
+    ("update", REVIEW_DIR / "his-update.html", "HIS update"),
     ("rules", ROOT / "docs" / "benchmark_results" / "rules-vs-just-ai.html", "Rules vs AI"),
 ]
 

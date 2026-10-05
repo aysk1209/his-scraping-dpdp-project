@@ -17,6 +17,14 @@ portal shows display labels. ``field_aliases`` maps label to catalogue field and
 is applied as headers are read, so discovery, layer inference and fetching all see
 catalogue names. That mapping is the one piece of portal-specific knowledge in the
 chain, and it sits here, where it belongs.
+
+A layer is usually one module. When a portal splits it -- a release that moves
+the payer and the policy number out of "Billing" into "Insurance & Payers" --
+the crawl files both modules under the layer, and a request for fields from both
+is read from each and joined on the patient key (``catalogue.SUBJECT_KEY``),
+record by record, in the order the portal lists them. Every page that costs is a
+real page load. A field whose module cannot be joined is left out, not guessed:
+it shows up as lost coverage, which is what it is.
 """
 
 from __future__ import annotations
@@ -25,9 +33,10 @@ from collections.abc import Iterator
 from typing import Any
 from urllib.parse import quote
 
+from data_synthetic.catalogue import subject_key
 from extraction.base import HISDataSource
 from extraction.tier2.browser import PortalBrowser
-from extraction.tier2.navigation import NavigationMap, discover
+from extraction.tier2.navigation import ModuleMap, NavigationMap, discover
 from interop.layers import HISLayer
 
 
@@ -72,8 +81,10 @@ class PortalHISDataSource(HISDataSource):
         return self.navigation.layers()
 
     def fields(self, layer: HISLayer) -> list[str] | None:
-        module = self.navigation.module_for(layer)
-        return [] if module is None else list(module.all_fields())
+        seen: list[str] = []
+        for module in self.navigation.modules_for(layer):
+            seen += [f for f in module.all_fields() if f not in seen]
+        return seen
 
     def fetch(
         self,
@@ -83,12 +94,57 @@ class PortalHISDataSource(HISDataSource):
         where: dict[str, Any] | None = None,
         **query: Any,
     ) -> Iterator[dict[str, Any]]:
-        module = self.navigation.module_for(layer)
-        if module is None:
+        primary = self.navigation.module_for(layer)
+        if primary is None:
+            return
+        wanted = list(fields) if fields is not None else (self.fields(layer) or [])
+        plan = self._plan(layer, primary, wanted)
+        if len(plan) == 1:
+            # The usual case, and every benchmarked portal: one module holds it all.
+            yield from self._read(primary, wanted, where, limit=self.max_records)
             return
 
-        wanted = list(fields) if fields is not None else module.all_fields()
-        # Only open a record when something asked for is not in the list table.
+        # The layer is split. Read each module's share with the join key, then
+        # pair records by key in listing order.
+        key = subject_key(layer)
+        own = {m.title: [f for f in wanted if f in m.all_fields()] for m in plan}
+        joinable = [m for m in plan[1:] if key and key in m.all_fields() and key in primary.all_fields()]
+        extra: dict[str, dict[str, list[dict[str, Any]]]] = {}
+        for module in joinable:
+            index: dict[str, list[dict[str, Any]]] = {}
+            for row in self._read(module, [key, *own[module.title]], where, limit=None):
+                index.setdefault(str(row.get(key, "")), []).append(row)
+            extra[module.title] = index
+        main_fields = own[primary.title] + ([key] if key and key not in own[primary.title] else [])
+        for row in self._read(primary, main_fields, where, limit=self.max_records):
+            record = dict(row)
+            for module in joinable:
+                queue = extra[module.title].get(str(row.get(key, "")))
+                if queue:
+                    record.update(queue.pop(0))
+            yield {name: record[name] for name in wanted if name in record}
+
+    def _plan(self, layer: HISLayer, primary: ModuleMap, wanted: list[str]) -> list[ModuleMap]:
+        """The fewest modules that hold the wanted fields, the best module first."""
+
+        plan = [primary]
+        missing = [f for f in wanted if f not in primary.all_fields()]
+        others = [m for m in self.navigation.modules_for(layer) if m is not primary]
+        while missing and others:
+            best = max(others, key=lambda m: sum(1 for f in missing if f in m.all_fields()))
+            if not any(f in best.all_fields() for f in missing):
+                break
+            plan.append(best)
+            others.remove(best)
+            missing = [f for f in missing if f not in best.all_fields()]
+        return plan
+
+    def _read(
+        self, module: ModuleMap, wanted: list[str], where: dict[str, Any] | None, *, limit: int | None,
+    ) -> Iterator[dict[str, Any]]:
+        """One module's records, as a person would read them: list pages, and a
+        record page only when something asked for is not in the list table."""
+
         need_detail = any(name not in module.columns for name in wanted)
 
         # A scoped pull goes through the portal's search box, the way a person
@@ -102,7 +158,7 @@ class PortalHISDataSource(HISDataSource):
         yielded = 0
         for table in self._browser.iter_table_pages(first_url):
             for row, link in zip(table.rows, table.row_links):
-                if self.max_records is not None and yielded >= self.max_records:
+                if limit is not None and yielded >= limit:
                     return
                 if where and any(str(row.get(k, "")) != str(v) for k, v in where.items() if k in row):
                     continue

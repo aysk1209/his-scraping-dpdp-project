@@ -78,6 +78,8 @@ class NormalisedOutput(BaseModel):
     hl7: dict[str, list[str]] = Field(default_factory=dict)              # layer -> encoded messages
     fhir: dict[str, list[dict[str, Any]]] = Field(default_factory=dict)  # layer -> resources
     skipped_standards: list[str] = Field(default_factory=list)
+    subjects: list[str] = Field(default_factory=list)    # audit tokens of the patients exported
+    unattributed: int = 0
 
     def counts(self) -> dict[str, int]:
         return {
@@ -154,6 +156,7 @@ class NormalisedOutput(BaseModel):
             (audit or AuditLog()).record(AuditEvent(
                 event="export", run_id=self.run_id, purpose=self.purpose,
                 records=self.counts()["hl7_messages"] + self.counts()["fhir_resources"],
+                subjects=self.subjects, unattributed=self.unattributed,
                 note=f"{'pseudonymised' if self.pseudonymised else 'RAW'} export, "
                      f"{len(written)} file(s); " + (self.schedule_note or "no retention declared"),
             ))
@@ -189,6 +192,8 @@ def normalise(output: TechniqueOutput, *, key: str | None = None) -> NormalisedO
         purpose=output.run.purpose.value, retention_days=output.run.retention_days,
         deletion_mechanism=output.run.deletion_mechanism or "",
     )
+    from compliance.audit import subjects_in           # lazy: compliance.audit imports interop
+    result.subjects, result.unattributed = subjects_in(output.rows)
 
     for layer_value, rows in output.rows.items():
         layer = HISLayer(layer_value)

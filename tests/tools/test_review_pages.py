@@ -78,3 +78,20 @@ def test_the_portal_page_traces_every_page_load_and_shows_no_record_number(tmp_p
     searches = [v for v in visits if v["kind"] == "search"]
     assert searches and all(v["q"].startswith("PSN-") for v in searches)
     assert data["meta"]["tls"] is True
+
+
+@pytest.mark.usefixtures("browser_available")
+def test_the_update_page_shows_every_task_placed_after_the_release(tmp_path):
+    from tools import build_update_page
+    out = tmp_path / "his-update.html"
+    data = build_update_page.build(out)
+    assert data == _data(out.read_text(encoding="utf-8"))
+    m = data["meta"]
+    assert m["tasks"] == len(REGISTRY)
+    assert m["reworded"] + m["withheld"] + m["unchanged"] == m["tasks"]
+    assert m["withheld"] > 0 and m["restored"] == m["tasks"]
+    # Every withheld step says why, and no withheld step is shown as if current.
+    for t in data["tasks"]:
+        if t["status"] == "withheld":
+            assert t["reasons"] and any(s["withheld"] for s in t["after"])
+            assert not any(s["withheld"] for s in t["fixed"])

@@ -161,7 +161,8 @@ and what a member of staff may be told.
   and the **export audit** — the manifest's claim verified against output.
 - 6.3 Role access derived from purposes ∩ interoperability artefacts; the three
   checks; artefacts granted to no role and why.
-- 6.4 The assistant: registry, recognition, gate-before-collect, grounded steps.
+- 6.4 The assistant: registry (29 functions, six groups), recognition, gate-before-collect, steps worded from the crawl; 6.4.1 a HIS update (assistant and scraper).
+- 6.5 Answering the patient: the access summary from the audit log (patients as keyed tokens) and the retention sidecars.
   Say explicitly: no model, no training; a completeness deliverable whose one
   research-relevant property is the gate.
 

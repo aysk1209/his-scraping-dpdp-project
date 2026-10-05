@@ -5,8 +5,17 @@ The capability register says the deployment has an audit log of extraction runs
 benchmark harness and by the export stage -- never by a technique -- so a
 technique cannot claim to have been logged; it simply is. Each line is one
 event: what run, which technique, for what purpose, which fields from which
-layers, how many records, and a digest of the manifest it declared. Values are
-never written: fields are named, records are counted.
+layers, how many records, which patients, and a digest of the manifest it
+declared. Values are never written: fields are named, records are counted, and
+patients appear only as keyed tokens of their record number (``subject_token``)
+-- enough to answer a patient who asks what was done with their data, and
+nothing a reader of the log could turn back into a record number without the
+audit key. Records that carried no patient key are counted as unattributed, so
+the log says plainly what it cannot answer for.
+
+# DPDP Act 2023 -- rights of the data principal (access to information about
+# processing): the log names, per run, whose data was read, so a request can be
+# answered from evidence rather than reconstructed.
 
 Append-only JSON lines, one file, under ``data/`` (git-ignored) by default. A
 deployment would keep it somewhere with its own access control; the point here
@@ -30,11 +39,45 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from compliance.models import ExtractionRun
+from compliance.pseudonymise import token_for
+from data_synthetic.catalogue import subject_key
+from interop.layers import HISLayer
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 AUDIT_DIR_ENV = "DPDP_AUDIT_DIR"
 DEFAULT_AUDIT_DIR = _REPO_ROOT / "data" / "audit"
 AUDIT_FILE = "extraction-audit.jsonl"
+# The audit key turns a record number into the token the log stores. A
+# deployment sets its own and keeps it with the data-protection contact; the
+# default makes the fixture's log reproducible and protects nothing.
+AUDIT_KEY_ENV = "DPDP_AUDIT_KEY"
+_DEV_AUDIT_KEY = "fixture-audit-key--not-a-secret"
+
+
+def audit_key() -> str:
+    return os.environ.get(AUDIT_KEY_ENV) or _DEV_AUDIT_KEY
+
+
+def subject_token(value: Any) -> str:
+    """The token the audit log stores for one patient's record number."""
+
+    return token_for(value, key=audit_key())
+
+
+def subjects_in(rows: dict[str, list[dict[str, Any]]]) -> tuple[list[str], int]:
+    """Tokens of the patients whose records ``rows`` carry, and how many rows had no key."""
+
+    tokens: set[str] = set()
+    unattributed = 0
+    for layer_value, layer_rows in rows.items():
+        key = subject_key(HISLayer(layer_value))
+        for row in layer_rows:
+            value = row.get(key) if key else None
+            if value in (None, ""):
+                unattributed += 1
+            else:
+                tokens.add(subject_token(value))
+    return sorted(tokens), unattributed
 
 
 def manifest_digest(run: ExtractionRun) -> str:
@@ -53,6 +96,8 @@ class AuditEvent(BaseModel):
     source: str = ""                             # how the source described itself
     fields: dict[str, list[str]] = Field(default_factory=dict)   # layer -> field names pulled
     records: int = 0
+    subjects: list[str] = Field(default_factory=list)            # keyed tokens of the patients read
+    unattributed: int = 0                                        # records read with no patient key
     manifest_sha256: str = ""
     note: str = ""
 
@@ -91,12 +136,23 @@ class AuditLog:
         fields: dict[str, list[str]],
         records: int,
         source: str = "",
+        rows: dict[str, list[dict[str, Any]]] | None = None,
     ) -> AuditEvent:
+        subjects, unattributed = subjects_in(rows) if rows is not None else ([], 0)
         return self.record(AuditEvent(
             event="extraction", run_id=run.run_id, technique=technique,
             purpose=run.purpose.value, source=source, fields=fields, records=records,
+            subjects=subjects, unattributed=unattributed,
             manifest_sha256=manifest_digest(run),
         ))
+
+    def touching(self, token: str) -> list[AuditEvent]:
+        """Every event whose run read the patient behind ``token``, and the events
+        that followed from those runs (their exports and purges)."""
+
+        entries = self.entries()
+        runs = {e.run_id for e in entries if token in e.subjects}
+        return [e for e in entries if e.run_id in runs]
 
     def entries(self) -> list[AuditEvent]:
         if not self.path.exists():
@@ -131,4 +187,5 @@ def fields_by_layer(pulled: set[tuple[str, str]]) -> dict[str, list[str]]:
     return out
 
 
-__all__ = ["AuditEvent", "AuditLog", "manifest_digest", "fields_by_layer", "AUDIT_DIR_ENV", "DEFAULT_AUDIT_DIR"]
+__all__ = ["AuditEvent", "AuditLog", "manifest_digest", "fields_by_layer", "AUDIT_DIR_ENV", "DEFAULT_AUDIT_DIR",
+           "AUDIT_KEY_ENV", "audit_key", "subject_token", "subjects_in"]

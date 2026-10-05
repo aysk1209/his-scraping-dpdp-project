@@ -124,6 +124,15 @@ alone. A technique that asks for more than it needs therefore loads more pages,
 and the meter of Chapter 4 reports the browser's own count. This is where the
 benchmark's page-load column comes from, and it is not simulated.
 
+**A layer split across modules.** A portal need not keep one layer in one
+module: a release may move the payer and the policy number out of billing into
+an "Insurance & Payers" module of their own. The crawl files every module under
+the layer its fields indicate, so both halves are found; a request for fields
+from both is read from each and joined on the patient key, in the order the
+portal lists the records, and a field whose module cannot be joined is left
+out rather than guessed. When one module holds every requested field — every
+benchmarked case — the adapter reads exactly as before, page for page.
+
 The three techniques were written against the in-memory source and run against
 this adapter **unchanged**; the test suite asserts it. That is the proof the
 adapter boundary of Chapter 4 holds, and it is what makes the next component a

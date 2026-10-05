@@ -293,7 +293,8 @@ def journey(directory: Path = DEFAULT_DATASET, *, column_map: dict | None = None
                 [run] = _run_task(technique, bound, recorder, 1, necessary)
                 output = run.output
                 audit.extraction(output.run, technique=technique.name, records=len(output.records),
-                                 fields=fields_by_layer(set(run.key[0])), source=f"dataset {directory.name}")
+                                 fields=fields_by_layer(set(run.key[0])), source=f"dataset {directory.name}",
+                                 rows=output.rows)
                 report = run_all(output.run, output.records)
                 shaped = normalise(output, key=key)
                 check = audit_export(output, shaped)

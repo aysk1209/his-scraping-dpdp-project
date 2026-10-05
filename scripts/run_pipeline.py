@@ -56,7 +56,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import _present as present
 from agent import ReplyKind, Session, StaffRole
-from compliance.audit import AuditLog
+from compliance.audit import AuditLog, fields_by_layer
 from compliance.benchmark import bind_subject, run_benchmark
 from compliance.retention import purge_expired, schedules
 from compliance.models import Purpose
@@ -193,6 +193,11 @@ def run_downstream(scraper, navigation, dataset_note: str, artefact: str | None 
           f"through the source's own filter (a portal's search box, a file's rows), the baseline reads every module")
     output = CompliantExtractionTechnique().extract(scraper, summary)
     baseline = UnconstrainedExtractionTechnique().extract(scraper, summary)
+    # These two pulls are extractions too, and the log says so -- with whom they read.
+    for technique_name, out in (("compliance-aware", output), ("unconstrained", baseline)):
+        log.extraction(out.run, technique=technique_name, records=len(out.records),
+                       fields=fields_by_layer({(lv, f) for lv, rows in out.rows.items() for r in rows for f in r}),
+                       source=dataset_note, rows=out.rows)
     shaped_compliant = None
     for label, out in (("compliance-aware", output), ("baseline", baseline)):
         shaped = normalise(out)
@@ -271,6 +276,10 @@ def main() -> int:
     parser.add_argument("--user")
     parser.add_argument("--password")
     parser.add_argument("--aliases", help="JSON header -> field map for --portal")
+    parser.add_argument("--layout", choices=["v1", "v2"], default="v1",
+                        help="the fixture's layout: v1 (benchmarked) or v2 (after a simulated vendor release; "
+                             "crawled with the hospital's alias file plus the one header the update check "
+                             "proposed and a person confirmed); writes benchmark-portal-v2")
     args = parser.parse_args()
 
     print(present.banner("End-to-end: source -> scrape -> DPDP benchmark -> export -> purpose -> assistant"))
@@ -310,22 +319,35 @@ def main() -> int:
 
     else:
         source = MockHISDataSource(records_per_layer=args.records, seed=args.seed)
-        with BackgroundPortal(source, page_size=args.page_size, latency_ms=args.latency_ms) as portal:
-            stage(1, "PORTAL -- a login-gated HIS portal, served locally over TLS")
+        updated = args.layout == "v2"
+        aliases: dict[str, str] = {}
+        if updated:
+            from tools.mock_portal.layouts import V2_FIELD_ALIASES
+            # The alias file as it stands once the update check's one proposal
+            # ("Unit" = admission_ward) has been confirmed by a person.
+            aliases = {**V2_FIELD_ALIASES, "Unit": "admission_ward"}
+        with BackgroundPortal(source, page_size=args.page_size, latency_ms=args.latency_ms,
+                              layout=args.layout) as portal:
+            stage(1, "PORTAL -- a login-gated HIS portal, served locally over TLS"
+                     + (" -- after a vendor release (layout v2)" if updated else ""))
             print(f"  {portal.url}/   account {portal.username} / {portal.password}")
             print(f"  {args.records} records per module, {args.page_size} per page, "
                   f"{args.latency_ms} ms latency; robots.txt disallows all; self-signed certificate")
 
             stage(2, "DISCOVER -- a browser logs in and works out what is where")
             scraper = PortalHISDataSource(
-                portal.url, portal.username, portal.password, headless=not args.show
+                portal.url, portal.username, portal.password, headless=not args.show,
+                field_aliases=aliases,
             )
             print(scraper.navigation.render_table())
             print()
-            print(present.wrote(scraper.navigation.to_json_file()))
-            print(present.wrote(scraper.navigation.to_markdown_file()))
+            if not updated:          # the committed map is the benchmarked portal's
+                print(present.wrote(scraper.navigation.to_json_file()))
+                print(present.wrote(scraper.navigation.to_markdown_file()))
             run_downstream(scraper, scraper.navigation,
-                           f"portal, {args.records} records/module, seed {args.seed}")
+                           f"portal{' (layout v2)' if updated else ''}, {args.records} records/module, "
+                           f"seed {args.seed}",
+                           artefact=args.artefact or ("benchmark-portal-v2" if updated else None))
             scraper.close()
 
     elapsed = time.perf_counter() - started

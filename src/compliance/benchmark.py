@@ -933,7 +933,7 @@ def run_benchmark(
                 output = run.output
                 audit.extraction(
                     output.run, technique=technique.name, records=len(output.records),
-                    fields=fields_by_layer(set(run.key[0])), source=dataset_note,
+                    fields=fields_by_layer(set(run.key[0])), source=dataset_note, rows=output.rows,
                 )
                 events += 1
                 report = run_all(output.run, output.records)
