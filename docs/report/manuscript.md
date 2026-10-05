@@ -26,14 +26,15 @@ pulls beyond the purpose's need are simultaneously a cost and the overreach
 data minimisation forbids. Two further measures separate declarations from
 facts: manifest veracity, which checks each declared control against what the
 deployment can show, and trap tasks, whose wording invites a violation the
-purpose does not permit. We compare a rule-driven technique with three publicly
+purpose does not permit. We compare a rule-driven technique with four publicly
 available AI models given the same job, briefed with field names only, and with
 a coverage-optimised baseline, on synthetic data, on a login-gated portal
 scraped by a real browser, and on a public export we did not generate. The
 models match the rule-driven technique on the manifest they declare, but take
-1.4–1.7 times the fields the tasks need while obtaining only 74–81 % of them;
-unaided, none holds a single trap; handed the purpose policy itself, all obey
-its numbers and two of three still take data its categories forbid; and none
+up to 1.6 times the fields the tasks need while obtaining only 71–78 % of them;
+unaided or told the Act, they hold 35 of 160 trap runs; handed the purpose
+policy itself, three hold every trap and one still takes data its categories
+forbid — compliance that depends on the policy being in the prompt — and none
 reproduces its own decisions reliably. The rule-driven technique holds every
 trap, reproduces itself in every repeat, and loads 32 pages where the baseline
 loads 440. We contribute (i) executable compliance rules over an extraction
@@ -74,7 +75,7 @@ measured, compared and verified. Our claim is not that one technique is
 lawful; it is that lawfulness can be scored, per principle, on the same scale
 for every technique, and set beside cost — and that doing so separates
 techniques that look alike on every conventional metric. The claim is tested
-against three publicly available AI models, the class of technique most likely
+against four publicly available AI models, the class of technique most likely
 to be deployed next and the one whose compliance is least transparent.
 
 We make it without a hospital's data. A hospital export is the personal data
@@ -241,11 +242,10 @@ the one that gates the assistant.
 about one patient, over 50 synthetic records per layer. The portal workload has
 four tasks (one trap) over 20 records per module, ten per page. The public
 export is the Synthea sample: 108 synthetic patients in 18 CSV files, one per
-clinical concept, that we did not generate. The three models are
-`gemini-3.1-flash-lite` (five runs per task under each briefing) and
-`claude-haiku-4-5` and `claude-sonnet-5` (two runs per task told the policy,
-one unaided — the minimum that places a model in the tables and measures
-whether it repeats itself), sampled at their providers' defaults.
+clinical concept, that we did not generate. The four models are
+`gemini-3.1-flash-lite`, `claude-haiku-4-5`, `claude-sonnet-5-5` and
+`claude-opus-5-5`, each run five times per task under each of three briefings
+(480 decisions), sampled at their providers' defaults.
 
 **Table I.** One row per technique, each model told the policy; in memory.
 
@@ -253,8 +253,9 @@ whether it repeats itself), sampled at their providers' defaults.
 | Technique | Runs per task | Compliance | Trap runs held | Coverage | Excess | Record excess | Stable |
 |---|---|---|---|---|---|---|---|
 | compliance-aware (ours) | 5 | **1.000** | **20 / 20** | 1.00 | 1.00 | 1.00 | **32 / 32** |
-| claude-haiku-4-5, told the policy | 2 | 0.996 | 8 / 8 | 0.79 | 1.56 | 0.82 | 0 / 8 |
-| claude-sonnet-5, told the policy | 2 | 0.994 | 6 / 8 | 0.81 | 1.66 | 0.91 | 6 / 8 |
+| claude-sonnet-5-5, told the policy | 5 | 1.000 | 20 / 20 | 0.71 | 1.04 | 0.64 | 18 / 32 |
+| claude-opus-5-5, told the policy | 5 | 0.997 | 20 / 20 | 0.76 | 1.42 | 0.73 | 17 / 32 |
+| claude-haiku-4-5, told the policy | 5 | 0.995 | 20 / 20 | 0.78 | 1.61 | 0.91 | 5 / 32 |
 | gemini-3.1-flash-lite, told the policy | 5 | 0.984 | 10 / 20 | 0.74 | 1.43 | 0.98 | 21 / 32 |
 | unconstrained (baseline) | 5 | 0.100 | 0 / 20 | 1.00 | 7.77 | 136.4 | 32 / 32 |
 <!-- /table:agents -->
@@ -266,35 +267,40 @@ party, and cites the register correctly (veracity 1.00 in all but one run).
 The baseline scores 0.100 and fails every rule. The separation lies in the
 columns the score does not show.
 
-*Traps.* Unaided or told the Act, no model held a single trap run — 48 runs in
-all. Told the policy, every model set every retention exactly at the purpose's
-ceiling and dropped the onward use: all three obey the policy's numbers.
-Whether they obey its categories differs: one model held all four traps; one
-held three and took the diagnosis for billing in every run; one held the two
-that turn on a number or a declaration and none of the two that turn on taking
-a field. A sentence in the request outranked a table in the same prompt for two
-of three models. Ours held all four in every run, because the wording is not an
-input to it.
+*Traps.* Unaided or told the Act, no model held more than 11 of its 20 trap
+runs, two held none, and 35 of 160 were held in all. Told the policy, every
+model kept retention within the purpose's ceiling and dropped the onward use:
+all obey the policy's numbers. Whether they obey its categories differs: the
+three Claude models held all four traps in every run; the Gemini model held the
+two that turn on a number or a declaration and none of the two that turn on
+taking a field, taking the diagnosis for billing in every run. Ours held all
+four in every run, because the wording is not an input to it — the stronger
+models match it on the traps only when the policy it applies is pasted into
+their prompt.
 
-*Coverage and excess.* Told the policy, the models took 1.43–1.66 times the
-fields the tasks need and obtained 74–81 % of the fields the tasks need — a
+*Coverage and excess.* Told the policy, the models took 1.04–1.61 times the
+fields the tasks need and obtained 71–78 % of the fields the tasks need — a
 name where the task needs a record number, an e-mail where it needs a phone.
+One model scored a perfect 1.000 told the policy while obtaining 71 % of what
+the jobs need: the score alone cannot tell compliance from doing less.
 Each substitute is a lawful category, so the score is untouched; the job is
 not done as specified. Over-collection and under-collection at once is why
 excess and coverage must be read together.
 
 *Stability.* Given the same brief again, the models reproduced their first
-decision — the same fields and the same manifest structure — in 21 of 32, 6 of
-8 and 0 of 8 repeats; the last changed its field selection in seven of eight
-repeats while holding every trap. Ours and the baseline reproduced themselves
+decision — the same fields and the same manifest structure — in 21, 18, 17 and
+5 of 32 repeats told the policy, and in no more than 21 of 32 under any
+briefing; the last held every trap while changing its decision in 27 of 32
+repeats. Ours and the baseline reproduced themselves
 in every repeat: neither samples. A model's compliance is a sample from a
 distribution, and deploying one deploys the distribution.
 
 *Cost.* On the portal, ours reads a patient through the search box — 32 page
 loads for the four tasks against the baseline's 440, a factor of fourteen, at
 identical coverage; the baseline reads 50 times the patient's own records to
-answer for one. The fields a model takes beyond the job cost real pages: 35, 36
-and 55 page loads.
+answer for one. The fields a model takes beyond the job cost real pages: 35,
+36 and 54 page loads; the one model that matched our 32 left out a sixth of the
+fields the job needs.
 
 *Weights.* Re-scoring under twenty-one alternative weightings of the seven
 rules never places a technique above ours or moves the baseline from last.
@@ -329,9 +335,10 @@ manifest worth scoring.
 | Technique | Compliance | Coverage | Excess | Records read ÷ the patient's own | Trap held |
 |---|---|---|---|---|---|
 | compliance-aware (ours) | **1.000** | 0.61 | 0.61 | 0.51× | 1 / 1 |
+| claude-opus-5-5, told the policy | 1.000 | 0.50 | 1.00 | 1.00× | 1 / 1 |
+| claude-sonnet-5-5, told the policy | 1.000 | 0.50 | 0.89 | 1.00× | 1 / 1 |
 | claude-haiku-4-5, told the policy | 0.999 | 0.56 | 0.94 | 1.03× | 1 / 1 |
 | gemini-3.1-flash-lite, told the policy | 0.994 | 0.50 | 1.06 | 1.06× | 0 / 1 |
-| claude-sonnet-5, told the policy | 0.992 | 0.56 | 1.17 | 1.06× | 0 / 1 |
 | unconstrained (baseline) | 0.113 | 0.72 | 4.44 | 548.8× | 0 / 1 |
 
 Coverage ceiling, measured from the export: 11 of the 18 fields the tasks need are obtainable; 5 are not in the export and 2 are not in the records of the patient a single-patient task is about.
@@ -358,20 +365,23 @@ as good as ours; the Act's paperwork is not where rule and model differ. They
 differ where the Act's substance lies — what is taken, for what, and whether
 the same answer comes twice — and those differences are visible only because
 the benchmark measures coverage, traps and stability beside the score. Telling
-a model the policy closes part of the gap and not the rest: it obeys numbers
-and not categories, and for most models a sentence in the request outweighs
-the policy in the same prompt. A rule-driven technique is immune not by tuning
-but by construction: the wording is not an input to it.
+a model the policy closes the trap gap for the stronger models and leaves the
+rest: they hold every trap once the policy is in the prompt, yet still do a
+fraction of the job and still change their answer between runs, and a weaker
+model lets a sentence in the request outweigh the policy beside it. A
+rule-driven technique needs neither the policy pasted into a prompt nor luck in
+sampling: the wording is not an input to it, and it answers the same way every
+time.
 
 **Threats.** The portal is our fixture; it demonstrates the mechanism of
 browser-driven extraction, not robustness to a vendor's interface, which only
 live access would test. No hospital data was used; the rules see categories,
 not values, so the compliance figures do not depend on distributions, and a
 public export narrowed the structural gap, but a hospital's own structure is
-unseen. Two of three models were sampled twice per task: enough to show that
-decisions vary, not to characterise the distribution, and the told-the-policy
-differences between models are suggestive rather than established; the unaided
-result — no trap held in 48 runs — is not. The capability register, the traps
+unseen. Each model was sampled five times per task: enough to show how often
+decisions vary, not to characterise the distribution; the unaided and
+told-the-Act result — 35 of 160 trap runs held — is unlikely to reverse with
+more samples. The models are one provider's family and one model of another. The capability register, the traps
 and the baseline are ours; four register controls are demonstrated by the
 pipeline rather than attested, each trap is a plausible request whose purpose
 and needed fields are lawful, and the baseline is a lower bound on what a

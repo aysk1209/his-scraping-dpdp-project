@@ -197,7 +197,7 @@ separates declared from actual.
 - 7.7 A public export we did not generate: why not the hospital's; handling;
   what the adapter understood; Table 7 on the export; the five defects it found
   (written 2026-09-23; a hospital export, if released, regenerates this section).
-- 7.8 Threats to validity: self-authored fixture; no hospital data; three models
+- 7.8 Threats to validity: self-authored fixture; no hospital data; four models, five samples each
   and small samples; the CLI access path; hand-written baseline; one setting;
   section mapping.
 

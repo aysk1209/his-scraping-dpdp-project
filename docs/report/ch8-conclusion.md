@@ -1,6 +1,6 @@
 # Chapter 8 — Conclusion
 
-*Draft 2, 2026-09-23 — three public models; the public export as the
+*Draft 3, 2026-10-06 — four public models; the public export as the
 real-world evidence, a hospital dataset not being assumed. The numbered
 contribution list is the source of the manuscript's contribution list and of
 Chapter 1's; keep the three in step.*
@@ -34,13 +34,13 @@ Appendix E.
    scores well by pulling less than the task needs. Two harder measures sit
    beside them: manifest veracity — declarations checked against what the
    deployment actually provides — and trap tasks, whose wording invites a
-   violation the purpose forbids. Three publicly available AI models given the
+   violation the purpose forbids. Four publicly available AI models given the
    same job match ours on the manifest they declare, but take more fields than
-   the task needs while obtaining less of what it needs; unaided, none holds a
-   single trap in any run; handed the purpose policy itself, all obey its
-   numbers and two of three still take data its categories forbid; and none
-   reproduces its own decisions reliably — one changed its fields in every
-   repeat. Ours holds all four traps and reproduces itself in every repeat, by
+   the task needs while obtaining less of what it needs; unaided or told the
+   Act they hold 35 of 160 trap runs; handed the purpose policy itself, three
+   hold every trap — they comply when given the table ours applies — and one
+   still takes data its categories forbid; and none reproduces its own
+   decisions reliably — one changed its decision in 27 of 32 repeats. Ours holds all four traps and reproduces itself in every repeat, by
    construction. Four of the
    register's controls are demonstrated by the pipeline itself — an observed
    connection, an audit log written by the harness, an export audit, a
@@ -120,17 +120,19 @@ Three extensions follow directly from decisions recorded in this report.
   real interface demonstrates robustness. The label map and the generic
   selectors are designed for that transfer, and it is the first thing to do if
   live access is ever granted.
-- **More models, larger samples.** Two of the three models were sampled twice
-  per task, the minimum that measures repeatability; the recorder resumes to any
-  sample count, and a further provider is one adapter away. The told-the-policy
-  differences between models are suggestive at this size, not established.
+- **More models, larger samples.** Four models were each sampled five times per
+  task under three briefings; that shows how often decisions vary, not the
+  shape of the distribution. The recorder resumes to any sample count, and a
+  further provider is one adapter away; a model family other than the two
+  measured is the obvious next row.
 
 ## 8.5 Closing
 
 The compliant technique scores 1.000 and the baseline 0.100 on the same seven
-rules; the compliant technique loads one page in fourteen; two of three public
-AI models, handed the purpose policy and told to cross-check an invoice against
-a diagnosis, take the diagnosis in every run, and ours never does; the same
+rules; the compliant technique loads one page in fourteen; public AI models
+hold 35 of 160 trap runs unless handed the purpose policy, and even handed it do
+71–78% of the job and change their answer between runs, while ours holds every
+trap, does the whole job and answers the same way every time; the same
 extraction
 is lawful for care and unlawful for billing; the compliant export contains no raw
 identifier and the baseline's contains all of them; and a receptionist asking for

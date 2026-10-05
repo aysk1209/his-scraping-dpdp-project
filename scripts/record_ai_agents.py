@@ -154,7 +154,8 @@ MODEL_LIMITS: dict[str, tuple[int, int]] = {
     "gemini-3.1-flash-lite": (15, 500),
     # Through a Claude subscription (claude-code): gentle pacing, inside a usage window.
     "claude-haiku-4-5": (6, 200),
-    "claude-sonnet-5": (6, 200),
+    "claude-sonnet-5-5": (6, 200),
+    "claude-opus-5-5": (6, 200),
 }
 DEFAULT_LIMITS = (5, 50)
 QUOTA_LEDGER = RECORDINGS_DIR / ".quota.json"

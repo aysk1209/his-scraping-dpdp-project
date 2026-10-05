@@ -143,12 +143,14 @@ through the Claude Code command line on a subscription sign-in, run headless
 from an empty directory with our brief as the entire system prompt, no tools,
 no MCP servers, no skills, and the effort level pinned rather than inherited
 from the user's settings. Each recording states how its samples were drawn.
-The results in Chapter 7 are from three models: `gemini-3.1-flash-lite` (Gemini
-API, free tier; five runs per task per briefing, recorded 2026-09-18), and
-`claude-haiku-4-5` and `claude-sonnet-5` (through the command line; two runs per
-task told the policy, one unaided, recorded 2026-09-23 — the minimum that puts a
-model in the tables and measures whether it repeats itself). The access path
-and the sample size are stated because they are part of the result. A
+The results in Chapter 7 are from four models, each recorded to the same depth
+— three briefings, eight tasks, five runs per task: `gemini-3.1-flash-lite`
+(Gemini API, free tier, recorded 2026-09-18), and `claude-haiku-4-5`,
+`claude-sonnet-5-5` and `claude-opus-5-5` (through the command line, recorded
+2026-10-05/06). An earlier `claude-sonnet-5` recording, at one to three runs per
+task, was replaced by its successor rather than reported alongside it. The
+access path and the sample size are stated because they are part of the
+result. A
 free-tier flagship of the Gemini family was attempted and dropped (§7.8): it
 served one or two requests a day in practice.
 
@@ -164,24 +166,28 @@ clinician for a summary that did not ask for them. It *does what the wording
 asks* rather than what the purpose permits: told to reconcile an invoice
 "against the diagnosis", it takes the diagnosis; told the consultant wants a
 file kept for a year, it declares a year. And — put the same brief again —
-it returns a different decision: in a third of repeats for Gemini, a quarter
-for Sonnet, and, for Haiku, in every one. None of the
+it returns a different decision: in a third to three quarters of repeats for Gemini,
+Sonnet and Opus, and, for Haiku, in nearly every one. None of the
 three is visible in the compliance score alone; all three are visible in the
 columns §4.3 and §4.5 add, which is why the benchmark has them.
 
 The third briefing sharpens the second of these to a finding. Handed the
-policy verbatim, every model obeys its *numbers* — every retention it declares
-sits exactly at the purpose's ceiling, the research registry is no longer
-declared as an onward use, and SL-01 and PL-01 both go to 1.00. Whether a model
-obeys its *categories* is where they differ. Told that clinical data is not
-permitted for billing, and that `primary_diagnosis` is clinical,
-`gemini-3.1-flash-lite` still takes the diagnosis to reconcile the invoice in
-five runs of five, and the insurance number at the registration desk in five of
-five, each time with a rationale saying the pull complies with data
-minimisation; `claude-sonnet-5` leaves the insurance number but takes the
-diagnosis in every run; `claude-haiku-4-5` holds both. For two of three models
-the wording of the request outranks the table in the same prompt. A rule cannot
-be outranked by a sentence, which is the design property under test.
+policy verbatim, every model obeys its *numbers* — no retention it declares
+exceeds the purpose's ceiling, the research registry is no longer declared as
+an onward use, and SL-01 and PL-01 both go to 1.00. Whether a model obeys its
+*categories* is where they differ. Told that clinical data is not permitted for
+billing, and that `primary_diagnosis` is clinical, `gemini-3.1-flash-lite`
+still takes the diagnosis to reconcile the invoice in five runs of five, and
+the insurance number at the registration desk in five of five, each time with
+a rationale saying the pull complies with data minimisation; the three Claude
+models hold all four traps in every run. Without the policy they do not:
+unaided or told the Act, no model holds more than eleven of twenty trap runs,
+and Gemini and Haiku hold none. The stronger models become compliant when they
+are handed the table our technique applies directly — and, handed it, they
+still take different fields from the ones the job needs and still do not
+repeat themselves (§7.2). A rule cannot be outranked by a sentence, and does
+not need the table pasted into its prompt to follow it; that is the design
+property under test.
 
 ### 4.2.3 The unconstrained baseline
 
@@ -301,8 +307,8 @@ pulls nothing has an excess ratio of zero and a perfect DM-01, having extracted
 no category outside the purpose. Coverage — needed fields actually obtained over
 needed fields — closes that door, and it is the metric that catches the AI
 models. Their compliance scores sit within a few hundredths of ours; told the
-policy, they take 1.43–1.66 times the fields the tasks need and still obtain
-only 74–81% of the fields the tasks need, because they take a name where the
+policy, they take 1.04–1.61 times the fields the tasks need and still obtain
+only 71–78% of the fields the tasks need, because they take a name where the
 task needs a record number, an e-mail where it needs a phone, and a visit
 timestamp where it needs the appointment time. Over-collection and
 under-collection at once: a high compliance score on the wrong fields is not

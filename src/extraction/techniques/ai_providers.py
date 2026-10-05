@@ -303,7 +303,7 @@ def list_models(provider: str) -> list[str]:
         return sorted(m.id for m in client.models.list())
     if provider == "claude-code":
         # The CLI takes aliases and full ids; these are the ones a Pro sign-in serves.
-        return ["claude-haiku-4-5", "claude-sonnet-5"]
+        return ["claude-haiku-4-5", "claude-sonnet-5-5", "claude-opus-5-5"]
     if provider == "gemini":
         from google import genai
         client = genai.Client()

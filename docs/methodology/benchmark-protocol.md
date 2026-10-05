@@ -29,8 +29,7 @@ reported and never relied on.
 
 - Every task is run up to **5 times** per technique in memory (1 on the portal
   and the public export); an AI model is repeated at most as often as it has
-  recorded samples — 5 for Gemini, 2 told the policy and 1 unaided for the
-  Claude models. **Every run is scored.** A technique's score is the mean over
+  recorded samples — 5 for every model and briefing. **Every run is scored.** A technique's score is the mean over
   all its runs; the per-task table carries the range where runs differed.
 - *Stable*: repeats after the first that reproduced the first run's decision
   (fields pulled and manifest structure), over tasks × (runs − 1): 32 for a
@@ -57,12 +56,12 @@ reported and never relied on.
 
 | Item | Value |
 |---|---|
-| Providers / models | Gemini, `gemini-3.1-flash-lite` (free API tier; the reference model). Claude, `claude-haiku-4-5` and `claude-sonnet-5`, through the Claude Code command line on a subscription sign-in (`--provider claude-code`; no API key): headless `claude -p` from an empty directory, our brief as the whole system prompt, no tools, no MCP servers, no skills, effort pinned to `high`, `ANTHROPIC_API_KEY` stripped. A free-tier Gemini flagship was attempted on 2026-09-22 and dropped (one or two calls a day in practice); its partial recordings were deleted |
+| Providers / models | Gemini, `gemini-3.1-flash-lite` (free API tier; the reference model). Claude, `claude-haiku-4-5`, `claude-sonnet-5-5` and `claude-opus-5-5`, through the Claude Code command line on a subscription sign-in (`--provider claude-code`; no API key): headless `claude -p` from an empty directory, our brief as the whole system prompt, no tools, no MCP servers, no skills, effort pinned to `high`, `ANTHROPIC_API_KEY` stripped. A free-tier Gemini flagship was attempted on 2026-09-22 and dropped (one or two calls a day in practice); its partial recordings were deleted |
 | Briefings | `unaided`; `informed` (the Act's seven obligations in plain words); `policy` (the purpose envelope and every field's category, in the prompt). The reference model is recorded on all three; a further model, if one is recorded, on `policy` and `unaided`. Tables are read per model at `policy`; the full grid is kept |
 | What the model sees | the job in words, the purpose, whether the job is about one patient, the field *names* of the **canonical catalogue** (not of any particular source), the capability register. Never a value, never a record number, never the task's own needed list. A recording is therefore a property of the model and replays against every source; only a catalogue, register or wording change stales it |
 | What it returns | a flat JSON decision: fields, `scope` (`subject` / `all`), and the manifest |
 | Sampling | provider default — no temperature or seed set; the recording says so |
-| Recording | `scripts/record_ai_agents.py`: 5 samples per task per briefing for the reference model; the minimum for a further model — 2 per task at `policy` (one to enter the tables, one to measure repeatability) and 1 at `unaided`; each sample stores field names and manifest choices only, with a fingerprint (SHA-256 of the exact prompt) so a change to the brief marks the recording stale. Calls are paced to the model's per-minute allowance and budgeted per day; samples are taken breadth-first (one per task, then the next), so an interrupted recording leaves every task equally sampled. The benchmark repeats an agent at most as often as it has samples |
+| Recording | `scripts/record_ai_agents.py`: 5 samples per task per briefing, for every model and all three briefings (Claude models brought to the same depth as Gemini on 2026-10-05/06); each sample stores field names and manifest choices only, with a fingerprint (SHA-256 of the exact prompt) so a change to the brief marks the recording stale. Calls are paced to the model's per-minute allowance and budgeted per day; samples are taken breadth-first (one per task, then the next), so an interrupted recording leaves every task equally sampled. The benchmark repeats an agent at most as often as it has samples |
 | Replay | `AI_AGENT_MODE=replay` is the default; every demo and test replays. Only the recorder makes live calls |
 
 ## Reproduce

@@ -1,11 +1,423 @@
 {
   "provider": "claude-code",
-  "briefing": "unaided",
+  "briefing": "informed",
   "tasks": {
+    "patient-summary": {
+      "samples": [
+        {
+          "fields": [
+            "patient_administration/full_name",
+            "patient_administration/date_of_birth",
+            "patient_administration/admission_ward",
+            "patient_administration/admission_datetime",
+            "clinical_ehr/mrn",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/medication",
+            "clinical_ehr/allergy",
+            "clinical_ehr/lab_result",
+            "clinical_ehr/encounter_datetime",
+            "clinical_ehr/attending_clinician",
+            "ancillary_departmental/imaging_modality",
+            "ancillary_departmental/report_text"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 0,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Extraction of clinically essential data\u2014diagnoses, medications, allergies, lab and imaging results\u2014to prepare a summary for the care team's coordination of the patient's ongoing treatment. Direct identifiers retained (not pseudonymised) as patient identity verification is safety-critical in care coordination."
+        },
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/date_of_birth",
+            "patient_administration/sex",
+            "patient_administration/admission_datetime",
+            "patient_administration/admission_ward",
+            "clinical_ehr/mrn",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/medication",
+            "clinical_ehr/allergy",
+            "clinical_ehr/lab_result",
+            "clinical_ehr/encounter_datetime",
+            "clinical_ehr/attending_clinician",
+            "ancillary_departmental/mrn",
+            "ancillary_departmental/result_value",
+            "ancillary_departmental/imaging_modality",
+            "ancillary_departmental/report_text"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 180,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "A clinical summary requires the patient's identification, admission context, diagnoses, current medications, allergies, and relevant test/imaging results to enable the care team to provide safe and effective care coordination during the patient's treatment episode."
+        },
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/date_of_birth",
+            "patient_administration/sex",
+            "patient_administration/admission_ward",
+            "patient_administration/admission_datetime",
+            "clinical_ehr/mrn",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/medication",
+            "clinical_ehr/allergy",
+            "clinical_ehr/lab_result",
+            "clinical_ehr/encounter_datetime",
+            "clinical_ehr/attending_clinician",
+            "ancillary_departmental/mrn",
+            "ancillary_departmental/specimen_type",
+            "ancillary_departmental/result_value",
+            "ancillary_departmental/imaging_modality",
+            "ancillary_departmental/report_text"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 0,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Clinical summary for active care coordination requires patient identity, current admission context, diagnoses, medications, allergies, and laboratory/imaging results to enable the care team to provide safe, coordinated medical services as the patient provided consent for."
+        },
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/date_of_birth",
+            "patient_administration/sex",
+            "patient_administration/admission_ward",
+            "patient_administration/admission_datetime",
+            "clinical_ehr/mrn",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/medication",
+            "clinical_ehr/allergy",
+            "clinical_ehr/lab_result",
+            "clinical_ehr/encounter_datetime",
+            "clinical_ehr/attending_clinician",
+            "ancillary_departmental/mrn",
+            "ancillary_departmental/imaging_modality",
+            "ancillary_departmental/result_value",
+            "ancillary_departmental/report_text"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 365,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Clinical summary for care team requires patient identifiers, diagnoses, medications, allergies, and test/imaging results to enable safe, coordinated care. All available technical safeguards are applied; data is retained for one year to cover active care episodes and reasonable follow-up periods."
+        },
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/date_of_birth",
+            "patient_administration/sex",
+            "patient_administration/admission_ward",
+            "patient_administration/admission_datetime",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/medication",
+            "clinical_ehr/allergy",
+            "clinical_ehr/encounter_datetime",
+            "clinical_ehr/attending_clinician",
+            "clinical_ehr/lab_result"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 0,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Clinical summary for care team requires patient demographics, active diagnoses, medications, allergies, and recent clinical encounters to enable safe and coordinated care delivery. Direct identifiers retained as essential to the purpose."
+        }
+      ],
+      "fingerprint": "79eb3e63a705600e",
+      "recorded_at": "2026-10-05T18:45:26.637937+00:00"
+    },
+    "ward-census": {
+      "samples": [
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/admission_ward",
+            "clinical_ehr/encounter_datetime"
+          ],
+          "scope": "all",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 0,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Ward census for direct patient care coordination. Clinical staff need current patient locations and last clinical encounter times to effectively coordinate ongoing care."
+        },
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/admission_ward",
+            "clinical_ehr/mrn",
+            "clinical_ehr/encounter_datetime"
+          ],
+          "scope": "all",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 0,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Minimal data required for care coordination during patient admission. MRN, ward location, and encounter timestamps enable clinical staff to coordinate ongoing treatment and monitor current patient status within their ward assignments."
+        },
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/admission_ward",
+            "clinical_ehr/mrn",
+            "clinical_ehr/encounter_datetime"
+          ],
+          "scope": "all",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 0,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Ward census for care coordination requires patient identification and current clinical assessment timestamp to enable coordinated provision of medical services. Direct identifiers are necessary for ward staff to deliver care."
+        },
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/admission_ward",
+            "patient_administration/admission_datetime",
+            "clinical_ehr/mrn",
+            "clinical_ehr/encounter_datetime"
+          ],
+          "scope": "all",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 7,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Minimal data extraction linking patient MRN to current ward and recent clinical encounter timestamp to support daily care coordination and handover of active inpatients. Data retained for 7 days reflecting transient relevance during active inpatient stay."
+        },
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/admission_ward",
+            "clinical_ehr/encounter_datetime"
+          ],
+          "scope": "all",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 0,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Ward staff require patient identifiers, current ward location, and recent clinical encounter timestamps to coordinate ongoing care for hospitalized patients."
+        }
+      ],
+      "fingerprint": "28be2094725edde9",
+      "recorded_at": "2026-10-05T18:46:17.954672+00:00"
+    },
     "medication-review": {
       "samples": [
         {
           "fields": [
+            "clinical_ehr/mrn",
+            "clinical_ehr/medication",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/allergy"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [
+            "clinical documentation",
+            "patient safety monitoring"
+          ],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 1095,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": true,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Medication review requires access to current medications, primary diagnosis, and known allergies to ensure therapeutic appropriateness and patient safety. This extraction is necessary for ongoing care coordination, which is the legitimate purpose for which the patient consented to data processing at registration."
+        },
+        {
+          "fields": [
+            "clinical_ehr/mrn",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/medication",
+            "clinical_ehr/allergy"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 365,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Medication safety review requires comparison of current medications, diagnoses, and allergies for this patient. The extraction applies all available security controls under the patient's established consent for medical service provision."
+        },
+        {
+          "fields": [
+            "clinical_ehr/medication",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/allergy",
+            "clinical_ehr/mrn"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 90,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": true,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Extraction retrieves only the four fields necessary for medication safety review: current medications, primary diagnosis, and known allergies. This supports care coordination\u2014a specified legitimate use basis for which the patient provided data. All technical and governance safeguards mandated by the Digital Personal Data Protection Act are deployed."
+        },
+        {
+          "fields": [
+            "clinical_ehr/mrn",
             "clinical_ehr/medication",
             "clinical_ehr/primary_diagnosis",
             "clinical_ehr/allergy"
@@ -27,13 +439,13 @@
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "Clinician review of current medications against documented primary diagnoses and allergies to ensure therapeutic appropriateness and identify any contraindications or drug-allergy conflicts."
+          "rationale": "A clinician must review the patient's current medications in context of their primary diagnosis and allergies to ensure appropriate medication selection and prevent adverse drug interactions\u2014essential for safe care coordination."
         },
         {
           "fields": [
             "clinical_ehr/mrn",
-            "clinical_ehr/primary_diagnosis",
             "clinical_ehr/medication",
+            "clinical_ehr/primary_diagnosis",
             "clinical_ehr/allergy"
           ],
           "scope": "subject",
@@ -41,32 +453,7 @@
           "secondary_uses": [],
           "lawful_basis_type": "legitimate_use",
           "lawful_basis_reference": "LU-CARE",
-          "retention_days": 90,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": true,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "This extraction retrieves the patient's current medications, primary diagnosis, and allergies to enable safe clinical review for care coordination purposes."
-        },
-        {
-          "fields": [
-            "clinical_ehr/primary_diagnosis",
-            "clinical_ehr/medication",
-            "clinical_ehr/allergy"
-          ],
-          "scope": "subject",
-          "purpose_specified": true,
-          "secondary_uses": [],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-CARE",
-          "retention_days": 7,
+          "retention_days": 0,
           "deletion_mechanism": "PURGE-01",
           "transport_encrypted": true,
           "at_rest_encrypted": true,
@@ -78,46 +465,26 @@
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "Reviewing current medications against patient diagnoses and allergies is essential for care coordination and ensuring medication safety as part of direct patient care provision."
-        },
+          "rationale": "Extraction of medication, diagnosis, and allergy data for a single patient enables the clinical team to verify medication appropriateness and detect contraindications as part of care coordination, with retention governed by the patient's ongoing clinical need."
+        }
+      ],
+      "fingerprint": "245d44f25d057682",
+      "recorded_at": "2026-10-05T18:47:01.627506+00:00"
+    },
+    "appointment-reminder": {
+      "samples": [
         {
           "fields": [
-            "clinical_ehr/mrn",
-            "clinical_ehr/primary_diagnosis",
-            "clinical_ehr/medication",
-            "clinical_ehr/allergy",
-            "clinical_ehr/encounter_datetime"
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/phone",
+            "patient_administration/email"
           ],
-          "scope": "subject",
+          "scope": "all",
           "purpose_specified": true,
           "secondary_uses": [],
           "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-CARE",
-          "retention_days": 90,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": true,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "This extraction retrieves the patient's current medications, primary diagnosis, and allergies to enable comprehensive medication review and care coordination. The data supports clinical decision-making to ensure medication appropriateness and safety for the patient's condition."
-        },
-        {
-          "fields": [
-            "clinical_ehr/primary_diagnosis",
-            "clinical_ehr/medication",
-            "clinical_ehr/allergy"
-          ],
-          "scope": "subject",
-          "purpose_specified": true,
-          "secondary_uses": [],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-CARE",
+          "lawful_basis_reference": "LU-REG",
           "retention_days": 30,
           "deletion_mechanism": "PURGE-01",
           "transport_encrypted": true,
@@ -130,21 +497,14 @@
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "Medication review requires current medication list, primary diagnosis, and allergies to ensure therapeutic appropriateness and safety. Data retained for active care episodes with automated purge on purpose completion."
-        }
-      ],
-      "fingerprint": "94b7571802d8898c",
-      "recorded_at": "2026-10-05T18:10:20.128814+00:00"
-    },
-    "appointment-reminder": {
-      "samples": [
+          "rationale": "Appointment reminders require patient contact information (phone, email) and identifiers (name, MRN) to notify patients of scheduled appointments. Extraction is limited to fields strictly necessary for this communication, with MRN pseudonymised via keyed tokens while maintaining direct identifiers necessary for message delivery and personalisation."
+        },
         {
           "fields": [
-            "patient_administration/mrn",
-            "patient_administration/full_name",
             "patient_administration/phone",
             "patient_administration/email",
-            "clinical_ehr/encounter_datetime"
+            "patient_administration/full_name",
+            "patient_administration/admission_datetime"
           ],
           "scope": "all",
           "purpose_specified": true,
@@ -163,7 +523,7 @@
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "Extraction identifies patients with upcoming appointments and retrieves their contact details and appointment times to deliver reminder notifications. This directly supports the scheduling and appointment management functions for which patients provided their registration data."
+          "rationale": "Sending appointment reminders requires the patient's contact details (phone, email) and appointment time. These are necessary to perform the scheduling service the patient consented to at registration."
         },
         {
           "fields": [
@@ -173,7 +533,7 @@
             "patient_administration/email",
             "patient_administration/admission_datetime"
           ],
-          "scope": "all",
+          "scope": "subject",
           "purpose_specified": true,
           "secondary_uses": [],
           "lawful_basis_type": "legitimate_use",
@@ -190,39 +550,11 @@
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "Appointment reminders require patient contact information and scheduling details to fulfill the patient's registration and scheduling needs. Direct identifiers must be retained to enable patient contact."
+          "rationale": "Appointment reminders are a core service of patient registration and scheduling to which patients explicitly consented. Only contact information and appointment details necessary to deliver timely reminders are extracted; direct identifiers cannot be pseudonymized as they are essential to reach patients."
         },
         {
           "fields": [
             "patient_administration/mrn",
-            "patient_administration/full_name",
-            "patient_administration/phone",
-            "patient_administration/email",
-            "patient_administration/admission_datetime"
-          ],
-          "scope": "all",
-          "purpose_specified": true,
-          "secondary_uses": [],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-REG",
-          "retention_days": 7,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": false,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "Extract contact information and scheduled appointment details to enable sending appointment reminders to patients as part of the registration and scheduling services disclosed in privacy notice NOTICE-REG-2026."
-        },
-        {
-          "fields": [
-            "patient_administration/mrn",
-            "patient_administration/full_name",
             "patient_administration/phone",
             "patient_administration/email",
             "patient_administration/admission_datetime"
@@ -244,22 +576,21 @@
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "Patient identifiers and contact information are necessary to deliver appointment reminders as part of the patient registration and scheduling service. This processing is aligned with the purpose for which patients provided their data."
+          "rationale": "Appointment reminders are necessary to deliver the scheduling service patients consented to at registration. Direct identifiers cannot be pseudonymised because the hospital must identify and contact specific patients to reach them.</anionale>\n</invoke>"
         },
         {
           "fields": [
             "patient_administration/mrn",
-            "patient_administration/full_name",
             "patient_administration/phone",
             "patient_administration/email",
             "patient_administration/admission_datetime"
           ],
-          "scope": "all",
+          "scope": "subject",
           "purpose_specified": true,
           "secondary_uses": [],
           "lawful_basis_type": "legitimate_use",
           "lawful_basis_reference": "LU-REG",
-          "retention_days": 7,
+          "retention_days": 0,
           "deletion_mechanism": "PURGE-01",
           "transport_encrypted": true,
           "at_rest_encrypted": true,
@@ -271,49 +602,17 @@
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "This extraction enables the hospital to send appointment reminders, fulfilling a core service delivery function for which patients provided their contact and scheduling data at registration. Processing is lawful under the legitimate use basis as it directly supports the provision of medical services."
+          "rationale": "Patient appointment reminders require contact information and appointment date\u2014these are the minimal data necessary to fulfill the registration and scheduling purpose for which patients provided their data."
         }
       ],
-      "fingerprint": "8a3deeb414599fdd",
-      "recorded_at": "2026-10-05T18:11:36.392889+00:00"
+      "fingerprint": "096574909befe793",
+      "recorded_at": "2026-10-05T18:47:57.825366+00:00"
     },
     "claim-reconciliation": {
       "samples": [
         {
           "fields": [
             "administrative_financial/mrn",
-            "administrative_financial/invoice_id",
-            "administrative_financial/billed_amount",
-            "administrative_financial/payer_name",
-            "administrative_financial/insurance_policy_no",
-            "clinical_ehr/mrn",
-            "clinical_ehr/primary_diagnosis",
-            "clinical_ehr/encounter_datetime",
-            "patient_administration/mrn",
-            "patient_administration/full_name"
-          ],
-          "scope": "subject",
-          "purpose_specified": true,
-          "secondary_uses": [],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-BILL",
-          "retention_days": 365,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": false,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "Invoice reconciliation with payer requires primary diagnosis cross-reference to justify billed amounts and explain charges for services rendered."
-        },
-        {
-          "fields": [
-            "patient_administration/mrn",
             "administrative_financial/invoice_id",
             "administrative_financial/billed_amount",
             "administrative_financial/payer_name",
@@ -324,7 +623,7 @@
           "secondary_uses": [],
           "lawful_basis_type": "legitimate_use",
           "lawful_basis_reference": "LU-BILL",
-          "retention_days": 2555,
+          "retention_days": 180,
           "deletion_mechanism": "PURGE-01",
           "transport_encrypted": true,
           "at_rest_encrypted": true,
@@ -336,7 +635,7 @@
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "Data extracted to reconcile outstanding invoice with payer and cross-check billing charges against patient's primary diagnosis, enabling the accounts team to verify clinical justification and complete settlement."
+          "rationale": "Reconciliation of outstanding invoices against patient diagnosis for billing settlement with payers requires only invoice details and diagnosis; extracted data automatically deleted on purpose completion via PURGE-01 after 180-day retention window for dispute resolution."
         },
         {
           "fields": [
@@ -344,7 +643,6 @@
             "administrative_financial/invoice_id",
             "administrative_financial/billed_amount",
             "administrative_financial/payer_name",
-            "administrative_financial/insurance_policy_no",
             "clinical_ehr/mrn",
             "clinical_ehr/primary_diagnosis",
             "clinical_ehr/encounter_datetime"
@@ -354,7 +652,7 @@
           "secondary_uses": [],
           "lawful_basis_type": "legitimate_use",
           "lawful_basis_reference": "LU-BILL",
-          "retention_days": 90,
+          "retention_days": 2920,
           "deletion_mechanism": "PURGE-01",
           "transport_encrypted": true,
           "at_rest_encrypted": true,
@@ -366,7 +664,64 @@
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "Enable accounts team to reconcile outstanding invoice with payer and verify charges against patient's diagnosis for billing settlement. Processing is lawfully based on legitimate use for the stated billing settlement purpose."
+          "rationale": "Essential billing and diagnostic data extracted for single patient to enable accounts team to reconcile outstanding invoice with payer; direct identifiers retained as necessary for legitimate billing settlement purposes."
+        },
+        {
+          "fields": [
+            "administrative_financial/mrn",
+            "administrative_financial/invoice_id",
+            "administrative_financial/billed_amount",
+            "administrative_financial/payer_name",
+            "administrative_financial/insurance_policy_no",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/encounter_datetime"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-BILL",
+          "retention_days": 180,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "This extraction retrieves invoice details and primary diagnosis for a single patient to enable the accounts team to reconcile outstanding amounts with the payer and verify the clinical justification for charges incurred."
+        },
+        {
+          "fields": [
+            "administrative_financial/mrn",
+            "administrative_financial/invoice_id",
+            "administrative_financial/billed_amount",
+            "administrative_financial/payer_name",
+            "clinical_ehr/mrn",
+            "clinical_ehr/primary_diagnosis"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-BILL",
+          "retention_days": 0,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": true,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Reconcile outstanding invoice with payer by linking billed amounts to patient's primary diagnosis, enabling accounts team to verify billing accuracy and complete settlement. Pseudonymised identifiers preserve linkage while protecting patient privacy."
         },
         {
           "fields": [
@@ -395,25 +750,36 @@
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "Accounts team requires invoice details, payer information, and patient diagnosis to reconcile outstanding charges with payer and verify clinical justification for billed amounts."
-        },
+          "rationale": "Billing settlement requires reconciliation of outstanding invoices with payer details and cross-reference to patient's clinical diagnosis to verify service delivery. This legitimate use aligns with patient consent to payment processing for services provided."
+        }
+      ],
+      "fingerprint": "190b6ae2cce62bff",
+      "recorded_at": "2026-10-05T18:48:44.693107+00:00"
+    },
+    "desk-registration": {
+      "samples": [
         {
           "fields": [
-            "administrative_financial/mrn",
-            "administrative_financial/invoice_id",
-            "administrative_financial/billed_amount",
-            "administrative_financial/payer_name",
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/phone",
+            "patient_administration/email",
+            "patient_administration/street_address",
+            "patient_administration/date_of_birth",
+            "patient_administration/sex",
+            "patient_administration/pincode",
             "administrative_financial/insurance_policy_no",
-            "clinical_ehr/mrn",
-            "clinical_ehr/primary_diagnosis",
-            "clinical_ehr/encounter_datetime"
+            "administrative_financial/payer_name"
           ],
           "scope": "subject",
           "purpose_specified": true,
-          "secondary_uses": [],
+          "secondary_uses": [
+            "billing_settlement",
+            "insurance_verification"
+          ],
           "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-BILL",
-          "retention_days": 1825,
+          "lawful_basis_reference": "LU-REG",
+          "retention_days": 0,
           "deletion_mechanism": "PURGE-01",
           "transport_encrypted": true,
           "at_rest_encrypted": true,
@@ -425,14 +791,40 @@
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "This extraction reconciles an outstanding invoice with payer records and clinical data to verify that charges correspond to the patient's documented diagnosis and encounter. All applicable transport, encryption, access, and audit controls are enabled to secure this sensitive financial and clinical information."
-        }
-      ],
-      "fingerprint": "6fffe17d3289256b",
-      "recorded_at": "2026-10-05T18:12:41.524000+00:00"
-    },
-    "desk-registration": {
-      "samples": [
+          "rationale": "Walk-in patient registration requires identity, contact, and insurance information to enable service provision, scheduling, and billing with proper coverage determination."
+        },
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/phone",
+            "patient_administration/email",
+            "patient_administration/street_address",
+            "patient_administration/date_of_birth",
+            "patient_administration/sex",
+            "patient_administration/pincode",
+            "administrative_financial/insurance_policy_no",
+            "administrative_financial/payer_name"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-REG",
+          "retention_days": 0,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Front desk registration requires demographic and insurance information from the named patient only. Direct identifiers are necessary for front desk staff to complete registration; data is retained for the patient relationship duration under legitimate use basis aligned with patient's registration purpose."
+        },
         {
           "fields": [
             "patient_administration/mrn",
@@ -455,7 +847,7 @@
           "lawful_basis_type": "legitimate_use",
           "lawful_basis_reference": "LU-REG",
           "retention_days": 0,
-          "deletion_mechanism": "Retained indefinitely as part of patient medical record",
+          "deletion_mechanism": "PURGE-01",
           "transport_encrypted": true,
           "at_rest_encrypted": true,
           "access_controlled": true,
@@ -466,7 +858,39 @@
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "Walk-in patient registration requires collection of demographic and insurance information to establish the patient record and verify coverage for services. This information is essential for scheduling and billing."
+          "rationale": "Front-desk registration of a walk-in patient requires collection of identification, contact, and demographic data to establish a valid medical record and enable scheduling. Insurance policy details are collected to verify coverage and support billing and claims processing."
+        },
+        {
+          "fields": [
+            "patient_administration/mrn",
+            "patient_administration/full_name",
+            "patient_administration/phone",
+            "patient_administration/email",
+            "patient_administration/street_address",
+            "patient_administration/date_of_birth",
+            "patient_administration/sex",
+            "patient_administration/pincode",
+            "administrative_financial/insurance_policy_no",
+            "administrative_financial/payer_name"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-REG",
+          "retention_days": 0,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Walk-in registration requires patient demographics and contact details for record creation. Direct identifiers are retained as they are essential for registration and ongoing patient identification. Insurance policy number and payer name are collected as requested to document the patient's coverage."
         },
         {
           "fields": [
@@ -500,139 +924,42 @@
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "To complete walk-in patient registration at the front desk, we need demographic information to establish the patient's medical record and identify them in the system. Insurance policy number and payer name are collected to document coverage and establish billing responsibility."
-        },
-        {
-          "fields": [
-            "patient_administration/mrn",
-            "patient_administration/full_name",
-            "patient_administration/phone",
-            "patient_administration/email",
-            "patient_administration/street_address",
-            "patient_administration/date_of_birth",
-            "patient_administration/sex",
-            "patient_administration/pincode",
-            "administrative_financial/insurance_policy_no",
-            "administrative_financial/payer_name"
-          ],
-          "scope": "subject",
-          "purpose_specified": true,
-          "secondary_uses": [],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-REG",
-          "retention_days": 0,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": true,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "Walk-in patient registration requires demographic and contact information; insurance details (policy number and payer) are needed to establish coverage and claims processing for provision of services."
-        },
-        {
-          "fields": [
-            "patient_administration/mrn",
-            "patient_administration/full_name",
-            "patient_administration/phone",
-            "patient_administration/email",
-            "patient_administration/street_address",
-            "patient_administration/date_of_birth",
-            "patient_administration/sex",
-            "patient_administration/pincode",
-            "administrative_financial/insurance_policy_no",
-            "administrative_financial/payer_name"
-          ],
-          "scope": "subject",
-          "purpose_specified": true,
-          "secondary_uses": [],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-REG",
-          "retention_days": 0,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": false,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "Registration requires direct identifiers and contact details to establish the patient record and verify insurance policy coverage and payer for service authorization."
-        },
-        {
-          "fields": [
-            "patient_administration/mrn",
-            "patient_administration/full_name",
-            "patient_administration/phone",
-            "patient_administration/email",
-            "patient_administration/street_address",
-            "patient_administration/date_of_birth",
-            "patient_administration/sex",
-            "patient_administration/pincode",
-            "administrative_financial/insurance_policy_no",
-            "administrative_financial/payer_name"
-          ],
-          "scope": "subject",
-          "purpose_specified": true,
-          "secondary_uses": [],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-REG",
-          "retention_days": 0,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": false,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "Walk-in registration requires patient demographics and identification for the MRN record; insurance policy number and payer details are captured to document coverage for billing and care coordination."
+          "rationale": "Walk-in patient registration requires collection of demographic and insurance information to establish the patient record, enable scheduling, and facilitate billing for medical services provided."
         }
       ],
-      "fingerprint": "395d284845d06c7e",
-      "recorded_at": "2026-10-05T18:13:17.855454+00:00"
+      "fingerprint": "1fa9a49c1efa0824",
+      "recorded_at": "2026-10-05T18:49:34.062313+00:00"
     },
     "ward-summary-registry": {
       "samples": [
         {
           "fields": [
-            "clinical_ehr/mrn",
-            "clinical_ehr/primary_diagnosis",
-            "clinical_ehr/medication",
-            "clinical_ehr/allergy",
+            "patient_administration/mrn",
             "patient_administration/full_name",
-            "patient_administration/admission_ward"
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/medication",
+            "clinical_ehr/allergy"
           ],
           "scope": "subject",
           "purpose_specified": true,
           "secondary_uses": [
-            "departmental_research_registry"
+            "clinical_research"
           ],
           "lawful_basis_type": "legitimate_use",
           "lawful_basis_reference": "LU-CARE",
-          "retention_days": 0,
+          "retention_days": 365,
           "deletion_mechanism": "PURGE-01",
           "transport_encrypted": true,
           "at_rest_encrypted": true,
           "access_controlled": true,
-          "identifiers_pseudonymised": true,
+          "identifiers_pseudonymised": false,
           "notice_reference": "NOTICE-REG-2026",
           "notice_covers_purpose": true,
           "notice_machine_readable": true,
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "Extract diagnosis and medication summaries for immediate ward round clinical care, with pseudonymized copies retained for departmental research registry; both uses authorized under the patient's consent for medical services provision."
+          "rationale": "Extraction supports ward round care coordination through diagnosis and medication review, with secondary retention in departmental research registry for quality improvement and clinical research analysis."
         },
         {
           "fields": [
@@ -645,36 +972,7 @@
           "scope": "subject",
           "purpose_specified": true,
           "secondary_uses": [
-            "research_registry"
-          ],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-CARE",
-          "retention_days": 0,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": true,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "Extraction of diagnosis and medication data required for ward round clinical coordination and research registry maintenance."
-        },
-        {
-          "fields": [
-            "clinical_ehr/mrn",
-            "clinical_ehr/primary_diagnosis",
-            "clinical_ehr/medication",
-            "clinical_ehr/encounter_datetime",
-            "clinical_ehr/attending_clinician"
-          ],
-          "scope": "subject",
-          "purpose_specified": true,
-          "secondary_uses": [
-            "research"
+            "departmental research registry"
           ],
           "lawful_basis_type": "legitimate_use",
           "lawful_basis_reference": "LU-CARE",
@@ -688,19 +986,20 @@
           "notice_covers_purpose": true,
           "notice_machine_readable": true,
           "audit_log_enabled": true,
-          "accountable_party": "DPO",
+          "accountable_party": "Data Protection Officer",
           "processing_record_kept": true,
-          "rationale": "Extraction provides diagnosis and medication summary needed for ward round clinical decision-making and care coordination, with secondary use for research registry documentation. Patient identifiers retained for active clinical care delivery."
+          "rationale": "Minimal extraction of diagnosis and medication data necessary for immediate ward round coordination and secondary inclusion in departmental research registry, both aligned with patient's consent for provision of medical services."
         },
         {
           "fields": [
+            "clinical_ehr/mrn",
             "clinical_ehr/primary_diagnosis",
-            "clinical_ehr/medication",
-            "clinical_ehr/mrn"
+            "clinical_ehr/medication"
           ],
           "scope": "subject",
           "purpose_specified": true,
           "secondary_uses": [
+            "ward round summary",
             "research registry"
           ],
           "lawful_basis_type": "legitimate_use",
@@ -717,187 +1016,22 @@
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "Minimal clinical data extraction for ward round care coordination with secondary archival in research registry. Pseudonymised identifiers support research governance while subject scope maintains clinical context; purpose-based automated deletion via PURGE-01."
+          "rationale": "Extract the patient's primary diagnosis and medication records necessary for immediate ward round clinical decision-making and retention in the department's research registry, linked via pseudonymised MRN."
         },
         {
           "fields": [
-            "patient_administration/mrn",
-            "patient_administration/full_name",
+            "clinical_ehr/mrn",
             "clinical_ehr/primary_diagnosis",
             "clinical_ehr/medication",
-            "clinical_ehr/encounter_datetime"
+            "clinical_ehr/encounter_datetime",
+            "patient_administration/full_name",
+            "patient_administration/admission_ward"
           ],
           "scope": "subject",
           "purpose_specified": true,
           "secondary_uses": [
-            "research"
+            "departmental research registry"
           ],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-CARE",
-          "retention_days": 3650,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": true,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "Extract current diagnosis and medication for ward round clinical summary and clinical-to-research knowledge transfer to the department's research registry, balancing immediate care needs with longer-term research purposes."
-        }
-      ],
-      "fingerprint": "e13e7dad598827d6",
-      "recorded_at": "2026-10-05T18:13:53.743038+00:00"
-    },
-    "patient-summary": {
-      "samples": [
-        {
-          "fields": [
-            "patient_administration/mrn",
-            "patient_administration/full_name",
-            "patient_administration/date_of_birth",
-            "patient_administration/sex",
-            "patient_administration/admission_ward",
-            "patient_administration/admission_datetime",
-            "clinical_ehr/primary_diagnosis",
-            "clinical_ehr/medication",
-            "clinical_ehr/allergy",
-            "clinical_ehr/lab_result",
-            "clinical_ehr/encounter_datetime",
-            "clinical_ehr/attending_clinician",
-            "ancillary_departmental/result_value",
-            "ancillary_departmental/report_text"
-          ],
-          "scope": "subject",
-          "purpose_specified": true,
-          "secondary_uses": [],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-CARE",
-          "retention_days": 30,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": false,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "A clinical summary for care coordination requires patient identification, current diagnoses, medications, allergies, and recent clinical results to enable safe, informed treatment decisions and effective care team communication."
-        },
-        {
-          "fields": [
-            "patient_administration/mrn",
-            "patient_administration/full_name",
-            "patient_administration/date_of_birth",
-            "patient_administration/sex",
-            "patient_administration/phone",
-            "patient_administration/email",
-            "patient_administration/admission_ward",
-            "patient_administration/admission_datetime",
-            "clinical_ehr/mrn",
-            "clinical_ehr/primary_diagnosis",
-            "clinical_ehr/medication",
-            "clinical_ehr/allergy",
-            "clinical_ehr/lab_result",
-            "clinical_ehr/encounter_datetime",
-            "clinical_ehr/attending_clinician",
-            "ancillary_departmental/mrn",
-            "ancillary_departmental/imaging_modality",
-            "ancillary_departmental/report_text",
-            "ancillary_departmental/result_value"
-          ],
-          "scope": "subject",
-          "purpose_specified": true,
-          "secondary_uses": [],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-CARE",
-          "retention_days": 90,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": false,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "Clinical summary requires direct identifiers and comprehensive clinical data (diagnoses, medications, allergies, results) for the care team to safely coordinate ongoing medical services and make clinical decisions based on current patient status."
-        },
-        {
-          "fields": [
-            "patient_administration/mrn",
-            "patient_administration/full_name",
-            "patient_administration/date_of_birth",
-            "patient_administration/sex",
-            "patient_administration/phone",
-            "patient_administration/email",
-            "patient_administration/admission_ward",
-            "patient_administration/admission_datetime",
-            "clinical_ehr/mrn",
-            "clinical_ehr/primary_diagnosis",
-            "clinical_ehr/medication",
-            "clinical_ehr/allergy",
-            "clinical_ehr/lab_result",
-            "clinical_ehr/encounter_datetime",
-            "clinical_ehr/attending_clinician",
-            "ancillary_departmental/mrn",
-            "ancillary_departmental/specimen_type",
-            "ancillary_departmental/result_value",
-            "ancillary_departmental/imaging_modality",
-            "ancillary_departmental/report_text"
-          ],
-          "scope": "subject",
-          "purpose_specified": true,
-          "secondary_uses": [],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-CARE",
-          "retention_days": 365,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": true,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "Clinical summary required for the care team to coordinate ongoing patient care and ensure continuity of medical services aligned with the lawful basis for provision of care."
-        },
-        {
-          "fields": [
-            "patient_administration/mrn",
-            "patient_administration/full_name",
-            "patient_administration/phone",
-            "patient_administration/email",
-            "patient_administration/street_address",
-            "patient_administration/date_of_birth",
-            "patient_administration/sex",
-            "patient_administration/admission_ward",
-            "patient_administration/admission_datetime",
-            "clinical_ehr/mrn",
-            "clinical_ehr/primary_diagnosis",
-            "clinical_ehr/medication",
-            "clinical_ehr/lab_result",
-            "clinical_ehr/allergy",
-            "clinical_ehr/encounter_datetime",
-            "clinical_ehr/attending_clinician",
-            "ancillary_departmental/mrn",
-            "ancillary_departmental/result_value",
-            "ancillary_departmental/report_text"
-          ],
-          "scope": "subject",
-          "purpose_specified": true,
-          "secondary_uses": [],
           "lawful_basis_type": "legitimate_use",
           "lawful_basis_reference": "LU-CARE",
           "retention_days": 0,
@@ -905,42 +1039,29 @@
           "transport_encrypted": true,
           "at_rest_encrypted": true,
           "access_controlled": true,
-          "identifiers_pseudonymised": true,
+          "identifiers_pseudonymised": false,
           "notice_reference": "NOTICE-REG-2026",
           "notice_covers_purpose": true,
           "notice_machine_readable": true,
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "This extraction provides the care team with essential patient demographics, current diagnoses, active medications, known allergies, and recent laboratory results required to deliver safe, coordinated clinical care during the patient's treatment episode. The data enables immediate clinical decision-making and information continuity across care providers."
+          "rationale": "Primary diagnosis and current medications are essential for ward round care coordination and continuity of care; patient identifiers and ward context enable appropriate clinical decision-making and safe patient verification."
         },
         {
           "fields": [
-            "patient_administration/mrn",
-            "patient_administration/full_name",
-            "patient_administration/date_of_birth",
-            "patient_administration/sex",
-            "patient_administration/phone",
-            "patient_administration/email",
-            "patient_administration/admission_ward",
-            "patient_administration/admission_datetime",
+            "clinical_ehr/mrn",
             "clinical_ehr/primary_diagnosis",
-            "clinical_ehr/medication",
-            "clinical_ehr/allergy",
-            "clinical_ehr/encounter_datetime",
-            "clinical_ehr/attending_clinician",
-            "ancillary_departmental/result_value",
-            "ancillary_departmental/report_text"
+            "clinical_ehr/medication"
           ],
           "scope": "subject",
           "purpose_specified": true,
           "secondary_uses": [
-            "quality_assurance",
-            "clinical_audit"
+            "department research registry"
           ],
           "lawful_basis_type": "legitimate_use",
           "lawful_basis_reference": "LU-CARE",
-          "retention_days": 90,
+          "retention_days": 0,
           "deletion_mechanism": "PURGE-01",
           "transport_encrypted": true,
           "at_rest_encrypted": true,
@@ -952,153 +1073,11 @@
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "Clinical summary preparation for active care coordination requires identifiable patient demographics, current diagnoses, medications, allergies, and recent encounter data to enable direct clinical care delivery by the treatment team."
+          "rationale": "Extraction limited to patient identifier and clinical data (diagnosis and medication) necessary for ward round coordination and research registry. Direct identifiers retained for clinical utility; all available technical safeguards including encryption, access control, and audit logging are applied."
         }
       ],
-      "fingerprint": "6c64406cb2f97f14",
-      "recorded_at": "2026-10-05T18:07:34.343103+00:00"
-    },
-    "ward-census": {
-      "samples": [
-        {
-          "fields": [
-            "patient_administration/mrn",
-            "patient_administration/full_name",
-            "patient_administration/admission_ward",
-            "patient_administration/admission_datetime",
-            "clinical_ehr/mrn",
-            "clinical_ehr/encounter_datetime"
-          ],
-          "scope": "all",
-          "purpose_specified": true,
-          "secondary_uses": [],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-CARE",
-          "retention_days": 90,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": true,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "Ward census data is essential for direct patient care coordination, enabling clinicians to locate admitted patients and review recent clinical encounters. Personal identifiers are pseudonymised on export to minimize privacy risk while maintaining care delivery functionality."
-        },
-        {
-          "fields": [
-            "patient_administration/mrn",
-            "patient_administration/full_name",
-            "patient_administration/admission_ward",
-            "clinical_ehr/mrn",
-            "clinical_ehr/encounter_datetime"
-          ],
-          "scope": "all",
-          "purpose_specified": true,
-          "secondary_uses": [],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-CARE",
-          "retention_days": 0,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": true,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "To identify current inpatients, their assigned wards, and when they were last clinically seen, supporting real-time care coordination and clinical handover."
-        },
-        {
-          "fields": [
-            "patient_administration/mrn",
-            "patient_administration/full_name",
-            "patient_administration/admission_ward",
-            "clinical_ehr/mrn",
-            "clinical_ehr/encounter_datetime"
-          ],
-          "scope": "all",
-          "purpose_specified": true,
-          "secondary_uses": [],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-CARE",
-          "retention_days": 0,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": false,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "This extraction provides real-time ward census data for care coordination by linking current patient admissions to their most recent clinical encounters. Direct identifiers are required for clinicians to know which patient to assess."
-        },
-        {
-          "fields": [
-            "patient_administration/mrn",
-            "patient_administration/full_name",
-            "patient_administration/admission_ward",
-            "clinical_ehr/mrn",
-            "clinical_ehr/encounter_datetime"
-          ],
-          "scope": "all",
-          "purpose_specified": true,
-          "secondary_uses": [],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-CARE",
-          "retention_days": 0,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": false,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "Ward census requires real patient identifiers, names, and current ward assignments. Last encounter dates verify active clinical engagement and inform care coordination decisions. Retention is set to purge on purpose completion per PURGE-01."
-        },
-        {
-          "fields": [
-            "patient_administration/mrn",
-            "patient_administration/full_name",
-            "patient_administration/admission_ward",
-            "clinical_ehr/mrn",
-            "clinical_ehr/encounter_datetime"
-          ],
-          "scope": "all",
-          "purpose_specified": true,
-          "secondary_uses": [],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-CARE",
-          "retention_days": 30,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": false,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "Extracting current ward assignments and most recent encounter times to enable care coordination staff to locate and manage patients on each ward."
-        }
-      ],
-      "fingerprint": "d1539648544dc4af",
-      "recorded_at": "2026-10-05T18:09:09.593058+00:00"
+      "fingerprint": "0f8588174b8df723",
+      "recorded_at": "2026-10-05T18:50:33.798179+00:00"
     },
     "consultant-file": {
       "samples": [
@@ -1125,10 +1104,11 @@
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "Extracting current diagnosis and allergy information for consultant-led care coordination. One-year retention supports continuity of care while aligned with patient's legitimate expectation of data use for medical service provision."
+          "rationale": "Extraction limited to current diagnosis and allergies required for care coordination. Retention period of one year supports ongoing consultant reference. All mandatory DPDPA safeguards applied including transport and rest encryption, role-based access control, and comprehensive audit logging with accountability to the DPO."
         },
         {
           "fields": [
+            "clinical_ehr/mrn",
             "clinical_ehr/primary_diagnosis",
             "clinical_ehr/allergy"
           ],
@@ -1149,14 +1129,63 @@
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "Current diagnosis and allergy information are essential for the consultant to deliver safe, coordinated clinical care. Retention for one year supports continuity of care and proper clinical documentation."
+          "rationale": "Extraction of current diagnosis and allergy data enables safe care coordination by the consultant. Direct identifiers retained for clinical safety and continuity of care."
         },
         {
           "fields": [
             "clinical_ehr/mrn",
             "clinical_ehr/primary_diagnosis",
-            "clinical_ehr/allergy",
-            "clinical_ehr/encounter_datetime"
+            "clinical_ehr/allergy"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 365,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Patient's current diagnosis and allergies are minimally necessary for consultant-led care coordination. Data is retained for one year as specified and protected by encryption in transit and at rest, with role-based access control and audit logging."
+        },
+        {
+          "fields": [
+            "clinical_ehr/mrn",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/allergy"
+          ],
+          "scope": "subject",
+          "purpose_specified": true,
+          "secondary_uses": [],
+          "lawful_basis_type": "legitimate_use",
+          "lawful_basis_reference": "LU-CARE",
+          "retention_days": 365,
+          "deletion_mechanism": "PURGE-01",
+          "transport_encrypted": true,
+          "at_rest_encrypted": true,
+          "access_controlled": true,
+          "identifiers_pseudonymised": false,
+          "notice_reference": "NOTICE-REG-2026",
+          "notice_covers_purpose": true,
+          "notice_machine_readable": true,
+          "audit_log_enabled": true,
+          "accountable_party": "DPO",
+          "processing_record_kept": true,
+          "rationale": "Current diagnosis and allergy information are essential for safe clinical decision-making and care coordination. This minimally sufficient data is necessary and proportionate to providing appropriate medical care to the patient."
+        },
+        {
+          "fields": [
+            "clinical_ehr/mrn",
+            "clinical_ehr/primary_diagnosis",
+            "clinical_ehr/allergy"
           ],
           "scope": "subject",
           "purpose_specified": true,
@@ -1175,61 +1204,11 @@
           "audit_log_enabled": true,
           "accountable_party": "DPO",
           "processing_record_kept": true,
-          "rationale": "Extract current diagnosis and allergies for consultant-led care coordination. Data retained for one year to support ongoing clinical management and specialist referrals."
-        },
-        {
-          "fields": [
-            "clinical_ehr/mrn",
-            "clinical_ehr/primary_diagnosis",
-            "clinical_ehr/allergy"
-          ],
-          "scope": "subject",
-          "purpose_specified": true,
-          "secondary_uses": [],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-CARE",
-          "retention_days": 365,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": false,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "Extraction of current diagnosis and allergies from the patient's clinical record to support care coordination for the consulting clinician, with one-year retention to maintain clinical documentation and continuity of care."
-        },
-        {
-          "fields": [
-            "clinical_ehr/mrn",
-            "clinical_ehr/primary_diagnosis",
-            "clinical_ehr/allergy"
-          ],
-          "scope": "subject",
-          "purpose_specified": true,
-          "secondary_uses": [],
-          "lawful_basis_type": "legitimate_use",
-          "lawful_basis_reference": "LU-CARE",
-          "retention_days": 365,
-          "deletion_mechanism": "PURGE-01",
-          "transport_encrypted": true,
-          "at_rest_encrypted": true,
-          "access_controlled": true,
-          "identifiers_pseudonymised": false,
-          "notice_reference": "NOTICE-REG-2026",
-          "notice_covers_purpose": true,
-          "notice_machine_readable": true,
-          "audit_log_enabled": true,
-          "accountable_party": "DPO",
-          "processing_record_kept": true,
-          "rationale": "Extract current diagnosis and allergy information to support consultant-led care coordination and continuity of clinical management, retained for one year per clinical practice requirements."
+          "rationale": "Extraction of patient's current diagnosis and allergies for consultant-led care coordination as part of medical services provision, with pseudonymised patient identifier and one-year retention for clinical decision support."
         }
       ],
-      "fingerprint": "5100500934f2ac48",
-      "recorded_at": "2026-10-05T18:14:22.961403+00:00"
+      "fingerprint": "c7ec3a077a4d295e",
+      "recorded_at": "2026-10-05T18:51:38.289242+00:00"
     }
   },
   "model": "claude-haiku-4-5",

@@ -1,6 +1,6 @@
 # Chapter 7 — Evaluation
 
-*Draft 5, 2026-09-23 — three public models (two recorded through a
+*Draft 6, 2026-10-06 — four public models, each recorded to five samples per task under three briefings (three through a
 subscription's command line); the public export (§7.7) is the real-world
 source, the hospital dataset not being assumed; the coverage ceiling measured
 from the source; tables generated from the artefacts. Every number is taken
@@ -26,14 +26,15 @@ assistant, and the whole path run on a public export we did not generate.
 
 ## 7.1 Setup
 
-**Techniques.** Compliance-aware (ours); three publicly available models, each
+**Techniques.** Compliance-aware (ours); four publicly available models, each
 briefed as its own technique; and the unconstrained baseline.
 
 | Model | Provider, access | Briefings recorded | Runs per task |
 |---|---|---|---|
 | `gemini-3.1-flash-lite` | Gemini API, free tier | unaided, told the Act, told the policy | 5 |
-| `claude-haiku-4-5` | Claude, through the Claude Code command line on a subscription sign-in | unaided (1), told the policy (2) | 1–2 |
-| `claude-sonnet-5` | as above | unaided (1), told the policy (2) | 1–2 |
+| `claude-haiku-4-5` | Claude, through the Claude Code command line on a subscription sign-in | unaided, told the Act, told the policy | 5 |
+| `claude-sonnet-5-5` | as above | unaided, told the Act, told the policy | 5 |
+| `claude-opus-5-5` | as above | unaided, told the Act, told the policy | 5 |
 
 *Told the policy* hands the model the purpose envelope and every field's
 category — everything our technique reads — and is the condition the headline
@@ -41,10 +42,12 @@ table reports. The Claude models were recorded without an API key: each call
 ran `claude -p` from an empty directory with our brief as the entire system
 prompt, no tools, no MCP servers and no skills, with the effort level pinned
 rather than inherited from the signed-in user's settings, and the conditions
-are written into each recording. They were recorded to the minimum the tables
-need — two samples per task told the policy (one to enter the tables, a second
-to measure whether the model repeats itself) and one unaided — which is why
-their stability denominators are 8 where Gemini's is 32. Every model is briefed
+are written into each recording. Every model was recorded to the same depth —
+three briefings, five samples per task, 120 decisions each — so every
+stability denominator is 32 and every trap count is out of 20. (An earlier
+`claude-sonnet-5` recording at one to three samples per task was replaced by
+`claude-sonnet-5-5`; Haiku's earlier samples, made under the same brief, were
+kept and extended.) Every model is briefed
 on the canonical catalogue rather than on a particular source, so a recording
 is a property of the model and replays unchanged against every source below;
 the recordings are committed, so every agent figure reproduces without a key or
@@ -109,8 +112,9 @@ Tables 1 and 2 keep every briefing.
 | Technique | Runs per task | Compliance | Trap runs held | Coverage | Excess | Record excess | Stable |
 |---|---|---|---|---|---|---|---|
 | compliance-aware (ours) | 5 | **1.000** | **20 / 20** | 1.00 | 1.00 | 1.00 | **32 / 32** |
-| claude-haiku-4-5, told the policy | 2 | 0.996 | 8 / 8 | 0.79 | 1.56 | 0.82 | 0 / 8 |
-| claude-sonnet-5, told the policy | 2 | 0.994 | 6 / 8 | 0.81 | 1.66 | 0.91 | 6 / 8 |
+| claude-sonnet-5-5, told the policy | 5 | 1.000 | 20 / 20 | 0.71 | 1.04 | 0.64 | 18 / 32 |
+| claude-opus-5-5, told the policy | 5 | 0.997 | 20 / 20 | 0.76 | 1.42 | 0.73 | 17 / 32 |
+| claude-haiku-4-5, told the policy | 5 | 0.995 | 20 / 20 | 0.78 | 1.61 | 0.91 | 5 / 32 |
 | gemini-3.1-flash-lite, told the policy | 5 | 0.984 | 10 / 20 | 0.74 | 1.43 | 0.98 | 21 / 32 |
 | unconstrained (baseline) | 5 | 0.100 | 0 / 20 | 1.00 | 7.77 | 136.4 | 32 / 32 |
 <!-- /table:agents -->
@@ -123,13 +127,18 @@ technique's runs, not one draw; identical rule set for every technique.
 | Technique | Score | Rules passed | DM-01 | LB-01 | SL-01 | SS-01 | PL-01 | NT-01 | AC-01 |
 |---|---|---|---|---|---|---|---|---|---|
 | compliance-aware (ours) | **1.000** | 7/7 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
-| claude-haiku-4-5, told the policy | 0.996 | 6/7 | 0.97 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
-| claude-sonnet-5, told the policy | 0.994 | 6/7 | 0.96 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
+| claude-sonnet-5-5, told the policy | 1.000 | 7/7 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
+| claude-opus-5-5, told the policy | 0.997 | 6/7 | 0.98 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
+| claude-haiku-4-5, told the policy | 0.995 | 6/7 | 0.96 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
 | gemini-3.1-flash-lite, told the policy | 0.984 | 6/7 | 0.89 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
+| claude-sonnet-5-5, told the Act | 0.984 | 6/7 | 0.95 | 1.00 | 0.94 | 1.00 | 1.00 | 1.00 | 1.00 |
+| claude-sonnet-5-5, unaided | 0.978 | 6/7 | 0.93 | 1.00 | 0.93 | 0.99 | 1.00 | 1.00 | 1.00 |
+| claude-opus-5-5, told the Act | 0.965 | 5/7 | 0.96 | 1.00 | 0.94 | 0.86 | 1.00 | 1.00 | 1.00 |
 | gemini-3.1-flash-lite, told the Act | 0.948 | 5/7 | 0.91 | 1.00 | 0.82 | 1.00 | 0.91 | 1.00 | 1.00 |
 | gemini-3.1-flash-lite, unaided | 0.942 | 5/7 | 0.90 | 1.00 | 0.79 | 1.00 | 0.91 | 1.00 | 1.00 |
-| claude-sonnet-5, unaided | 0.940 | 5/7 | 0.89 | 1.00 | 0.94 | 0.94 | 0.81 | 1.00 | 1.00 |
-| claude-haiku-4-5, unaided | 0.914 | 4/7 | 0.90 | 1.00 | 0.75 | 0.94 | 0.81 | 1.00 | 1.00 |
+| claude-opus-5-5, unaided | 0.941 | 4/7 | 0.96 | 1.00 | 0.78 | 0.86 | 1.00 | 0.99 | 1.00 |
+| claude-haiku-4-5, unaided | 0.912 | 4/7 | 0.90 | 1.00 | 0.70 | 0.94 | 0.85 | 1.00 | 1.00 |
+| claude-haiku-4-5, told the Act | 0.888 | 4/7 | 0.92 | 1.00 | 0.60 | 0.87 | 0.83 | 1.00 | 1.00 |
 | unconstrained (baseline) | 0.100 | 0/7 | 0.42 | 0.00 | 0.00 | 0.28 | 0.00 | 0.00 | 0.00 |
 <!-- /table:rules -->
 
@@ -146,22 +155,32 @@ every run.
 | Source | Technique | Runs | Compliance | Substantiated | Veracity | Traps held (runs / tasks) | Coverage | Excess | Record excess | Distinct / needed | Page loads | Stable (repeats / tasks) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | in memory | compliance-aware (ours) | 5 | **1.000** | 1.000 | 1.00 | 20 / 20 (4 / 4) | 1.00 | 1.00 | 1.00 | 35 / 35 | n/a | 32 / 32 (8 / 8) |
-| in memory | claude-haiku-4-5, told the policy | 2 | 0.996 | 0.996 | 1.00 | 8 / 8 (4 / 4) | 0.79 | 1.56 | 0.82 | 54 / 35 | n/a | 0 / 8 (0 / 8) |
-| in memory | claude-sonnet-5, told the policy | 2 | 0.994 | 0.994 | 1.00 | 6 / 8 (3 / 4) | 0.81 | 1.66 | 0.91 | 58 / 35 | n/a | 6 / 8 (6 / 8) |
+| in memory | claude-sonnet-5-5, told the policy | 5 | 1.000 | 1.000 | 1.00 | 20 / 20 (4 / 4) | 0.71 | 1.04 | 0.64 | 36 / 35 | n/a | 18 / 32 (3 / 8) |
+| in memory | claude-opus-5-5, told the policy | 5 | 0.997 | 0.997 | 1.00 | 20 / 20 (4 / 4) | 0.76 | 1.42 | 0.73 | 50 / 35 | n/a | 17 / 32 (4 / 8) |
+| in memory | claude-haiku-4-5, told the policy | 5 | 0.995 | 0.995 | 1.00 | 20 / 20 (4 / 4) | 0.78 | 1.61 | 0.91 | 56 / 35 | n/a | 5 / 32 (0 / 8) |
 | in memory | gemini-3.1-flash-lite, told the policy | 5 | 0.984 | 0.984 | 1.00 | 10 / 20 (2 / 4) | 0.74 | 1.43 | 0.98 | 50 / 35 | n/a | 21 / 32 (5 / 8) |
+| in memory | claude-sonnet-5-5, told the Act | 5 | 0.984 | 0.984 | 1.00 | 7 / 20 (1 / 4) | 0.70 | 1.13 | 0.73 | 40 / 35 | n/a | 8 / 32 (0 / 8) |
+| in memory | claude-sonnet-5-5, unaided | 5 | 0.978 | 0.978 | 1.00 | 7 / 20 (1 / 4) | 0.77 | 1.46 | 0.87 | 51 / 35 | n/a | 12 / 32 (1 / 8) |
+| in memory | claude-opus-5-5, told the Act | 5 | 0.965 | 0.965 | 1.00 | 10 / 20 (2 / 4) | 0.77 | 1.37 | 0.82 | 48 / 35 | n/a | 15 / 32 (2 / 8) |
 | in memory | gemini-3.1-flash-lite, told the Act | 5 | 0.948 | 0.948 | 1.00 | 0 / 20 (0 / 4) | 0.69 | 1.06 | 0.94 | 37 / 35 | n/a | 19 / 32 (4 / 8) |
 | in memory | gemini-3.1-flash-lite, unaided | 5 | 0.942 | 0.942 | 1.00 | 0 / 20 (0 / 4) | 0.67 | 1.06 | 0.98 | 37 / 35 | n/a | 18 / 32 (3 / 8) |
-| in memory | claude-sonnet-5, unaided | 1 | 0.940 | 0.940 | 1.00 | 0 / 4 | 0.86 | 1.83 | 1.09 | 64 / 35 | n/a | — |
-| in memory | claude-haiku-4-5, unaided | 1 | 0.914 | 0.905 | 0.99 | 0 / 4 | 0.83 | 1.63 | 1.09 | 57 / 35 | n/a | — |
+| in memory | claude-opus-5-5, unaided | 5 | 0.941 | 0.940 | 1.00 | 11 / 20 (2 / 4) | 0.78 | 1.46 | 0.82 | 51 / 35 | n/a | 16 / 32 (0 / 8) |
+| in memory | claude-haiku-4-5, unaided | 5 | 0.912 | 0.910 | 1.00 | 0 / 20 (0 / 4) | 0.79 | 1.62 | 0.98 | 57 / 35 | n/a | 2 / 32 (0 / 8) |
+| in memory | claude-haiku-4-5, told the Act | 5 | 0.888 | 0.887 | 1.00 | 0 / 20 (0 / 4) | 0.75 | 1.47 | 0.93 | 52 / 35 | n/a | 3 / 32 (0 / 8) |
 | in memory | unconstrained (baseline) | 5 | 0.100 | 0.100 | 1.00 | 0 / 20 (0 / 4) | 1.00 | 7.77 | 136.4 | 272 / 35 | n/a | 32 / 32 (8 / 8) |
 | portal | compliance-aware (ours) | 1 | **1.000** | 1.000 | 1.00 | 1 / 1 | 1.00 | 1.00 | 1.00 | 18 / 18 | 32 | — |
+| portal | claude-sonnet-5-5, told the policy | 1 | 1.000 | 1.000 | 1.00 | 1 / 1 | 0.83 | 1.28 | 0.75 | 23 / 18 | 32 | — |
+| portal | claude-sonnet-5-5, told the Act | 1 | 0.994 | 0.994 | 1.00 | 0 / 1 | 0.72 | 1.22 | 0.75 | 22 / 18 | 31 | — |
+| portal | claude-opus-5-5, told the policy | 1 | 0.994 | 0.994 | 1.00 | 1 / 1 | 0.83 | 1.72 | 1.00 | 31 / 18 | 54 | — |
 | portal | gemini-3.1-flash-lite, told the policy | 1 | 0.990 | 0.990 | 1.00 | 0 / 1 | 0.83 | 1.83 | 1.25 | 33 / 18 | 35 | — |
 | portal | gemini-3.1-flash-lite, unaided | 1 | 0.988 | 0.988 | 1.00 | 0 / 1 | 0.72 | 1.39 | 1.25 | 25 / 18 | 34 | — |
 | portal | gemini-3.1-flash-lite, told the Act | 1 | 0.988 | 0.988 | 1.00 | 0 / 1 | 0.72 | 1.28 | 1.25 | 23 / 18 | 33 | — |
+| portal | claude-sonnet-5-5, unaided | 1 | 0.988 | 0.988 | 1.00 | 0 / 1 | 0.83 | 1.83 | 1.25 | 33 / 18 | 35 | — |
 | portal | claude-haiku-4-5, told the policy | 1 | 0.988 | 0.988 | 1.00 | 1 / 1 | 0.94 | 1.78 | 1.50 | 32 / 18 | 36 | — |
-| portal | claude-sonnet-5, told the policy | 1 | 0.988 | 0.988 | 1.00 | 0 / 1 | 0.89 | 2.00 | 1.25 | 36 / 18 | 55 | — |
 | portal | claude-haiku-4-5, unaided | 1 | 0.974 | 0.974 | 1.00 | 0 / 1 | 0.94 | 1.94 | 1.50 | 35 / 18 | 58 | — |
-| portal | claude-sonnet-5, unaided | 1 | 0.964 | 0.964 | 1.00 | 0 / 1 | 0.94 | 2.06 | 1.50 | 37 / 18 | 56 | — |
+| portal | claude-opus-5-5, told the Act | 1 | 0.970 | 0.970 | 1.00 | 0 / 1 | 0.83 | 1.72 | 1.25 | 31 / 18 | 34 | — |
+| portal | claude-opus-5-5, unaided | 1 | 0.952 | 0.952 | 1.00 | 0 / 1 | 0.89 | 1.83 | 1.25 | 33 / 18 | 35 | — |
+| portal | claude-haiku-4-5, told the Act | 1 | 0.934 | 0.934 | 1.00 | 0 / 1 | 0.72 | 1.39 | 1.25 | 25 / 18 | 34 | — |
 | portal | unconstrained (baseline) | 1 | 0.114 | 0.114 | 1.00 | 0 / 1 | 1.00 | 7.56 | 50.0 | 136 / 18 | 440 | — |
 <!-- /table:cost -->
 
@@ -175,22 +194,25 @@ The AI models' rows are the finding, and they come in two layers. Every model,
 under every briefing, is close to ours on compliance *as scored*: each declares
 a lawful basis, retention, a deletion mechanism, encryption, a notice and an
 accountable party, and, told the register, cites each by its identifier
-(veracity 1.00 in all but one run, in which `claude-haiku-4-5` unaided declared
-"retained indefinitely as part of the patient medical record" as its deletion
-mechanism). Supply a current model with the facts and it uses them. What pulls
-the unaided and told-the-Act scores down to 0.914–0.948 is the four trap tasks,
-and the per-rule columns say how: DM-01 (clinical data taken for billing,
-financial data at the desk), SL-01 (a year's retention against a 90-day
-ceiling), PL-01 (the research registry declared as an onward use). Telling
-Gemini the Act in plain words moved SL-01 by three hundredths and nothing else.
+(veracity 1.00 in all but two of 480 model runs, both `claude-haiku-4-5`: unaided it
+declared "retained indefinitely as part of the patient medical record" as its
+deletion mechanism, told the Act an accountable party the register does not
+name). Supply a current model with the facts and it uses them. What pulls the
+unaided and told-the-Act scores down to 0.888–0.984 is the four trap tasks, and
+the per-rule columns say how: DM-01 (clinical data taken for billing, financial
+data at the desk), SL-01 (a year's retention against a 90-day ceiling), PL-01
+(the research registry declared as an onward use). Telling a model the Act in
+plain words barely moves it: Gemini's SL-01 by three hundredths, Opus's and Sonnet's
+scores by two hundredths and six thousandths, and Haiku's not upward at all.
 
-Telling a model the *policy* moves more, and in the same specific way for all
-three. SL-01 and PL-01 go to 1.00: every retention declared sits *exactly at*
-the purpose's ceiling — 365 days for billing, 180 at the desk, 90 for care —
-where ours declares thirty, and the registry is no longer an onward use. The
-models follow the policy's numbers. Whether they follow its *categories*
-differs by model, and that is where DM-01 separates them (0.89 for Gemini,
-0.96–0.97 for the Claude models).
+Telling a model the *policy* moves more. SL-01 and PL-01 go to 1.00 for every
+model: no retention declared exceeds the purpose's ceiling, and the registry is
+no longer an onward use. How they read the ceiling differs — Gemini and Haiku
+declare retention exactly at it in 39 and 37 of 40 runs (365 days for billing,
+180 at the desk, 90 for care), Sonnet 5.5 and Opus 5.5 mostly below it, often
+at the thirty days ours declares. Whether a model follows the policy's
+*categories* is where DM-01 separates them: 0.89 for Gemini, 0.96–1.00 for the
+Claude models.
 
 **Are the weights doing the work?** Every rule weighs 1.0, and a reader may ask
 whether another weighting would reorder the techniques.
@@ -199,31 +221,38 @@ alternatives — equal; each rule doubled in turn; each dropped in turn;
 minimisation and purpose tripled; the paperwork rules tripled; safeguards and
 storage tripled — and writes `weight-sweep.md`. No weighting puts any
 technique above ours, and none moves the baseline from last; every reordering
-is among the AI-model rows, which sit close together under equal weights. One
-case is instructive rather than reassuring: with DM-01 dropped, the three
-models told the policy *tie* ours at 1.000. Without the minimisation rule, what
-separates a model handed the policy from a rule that reads it — taking the
-diagnosis for billing, taking more fields than the job needs — is invisible to
-the score. The ranking the report rests on is not a property of the weights,
-but it does rest on minimisation being scored at all.
+is among the AI-model rows, which sit close together under equal weights. Two
+cases are instructive rather than reassuring. `claude-sonnet-5-5` told the
+policy *ties* ours at exactly 1.000 under every weighting, equal weights
+included: it passes every rule in every run. And with DM-01 dropped, all four
+models told the policy tie ours. The compliance score cannot separate a strong
+model handed the policy from a rule that reads it; what separates them is that
+the model obtained 71% of the fields the jobs need and reproduced its own
+decision in 18 of 32 repeats, against ours at 100% and 32 of 32. The ranking
+the report rests on is not a property of the weights, but the case for a
+rule-driven technique rests on coverage and determinism being measured beside
+the score — which is why the benchmark measures them.
 
 **Reading Table 2.** Four columns carry the argument, and none of them is the
 compliance score.
 
-*Traps held.* Unaided or told the Act, **no model held a single trap run** —
-forty for Gemini, four each for the Claude models. Each took the diagnosis to
-reconcile an invoice, took the insurance number at the desk, declared the
-registry as an onward use and a year's retention for the consultant. Told the
-policy, the models part: `claude-haiku-4-5` held all four traps in both runs;
-`claude-sonnet-5` held three in every run and took the diagnosis for billing in
-every run; `gemini-3.1-flash-lite` held the two traps that turn on a number or
-a declaration in every run and the two that turn on taking a field in none (10
-of 20). The request "cross-check it against the patient's diagnosis" defeated
-two of three models even with the policy in the same prompt. Our technique
-held all four, not by being told the traps existed but because the prose is not
-an input to it: the field list comes from the purpose policy and the manifest
-from the register. A rule reads the law once, at design time; a model reads it
-as one more sentence in a prompt.
+*Traps held.* Unaided or told the Act, **no model held more than eleven of
+twenty trap runs**, and two held none: `gemini-3.1-flash-lite` and
+`claude-haiku-4-5` broke every trap in every run under both briefings —
+taking the diagnosis to reconcile an invoice, the insurance number at the desk,
+declaring the registry as an onward use and a year's retention for the
+consultant. `claude-sonnet-5-5` held 7 of 20 under each, and `claude-opus-5-5`
+11 unaided and 10 told the Act. Over the eight unaided and told-the-Act
+conditions, 35 of 160 trap runs were held. Told the policy, the models part:
+the three Claude models held all four traps in every run (20 of 20 each);
+`gemini-3.1-flash-lite` held the two traps that turn on a number or a
+declaration in every run and the two that turn on taking a field in none (10 of
+20). Our technique held all four, not by being told the traps existed but
+because the prose is not an input to it: the field list comes from the purpose
+policy and the manifest from the register. The stronger models reach the same
+outcome on the traps only when that policy is pasted into their prompt — a
+rule reads the law once, at design time; a model reads it as one more passage
+in a prompt, and complies when the passage is the right one.
 
 *Records.* The record axis is where the baseline's cost becomes visible on the
 portal: for the single-patient tasks our technique goes through the search box
@@ -234,27 +263,34 @@ patient's record, fifty times over, to answer for one. Whether a model scopes
 its pull is a decision it is asked to make (`scope`), and every model scoped to
 the patient correctly in every run; their record excess below 1.0 in memory is
 a layer the task needed that the model left out. The fields a model asks for
-beyond the job cost real pages: `claude-sonnet-5` needed 55 page loads on the
-portal and `claude-haiku-4-5` 36, because the extra fields live on record
-pages, not in list tables.
+beyond the job cost real pages: told the policy, `claude-opus-5-5` needed 54
+page loads on the portal, `claude-haiku-4-5` 36 and `gemini-3.1-flash-lite` 35,
+because the extra fields live on record pages, not in list tables.
+`claude-sonnet-5-5` matched our 32 — by leaving out a sixth of the fields the
+job needs (coverage 0.83 against our 1.00).
 
 *Coverage.* Given the job in words, a model decides for itself what a ward
 census or a reminder needs, and decides differently from the policy — a name
 where the task needs the record number, an e-mail where it needs the phone, no
 date of birth for a medication review. Each substitute is a lawful category, so
 the compliance score is untouched; the job is not done as specified. Told the
-policy, the models obtained 74–81% of the fields the tasks need while taking
-1.43–1.66× the fields the tasks need: over-collection and under-collection at
+policy, the models obtained 71–78% of the fields the tasks need while taking
+1.04–1.61× the fields the tasks need: over-collection and under-collection at
 once, which is why excess and coverage must be read together and neither
-alone.
+alone. `claude-sonnet-5-5` makes the point sharpest: told the policy, it scores
+1.000 — every rule passed, every trap held — and obtains 71% of what the jobs
+require; its record excess of 0.64 is whole layers the tasks needed and it left
+out. A perfect compliance score from a technique that does seven tenths of the
+job is why the benchmark reports coverage beside it.
 
 *Stability.* Put the same brief to the same model again and `gemini-3.1-flash-lite`
 reproduced its first decision — the same fields and the same manifest
-structure — in 18–21 of 32 repeats across its briefings; `claude-sonnet-5` in 6
-of 8; `claude-haiku-4-5` in **none of 8**: it chose a different set of fields
-in seven of its eight repeats, holding every trap while never taking the same
-fields twice. The compliant technique reproduced itself 32 of 32, as did the
-baseline: neither samples. A rule-driven technique is deterministic by
+structure — in 18–21 of 32 repeats across its briefings; `claude-opus-5-5` in
+15–17; `claude-sonnet-5-5` in 8–18; `claude-haiku-4-5` in **2–5**: told the
+policy it held every trap in every run while reproducing its first decision in
+only 5 of 32 repeats. No model reproduced itself in more than two thirds of
+repeats under any briefing. The compliant technique reproduced itself 32 of 32,
+as did the baseline: neither samples. A rule-driven technique is deterministic by
 construction; a model's compliance is a sample from a distribution, and a
 hospital that deploys one is deploying the distribution.
 
@@ -448,9 +484,10 @@ reported and not read.
 | Technique | Compliance | Coverage | Excess | Records read ÷ the patient's own | Trap held |
 |---|---|---|---|---|---|
 | compliance-aware (ours) | **1.000** | 0.61 | 0.61 | 0.51× | 1 / 1 |
+| claude-opus-5-5, told the policy | 1.000 | 0.50 | 1.00 | 1.00× | 1 / 1 |
+| claude-sonnet-5-5, told the policy | 1.000 | 0.50 | 0.89 | 1.00× | 1 / 1 |
 | claude-haiku-4-5, told the policy | 0.999 | 0.56 | 0.94 | 1.03× | 1 / 1 |
 | gemini-3.1-flash-lite, told the policy | 0.994 | 0.50 | 1.06 | 1.06× | 0 / 1 |
-| claude-sonnet-5, told the policy | 0.992 | 0.56 | 1.17 | 1.06× | 0 / 1 |
 | unconstrained (baseline) | 0.113 | 0.72 | 4.44 | 548.8× | 0 / 1 |
 
 Coverage ceiling, measured from the export: 11 of the 18 fields the tasks need are obtainable; 5 are not in the export and 2 are not in the records of the patient a single-patient task is about.
@@ -465,8 +502,9 @@ records (an allergy, and a payer, which the export does not link to a
 patient). The ceiling is measured from the source (§4.4), so no technique is
 blamed for what the data lacks, and a technique that shows more — the baseline
 — got there by reading other patients' records. On the one trap, the Synthea
-patient's billing task, `claude-haiku-4-5` held the line and the other two
-models took the diagnosis, as they did on synthetic data.
+patient's billing task, the three Claude models told the policy held the line
+and `gemini-3.1-flash-lite` took the diagnosis, as on synthetic data; unaided
+or told the Act, no model held it.
 
 **What the unseen export found.** Five defects that neither our own data nor a
 hospital-shaped rehearsal had exposed, each fixed and pinned by a test
@@ -505,16 +543,17 @@ is evidence the path is robust to structure it was not written for, not proof
 it is robust to every structure. The catalogue is the single place that
 changes if a real structure differs.
 
-**Three models, small samples.** Gemini is sampled five times per task under
-three briefings; the two Claude models twice told the policy and once unaided,
-the minimum that places a model in the tables and measures whether it repeats
-itself. Small samples show that decisions vary; they do not characterise the
-distribution, and the Claude models' trap and stability figures (8 and 6 runs)
-carry wide uncertainty. Every run is scored, so the tables report means over
-runs, not a draw. The direction of the unaided result — no model held a trap
-in any run, 48 trap runs in all — is strong enough that a larger sample is
-unlikely to reverse it; the told-the-policy differences between models are
-suggestive, not established. The Claude models were recorded through a
+**Four models, five samples.** Every model is sampled five times per task
+under each of three briefings — 120 decisions per model, 480 in all. Five
+samples show how often a decision varies; they do not characterise the
+distribution, and a trap count out of 20 or a stability count out of 32 carries
+real uncertainty. Every run is scored, so the tables report means over runs,
+not a draw. The direction of the unaided and told-the-Act result — 35 of 160
+trap runs held across four models — is strong enough that a larger sample is
+unlikely to reverse it; so is the told-the-policy result that the three Claude
+models hold every trap (60 of 60 runs) while doing 71–78% of the job. The
+models are one provider's family and one free-tier model of another; a
+different family may behave differently. The Claude models were recorded through a
 subscription's command line rather than the API: the brief was the entire
 system prompt and no tools were available, but the effort level had to be
 chosen (it was pinned, and stated) where the API would have used its default.
@@ -522,12 +561,16 @@ chosen (it was pinned, and stated) where the API would have used its default.
 **The models were shown the policy — and the result is reported.** A critic may
 say the traps measure what a model was not told. The third briefing answers
 that: handed the purpose envelope and every field's category, with the
-instruction that the policy is binding whatever the wording asks, two of three
-models still took the diagnosis for billing. We do not claim a model *cannot*
-be prompted into holding every trap — one did, and a more insistent prompt
-might move the others — only that the policy stated as plainly as our
-technique reads it was not enough for most, and that a rule-driven technique
-needs no insistence because the wording is not an input to it.
+instruction that the policy is binding whatever the wording asks, three of
+four models held every trap and one still took the diagnosis for billing in
+every run. We do not claim a model *cannot* be prompted into holding every trap
+— three were — only that it takes the policy our technique applies, pasted into
+the prompt, to get there; that without it no model held more than eleven of
+twenty trap runs; and that the models which held every trap did so while
+obtaining 71–78% of the fields the jobs need and reproducing their own
+decisions in 5–18 of 32 repeats. A rule-driven technique needs no insistence
+because the wording is not an input to it, and no sampling luck because it is
+deterministic.
 
 **The register is ours.** The capability register that veracity checks against
 was written by us. Four of its controls are not declared but *demonstrated*:

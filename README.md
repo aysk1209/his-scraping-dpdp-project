@@ -53,26 +53,28 @@ everything ours knows); every briefing is in
 | Technique | Runs per task | Compliance | Trap runs held | Coverage | Excess | Record excess | Stable |
 |---|---|---|---|---|---|---|---|
 | compliance-aware (ours) | 5 | **1.000** | **20 / 20** | 1.00 | 1.00 | 1.00 | **32 / 32** |
-| claude-haiku-4-5, told the policy | 2 | 0.996 | 8 / 8 | 0.79 | 1.56 | 0.82 | 0 / 8 |
-| claude-sonnet-5, told the policy | 2 | 0.994 | 6 / 8 | 0.81 | 1.66 | 0.91 | 6 / 8 |
+| claude-sonnet-5-5, told the policy | 5 | 1.000 | 20 / 20 | 0.71 | 1.04 | 0.64 | 18 / 32 |
+| claude-opus-5-5, told the policy | 5 | 0.997 | 20 / 20 | 0.76 | 1.42 | 0.73 | 17 / 32 |
+| claude-haiku-4-5, told the policy | 5 | 0.995 | 20 / 20 | 0.78 | 1.61 | 0.91 | 5 / 32 |
 | gemini-3.1-flash-lite, told the policy | 5 | 0.984 | 10 / 20 | 0.74 | 1.43 | 0.98 | 21 / 32 |
 | unconstrained (baseline) | 5 | 0.100 | 0 / 20 | 1.00 | 7.77 | 136.4 | 32 / 32 |
 <!-- /table:agents -->
 
-Three public models — `gemini-3.1-flash-lite` (free API tier) and
-`claude-haiku-4-5` and `claude-sonnet-5` (through a subscription's command line,
-no API credit) — match the rule-driven technique on the *manifest they declare*.
-They differ on everything the score cannot see:
+Four public models — `gemini-3.1-flash-lite` (free API tier) and
+`claude-haiku-4-5`, `claude-sonnet-5-5` and `claude-opus-5-5` (through a
+subscription's command line, no API credit), each recorded five times per task
+under three briefings — match the rule-driven technique on the *manifest they
+declare*. They differ on everything the score cannot see:
 
-- **Traps.** Unaided or told the Act, no model held a single trap run. Handed
-  the policy, every model obeys its *numbers* — every retention lands exactly on
-  the purpose's ceiling, the onward use disappears — but two of three still take
-  the diagnosis to reconcile an invoice, in every run: a sentence in the request
-  outranks a table in the same prompt.
-- **The job.** They take 1.4–1.7× the fields the tasks need and still obtain only
-  74–81% of what the tasks need — a name where the task needs the record number.
-- **Repeatability.** Given the same brief again, one model reproduced its first
-  decision in 21 of 32 repeats, one in 6 of 8, one in 0 of 8.
+- **Traps.** Unaided or told the Act, no model held more than 11 of 20 trap
+  runs, and two held none. Handed the purpose policy itself, the three Claude
+  models hold every trap — they comply when given the table ours applies — while
+  Gemini still takes the diagnosis to reconcile an invoice, in every run.
+- **The job.** Told the policy, they take 1.04–1.61× the fields the tasks need and
+  still obtain only 71–78% of what the tasks need. One scores a perfect 1.000
+  while doing 71% of the job.
+- **Repeatability.** Given the same brief again, they reproduced their first
+  decision in 5–21 of 32 repeats; ours in 32 of 32.
 
 Ours reads the purpose policy, not the prose, so it holds every trap and repeats
 itself, by construction. On the portal it reads one patient through the search
@@ -122,7 +124,7 @@ Every demo page: `python tools/build_review_pages.py`. Every table in the report
 with `GEMINI_API_KEY` / `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` set in your own
 shell, `python scripts/record_ai_agents.py --list-models`, then
 `python scripts/record_ai_agents.py --repeats 5`; with a Claude subscription and
-no key, `--provider claude-code --model claude-haiku-4-5`. The model is briefed
+no key, `--provider claude-code --model claude-opus-5-5` (or `claude-sonnet-5-5`, `claude-haiku-4-5`). The model is briefed
 with field *names* and the job; no patient value ever leaves the machine, and the
 recordings hold only field names and manifest choices.
 
