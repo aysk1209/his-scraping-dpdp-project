@@ -54,10 +54,15 @@ def test_no_step_touches_data_its_own_purpose_forbids():
 
 
 def test_every_step_template_only_references_declared_inputs():
+    class _AnyLabel:
+        def __getattr__(self, name):
+            return name
+
     for spec in REGISTRY:
         names = {slot.name: "x" for slot in spec.inputs}
         for step in spec.steps:
-            step.text.format(**names)          # KeyError if a placeholder is undeclared
+            # KeyError if a placeholder is undeclared
+            step.text.format(**names, module="M", button="B", label=_AnyLabel())
 
 
 def test_every_function_is_permitted_for_at_least_one_role():
@@ -155,19 +160,29 @@ def test_ambiguous_request_asks_then_proceeds_on_a_number():
 
 
 def test_ambiguous_request_can_also_be_resolved_by_words():
-    replies = _run(StaffRole.ADMINISTRATOR, ["insurance", "the eligibility one", "MRN1", "POL-1"])
+    replies = _run(StaffRole.ADMINISTRATOR, ["insurance", "the eligibility one", "MRN2867825", "POL-1"])
     assert replies[1].kind == ReplyKind.ASK_INPUT
     assert replies[-1].kind == ReplyKind.GUIDANCE
     assert replies[-1].guidance.function_id == "verify_insurance"
 
 
+def test_a_tie_with_one_function_this_role_may_use_goes_straight_to_it():
+    # Reception may verify eligibility but not reconcile a settlement: "insurance"
+    # can only mean the one it may do, so it does not ask.
+    replies = _run(StaffRole.RECEPTION, ["insurance"])
+    assert replies[0].kind == ReplyKind.ASK_INPUT
+    assert "verify insurance eligibility" in replies[0].text
+
+
 def test_choosing_a_function_the_role_may_not_use_is_still_declined():
-    # Reception gets the same ambiguity, picks reconciliation, and is refused --
-    # the gate runs on the chosen function, not on the vague request.
-    replies = _run(StaffRole.RECEPTION, ["insurance", "2"])
+    # The nurse may do neither: it asks among them all, the nurse picks
+    # reconciliation, and is refused -- the gate runs on the chosen function,
+    # not on the vague request.
+    replies = _run(StaffRole.NURSE, ["insurance", "2"])
     assert replies[0].kind == ReplyKind.ASK_CHOOSE
+    assert set(replies[0].options) == {"verify_insurance", "reconcile_payment"}
     assert replies[1].kind == ReplyKind.DECLINED
-    assert replies[1].decision.rule_id == "SS-01"
+    assert replies[1].decision.rule_id == "PL-01"
 
 
 def test_unrecognised_request_lists_only_what_this_role_may_do():
@@ -179,7 +194,7 @@ def test_unrecognised_request_lists_only_what_this_role_may_do():
 
 def test_session_resets_after_guidance_and_after_decline():
     session = Session(StaffRole.NURSE)
-    for line in ["record vitals", "MRN1", "120/80", "70", "36.9"]:
+    for line in ["record vitals", "MRN2867825", "120/80", "70", "36.9"]:
         session.respond(line)
     assert session.state == "idle"
     session.respond("raise the bill")
@@ -187,18 +202,26 @@ def test_session_resets_after_guidance_and_after_decline():
 
 
 def test_navigation_map_fills_step_pages_when_provided():
-    # The seam for the Tier 2 navigation map: pass artefact -> page and the
-    # steps carry it. Absent a map, pages stay unset -- nothing else changes.
-    session = Session(StaffRole.NURSE, navigation={"fhir:Condition": "/chart/problems"})
+    # Pass the crawler's map and the steps carry the module, path and screen it
+    # found. Absent a map, pages stay unset -- nothing else changes.
+    from extraction.tier2.navigation import ModuleMap, NavigationMap
+    from interop.layers import HISLayer
+    nav = NavigationMap(base_url="https://his.example", modules=[ModuleMap(
+        title="Problems", list_url="https://his.example/chart/problems", list_path="/chart/problems",
+        columns=["mrn", "primary_diagnosis"], detail_fields=["mrn", "primary_diagnosis"],
+        inferred_layer=HISLayer.CLINICAL_EHR, layer_confidence=1.0,
+    )])
+    session = Session(StaffRole.NURSE, navigation=nav)
     reply = session.respond("diagnosis")
     reply = session.respond("MRN2867825")
     assert reply.kind == ReplyKind.GUIDANCE
     assert all(step.page == "/chart/problems" for step in reply.guidance.steps)
-    assert "/chart/problems" in reply.text
+    assert "Problems, /chart/problems, list page" in reply.text
+    assert Session(StaffRole.NURSE).respond("diagnosis for MRN2867825").guidance.steps[0].page is None
 
 
 def test_guidance_renders_its_own_compliance_footer():
-    replies = _run(StaffRole.ADMINISTRATOR, ["generate an invoice", "MRN2867825", "ENC-1"])
+    replies = _run(StaffRole.ADMINISTRATOR, ["generate an invoice", "MRN2867825", "ENC-20260912-07"])
     text = replies[-1].text
     assert "purpose      : billing_settlement" in text
     assert "retain       : no longer than 365 days" in text

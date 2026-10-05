@@ -351,14 +351,16 @@ python scripts/ask_agent.py
 python scripts/ask_agent.py --interactive
 ```
 
-Four short scenes. A receptionist registers a walk-in and gets numbered steps,
+Five short scenes. A receptionist registers a walk-in and gets numbered steps,
 each tagged with where in the HIS it happens and, where it matters, a one-line
 reason (search before creating; read the notice before saving). The same
 receptionist then asks what is wrong with the patient — and is refused, **before
 being asked for a single detail**, with the rule named and a pointer to who *can*
 answer. An administrator types just "insurance" and is asked which of two things
 they meant. A nurse records vitals, then asks to raise the bill and is refused for
-the opposite reason.
+the opposite reason. Last, a patient at the desk asks for a copy of their data: the
+receptionist is walked through logging it as a privacy request and routing it to
+the data-protection contact -- and told not to hand anything over at the desk.
 
 The point to make out loud: **there is no AI model in this.** It is a fixed list
 of hospital functions, word matching, and templates — and one call to the
@@ -367,7 +369,29 @@ all is that the refusal comes from the same table that scores the scraping
 benchmark. If someone asks "how is it trained?", the answer is: it isn't, by
 design.
 
-Use `--interactive` if a reviewer wants to type their own request.
+Use `--interactive` if a reviewer wants to type their own request; `help` lists the
+role's tasks in groups, `cancel` drops a request and everything typed for it.
+
+### Demo D2 — the HIS is updated; the assistant keeps up
+
+```
+python scripts/check_ui_update.py
+```
+
+The fixture portal is crawled as every benchmark crawls it, then served again as
+a simulated vendor release: modules renamed and moved, billing split in two, fields
+moved onto the record page, headers relabelled, every button renamed. The two
+crawls are compared and every one of the assistant's 29 tasks is placed on both.
+25 re-word themselves ("Check eligibility" on *Billing & Accounts* becomes "Verify
+coverage" on *Insurance & Payers*). Four have a step **withheld**, because the release did
+two things nothing could predict -- a header the alias file does not map, a button
+named outside the vocabulary -- and the assistant refuses to guess. It proposes
+what each probably is; a super-user confirms; all 29 come back. Then each role
+asks "what changed?" and hears only what touches its own work.
+
+The point to make out loud: **an update needs a new crawl, not new code** -- and
+what the crawl cannot understand is withheld with a reason, never guessed. The
+DPDP gate does not move: the release changed the screens, not who may do what.
 
 ### The mock hospital portal (what the scraper will point at)
 

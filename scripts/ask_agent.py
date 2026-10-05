@@ -1,14 +1,17 @@
 """Demo: the staff-guidance assistant, in conversation.
 
-    python scripts/ask_agent.py                 # scripted transcripts, four scenes
-    python scripts/ask_agent.py --interactive   # pick a role and type
+    python scripts/ask_agent.py                 # scripted transcripts, five scenes
+    python scripts/ask_agent.py --interactive   # pick a role and type ("help" lists the tasks)
 
-Four scenes, each showing one thing the assistant does:
+Five scenes, each showing one thing the assistant does:
 
   1. Reception registers a walk-in     -- recognition, slot filling, grounded steps
   2. Reception asks about a diagnosis  -- declined before any detail is asked for
   3. Administrator says "insurance"    -- ambiguous; the assistant asks, then proceeds
   4. Nurse asks two things             -- one permitted, one declined for a different rule
+  5. A patient asks for their data     -- a privacy request, logged and routed, never disclosed
+
+How the steps keep up with a HIS update is ``scripts/check_ui_update.py``.
 
 No LLM is involved anywhere. The assistant is a function registry, token-overlap
 recognition, and templates -- and one call to ``compliance.roles.authorise`` before
@@ -25,7 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import _present as present
-from agent import ReplyKind, Session, StaffRole, capabilities
+from agent import ReplyKind, Session, StaffRole
 
 SCENES: list[tuple[str, StaffRole, list[str]]] = [
     (
@@ -49,6 +52,11 @@ SCENES: list[tuple[str, StaffRole, list[str]]] = [
         StaffRole.NURSE,
         ["record obs for a patient", "MRN2867825", "128/82", "76", "37.1",
          "now raise the bill for that admission"],
+    ),
+    (
+        "Scene 5 -- back at the desk, a patient asks what the hospital holds about them",
+        StaffRole.RECEPTION,
+        ["the patient wants a copy of my data -- MRN2867825"],
     ),
 ]
 
@@ -86,9 +94,8 @@ def interactive() -> None:
     role = roles[int(choice) - 1] if choice.isdigit() and 1 <= int(choice) <= len(roles) else roles[0]
     session = Session(role)
     print(f"\nYou are {role.value}. As {role.value} the assistant can walk you through:")
-    for spec in capabilities(role):
-        print(f"  - {spec.label}")
-    print("\nType a request. Empty line or 'quit' to leave.\n")
+    print("\n".join(session.menu()))
+    print("\nType a request -- or help, cancel. Empty line or 'quit' to leave.\n")
     while True:
         try:
             line = input(f"{role.value}> ").strip()
@@ -105,7 +112,7 @@ def main() -> None:
         interactive()
         return
 
-    print(present.banner("Staff-guidance assistant -- four scenes"))
+    print(present.banner("Staff-guidance assistant -- five scenes"))
     print(
         "A rule-based assistant for hospital staff. It recognises what the person\n"
         "wants from a fixed list of HIS functions, asks for the details it needs,\n"

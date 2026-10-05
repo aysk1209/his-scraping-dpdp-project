@@ -4,15 +4,17 @@
 
 The staff assistant (``src/agent/``) has no model in it: it recognises one of a
 fixed set of functions by token overlap, checks the role's purpose *before*
-asking for a single detail, then fills templated steps and places each on the
-page the portal crawler found (``docs/benchmark_results/navigation-map.json``).
+asking for a single detail, then fills templated steps and words each in the
+module, column and button names the portal crawler found
+(``docs/benchmark_results/navigation-map.json``).
 That makes it small enough to run in a browser, so the page does -- the panel
 can type anything a receptionist or a nurse would say.
 
 A copy of logic is a second place for it to be wrong, so the page does not ask
 to be trusted: the builder runs the real Python ``Session`` on every scripted
 conversation (every role x every function, every synonym, ties and their
-follow-ups, empty answers, requests it cannot recognise) and embeds the
+follow-ups, empty answers, details given up front or in the wrong shape,
+help / cancel / what-changed, requests it cannot recognise) and embeds the
 transcripts. On load the page replays all of them through its own engine and
 compares every reply, character for character. If one differs, typing is
 switched off and only the recorded Python conversations are offered.
@@ -30,8 +32,12 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 
 from agent.functions import REGISTRY                                      # noqa: E402
-from agent.guidance import build_guidance                                 # noqa: E402
-from agent.session import _SPEC_TOKENS, _STOPWORDS, ReplyKind, Session, recognise  # noqa: E402
+from agent.guidance import WITHHELD_HEAD, build_guidance                  # noqa: E402
+from agent.session import (                                               # noqa: E402
+    _SPEC_PHRASES, _SPEC_TOKENS, _STOPWORDS, CANCEL_WORDS, CANCELLED_TEXT, CHANGES_WORDS, HELP_WORDS,
+    MISFIT_TEXT, NOTHING_TEXT, PHRASE_WEIGHT, ReplyKind, Session, recognise,
+)
+from agent.ui import ScreenMap                                            # noqa: E402
 from compliance.policy import PURPOSE_POLICY, policy_for                  # noqa: E402
 from compliance.roles import ARTEFACTS, ROLE_POLICY, StaffRole, authorise  # noqa: E402
 from extraction.tier2.navigation import NavigationMap                     # noqa: E402
@@ -48,6 +54,17 @@ PROBES = [
     "who is on the ward", "the patient has arrived", "give me the medication list", "order a blood test",
     "is the insurance valid", "discharge", "assign a bed on ward 3", "reconcile", "what do you do",
 ]
+# Scripts every role is put through: the commands, details given up front, a
+# detail in the wrong shape, help and cancel in the middle of a request.
+EXTRA = [
+    ["help"], ["what changed"], ["cancel"], ["what's new?"],
+    ["record vitals", "help", "cancel"],
+    ["register a new patient", "Priya Raman", "14th March", "1988-03-14", "+91-9800000012"],
+    ["check in MRN2867825"], ["raise the bill for ENC-20260912-07", "MRN2867825"],
+    ["discharge MRN2867825", "2026-09-15"], ["insurance", "help", "1", "MRN2867825", "POL-44812-K"],
+    ["record obs for MRN2867825", "one twenty", "128/82", "seventy", "76", "37.1"],
+    ["what is the diagnosis for MRN2867825"], ["new", "start over"],
+]
 # The four scenes the live pipeline shows (scripts/run_pipeline.py, stage 6).
 SCENES = [
     ("reception", ["register a new patient", "Priya Raman", "1988-03-14", "+91-9800000012"]),
@@ -61,7 +78,11 @@ def _reply(r, fn: str | None) -> dict:
     return {"kind": r.kind.value, "fn": fn, "text": r.text}
 
 
-def _play(role: StaffRole, turns: list[str], nav: dict) -> dict:
+_NO_FUNCTION = (ReplyKind.ASK_CHOOSE, ReplyKind.UNRECOGNISED, ReplyKind.HELP, ReplyKind.CANCELLED,
+                ReplyKind.CHANGES)
+
+
+def _play(role: StaffRole, turns: list[str], nav: ScreenMap) -> dict:
     """A fixed script through the real Session; each reply tagged with the function in play."""
 
     session, replies, fn = Session(role, navigation=nav), [], None
@@ -75,11 +96,11 @@ def _play(role: StaffRole, turns: list[str], nav: dict) -> dict:
             fn = next(x.id for x in REGISTRY if reply.text.startswith(f"Sure -- to {x.label} "))
         if reply.kind == ReplyKind.GUIDANCE:
             fn = reply.guidance.function_id
-        replies.append(_reply(reply, fn if reply.kind not in (ReplyKind.ASK_CHOOSE, ReplyKind.UNRECOGNISED) else None))
+        replies.append(_reply(reply, fn if reply.kind not in _NO_FUNCTION else None))
     return {"role": role.value, "turns": list(turns), "replies": replies}
 
 
-def _conversation(role: StaffRole, first: str, nav: dict, *, pick: int | None = None,
+def _conversation(role: StaffRole, first: str, nav: ScreenMap, *, pick: int | None = None,
                   empty_once: bool = False, bad_choice: bool = False) -> dict:
     """Drive the real Session: answer a tie with ``pick``, every question with its example."""
 
@@ -100,7 +121,7 @@ def _conversation(role: StaffRole, first: str, nav: dict, *, pick: int | None = 
             if empty_once:
                 answer, empty_once = "", False
             else:
-                answer = spec.inputs[len(session._inputs)].example
+                answer = session._pending().example
         else:
             break
         turns.append(answer)
@@ -132,18 +153,21 @@ def _gate(role: StaffRole, spec) -> dict:
 
 def build(out: Path = DEFAULT_OUT) -> dict:
     nav_map = NavigationMap.model_validate_json(NAV_MAP.read_text(encoding="utf-8"))
-    nav = nav_map.agent_pages()
+    nav = ScreenMap.from_navigation(nav_map)
 
     functions = []
     for spec in REGISTRY:
         template = build_guidance(StaffRole.NURSE, spec, {s.name: "{" + s.name + "}" for s in spec.inputs}, nav)
         touched = ", ".join(sorted(c.value for c in template.categories_touched())) or "none"
         functions.append({
-            "id": spec.id, "label": spec.label, "synonyms": spec.synonyms, "purpose": spec.purpose.value,
+            "id": spec.id, "label": spec.label, "group": spec.group, "synonyms": spec.synonyms,
+            "purpose": spec.purpose.value,
             "artefacts": [ARTEFACTS[a].name for a in sorted(spec.artefacts)],
-            "inputs": [{"name": s.name, "prompt": s.prompt, "example": s.example} for s in spec.inputs],
+            "inputs": [{"name": s.name, "prompt": s.prompt, "example": s.example,
+                        "pattern": s.pattern, "find": s.find} for s in spec.inputs],
             "steps": [{"text": st.text, "layer": st.layer.value, "artefact": st.artefact_name, "page": st.page,
-                       "caution": st.caution} for st in template.steps],
+                       "where": st.where, "caution": st.caution} for st in template.steps],
+            "withheld": bool(template.withheld()),
             "touched": touched,
         })
 
@@ -159,6 +183,8 @@ def build(out: Path = DEFAULT_OUT) -> dict:
             "decline": {spec.id: (session._begin(spec).text if not spec.permitted_for(role) else None)
                         for spec in REGISTRY},
             "unrecognised": session._unrecognised().text,
+            "help": session._help().text,
+            "changes": session.respond("what changed").text,
         })
         session.reset()
 
@@ -178,17 +204,29 @@ def build(out: Path = DEFAULT_OUT) -> dict:
             else:
                 vectors.append(_conversation(role, probe, nav))
         vectors.append(_conversation(role, "", nav))
+        for turns in EXTRA:
+            vectors.append(_play(role, turns, nav))
+        for spec in REGISTRY:
+            given = " ".join(s.example for s in spec.inputs if s.find)
+            if given:
+                vectors.append(_conversation(role, f"{spec.label} {given}", nav))
     scenes = [_play(StaffRole(r), turns, nav) for r, turns in SCENES]
 
     data = {
         "stopwords": sorted(_STOPWORDS),
         "tokens": {k: sorted(v) for k, v in _SPEC_TOKENS.items()},
+        "phrases": _SPEC_PHRASES,
+        "phraseWeight": PHRASE_WEIGHT,
+        "commands": {"help": sorted(HELP_WORDS), "cancel": sorted(CANCEL_WORDS), "changes": sorted(CHANGES_WORDS)},
+        "texts": {"cancelled": CANCELLED_TEXT, "nothing": NOTHING_TEXT, "misfit": MISFIT_TEXT,
+                  "withheldHead": WITHHELD_HEAD},
+        "screensAsOf": nav.discovered,
         "order": [s.id for s in REGISTRY],
         "functions": functions,
         "roles": roles,
         "purposes": {p.value: {"note": pol.legitimate_use_note, "days": pol.max_retention_days}
                      for p, pol in PURPOSE_POLICY.items()},
-        "pages": nav,
+        "pages": nav_map.agent_pages(),
         "vectors": vectors,
         "scenes": scenes,
         "meta": {"functions": len(REGISTRY), "conversations": len(vectors),

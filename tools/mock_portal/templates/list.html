@@ -2,6 +2,7 @@
 {% block title %}{{ title }} - HIS Portal{% endblock %}
 {% block content %}
 <h1>{{ title }}</h1>
+{% if actions %}<form class="actions" method="post" action="{{ url_for('module_action', slug=slug) }}">{% for a in actions %}<button type="submit" name="do" value="{{ loop.index }}">{{ a }}</button>{% endfor %}</form>{% endif %}
 <form class="search" method="get" action="{{ url_for('module_list', slug=slug) }}">
   <input type="text" name="q" value="{{ query }}" placeholder="Search">
   <button type="submit">Search</button>

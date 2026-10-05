@@ -47,6 +47,7 @@ htmlcov/
 !/docs/benchmark_results/benchmark-portal.md
 !/docs/benchmark_results/navigation-map.json
 !/docs/benchmark_results/navigation-map.md
+!/docs/benchmark_results/ui-update-check.md
 !/docs/benchmark_results/techniques-compared.html
 !/docs/benchmark_results/rules-vs-just-ai.html
 

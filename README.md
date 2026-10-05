@@ -115,7 +115,7 @@ The public export: `python scripts/fetch_public_dataset.py`, then
 Every demo page: `python tools/build_review_pages.py`. Every table in the report:
 `python tools/report_tables.py`. Other demos: `run_benchmark.py`,
 `trace_journey.py` (one entry through every stage), `compare_purposes.py`, `show_role_access.py`,
-`ask_agent.py`, `rehearse_day_one.py`. Plain-language guide:
+`ask_agent.py`, `check_ui_update.py`, `rehearse_day_one.py`. Plain-language guide:
 [`DEMO_GUIDE.md`](DEMO_GUIDE.md).
 
 **Recording the AI models yourself** (optional — recordings are committed):
@@ -137,7 +137,8 @@ src/
                     techniques (compliance-aware, AI agents + recordings, baseline); metering; tier2 crawler
   data_synthetic/   field catalogue (field -> layer -> DPDP category), generator, schemas, export
   interop/          five-layer HIS model, layer <-> standard map, HL7 v2 / FHIR shapers, export audit
-  agent/            rule-based staff assistant: registry, session (recognise -> gate -> collect), guidance
+  agent/            rule-based staff assistant: registry, session (recognise -> gate -> collect), guidance,
+                    ui (words steps from the crawl), drift (what a HIS update changed)
 scripts/            run_pipeline, run_benchmark, trace_journey, record_ai_agents, purge_exports, check_source,
                     rehearse_day_one (the real-data procedure on a hospital-shaped export, with a leak audit), ...
 tools/              mock_portal/ (the login-gated portal fixture, Flask, TLS); the demo pages, the deck and the

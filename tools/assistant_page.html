@@ -41,6 +41,9 @@
   .gfoot { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
   .rulechip { display: inline-block; font-family: var(--mono); font-size: .78rem; font-weight: 600; padding: 1px 7px; border-radius: var(--rr); background: color-mix(in srgb, var(--bad) 14%, var(--card)); color: var(--bad); margin-top: 6px; }
   .opts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .grp { font-size: .76rem; font-weight: 600; color: var(--ink-3); margin-top: 10px; }
+  .chg { padding-left: 12px; position: relative; font-size: .88rem; margin-top: 3px; }
+  .chg::before { content: "–"; position: absolute; left: 0; color: var(--ink-3); }
   .opt { font: inherit; font-size: .84rem; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: var(--r); padding: 3px 10px; cursor: pointer; }
   .opt:hover { border-color: var(--ink-3); }
   .compose { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); background: var(--card); }
@@ -135,44 +138,71 @@
   /* ---------------------------------------------------- the engine (mirrors agent/session.py) */
   const STOP = new Set(D.stopwords);
   const SPEC = Object.fromEntries(Object.entries(D.tokens).map(([k, v]) => [k, new Set(v)]));
-  const tokens = (t) => new Set((t.toLowerCase().match(/[a-z0-9]+/g) || []).filter((w) => !STOP.has(w)));
+  const words = (t) => t.toLowerCase().match(/[a-z0-9]+/g) || [];
+  const norm = (t) => words(t).join(" ");
+  const tokens = (t) => new Set(words(t).filter((w) => !STOP.has(w)));
   function recognise(text) {
     const req = [...tokens(text)];
     if (!req.length) return [];
-    const scored = D.order.map((id) => [req.filter((w) => SPEC[id].has(w)).length, id]);
+    const said = ` ${norm(text)} `;
+    const scored = D.order.map((id) => [req.filter((w) => SPEC[id].has(w)).length
+      + D.phraseWeight * D.phrases[id].filter((p) => said.includes(` ${p} `)).length, id]);
     const best = Math.max(...scored.map((s) => s[0]));
     if (best === 0) return [];
     return scored.filter((s) => s[0] === best).map((s) => s[1]);
   }
+  const fits = (slot, answer) => slot.pattern === null || new RegExp(`^(?:${slot.pattern})$`, "i").test(answer.trim());
+  function foundIn(slot, text) {
+    if (slot.find === null) return null;
+    const m = text.match(new RegExp(slot.find, "i"));
+    return m ? m[0] : null;
+  }
   function renderGuidance(role, id, inputs) {
     const f = F[id], p = D.purposes[f.purpose];
     const lines = [`How to ${f.label} -- for ${role}`, ""];
+    if (f.withheld) lines.push(D.texts.withheldHead, "");
     f.steps.forEach((s, i) => {
       lines.push(`  ${i + 1}. ${s.text.replace(/\{(\w+)\}/g, (m, k) => (k in inputs ? inputs[k] : m))}`);
-      lines.push(`     [${s.layer} / ${s.artefact}${s.page ? " / " + s.page : ""}]`);
+      lines.push(`     [${s.layer} / ${s.artefact}${s.where ? " / " + s.where : ""}]`);
       if (s.caution) lines.push(`     note: ${s.caution}`);
     });
     lines.push("", `  purpose      : ${f.purpose} (${p.note})`, `  data touched : ${f.touched}`,
       `  retain       : no longer than ${p.days} days for this purpose`);
+    if (D.screensAsOf) lines.push(`  screens      : as found on ${D.screensAsOf}`);
     return lines.join("\n");
   }
   class Session {
     constructor(role) { this.role = role; this.reset(); }
-    reset() { this.state = "idle"; this.options = []; this.spec = null; this.inputs = {}; }
+    reset() { this.state = "idle"; this.options = []; this.spec = null; this.inputs = {}; this.request = ""; }
     respond(text) {
       text = text.trim();
+      const cmd = norm(text);
+      if (D.commands.help.includes(cmd)) return this.help();
+      if (D.commands.changes.includes(cmd)) return { kind: "changes", fn: null, text: R[this.role].changes };
+      if (D.commands.cancel.includes(cmd)) {
+        if (this.state === "idle") return { kind: "cancelled", fn: null, text: D.texts.nothing };
+        this.reset();
+        return { kind: "cancelled", fn: null, text: D.texts.cancelled };
+      }
       if (this.state === "choosing") return this.choose(text);
       if (this.state === "collecting") return this.collect(text);
       return this.start(text);
     }
     start(text) {
-      const m = recognise(text);
+      let m = recognise(text);
       if (!m.length) return { kind: "unrecognised", fn: null, text: R[this.role].unrecognised };
+      this.request = text;
       if (m.length > 1) {
+        const mine = m.filter((id) => R[this.role].gate[id].allowed);
+        if (mine.length === 1) return this.begin(mine[0]);
+        m = mine.length ? mine : m;
         this.options = m; this.state = "choosing";
         return { kind: "ask_choose", fn: null, text: ["I can help with a few things that sound like that -- which one?", ...m.map((id, i) => `  ${i + 1}. ${F[id].label}`)].join("\n") };
       }
       return this.begin(m[0]);
+    }
+    chooseAgain() {
+      return { kind: "ask_choose", fn: null, text: ["Sorry -- pick one by number:", ...this.options.map((id, i) => `  ${i + 1}. ${F[id].label}`)].join("\n") };
     }
     choose(text) {
       let chosen = null;
@@ -182,7 +212,7 @@
         chosen = this.options.find((id) => low === id || low === F[id].label.toLowerCase()) || null;
         if (!chosen) { const n = recognise(text).filter((id) => this.options.includes(id)); if (n.length === 1) chosen = n[0]; }
       }
-      if (!chosen) return { kind: "ask_choose", fn: null, text: ["Sorry -- pick one by number:", ...this.options.map((id, i) => `  ${i + 1}. ${F[id].label}`)].join("\n") };
+      if (!chosen) return this.chooseAgain();
       this.options = [];
       return this.begin(chosen);
     }
@@ -190,21 +220,35 @@
       const gate = R[this.role].gate[id];
       if (!gate.allowed) { this.reset(); return { kind: "declined", fn: id, text: R[this.role].decline[id] }; }
       this.spec = id; this.inputs = {};
-      if (!F[id].inputs.length) return this.finish();
+      for (const s of F[id].inputs) { const v = foundIn(s, this.request); if (v !== null && fits(s, v)) this.inputs[s.name] = v; }
+      const taken = Object.entries(this.inputs);
+      if (taken.length === F[id].inputs.length) return this.finish();
       this.state = "collecting";
-      return this.askNext(`Sure -- to ${F[id].label} I need a couple of details.`);
+      let pre = `Sure -- to ${F[id].label} I need a couple of details.`;
+      if (taken.length) pre += "\n(From your message: " + taken.map(([k, v]) => `${k} ${v}`).join(", ") + ".)";
+      return this.askNext(pre);
     }
+    pending() { return F[this.spec].inputs.find((s) => !(s.name in this.inputs)); }
     collect(text) {
-      const f = F[this.spec], slot = f.inputs[Object.keys(this.inputs).length];
+      const slot = this.pending();
       if (!text) return { kind: "ask_input", fn: this.spec, text: `${slot.prompt} (e.g. ${slot.example})` };
+      if (!fits(slot, text)) return { kind: "ask_input", fn: this.spec, text: `${D.texts.misfit}\n${slot.prompt} (e.g. ${slot.example})` };
       this.inputs[slot.name] = text;
-      if (Object.keys(this.inputs).length === f.inputs.length) return this.finish();
+      if (Object.keys(this.inputs).length === F[this.spec].inputs.length) return this.finish();
       return this.askNext();
     }
     askNext(preface) {
-      const slot = F[this.spec].inputs[Object.keys(this.inputs).length];
+      const slot = this.pending();
       const t = `${slot.prompt} (e.g. ${slot.example})`;
       return { kind: "ask_input", fn: this.spec, text: preface ? `${preface}\n${t}` : t };
+    }
+    help() {
+      if (this.state === "collecting") {
+        const slot = this.pending();
+        return { kind: "ask_input", fn: this.spec, text: `(Say "cancel" to stop.) To ${F[this.spec].label} I still need this:\n${slot.prompt} (e.g. ${slot.example})` };
+      }
+      if (this.state === "choosing") return this.chooseAgain();
+      return { kind: "help", fn: null, text: R[this.role].help };
     }
     finish() {
       const id = this.spec, text = renderGuidance(this.role, id, this.inputs);
@@ -250,15 +294,21 @@
     const lines = r.text.split("\n");
     if (r.kind === "guidance") {
       let h = `<div class="gtitle">${esc(lines[0])}</div>`, i = 2, n = 0;
+      if (lines[2] === D.texts.withheldHead) { h += `<div class="caution">${Kit.icon("flag")} ${esc(lines[2].trim())}</div>`; i = 4; }
+      const steps = (F[r.fn] || { steps: [] }).steps;
       while (i < lines.length && lines[i] !== "") {
         const m = lines[i].match(/^  (\d+)\. (.*)$/);
         if (m) {
           let where = "", note = "";
-          const w = (lines[i + 1] || "").match(/^\s+\[(.*)\]$/);
-          if (w) { const parts = w[1].split(" / "); where = parts.map((p, k) => `<span class="${k === 2 ? "page" : ""}">${esc(p)}</span>`).join(""); i++; }
+          if (/^\s+\[(.*)\]$/.test(lines[i + 1] || "")) {
+            const st = steps[n] || {};
+            where = [st.layer, st.artefact, st.where].filter(Boolean).map((p, k) => `<span class="${k === 2 ? "page" : ""}">${esc(p)}</span>`).join("");
+            i++;
+          }
           const c = (lines[i + 1] || "").match(/^\s+note: (.*)$/);
           if (c) { note = `<div class="caution">${Kit.icon("flag")} ${esc(c[1])}</div>`; i++; }
           h += `<div class="gstep"><span class="no">${m[1]}</span><div>${esc(m[2])}<div class="where">${where}</div>${note}</div></div>`;
+          n++;
         }
         i++;
       }
@@ -271,10 +321,21 @@
       const rest = lines.filter((l) => l !== rule).slice(1);
       return `<b>${esc(lines[0])}</b><div>${rest.map((l) => esc(l.trim())).join("<br>")}</div><span class="rulechip">${esc(rule.trim().replace(/^\[|\]$/g, ""))}</span>`;
     }
-    if (r.kind === "ask_choose" || r.kind === "unrecognised") {
-      const head = lines.filter((l) => !/^\s+(\d+\.|-) /.test(l));
-      const opts = lines.map((l) => l.match(/^\s+(?:(\d+)\.|-) (.*)$/)).filter(Boolean);
-      return `${head.map(esc).join("<br>")}<div class="opts">${opts.map((m) => `<button class="opt" data-say="${esc(m[1] || m[2])}">${esc(m[2])}</button>`).join("")}</div>`;
+    if (r.kind === "ask_choose" || r.kind === "unrecognised" || r.kind === "help") {
+      let h = "", opts = [];
+      const flush = () => { if (opts.length) { h += `<div class="opts">${opts.join("")}</div>`; opts = []; } };
+      for (const l of lines) {
+        const m = l.match(/^\s+(?:(\d+)\.|-) (.*)$/);
+        if (m) { opts.push(`<button class="opt" data-say="${esc(m[1] || m[2])}">${esc(m[2])}</button>`); continue; }
+        flush();
+        const g = l.match(/^\s+(.*):$/);
+        h += g ? `<div class="grp">${esc(g[1])}</div>` : `<div>${esc(l)}</div>`;
+      }
+      flush();
+      return h;
+    }
+    if (r.kind === "changes") {
+      return `<b>${esc(lines[0])}</b>` + lines.slice(1).map((l) => `<div class="${/^\s+- /.test(l) ? "chg" : ""}">${esc(l.replace(/^\s+- /, "").trim())}</div>`).join("");
     }
     if (r.kind === "ask_input") {
       const ex = r.text.match(/\(e\.g\. (.*)\)$/);
@@ -303,7 +364,13 @@
   }
   function why(r) {
     if (!r.fn) {
-      $("why").innerHTML = `<h2>Why this answer</h2><p class="empty">${r.kind === "ask_choose" ? "Several functions match — it asks rather than guesses." : "No function matched. It offers only what this role may do."}</p>`;
+      const said = {
+        ask_choose: "Several functions match and this role may use more than one of them — it asks rather than guesses.",
+        help: "The menu is this role's tasks, read off the same gate as every answer.",
+        cancelled: "Dropped. Nothing typed for that request was kept.",
+        changes: "Read off the comparison of the last two crawls of the HIS.",
+      }[r.kind] || "No function matched. It offers only what this role may do.";
+      $("why").innerHTML = `<h2>Why this answer</h2><p class="empty">${said}</p>`;
       return;
     }
     const f = F[r.fn], g = R[role].gate[r.fn];
@@ -337,7 +404,7 @@
   function paintSuggest() {
     const mine = D.functions.filter((f) => R[role].gate[f.id].allowed).slice(0, 2).map((f) => f.synonyms[0] || f.label);
     const refused = D.functions.find((f) => !R[role].gate[f.id].allowed);
-    const picks = [...mine, refused ? refused.synonyms[0] || refused.label : null, "tell me a joke"].filter(Boolean);
+    const picks = [...mine, refused ? refused.synonyms[0] || refused.label : null, "help", "tell me a joke"].filter(Boolean);
     $("suggest").innerHTML = picks.map((p) => `<button class="opt" data-say="${esc(p)}">${esc(p)}</button>`).join("");
     $("suggest").querySelectorAll(".opt").forEach((b) => b.addEventListener("click", () => { if (!busy) { session.reset(); history = []; say(b.dataset.say); } }));
   }

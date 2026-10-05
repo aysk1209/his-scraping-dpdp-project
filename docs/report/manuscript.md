@@ -227,8 +227,9 @@ stating its de-identification status.
 **Export and the assistant.** Extracted rows are shaped to HL7 v2 and FHIR with
 direct identifiers replaced by keyed tokens when the manifest declares it, and
 the audit then searches the artefacts for every raw value extracted. A
-rule-based staff assistant recognises one of thirteen functions and answers
-with steps for the asker's role; whether a role may be told a function is
+rule-based staff assistant recognises one of twenty-nine functions and answers
+with steps for the asker's role, worded from the latest crawl so that a HIS
+update re-words them (and withholds, with a reason, any step it cannot place); whether a role may be told a function is
 *derived* — the categories lawful under the role's purposes intersected with
 those carried by the interoperability artefacts it handles — and the gate runs
 before any detail is collected. The policy table that scores the benchmark is

@@ -133,6 +133,17 @@ ARTEFACTS: dict[str, InteropArtefact] = {
         standard=InteropStandard.FHIR, name="Schedule / Slot",
         layer=HISLayer.PATIENT_ADMINISTRATION, categories=frozenset({_AD}),
     ),
+    "fhir:Consent": InteropArtefact(
+        standard=InteropStandard.FHIR, name="Consent",
+        layer=HISLayer.PATIENT_ADMINISTRATION, categories=frozenset({_DI, _AD}),
+        note="the notice acknowledged and the consent given or withdrawn -- what it covers, not the data itself",
+    ),
+    "fhir:Task": InteropArtefact(
+        standard=InteropStandard.FHIR, name="Task (data-principal request)",
+        layer=HISLayer.PATIENT_ADMINISTRATION, categories=frozenset({_DI, _AD}),
+        note="a request from the patient about their own data (access, correction, erasure, "
+             "grievance), logged at the desk and routed to the hospital's data-protection contact",
+    ),
     "fhir:Location": InteropArtefact(
         standard=InteropStandard.FHIR, name="Location (ward / bed)",
         layer=HISLayer.PATIENT_ADMINISTRATION, categories=frozenset({_AD}),
@@ -251,8 +262,9 @@ ROLE_POLICY: dict[StaffRole, RolePolicy] = {
     StaffRole.RECEPTION: RolePolicy(
         description=(
             "Front desk: registers and identifies patients, books and reschedules, "
-            "checks in arrivals, verifies who will pay. Never sees clinical data; "
-            "sees insurance eligibility but not accounts, invoices or claims."
+            "checks in arrivals, verifies who will pay, and takes a patient's "
+            "requests about their own data. Never sees clinical data; sees "
+            "insurance eligibility but not accounts, invoices or claims."
         ),
         # Eligibility checking is the billing purpose, so reception acts under it --
         # but the artefact set below stops that purpose from over-granting.
@@ -260,6 +272,8 @@ ROLE_POLICY: dict[StaffRole, RolePolicy] = {
         artefacts={
             "hl7:ADT", "hl7:SIU",
             "fhir:Patient", "fhir:Appointment", "fhir:Schedule", "fhir:Coverage",
+            # The desk is where a patient asks about their own data.
+            "fhir:Consent", "fhir:Task",
         },
     ),
     StaffRole.NURSE: RolePolicy(
@@ -288,6 +302,7 @@ ROLE_POLICY: dict[StaffRole, RolePolicy] = {
             "hl7:ADT", "hl7:DFT", "hl7:BAR",
             "fhir:Patient", "fhir:Encounter", "fhir:Location",
             "fhir:Coverage", "fhir:Account", "fhir:Invoice", "fhir:ClaimResponse",
+            "fhir:Consent", "fhir:Task",
         },
     ),
 }

@@ -163,7 +163,7 @@ def dataset_shortfall(source: DatasetHISDataSource, tasks: list[ExtractionTask])
     return None
 
 
-def run_downstream(scraper, pages: dict[str, str], dataset_note: str, artefact: str | None = None) -> None:
+def run_downstream(scraper, navigation, dataset_note: str, artefact: str | None = None) -> None:
     """Stages 3-6: identical whatever the source was."""
 
     techniques = default_techniques(TASKS, scraper)
@@ -219,9 +219,9 @@ def run_downstream(scraper, pages: dict[str, str], dataset_note: str, artefact: 
     matrix = score_across_purposes(output.run, output.records)
     print(matrix.render_table())
 
-    stage(6, "ASSIST -- one question per role" + ("; steps land on the pages found in [2]" if pages else ""))
+    stage(6, "ASSIST -- one question per role" + ("; steps land on the pages found in [2]" if navigation else ""))
     for role, lines in ASSIST:
-        session = Session(role, navigation=pages or None)
+        session = Session(role, navigation=navigation)
         reply = None
         for line in lines:
             print(f"  {role.value:<13} > {line}")
@@ -289,7 +289,7 @@ def main() -> int:
             print(f"  STOPPED: {shortfall}. Nothing was benchmarked and nothing was written.")
             print(f"  Run scripts/check_source.py {args.dataset} --write-map <file>, fill the map, and re-run.")
             return 2
-        run_downstream(scraper, {}, f"dataset {args.dataset}", artefact=args.artefact)
+        run_downstream(scraper, None, f"dataset {args.dataset}", artefact=args.artefact)
 
     elif args.portal:
         if not (args.user and args.password):
@@ -305,7 +305,7 @@ def main() -> int:
         print()
         print(present.wrote(scraper.navigation.to_json_file()))
         print(present.wrote(scraper.navigation.to_markdown_file()))
-        run_downstream(scraper, scraper.navigation.agent_pages(), f"portal {args.portal}")
+        run_downstream(scraper, scraper.navigation, f"portal {args.portal}")
         scraper.close()
 
     else:
@@ -324,7 +324,7 @@ def main() -> int:
             print()
             print(present.wrote(scraper.navigation.to_json_file()))
             print(present.wrote(scraper.navigation.to_markdown_file()))
-            run_downstream(scraper, scraper.navigation.agent_pages(),
+            run_downstream(scraper, scraper.navigation,
                            f"portal, {args.records} records/module, seed {args.seed}")
             scraper.close()
 

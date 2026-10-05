@@ -1,12 +1,12 @@
 {
-  "base_url": "https://127.0.0.1:51772",
-  "discovered_at": "2026-09-18T05:53:53.685614Z",
+  "base_url": "https://127.0.0.1:58821",
+  "discovered_at": "2026-10-05T13:40:18.181538Z",
   "login_path": "/login",
   "page_loads": 11,
   "modules": [
     {
       "title": "Patient Registration",
-      "list_url": "https://127.0.0.1:51772/m/registration/",
+      "list_url": "https://127.0.0.1:58821/m/registration/",
       "list_path": "/m/registration/",
       "columns": [
         "mrn",
@@ -29,11 +29,29 @@
       "page_count": 2,
       "record_count": 20,
       "inferred_layer": "patient_administration",
-      "layer_confidence": 1.0
+      "layer_confidence": 1.0,
+      "labels": {},
+      "list_controls": [
+        "New patient",
+        "Log privacy request",
+        "Ward census"
+      ],
+      "record_controls": [
+        "Edit details",
+        "Mark arrived",
+        "Book appointment",
+        "Reschedule",
+        "Cancel appointment",
+        "Allocate bed",
+        "Transfer",
+        "Discharge",
+        "Record consent withdrawal",
+        "Log privacy request"
+      ]
     },
     {
       "title": "Clinical Records",
-      "list_url": "https://127.0.0.1:51772/m/clinical/",
+      "list_url": "https://127.0.0.1:58821/m/clinical/",
       "list_path": "/m/clinical/",
       "columns": [
         "mrn",
@@ -53,11 +71,18 @@
       "page_count": 2,
       "record_count": 20,
       "inferred_layer": "clinical_ehr",
-      "layer_confidence": 1.0
+      "layer_confidence": 1.0,
+      "labels": {},
+      "list_controls": [],
+      "record_controls": [
+        "Record dose given",
+        "Add allergy",
+        "Ready for discharge"
+      ]
     },
     {
       "title": "Departmental Orders",
-      "list_url": "https://127.0.0.1:51772/m/departments/",
+      "list_url": "https://127.0.0.1:58821/m/departments/",
       "list_path": "/m/departments/",
       "columns": [
         "mrn",
@@ -76,11 +101,18 @@
       "page_count": 2,
       "record_count": 20,
       "inferred_layer": "ancillary_departmental",
-      "layer_confidence": 1.0
+      "layer_confidence": 1.0,
+      "labels": {},
+      "list_controls": [
+        "New lab request"
+      ],
+      "record_controls": [
+        "Record observation"
+      ]
     },
     {
       "title": "Billing & Accounts",
-      "list_url": "https://127.0.0.1:51772/m/billing/",
+      "list_url": "https://127.0.0.1:58821/m/billing/",
       "list_path": "/m/billing/",
       "columns": [
         "mrn",
@@ -98,11 +130,21 @@
       "page_count": 2,
       "record_count": 20,
       "inferred_layer": "administrative_financial",
-      "layer_confidence": 1.0
+      "layer_confidence": 1.0,
+      "labels": {},
+      "list_controls": [
+        "Open account",
+        "Check eligibility"
+      ],
+      "record_controls": [
+        "Post charge",
+        "Generate invoice",
+        "Record settlement"
+      ]
     },
     {
       "title": "Audit Log",
-      "list_url": "https://127.0.0.1:51772/m/integration/",
+      "list_url": "https://127.0.0.1:58821/m/integration/",
       "list_path": "/m/integration/",
       "columns": [
         "audit_event_id",
@@ -121,7 +163,10 @@
       "page_count": 2,
       "record_count": 20,
       "inferred_layer": "infrastructure_integration",
-      "layer_confidence": 1.0
+      "layer_confidence": 1.0,
+      "labels": {},
+      "list_controls": [],
+      "record_controls": []
     }
   ]
 }

@@ -10,21 +10,29 @@ Its one research-relevant property: before it says anything it calls
 extraction benchmark decides what may be said to whom. A receptionist asking for
 a diagnosis is declined with the rule cited. See ``PLAN.md`` section 2.
 
+It survives HIS updates the same way the scraper does: from the crawl. Steps say
+what to do, never what the screen calls it; ``agent.ui`` fills in today's module,
+column and button names from the navigation map, and ``agent.drift`` compares two
+crawls and says what an update changed and which steps it cannot yet place.
+
     from agent import Session, StaffRole
-    session = Session(StaffRole.RECEPTION)
+    session = Session(StaffRole.RECEPTION, navigation=nav_map)
     reply = session.respond("I need to register a new patient")
 """
 
 from __future__ import annotations
 
-from agent.functions import REGISTRY, FunctionSpec, InputSlot, Step, capabilities
+from agent.drift import UIChanges, compare
+from agent.functions import REGISTRY, FunctionSpec, InputSlot, Step, capabilities, capabilities_by_group
 from agent.guidance import StaffGuidance, GuidanceStep
 from agent.session import Reply, ReplyKind, Session
+from agent.ui import ACTIONS, ScreenMap
 from compliance.roles import StaffRole
 
 __all__ = [
-    "REGISTRY", "FunctionSpec", "InputSlot", "Step", "capabilities",
+    "REGISTRY", "FunctionSpec", "InputSlot", "Step", "capabilities", "capabilities_by_group",
     "StaffGuidance", "GuidanceStep",
     "Reply", "ReplyKind", "Session",
+    "ACTIONS", "ScreenMap", "UIChanges", "compare",
     "StaffRole",
 ]

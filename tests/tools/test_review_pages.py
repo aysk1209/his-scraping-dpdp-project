@@ -17,6 +17,7 @@ import pytest
 
 from agent.functions import REGISTRY
 from agent.session import Session
+from extraction.tier2.navigation import NavigationMap
 from compliance.audit import AuditLog
 from compliance.roles import StaffRole
 from tools import build_assistant_page, build_portal_page
@@ -39,14 +40,17 @@ def test_the_assistant_page_carries_every_role_and_function_and_the_gate_agrees(
             # Every role x function has a recorded conversation starting from its label.
             assert any(v["role"] == role["id"] and v["turns"][0] == spec.label for v in data["vectors"])
     kinds = {r["kind"] for v in data["vectors"] for r in v["replies"]}
-    assert kinds == {"ask_choose", "ask_input", "declined", "guidance", "unrecognised"}
+    assert kinds == {"ask_choose", "ask_input", "declined", "guidance", "unrecognised",
+                     "help", "cancelled", "changes"}
+    # The committed crawl places every step: nothing on the page is withheld.
+    assert not any(f["withheld"] for f in data["functions"])
 
 
 def test_the_recorded_conversations_are_what_the_python_assistant_says(tmp_path):
     data = build_assistant_page.build(tmp_path / "assistant.html")
-    pages = data["pages"]
+    nav = NavigationMap.model_validate_json(build_assistant_page.NAV_MAP.read_text(encoding="utf-8"))
     for v in data["vectors"][::7]:
-        session = Session(StaffRole(v["role"]), navigation=pages)
+        session = Session(StaffRole(v["role"]), navigation=nav)
         assert [session.respond(t).text for t in v["turns"]] == [r["text"] for r in v["replies"]]
 
 

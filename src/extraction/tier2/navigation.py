@@ -47,6 +47,12 @@ class ModuleMap(BaseModel):
     record_count: int | None = None
     inferred_layer: HISLayer | None = None
     layer_confidence: float = 0.0                  # share of seen fields the layer's catalogue explains
+    # What a person sees, kept for the staff assistant: each field's header as
+    # displayed (when it differs from the field name), and the buttons on the
+    # list page and on a record page. Read, never pressed.
+    labels: dict[str, str] = Field(default_factory=dict)
+    list_controls: list[str] = Field(default_factory=list)
+    record_controls: list[str] = Field(default_factory=list)
 
     def all_fields(self) -> list[str]:
         seen: list[str] = []
@@ -106,6 +112,9 @@ class NavigationMap(BaseModel):
             lines.append(f"  {m.title}")
             lines.append(f"    in list      : {', '.join(m.columns)}")
             lines.append(f"    detail only  : {', '.join(m.detail_only()) or '-'}")
+            if m.list_controls or m.record_controls:
+                lines.append(f"    buttons      : {', '.join(m.list_controls) or '-'}"
+                             f"  | on a record: {', '.join(m.record_controls) or '-'}")
         return "\n".join(lines)
 
     def to_json_file(self, directory: Path | None = None) -> Path:
@@ -187,11 +196,18 @@ def discover(browser: PortalBrowser, *, home_path: str = "/") -> NavigationMap:
         if not table.columns:
             continue                                # not a list module; skip it
 
+        labels = {name: shown for shown, name in zip(table.headers, table.columns) if shown != name}
+        list_controls = browser.controls()
         detail_fields: list[str] = []
+        record_controls: list[str] = []
         first_link = next((l for l in table.row_links if l), None)
         if first_link:
             browser.goto(first_link)
-            detail_fields = list(browser.read_detail().keys())
+            for shown, name, _ in browser.read_detail_rows():
+                detail_fields.append(name)
+                if shown != name:
+                    labels.setdefault(name, shown)
+            record_controls = browser.controls()
 
         fields = list(dict.fromkeys([*table.columns, *detail_fields]))
         layer, confidence = infer_layer(fields)
@@ -206,6 +222,9 @@ def discover(browser: PortalBrowser, *, home_path: str = "/") -> NavigationMap:
                 record_count=table.record_count,
                 inferred_layer=layer,
                 layer_confidence=confidence,
+                labels=labels,
+                list_controls=list_controls,
+                record_controls=record_controls,
             )
         )
 

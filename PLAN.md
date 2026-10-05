@@ -277,8 +277,19 @@ needed to tell the story.
 
 ### W4 — Staff-guidance agent *(component 10)* — **DONE 2026-09-12** (8 of 10)
 
-Built as specified below. `src/agent/functions.py` holds 13 functions across the
-three roles; `session.py` is the state machine (recognise → gate → collect →
+*2026-10-05 (user direction after Review-II): the assistant is grown to support
+staff through HIS updates.* 29 functions in six groups (the desk, insurance,
+privacy requests, ward care, orders and results, beds, billing); steps name an
+operation and fields, never a screen, and `agent/ui.py` words them from the crawl
+(module by content, column labels, button labels matched to a vocabulary);
+`agent/drift.py` compares two crawls, re-words every function, withholds what it
+cannot place with a proposal for a person to confirm, and answers "what changed?"
+per role. The fixture serves a second layout (`v2`, a simulated release) to test
+it; `scripts/check_ui_update.py` is the demo. Still rule-based, no model.
+Component 10 stays at 10 of 10 -- this extends a closed component.
+
+Built as specified below. `src/agent/functions.py` held 13 functions across the
+three roles (29 since 2026-10-05); `session.py` is the state machine (recognise → gate → collect →
 instruct); `guidance.py` renders the answer with its own compliance footer. The
 gate runs **before** any input is collected. `scripts/ask_agent.py` plays four
 scenes or runs `--interactive`. Tests assert groundedness against the artefact

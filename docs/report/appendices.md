@@ -95,9 +95,9 @@ the interoperability artefacts it handles — not listed.
 <!-- table:roles -->
 | Role | Purposes | Artefacts handled | Derived scope (purposes ∩ artefacts) |
 |---|---|---|---|
-| reception | billing_settlement, patient_registration | `fhir:Appointment`, `fhir:Coverage`, `fhir:Patient`, `fhir:Schedule`, `hl7:ADT`, `hl7:SIU` | administrative, contact, direct identifier, financial, quasi identifier |
+| reception | billing_settlement, patient_registration | `fhir:Appointment`, `fhir:Consent`, `fhir:Coverage`, `fhir:Patient`, `fhir:Schedule`, `fhir:Task`, `hl7:ADT`, `hl7:SIU` | administrative, contact, direct identifier, financial, quasi identifier |
 | nurse | care_coordination | `fhir:AllergyIntolerance`, `fhir:Condition`, `fhir:DiagnosticReport`, `fhir:Encounter`, `fhir:MedicationRequest`, `fhir:Observation`, `fhir:Patient`, `fhir:ServiceRequest`, `hl7:ORM`, `hl7:ORU`, `ieee11073:PoCD` | administrative, clinical, direct identifier, quasi identifier |
-| administrator | billing_settlement, patient_registration | `fhir:Account`, `fhir:ClaimResponse`, `fhir:Coverage`, `fhir:Encounter`, `fhir:Invoice`, `fhir:Location`, `fhir:Patient`, `hl7:ADT`, `hl7:BAR`, `hl7:DFT` | administrative, contact, direct identifier, financial, quasi identifier |
+| administrator | billing_settlement, patient_registration | `fhir:Account`, `fhir:ClaimResponse`, `fhir:Consent`, `fhir:Coverage`, `fhir:Encounter`, `fhir:Invoice`, `fhir:Location`, `fhir:Patient`, `fhir:Task`, `hl7:ADT`, `hl7:BAR`, `hl7:DFT` | administrative, contact, direct identifier, financial, quasi identifier |
 <!-- /table:roles -->
 
 **C.3 Interoperability artefacts.** The standard-defined objects a role may
@@ -115,6 +115,7 @@ granted to no role, by design (§3.4).
 | `fhir:Claim` | fhir | Claim | administrative_financial | clinical, direct identifier, financial | no role |
 | `fhir:ClaimResponse` | fhir | ClaimResponse / PaymentReconciliation | administrative_financial | direct identifier, financial | administrator |
 | `fhir:Condition` | fhir | Condition | clinical_ehr | clinical, direct identifier | nurse |
+| `fhir:Consent` | fhir | Consent | patient_administration | administrative, direct identifier | reception, administrator |
 | `fhir:Coverage` | fhir | Coverage | administrative_financial | direct identifier, financial | reception, administrator |
 | `fhir:DiagnosticReport` | fhir | DiagnosticReport | ancillary_departmental | clinical, direct identifier | nurse |
 | `fhir:Encounter` | fhir | Encounter | clinical_ehr | administrative, direct identifier | nurse, administrator |
@@ -125,6 +126,7 @@ granted to no role, by design (§3.4).
 | `fhir:Patient` | fhir | Patient | patient_administration | contact, direct identifier, quasi identifier | reception, nurse, administrator |
 | `fhir:Schedule` | fhir | Schedule / Slot | patient_administration | administrative | reception |
 | `fhir:ServiceRequest` | fhir | ServiceRequest | ancillary_departmental | administrative, clinical, direct identifier | nurse |
+| `fhir:Task` | fhir | Task (data-principal request) | patient_administration | administrative, direct identifier | reception, administrator |
 | `hl7:ADT` | hl7_v2 | ADT (A01 admit / A04 register / A08 update) | patient_administration | administrative, contact, direct identifier, quasi identifier | reception, administrator |
 | `hl7:BAR` | hl7_v2 | BAR (P01 add billing account) | administrative_financial | contact, direct identifier, financial | administrator |
 | `hl7:DFT` | hl7_v2 | DFT (P03 detail financial transaction) | administrative_financial | direct identifier, financial | administrator |
@@ -143,19 +145,35 @@ Appendix C, and the "may be used by" column is computed by that gate.
 <!-- table:functions -->
 | Function | Purpose | Artefacts | Inputs asked for | May be used by |
 |---|---|---|---|---|
-| register a new patient | patient_registration | `fhir:Patient`, `hl7:ADT` | full_name, date_of_birth, phone | reception, administrator |
+| register a new patient | patient_registration | `fhir:Consent`, `fhir:Patient`, `hl7:ADT` | full_name, date_of_birth, phone | reception, administrator |
+| find a patient's record | patient_registration | `fhir:Patient` | full_name, date_of_birth | reception, administrator |
+| update or correct a patient's details | patient_registration | `fhir:Patient`, `fhir:Task`, `hl7:ADT` | mrn, change | reception, administrator |
 | book an appointment | patient_registration | `fhir:Appointment`, `fhir:Schedule`, `hl7:SIU` | mrn, department, preferred_date | reception |
+| reschedule or cancel an appointment | patient_registration | `fhir:Appointment`, `fhir:Schedule`, `hl7:SIU` | mrn | reception |
 | check in an arriving patient | patient_registration | `fhir:Appointment`, `fhir:Patient`, `hl7:ADT` | mrn | reception |
 | verify insurance eligibility | billing_settlement | `fhir:Coverage` | mrn, insurance_policy_no | reception, administrator |
+| log a patient's request for a copy of their data | patient_registration | `fhir:Patient`, `fhir:Task` | mrn | reception, administrator |
+| log a patient's request to erase their data | patient_registration | `fhir:Patient`, `fhir:Task` | mrn | reception, administrator |
+| record a withdrawal of consent | patient_registration | `fhir:Consent`, `fhir:Patient`, `fhir:Task` | mrn, scope | reception, administrator |
+| log a complaint about how a patient's data was handled | patient_registration | `fhir:Task` | mrn | reception, administrator |
+| confirm a patient's identity before care | care_coordination | `fhir:Patient` | mrn | nurse |
 | record a patient's vital signs | care_coordination | `fhir:Observation`, `ieee11073:PoCD` | mrn, blood_pressure, pulse, temperature | nurse |
 | view the active medication list | care_coordination | `fhir:AllergyIntolerance`, `fhir:MedicationRequest` | mrn | nurse |
+| record a medication dose given | care_coordination | `fhir:AllergyIntolerance`, `fhir:MedicationRequest` | mrn, medication, time_given | nurse |
 | look up a patient's diagnosis | care_coordination | `fhir:Condition` | mrn | nurse |
-| request a laboratory test | care_coordination | `fhir:ServiceRequest`, `hl7:ORM` | mrn, test_name, priority | nurse |
+| record an allergy | care_coordination | `fhir:AllergyIntolerance` | mrn, allergy | nurse |
+| prepare a shift handover | care_coordination | `fhir:Condition`, `fhir:Encounter` | ward | nurse |
 | prepare a discharge checklist | care_coordination | `fhir:Encounter`, `fhir:MedicationRequest` | mrn, discharge_date | nurse |
+| request a laboratory test | care_coordination | `fhir:ServiceRequest`, `hl7:ORM` | mrn, test_name, priority | nurse |
+| view a patient's lab results | care_coordination | `fhir:DiagnosticReport`, `hl7:ORU` | mrn | nurse |
 | allocate a bed | patient_registration | `fhir:Encounter`, `fhir:Location`, `hl7:ADT` | mrn, ward | administrator |
+| transfer a patient to another ward | patient_registration | `fhir:Encounter`, `fhir:Location`, `hl7:ADT` | mrn, ward | administrator |
+| discharge a patient and release the bed | patient_registration | `fhir:Encounter`, `fhir:Location`, `hl7:ADT` | mrn | administrator |
+| run a ward census | patient_registration | `fhir:Encounter`, `fhir:Location`, `hl7:ADT` | ward, date | administrator |
+| open a billing account | billing_settlement | `fhir:Account`, `hl7:BAR` | mrn, payer | administrator |
+| post charges to an account | billing_settlement | `fhir:Account`, `hl7:DFT` | mrn, encounter_id, charge | administrator |
 | generate an invoice | billing_settlement | `fhir:Account`, `fhir:Invoice`, `hl7:DFT` | mrn, encounter_id | administrator |
 | reconcile a payer settlement | billing_settlement | `fhir:ClaimResponse`, `fhir:Coverage` | invoice_id | administrator |
-| run a ward census | patient_registration | `fhir:Encounter`, `fhir:Location`, `hl7:ADT` | ward, date | administrator |
 <!-- /table:functions -->
 
 ## Appendix E — Reproducibility

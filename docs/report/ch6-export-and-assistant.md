@@ -137,19 +137,37 @@ research-relevant property: its function registry is gated per role by
 `authorise`, so a receptionist asking how to look up a diagnosis is declined by
 the same policy table that scored the extraction benchmark.
 
-**The registry.** Thirteen functions across the three roles — registering a
-patient, booking, check-in and insurance verification at the desk; vitals,
-medications, diagnosis, lab requests and discharge on the ward; bed allocation,
-invoicing, reconciliation and the census in administration. Each declares the
-purpose it serves, the artefacts it touches, the inputs it needs, and its steps
-as templates over those inputs, every step grounded in a HIS layer, an artefact
-and catalogue field names. *Who may perform a function is not stored.* It falls
-out of `authorise`, so there is one place where access is decided and the
-registry cannot drift from it.
+**The registry.** Twenty-nine functions in six groups, covering the common
+work of each role. At the desk: registering, finding and correcting a patient's
+record, booking, rescheduling and cancelling, check-in and insurance
+verification. On the ward: confirming identity before care, vitals, the
+medication list and a dose given, an allergy, the diagnosis, lab requests and
+results, the shift handover and the discharge checklist. In administration:
+admission, transfer, discharge and bed release, the census, opening an account,
+posting charges, invoicing and reconciliation. A sixth group, *privacy
+requests*, is the Act's rights of the data principal arriving at the desk: a
+patient asking for a copy of their data, for erasure, withdrawing consent, or
+complaining about how their data was handled. The desk logs and routes each one
+as a FHIR `Task` for the hospital's data-protection contact; the assistant never
+tells it to disclose, delete or decide. Each function declares the purpose it
+serves, the artefacts it touches, the inputs it needs, and its steps, every step
+grounded in a HIS layer, an artefact and catalogue field names. *Who may perform
+a function is not stored.* It falls out of `authorise`, so there is one place
+where access is decided and the registry cannot drift from it: reception may be
+walked through 11 functions, the nurse 10 and the administrator 16, with no
+function shared between the ward and either desk.
 
 **Recognition** is token overlap between the request and each function's label
-and synonyms — nothing more. It cannot invent a function that does not exist,
-and when two functions tie it asks which was meant rather than guessing.
+and synonyms, with extra weight when a multi-word name ("check in", "raise the
+bill") is said whole — nothing more. It cannot invent a function that does not
+exist. When two functions tie, it keeps the ones the asker's role may use, so a
+nurse who says "discharge" gets the ward's checklist and an administrator the
+bed release. It asks only when more than one remains, and when none remains it
+asks among them all and lets the gate decline. Three words work at any point:
+*help* (the role's functions, grouped), *cancel* (drop the request and every
+detail typed for it) and *what changed* (below). Answers with a recognisable
+shape — dates, record numbers, readings — are checked and asked for again if
+they do not fit.
 
 **The gate runs before any input is collected.** The session is a small state
 machine — recognise, gate, collect, instruct — and the order is a compliance
@@ -157,22 +175,59 @@ decision. If the role may not be guided through a function, the assistant
 declines at once, cites the rule, and names the role that can; it never asks for
 the patient's name or medical record number first. Collecting details for a
 request you are about to refuse is itself over-collection.
-`test_gate_runs_before_any_input_is_requested` asserts the ordering.
+`test_gate_runs_before_any_input_is_requested` asserts the ordering. A detail
+already typed in the request ("check in MRN2867825") is read only after the
+gate has passed, and only for the function that was asked for; a declined
+request keeps nothing.
 
 **Grounded steps.** The answer is numbered steps, each stating the layer and
-artefact it touches, the fields it uses, a caution where a step touches a
-sensitive category, and — when the crawler of Chapter 5 has run — the portal
-page on which the step happens, taken from the navigation map. A footer states
-the purpose the guidance was given for, the legitimate use it rests on, the
-categories touched and the retention ceiling, so that the answer carries its
-own compliance context. Tests assert groundedness against the artefact
-vocabulary and the field catalogue: an instruction cannot refer to something
-the HIS model lacks.
+artefact it touches, the fields it uses, and a caution where a step touches a
+sensitive category. A footer states the purpose the guidance was given for, the
+legitimate use it rests on, the categories touched and the retention ceiling,
+so that the answer carries its own compliance context. Tests assert
+groundedness against the artefact vocabulary and the field catalogue: an
+instruction cannot refer to something the HIS model lacks.
 
-The assistant is small by decision and will stay so. Its value to the project
-is the moment in Chapter 7's Table 6 where the compliance layer visibly does
-work outside the benchmark — a decline, with the rule cited, before a single
-detail is asked for.
+**Steps never name a screen.** A step says what to do: open the module that
+holds these fields, press the button that performs this operation, read this
+column. The words the staff member sees come from the crawler of Chapter 5: the
+module's current title and path, the column as headed on screen, whether the
+field is on the list or only on the record page, and the button's label, matched
+against a vocabulary of the names releases give each operation. Modules are
+found by the fields they hold, not by their names, so a module that is renamed,
+moved or split is still found.
+
+### 6.4.1 Keeping up with a HIS update
+
+A hospital's HIS is updated by its vendor, and instructions written against
+last year's screens are wrong in ways staff discover at the counter. Because
+the assistant's words come from the crawl, an update needs a new crawl and no
+change to the assistant. We test this on the fixture portal by serving it in a
+second layout, a simulated vendor release (`tools/mock_portal/layouts.py`).
+Every module is renamed and moved, billing is split into two modules, two fields
+move off the list onto the record page, headers are relabelled, and every button
+is renamed. Two of the changes are deliberately ones that nothing could
+predict: a header ("Unit") that the hospital's alias file has not yet mapped,
+and a button ("Close episode") named outside the vocabulary.
+
+`agent/drift.py` compares the two crawls and renders every function against
+both. Of the 29 functions, 25 re-word themselves: "Check eligibility" on
+*Billing & Accounts* becomes "Verify coverage" on *Insurance & Payers*, the
+record number is called "UHID", and the diagnosis is found on the record page.
+The other four, the administrator's bed functions, each have a step
+**withheld**. The assistant says it cannot place the step on the HIS as it now
+is, and why, and does not guess. For each surprise the comparison makes a
+proposal where the update makes one obvious: one field vanished from a module
+and one unknown header appeared in it. When a person confirms the two
+proposals, all 29 functions place again. A member of staff who asks "what
+changed?" hears only the changes that touch their own functions. Through all
+of it the gate does not move: a release changes the screens, not who may do
+what (`scripts/check_ui_update.py`; `tests/agent/test_tasks_and_updates.py`).
+
+The assistant remains deliberately rule-based: no model, and no patient data
+leaves the machine. Its value to the project is still the moment in Chapter 7's
+Table 6 where the compliance layer visibly does work outside the benchmark: a
+decline, with the rule cited, before a single detail is asked for.
 
 ---
 

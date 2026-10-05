@@ -47,37 +47,20 @@ from flask import (
 
 from extraction.base import HISDataSource
 from interop.layers import LAYER_DESCRIPTIONS, HISLayer
+from tools.mock_portal.layouts import LAYOUTS, V1, ModuleLayout, PortalLayout
 
-# Columns shown on the list page, per layer. Everything else is only on the detail
-# page -- which is what makes a coverage-optimised scraper open more pages than a
-# purpose-bound one, and so what gives the benchmark's ``fetches`` column something
-# to measure. The choice is what a portal would plausibly show in a table, not a
-# choice made for the benchmark's sake.
-LIST_COLUMNS: dict[HISLayer, list[str]] = {
-    HISLayer.PATIENT_ADMINISTRATION: ["mrn", "full_name", "sex", "admission_ward"],
-    HISLayer.CLINICAL_EHR: ["mrn", "encounter_datetime", "primary_diagnosis", "attending_clinician"],
-    HISLayer.ANCILLARY_DEPARTMENTAL: ["mrn", "order_id", "specimen_type", "imaging_modality"],
-    HISLayer.ADMINISTRATIVE_FINANCIAL: ["mrn", "invoice_id", "billed_amount", "payer_name"],
-    HISLayer.INFRASTRUCTURE_INTEGRATION: ["audit_event_id", "event_timestamp", "actor_role", "action"],
-}
-
-# A portal's module names, not our layer names -- the scraper should not get the
-# five-layer vocabulary for free from the URL.
-MODULE_SLUGS: dict[HISLayer, str] = {
-    HISLayer.PATIENT_ADMINISTRATION: "registration",
-    HISLayer.CLINICAL_EHR: "clinical",
-    HISLayer.ANCILLARY_DEPARTMENTAL: "departments",
-    HISLayer.ADMINISTRATIVE_FINANCIAL: "billing",
-    HISLayer.INFRASTRUCTURE_INTEGRATION: "integration",
-}
-MODULE_TITLES: dict[HISLayer, str] = {
-    HISLayer.PATIENT_ADMINISTRATION: "Patient Registration",
-    HISLayer.CLINICAL_EHR: "Clinical Records",
-    HISLayer.ANCILLARY_DEPARTMENTAL: "Departmental Orders",
-    HISLayer.ADMINISTRATIVE_FINANCIAL: "Billing & Accounts",
-    HISLayer.INFRASTRUCTURE_INTEGRATION: "Audit Log",
-}
-_SLUG_TO_LAYER = {slug: layer for layer, slug in MODULE_SLUGS.items()}
+# Columns shown on the list page, per layer, in the default layout. Everything
+# else is only on the detail page -- which is what makes a coverage-optimised
+# scraper open more pages than a purpose-bound one, and so what gives the
+# benchmark's ``fetches`` column something to measure. The choice is what a portal
+# would plausibly show in a table, not a choice made for the benchmark's sake.
+# Module names are a portal's, not our layer names -- the scraper should not get
+# the five-layer vocabulary for free from the URL. All three tables are read off
+# the default layout (``layouts.V1``); ``layouts.V2`` is the same portal after an
+# update.
+LIST_COLUMNS: dict[HISLayer, list[str]] = {m.layer: list(m.list_columns) for m in V1.modules}
+MODULE_SLUGS: dict[HISLayer, str] = {m.layer: m.slug for m in V1.modules}
+MODULE_TITLES: dict[HISLayer, str] = {m.layer: m.title for m in V1.modules}
 
 DEFAULT_USERS = {"frontdesk": "letmein"}
 
@@ -90,13 +73,20 @@ def create_app(
     latency_ms: int = 0,
     secret_key: str | None = None,
     labels: dict[str, str] | None = None,
+    layout: str | PortalLayout = "v1",
 ) -> Flask:
     """Build the portal over ``source``. Records are snapshotted at creation.
 
     ``labels`` renders column headers as display text (``{"mrn": "Patient ID"}``)
     the way a real portal would, instead of the raw field names. It exists so the
     adapter's label-to-field mapping can be exercised against this fixture.
+
+    ``layout`` is how the portal is arranged (``layouts.py``): ``"v1"``, the
+    default every benchmark runs against, or ``"v2"``, the same portal after a
+    vendor update. Explicit ``labels`` override the layout's own.
     """
+
+    layout = LAYOUTS[layout] if isinstance(layout, str) else layout
 
     app = Flask(__name__)
     app.config.update(
@@ -104,7 +94,8 @@ def create_app(
         PAGE_SIZE=page_size,
         LATENCY_MS=latency_ms,
         USERS=dict(users or DEFAULT_USERS),
-        LABELS=dict(labels or {}),
+        LABELS={**layout.labels, **(labels or {})},
+        LAYOUT=layout,
     )
 
     # Snapshot: one pass through the adapter, then in-memory pages.
@@ -112,7 +103,9 @@ def create_app(
         layer: list(source.fetch(layer)) for layer in source.layers()
     }
     app.config["DATA"] = data
-    app.config["MODULES"] = [layer for layer in data if data[layer]]
+    modules: list[ModuleLayout] = [m for m in layout.modules if data.get(m.layer)]
+    by_slug: dict[str, ModuleLayout] = {m.slug: m for m in modules}
+    app.config["MODULES"] = modules
 
     # ------------------------------------------------------------- helpers --
 
@@ -124,11 +117,11 @@ def create_app(
             return view(*args, **kwargs)
         return wrapped
 
-    def layer_or_404(slug: str) -> HISLayer:
-        layer = _SLUG_TO_LAYER.get(slug)
-        if layer is None or layer not in data:
+    def module_or_404(slug: str) -> ModuleLayout:
+        module = by_slug.get(slug)
+        if module is None:
             abort(404)
-        return layer
+        return module
 
     @app.before_request
     def _latency() -> None:
@@ -141,9 +134,7 @@ def create_app(
     def _inject():
         labels = app.config["LABELS"]
         return {
-            "modules": [
-                (MODULE_SLUGS[layer], MODULE_TITLES[layer]) for layer in app.config["MODULES"]
-            ],
+            "modules": [(m.slug, m.title) for m in app.config["MODULES"]],
             "user": session.get("user"),
             "label": lambda name: labels.get(name, name),
         }
@@ -184,17 +175,16 @@ def create_app(
     @login_required
     def home():
         cards = [
-            (MODULE_SLUGS[layer], MODULE_TITLES[layer], LAYER_DESCRIPTIONS[layer], len(data[layer]))
-            for layer in app.config["MODULES"]
+            (m.slug, m.title, LAYER_DESCRIPTIONS[m.layer], len(data[m.layer]))
+            for m in app.config["MODULES"]
         ]
         return render_template("home.html", cards=cards)
 
-    @app.get("/m/<slug>/")
     @login_required
     def module_list(slug: str):
-        layer = layer_or_404(slug)
-        rows = data[layer]
-        columns = LIST_COLUMNS.get(layer) or list(rows[0].keys())
+        module = module_or_404(slug)
+        rows = data[module.layer]
+        columns = list(module.list_columns) or list(rows[0].keys())
 
         query = request.args.get("q", "").strip()
         if query:
@@ -215,7 +205,8 @@ def create_app(
         return render_template(
             "list.html",
             slug=slug,
-            title=MODULE_TITLES[layer],
+            title=module.title,
+            actions=module.list_actions,
             columns=columns,
             rows=chunk,
             page=page,
@@ -224,26 +215,39 @@ def create_app(
             query=query,
         )
 
-    @app.get("/m/<slug>/record/<int:rid>")
     @login_required
     def module_detail(slug: str, rid: int):
-        layer = layer_or_404(slug)
-        rows = data[layer]
+        module = module_or_404(slug)
+        rows = data[module.layer]
         if not 0 <= rid < len(rows):
             abort(404)
+        record = rows[rid]
+        if module.record_fields is not None:
+            record = {k: v for k, v in record.items() if k in module.record_fields}
         return render_template(
             "detail.html",
             slug=slug,
-            title=MODULE_TITLES[layer],
+            title=module.title,
+            actions=module.record_actions,
             rid=rid,
-            record=rows[rid],
+            record=record,
             prev_id=rid - 1 if rid > 0 else None,
             next_id=rid + 1 if rid + 1 < len(rows) else None,
         )
+
+    @login_required
+    def module_action(slug: str):
+        # The buttons are there to be read, not pressed: this fixture changes nothing.
+        module_or_404(slug)
+        return render_template("readonly.html"), 403
+
+    app.add_url_rule(f"{layout.prefix}<slug>/", "module_list", module_list)
+    app.add_url_rule(f"{layout.prefix}<slug>/{layout.record_segment}/<int:rid>", "module_detail", module_detail)
+    app.add_url_rule(f"{layout.prefix}<slug>/action", "module_action", module_action, methods=["POST"])
 
     return app
 
 
 __all__ = [
-    "create_app", "DEFAULT_USERS", "LIST_COLUMNS", "MODULE_SLUGS", "MODULE_TITLES",
+    "create_app", "DEFAULT_USERS", "LIST_COLUMNS", "MODULE_SLUGS", "MODULE_TITLES", "LAYOUTS",
 ]

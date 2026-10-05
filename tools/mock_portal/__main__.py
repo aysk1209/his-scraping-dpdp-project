@@ -3,6 +3,7 @@
     python -m tools.mock_portal                      # 200 records/layer, seed 42, :8765
     python -m tools.mock_portal --records 5000       # large enough to page for a while
     python -m tools.mock_portal --latency-ms 40      # feel like a remote system
+    python -m tools.mock_portal --layout v2          # the same portal after a vendor update
 
 Sign in with frontdesk / letmein (override with --user NAME:PASSWORD).
 """
@@ -25,17 +26,20 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--user", action="append", default=[],
                         help="NAME:PASSWORD; repeatable; replaces the default account")
+    parser.add_argument("--layout", choices=["v1", "v2"], default="v1",
+                        help="v1: the layout every benchmark runs against; v2: after a vendor update")
     parser.add_argument("--no-tls", action="store_true",
                         help="serve plain http (default: https with a throwaway self-signed certificate)")
     args = parser.parse_args(argv)
 
     users = dict(u.split(":", 1) for u in args.user) if args.user else DEFAULT_USERS
     source = MockHISDataSource(records_per_layer=args.records, seed=args.seed)
-    app = create_app(source, users=users, page_size=args.page_size, latency_ms=args.latency_ms)
+    app = create_app(source, users=users, page_size=args.page_size, latency_ms=args.latency_ms,
+                     layout=args.layout)
 
     scheme = "http" if args.no_tls else "https"
     print(f"mock HIS portal on {scheme}://{args.host}:{args.port}/  "
-          f"({args.records} records/layer, seed {args.seed}, {args.latency_ms} ms latency)")
+          f"({args.records} records/layer, seed {args.seed}, {args.latency_ms} ms latency, layout {args.layout})")
     print("accounts: " + ", ".join(f"{u} / {p}" for u, p in users.items()))
     app.run(host=args.host, port=args.port, debug=False, use_reloader=False,
             ssl_context=None if args.no_tls else "adhoc")

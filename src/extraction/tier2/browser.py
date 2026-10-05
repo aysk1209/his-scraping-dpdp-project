@@ -37,6 +37,7 @@ class TablePage:
     columns: list[str]
     rows: list[dict[str, str]]
     row_links: list[str | None]
+    headers: list[str] = field(default_factory=list)   # as displayed, before alias mapping
     page_number: int | None = None
     page_count: int | None = None
     record_count: int | None = None
@@ -174,6 +175,7 @@ class PortalBrowser:
             columns=columns,
             rows=rows,
             row_links=row_links,
+            headers=headers[:-1] if has_actions else headers,
             page_number=int(page_of.group(1)) if page_of else None,
             page_count=int(page_of.group(2)) if page_of else None,
             record_count=int(records.group(1)) if records else None,
@@ -183,13 +185,33 @@ class PortalBrowser:
     def read_detail(self) -> dict[str, str]:
         """Parse a detail page laid out as name / value rows."""
 
-        record: dict[str, str] = {}
+        return {name: value for _, name, value in self.read_detail_rows()}
+
+    def read_detail_rows(self) -> list[tuple[str, str, str]]:
+        """(label as displayed, field it means, value) for each row of a detail page."""
+
+        rows: list[tuple[str, str, str]] = []
         for tr in self.page.locator("table tbody tr").all():
-            name = tr.locator("th").first.inner_text().strip()
+            label = tr.locator("th").first.inner_text().strip()
             value = tr.locator("td").first.inner_text().strip()
-            if name:
-                record[self.field_name(name)] = value
-        return record
+            if label:
+                rows.append((label, self.field_name(label), value))
+        return rows
+
+    def controls(self) -> list[str]:
+        """Labels of the buttons on the current page, in order -- read, never pressed.
+
+        A search form's own button is not a control of the module, so a button
+        whose form has a text box is left out.
+        """
+
+        labels = self.page.eval_on_selector_all(
+            "main button, main input[type=submit]",
+            """els => els
+                .filter(e => !(e.form && e.form.querySelector("input[type=text], input[type=search]")))
+                .map(e => (e.innerText || e.value || "").trim())""",
+        )
+        return [" ".join(label.split()) for label in labels if label and label.strip()]
 
     def iter_table_pages(self, first_url: str, *, max_pages: int | None = None):
         """Yield every list page from ``first_url``, following "Next" until it stops."""
