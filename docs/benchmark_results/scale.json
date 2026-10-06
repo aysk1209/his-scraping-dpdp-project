@@ -1,0 +1,84 @@
+{
+  "rows": [
+    {
+      "records": 20,
+      "page_size": 10,
+      "discovery_loads": 11,
+      "seconds": 90.8,
+      "ours": {
+        "score": 1.0,
+        "page_loads": 32,
+        "ms": 6161,
+        "record_excess": 1.0,
+        "coverage": 1.0
+      },
+      "baseline": {
+        "score": 0.114,
+        "page_loads": 440,
+        "ms": 68337,
+        "record_excess": 50.0,
+        "coverage": 1.0
+      }
+    },
+    {
+      "records": 40,
+      "page_size": 10,
+      "discovery_loads": 11,
+      "seconds": 172.8,
+      "ours": {
+        "score": 1.0,
+        "page_loads": 58,
+        "ms": 11856,
+        "record_excess": 1.0,
+        "coverage": 1.0
+      },
+      "baseline": {
+        "score": 0.114,
+        "page_loads": 880,
+        "ms": 150623,
+        "record_excess": 100.0,
+        "coverage": 1.0
+      }
+    },
+    {
+      "records": 80,
+      "page_size": 10,
+      "discovery_loads": 11,
+      "seconds": 231.8,
+      "ours": {
+        "score": 1.0,
+        "page_loads": 110,
+        "ms": 23525,
+        "record_excess": 1.0,
+        "coverage": 1.0
+      },
+      "baseline": {
+        "score": 0.114,
+        "page_loads": 1760,
+        "ms": 198256,
+        "record_excess": 200.0,
+        "coverage": 1.0
+      }
+    },
+    {
+      "records": 160,
+      "page_size": 10,
+      "discovery_loads": 11,
+      "seconds": 562.2,
+      "ours": {
+        "score": 1.0,
+        "page_loads": 214,
+        "ms": 40075,
+        "record_excess": 1.0,
+        "coverage": 1.0
+      },
+      "baseline": {
+        "score": 0.113,
+        "page_loads": 3520,
+        "ms": 515233,
+        "record_excess": 400.0,
+        "coverage": 1.0
+      }
+    }
+  ]
+}

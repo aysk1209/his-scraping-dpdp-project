@@ -41,10 +41,11 @@ Appendix E.
    hold every trap — they comply when given the table ours applies — and one
    still takes data its categories forbid; and none reproduces its own
    decisions reliably — one changed its decision in 27 of 32 repeats. Ours holds all four traps and reproduces itself in every repeat, by
-   construction. Four of the
+   construction. Five of the
    register's controls are demonstrated by the pipeline itself — an observed
    connection, an audit log written by the harness, an export audit, a
-   retention sidecar the purge erases — so the top score is true of the run,
+   retention sidecar the purge erases, and a record of processing generated
+   from the log — so the top score is true of the run,
    not merely declared for it.
 
 3. **The purpose matrix: compliance as a property of the pull and its purpose

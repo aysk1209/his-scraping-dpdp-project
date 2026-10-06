@@ -1,0 +1,131 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patient Rights</title>
+<style>
+/*__BASE__*/
+  .plist { display: grid; gap: 2px; max-height: 470px; overflow-y: auto; }
+  .plist button { font: inherit; font-family: var(--mono); font-size: .86rem; text-align: left; display: flex; justify-content: space-between; gap: 10px; padding: 5px 10px; border: 1px solid transparent; border-radius: var(--r); background: none; color: var(--ink); cursor: pointer; }
+  .plist button:hover { border-color: var(--line); }
+  .plist button[aria-pressed="true"] { border-color: var(--ours); background: color-mix(in srgb, var(--ours) 7%, var(--card)); }
+  .plist .c { font-family: var(--font); font-size: .78rem; color: var(--ink-3); }
+  .who { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .who .n { font-family: var(--display); font-size: 2rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .who .ours .n { color: var(--ours); } .who .base .n { color: var(--base); }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .chip { font-family: var(--mono); font-size: .74rem; padding: 1px 7px; border-radius: var(--rr); background: var(--card-2); color: var(--ink-2); }
+  .chip.not { background: var(--bad-bg); color: var(--bad); }
+  pre.txt { white-space: pre-wrap; font-family: var(--mono); font-size: .78rem; color: var(--ink-2); margin: 0; max-height: 380px; overflow-y: auto; }
+  .lk { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .lk, .who { grid-template-columns: 1fr; } }
+  .lk .card.ours { border-color: color-mix(in srgb, var(--ours) 40%, var(--line)); }
+  .lk .card.base { border-color: color-mix(in srgb, var(--base) 50%, var(--line)); }
+  .big { font-family: var(--display); font-size: 2.2rem; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .sev { font-weight: 600; font-size: .9rem; }
+  .sev.high { color: var(--bad); } .sev.mod { color: var(--warn); }
+</style>
+
+<div class="wrap">
+  <!--__NAV__-->
+  <div class="top">
+    <div>
+      <h1>Patient rights</h1>
+      <p class="sub">A patient asks what was done with their data; an export leaks. Both answered from the audit log alone.</p>
+    </div>
+    <div class="tools">
+      <button id="bigger" title="Larger text for a projector">A+</button>
+      <button id="theme"></button>
+    </div>
+  </div>
+  <div class="funnel" id="funnel"></div>
+
+  <nav class="steps" role="tablist" id="steps">
+    <button role="tab" data-step="1" aria-selected="true"><span class="n">1</span>A patient asks</button>
+    <button role="tab" data-step="2"><span class="n">2</span>An export leaks</button>
+    <button role="tab" data-step="3"><span class="n">3</span>The notices</button>
+  </nav>
+
+  <section class="pane" id="pane-1">
+    <p class="lead">Every run of the eight tasks, logged with whom it read. Pick a patient: which runs touched their records, and the answer the data-protection contact sends.</p>
+    <div class="split">
+      <div class="card"><div class="head"><h2>Patients</h2><span class="muted">record numbers masked</span></div><div class="plist" id="plist"></div></div>
+      <div style="display:grid;gap:16px">
+        <div class="card"><div class="who" id="who"></div></div>
+        <div class="card"><div class="head"><h2>The answer to the request</h2><span class="muted">no value from the record</span></div><pre class="txt" id="summary"></pre></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pane" id="pane-2" hidden>
+    <p class="lead">One job, one patient's summary, exported the way each technique would. Then the folder is lost. What did each export expose?</p>
+    <div class="lk" id="leak"></div>
+    <p class="note" id="late"></p>
+  </section>
+
+  <section class="pane" id="pane-3" hidden>
+    <div class="head" style="display:flex;gap:12px;align-items:center"><div class="seg" id="which"></div></div>
+    <div class="cols">
+      <div class="card"><div class="head"><h2>To the Data Protection Board</h2></div><pre class="txt" id="board"></pre></div>
+      <div class="card"><div class="head"><h2>To each affected patient</h2><span class="muted">the same for each, naming no one</span></div><pre class="txt" id="patient"></pre></div>
+    </div>
+  </section>
+
+  <footer>Built by <code>tools/build_rights_page.py</code> from <code>compliance.access_report</code> and <code>compliance.breach</code> · synthetic patients, masked record numbers, no values</footer>
+</div>
+
+<script id="data" type="application/json">/*__DATA__*/null</script>
+<script>
+/*__KIT__*/
+</script>
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById("data").textContent);
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const M = D.meta, B = D.breach;
+
+  $("funnel").innerHTML = [
+    [`${M.ours_bystander} / ${M.tasks}`, "runs that read a bystander · ours"],
+    [`${M.base_bystander} / ${M.tasks}`, "the same · baseline"],
+    [B.ours.patients, "patients a leak exposes · ours"],
+    [B.baseline.patients, "the same · baseline"],
+    ["0", "record values on this page"],
+  ].map(([v, l], i) => `<div class="fn${i === 4 ? " hero" : ""}"><div class="v">${esc(v)}</div><div class="l">${esc(l)}</div></div>`).join("");
+
+  let pick = D.people.findIndex((p) => !p.about && p.ours.length < p.baseline.length);
+  if (pick < 0) pick = 0;
+  function paintPeople() {
+    $("plist").innerHTML = D.people.map((p, i) => `<button data-i="${i}" aria-pressed="${i === pick}"><span>${esc(p.id)}</span><span class="c">${p.about ? "the tasks' patient" : `${p.ours.length} · ${p.baseline.length}`}</span></button>`).join("");
+    $("plist").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { pick = Number(b.dataset.i); paintPeople(); }));
+    const p = D.people[pick];
+    const chips = (ids, other) => ids.map((t) => `<span class="chip ${other && !p.about ? "" : ""}">${esc(t)}</span>`).join("") || `<span class="muted">none</span>`;
+    $("who").innerHTML = `<div class="ours"><h3>Ours read their records in</h3><div class="n">${p.ours.length} <small class="muted">of ${M.tasks} runs</small></div><div class="chips">${chips(p.ours)}</div></div>`
+      + `<div class="base"><h3>The baseline</h3><div class="n">${p.baseline.length} <small class="muted">of ${M.tasks} runs</small></div><div class="chips">${p.baseline.map((t) => `<span class="chip ${p.ours.includes(t) ? "" : "not"}">${esc(t)}</span>`).join("")}</div></div>`;
+    $("summary").textContent = p.summary;
+  }
+
+  function paintLeak() {
+    const card = (k, label) => {
+      const b = B[k], high = b.severity.startsWith("high");
+      return `<div class="card ${k === "ours" ? "ours" : "base"}"><div class="head"><h2>${label}</h2><span class="sev ${high ? "high" : "mod"}">${esc(b.severity.split(" -- ")[0])}</span></div>`
+        + `<div class="big">${b.patients} <small class="muted">patient${b.patients === 1 ? "" : "s"}</small></div>`
+        + `<p>${b.raw ? "identifiers <b>raw</b>" : "identifiers replaced by tokens"}</p>`
+        + `<div class="chips">${b.categories.map((c) => `<span class="chip">${esc(c.replace(/_/g, " "))}</span>`).join("")}</div>`
+        + `<p class="muted" style="margin-top:8px">${esc(b.severity)}</p></div>`;
+    };
+    $("leak").innerHTML = card("ours", "Ours") + card("baseline", "The baseline");
+    $("late").textContent = `Found 31 days later: ${B.late.line || "the export had passed its erasure date."}`;
+  }
+
+  let which = "ours";
+  function paintNotices() {
+    $("which").innerHTML = [["ours", "Ours"], ["baseline", "The baseline"]].map(([k, l]) => `<button data-k="${k}" aria-pressed="${k === which}">${l}</button>`).join("");
+    $("which").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { which = b.dataset.k; paintNotices(); }));
+    $("board").textContent = B[which].board;
+    $("patient").textContent = B[which].patient;
+  }
+
+  paintPeople(); paintLeak(); paintNotices();
+  Kit.steps(3).start();
+})();
+</script>

@@ -81,18 +81,12 @@ declare*. They differ on everything the score cannot see:
 Ours reads the purpose policy, not the prose, so it holds every trap and repeats
 itself, by construction. On the portal it reads one patient through the search
 box — **32 page loads to the baseline's 440** — and its export carries no raw
-identifier where the baseline's carries all 60. Four of the controls a manifest
+identifier where the baseline's carries all 60. Five of the controls a manifest
 can cite are **demonstrated, not declared**: the observed connection, an audit
-log written by the harness, the export audit, and a retention sidecar that the
-purge erases and logs.
+log written by the harness, the export audit, a retention sidecar that the purge
+erases and logs, and a record of processing generated from the log.
 
-**Demo pages** (offline, built from real runs, no raw identifier on any):
-[`docs/review/index.html`](docs/review/index.html) — the portal run with its crawl
-replayed page by page, the public export through the pipeline, the assistant you
-can type to, and [rules vs just AI](docs/benchmark_results/rules-vs-just-ai.html).
-Full tables: [`benchmark.md`](docs/benchmark_results/benchmark.md),
-[`benchmark-portal.md`](docs/benchmark_results/benchmark-portal.md),
-[`benchmark-public.md`](docs/benchmark_results/benchmark-public.md).
+**The demo portal** (offline, one file, built from real runs, no raw identifier on any tab): [`docs/review/portal.html`](docs/review/portal.html) — an overview, the portal run with its crawl replayed, an export we never saw, the hospital's own register, one entry's journey, the assistant you can type to, the HIS update, patient rights (an access request and a breach), and rules vs AI. `python tools/build_review_pages.py` rebuilds it.
 
 ## Run it
 
@@ -119,7 +113,7 @@ The public export: `python scripts/fetch_public_dataset.py`, then
 Every demo page: `python tools/build_review_pages.py`. Every table in the report:
 `python tools/report_tables.py`. Other demos: `run_benchmark.py`,
 `trace_journey.py` (one entry through every stage), `compare_purposes.py`, `show_role_access.py`,
-`ask_agent.py`, `check_ui_update.py`, `answer_access_request.py`, `rehearse_day_one.py`. Plain-language guide:
+`ask_agent.py`, `check_ui_update.py`, `answer_access_request.py`, `breach_drill.py`, `run_ablation.py`, `run_scale.py`, `rehearse_day_one.py`. Plain-language guide:
 [`DEMO_GUIDE.md`](DEMO_GUIDE.md).
 
 **Recording the AI models yourself** (optional — recordings are committed):

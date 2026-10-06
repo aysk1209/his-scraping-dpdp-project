@@ -64,17 +64,21 @@ def subject_token(value: Any) -> str:
     return token_for(value, key=audit_key())
 
 
-def subjects_in(rows: dict[str, list[dict[str, Any]]]) -> tuple[list[str], int]:
-    """Tokens of the patients whose records ``rows`` carry, and how many rows had no key."""
+def subjects_in(rows: dict[str, list[dict[str, Any]]], scoped_to: str | None = None) -> tuple[list[str], int]:
+    """Tokens of the patients whose records ``rows`` carry, and how many rows had no key.
 
-    tokens: set[str] = set()
+    ``scoped_to`` is the patient every fetch of the run was filtered to, as the
+    meter observed it: a keyless row of such a run is that patient's.
+    """
+
+    tokens: set[str] = {subject_token(scoped_to)} if scoped_to else set()
     unattributed = 0
     for layer_value, layer_rows in rows.items():
         key = subject_key(HISLayer(layer_value))
         for row in layer_rows:
             value = row.get(key) if key else None
             if value in (None, ""):
-                unattributed += 1
+                unattributed += 0 if scoped_to else 1
             else:
                 tokens.add(subject_token(value))
     return sorted(tokens), unattributed
@@ -98,6 +102,7 @@ class AuditEvent(BaseModel):
     records: int = 0
     subjects: list[str] = Field(default_factory=list)            # keyed tokens of the patients read
     unattributed: int = 0                                        # records read with no patient key
+    scoped: bool = False                                         # every fetch filtered to one patient (metered)
     manifest_sha256: str = ""
     note: str = ""
 
@@ -137,12 +142,13 @@ class AuditLog:
         records: int,
         source: str = "",
         rows: dict[str, list[dict[str, Any]]] | None = None,
+        scoped_to: str | None = None,
     ) -> AuditEvent:
-        subjects, unattributed = subjects_in(rows) if rows is not None else ([], 0)
+        subjects, unattributed = subjects_in(rows, scoped_to) if rows is not None else ([], 0)
         return self.record(AuditEvent(
             event="extraction", run_id=run.run_id, technique=technique,
             purpose=run.purpose.value, source=source, fields=fields, records=records,
-            subjects=subjects, unattributed=unattributed,
+            subjects=subjects, unattributed=unattributed, scoped=bool(scoped_to),
             manifest_sha256=manifest_digest(run),
         ))
 

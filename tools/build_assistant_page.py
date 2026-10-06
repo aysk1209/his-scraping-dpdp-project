@@ -41,10 +41,10 @@ from agent.ui import ScreenMap                                            # noqa
 from compliance.policy import PURPOSE_POLICY, policy_for                  # noqa: E402
 from compliance.roles import ARTEFACTS, ROLE_POLICY, StaffRole, authorise  # noqa: E402
 from extraction.tier2.navigation import NavigationMap                     # noqa: E402
-from tools.page_kit import REVIEW_DIR, render, write                      # noqa: E402
+from tools.page_kit import REVIEW_DIR, render, write, part_path   # noqa: E402
 
 TEMPLATE = ROOT / "tools" / "assistant_page.html"
-DEFAULT_OUT = REVIEW_DIR / "assistant.html"
+DEFAULT_OUT = part_path("assistant")
 NAV_MAP = ROOT / "docs" / "benchmark_results" / "navigation-map.json"
 
 # Requests a member of staff might type that are not any function's own wording.

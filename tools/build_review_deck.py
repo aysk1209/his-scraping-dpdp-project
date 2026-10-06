@@ -52,22 +52,22 @@ DEMO_IMG = ROOT / "docs" / "review" / "img"
 DEMOS = [
     ("portal-crawl.png", "1 · The portal run",
      "Every page each technique loaded, replayed on a map of the portal: ours 32, the AI agent 35, the baseline 440 "
-     "— each total checked against the meter.", "portal-run.html"),
+     "— each total checked against the meter.", "portal.html#portal"),
     ("dataset-patient.png", "2 · An export we never saw",
      "Synthea's public sample, one patient's bill: the agent takes the diagnosis; ours takes three fields; the "
-     "baseline reads 180,570 records.", "dataset-walkthrough.html"),
+     "baseline reads 180,570 records.", "portal.html#dataset"),
     ("real-questions.png", "3 · The hospital's own register",
      "Real hospital data with no patient in it: one pull judged under every purpose — lawful for the one it was "
-     "taken for, refused by the other two with the rule named; six questions answered from totals, four gated.", "real-data.html"),
+     "taken for, refused by the other two with the rule named; six questions answered from totals, four gated.", "portal.html#real"),
     ("journey-follow.png", "4 · The journey of one entry",
      "One line of patients.csv through all seven stages. Follow the diagnosis through the agent on the billing "
-     "job: the rail turns red at Extract and Purpose.", "journey.html"),
+     "job: the rail turns red at Extract and Purpose.", "portal.html#journey"),
     ("assistant-refusal.png", "5 · Ask the assistant",
      "The panel types; reception asking for a diagnosis is refused before any detail is asked, with the three "
-     "checks shown. Verified against the Python assistant on load.", "assistant.html"),
+     "checks shown. Verified against the Python assistant on load.", "portal.html#assistant"),
     ("rules-vs-ai.png", "6 · Rules vs just AI",
      "Eight tasks, five repeats, every repeat scored: close on the score, apart on traps, coverage, minimisation "
-     "and repeatability.", "rules-vs-just-ai.html"),
+     "and repeatability.", "portal.html#rules"),
 ]
 TARGET = ROOT / "Review-II.pptx"
 
@@ -466,7 +466,7 @@ def draw_demo(slide) -> None:
         r3.font.size = Pt(caption - 1)
         r3.font.color.rgb = GREY
     add_text(slide, 0.6, 6.78, 12.1, 0.35, [
-        "Open docs/review/index.html — every page is offline, built from a real run of the pipeline "
+        "Open docs/review/portal.html — every demo is offline, built from a real run of the pipeline "
         "(tools/build_review_pages.py), and shows no raw patient identifier."], size=10.5, color=NAVY)
 
 
@@ -641,15 +641,12 @@ def dataset_rows(name: str = "benchmark-dataset") -> tuple[list[list[str]], str,
 
 
 def real_register() -> dict | None:
-    """The hospital register's numbers, read from the committed page's own data block."""
+    """The hospital register's numbers, read from the portal's real-data part (its own data block)."""
 
-    import json
-    import re
-    page = ROOT / "docs" / "review" / "real-data.html"
-    if not page.exists():
-        return None
-    m = re.search(r'<script id="data" type="application/json">(.*?)</script>', page.read_text(encoding="utf-8"), re.S)
-    return json.loads(m.group(1).replace("<\\/", "</")) if m else None
+    sys.path.insert(0, str(ROOT))
+    from tools.page_kit import PORTAL, part_data, parts_in
+    part = parts_in(PORTAL).get("real")
+    return part_data(part) or None if part else None
 
 
 def public_ceiling() -> tuple[int, int, int] | None:
@@ -967,7 +964,7 @@ def build(*, without_instruction_slide: bool = False) -> Path:
 
 
     # ---- slide 9d: Results (contd.) — the hospital's own register (real, aggregate) ----
-    # Read from docs/review/real-data.html's data block (tools/build_real_page.py): the run
+    # Read from the portal's real-data part (its data block) (tools/build_real_page.py): the run
     # of the real export through the gate, the adapter and the purpose policy.
     reg = real_register()
     if ds is not None and reg is not None:
@@ -1007,7 +1004,7 @@ def build(*, without_instruction_slide: bool = False) -> Path:
             f"the synthetic, portal and public runs.",
         ], size=11)
         add_text(res5, 0.7, 6.75, 11.9, 0.4,
-                 ["docs/review/real-data.html (tools/build_real_page.py); counts, ratios and indices only — no amount, "
+                 ["docs/review/portal.html, Real data tab (tools/build_real_page.py); counts, ratios and indices only — no amount, "
                   "no day's figure, no hospital or system name."], size=10, color=GREY)
         n_inserted = 5
 

@@ -26,6 +26,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from extraction.base import HISDataSource
+from data_synthetic.catalogue import subject_key
 from interop.layers import HISLayer
 
 # A single addressable data element: (HIS layer value, field name).
@@ -173,6 +174,8 @@ class MeteredSource(HISDataSource):
         self.records = 0
         self.fields_pulled = 0
         self.pulled: set[FieldRef] = set()
+        # Per fetch: the patient it was filtered to, or None for an unfiltered fetch.
+        self._scoped: list[str | None] = []
 
     def layers(self) -> tuple[HISLayer, ...]:
         return self._inner.layers()
@@ -185,7 +188,22 @@ class MeteredSource(HISDataSource):
         # Counted on call rather than on first iteration, so a technique that
         # requests a layer and consumes nothing is still charged for the request.
         self.fetches += 1
+        where = query.get("where") or {}
+        key = subject_key(layer)
+        self._scoped.append(str(where[key]) if key and key in where else None)
         return self._metered(layer, query)
+
+    def subject_scope(self) -> str | None:
+        """The one patient every fetch was filtered to -- or None if any fetch was not.
+
+        Observed at the boundary, so the audit log can say whose records a scoped
+        run read even when the rows themselves carry no patient key.
+        """
+
+        values = set(self._scoped)
+        if not self._scoped or None in values or len(values) != 1:
+            return None
+        return next(iter(values))
 
     def _metered(self, layer: HISLayer, query: dict[str, Any]) -> Iterator[dict[str, Any]]:
         for row in self._inner.fetch(layer, **query):

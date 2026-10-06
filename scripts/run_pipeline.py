@@ -57,6 +57,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _present as present
 from agent import ReplyKind, Session, StaffRole
 from compliance.audit import AuditLog, fields_by_layer
+from extraction.metering import MeteredSource
 from compliance.benchmark import bind_subject, run_benchmark
 from compliance.retention import purge_expired, schedules
 from compliance.models import Purpose
@@ -191,13 +192,14 @@ def run_downstream(scraper, navigation, dataset_note: str, artefact: str | None 
     [summary] = bind_subject([TASKS[0]], scraper)
     print(f"  the patient-summary task is about one patient; ours reads that patient's records "
           f"through the source's own filter (a portal's search box, a file's rows), the baseline reads every module")
-    output = CompliantExtractionTechnique().extract(scraper, summary)
-    baseline = UnconstrainedExtractionTechnique().extract(scraper, summary)
+    meters = {"compliance-aware": MeteredSource(scraper), "unconstrained": MeteredSource(scraper)}
+    output = CompliantExtractionTechnique().extract(meters["compliance-aware"], summary)
+    baseline = UnconstrainedExtractionTechnique().extract(meters["unconstrained"], summary)
     # These two pulls are extractions too, and the log says so -- with whom they read.
     for technique_name, out in (("compliance-aware", output), ("unconstrained", baseline)):
         log.extraction(out.run, technique=technique_name, records=len(out.records),
                        fields=fields_by_layer({(lv, f) for lv, rows in out.rows.items() for r in rows for f in r}),
-                       source=dataset_note, rows=out.rows)
+                       source=dataset_note, rows=out.rows, scoped_to=meters[technique_name].subject_scope())
     shaped_compliant = None
     for label, out in (("compliance-aware", output), ("baseline", baseline)):
         shaped = normalise(out)

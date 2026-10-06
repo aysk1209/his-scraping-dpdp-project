@@ -163,6 +163,7 @@ and what a member of staff may be told.
   checks; artefacts granted to no role and why.
 - 6.4 The assistant: registry (29 functions, six groups), recognition, gate-before-collect, steps worded from the crawl; 6.4.1 a HIS update (assistant and scraper).
 - 6.5 Answering the patient: the access summary from the audit log (patients as keyed tokens) and the retention sidecars.
+- 6.6 A breach, assessed: whose data, which categories, in what form; the notices to the Board and the patient; ours 1 patient (tokens) vs the baseline 20 (raw).
   Say explicitly: no model, no training; a completeness deliverable whose one
   research-relevant property is the gate.
 

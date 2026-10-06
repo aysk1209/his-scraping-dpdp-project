@@ -169,7 +169,7 @@ def access_summary(
             erased_at=purges[-1].at if purges else None,
         ))
 
-    unattributed = len({e.run_id for e in entries if e.event == "extraction" and e.unattributed})
+    unattributed = len({e.run_id for e in entries if e.event == "extraction" and e.unattributed and not e.scoped})
     return AccessSummary(subject=mask(record_number), token=token, activities=activities,
                          unattributed_runs=unattributed, log_path=str(log.path))
 

@@ -39,8 +39,8 @@ class _PlainHttpSource(MockHISDataSource):
 
 def test_the_register_separates_demonstrated_from_attested():
     ids = {c.id for c in DEFAULT_REGISTER.demonstrated()}
-    assert ids == {"TLS", "PSEUDO-EXPORT", "PURGE-01", "AUDIT-LOG"}
-    assert {c.id for c in DEFAULT_REGISTER.attested()} >= {"ENC-REST", "ACL-STORE", "DPO", "ROPA", "NOTICE-REG-2026"}
+    assert ids == {"TLS", "PSEUDO-EXPORT", "PURGE-01", "AUDIT-LOG", "ROPA"}
+    assert {c.id for c in DEFAULT_REGISTER.attested()} >= {"ENC-REST", "ACL-STORE", "DPO", "NOTICE-REG-2026"}
     text = "\n".join(DEFAULT_REGISTER.evidence_lines())
     assert "demonstrated by the pipeline" in text and "attested by the deployment" in text
 
@@ -70,11 +70,11 @@ def test_substantiated_claims_are_split_into_demonstrated_and_attested():
     out = CompliantExtractionTechnique().extract(source, TASK)
     report = verify(out.run, DEFAULT_REGISTER)
     assert report.unsubstantiated == []
-    # TLS, pseudonymisation, PURGE-01 and AUDIT-LOG are demonstrated; the rest attested.
-    assert report.demonstrated == 4
-    assert report.attested == report.declared - 4
+    # TLS, pseudonymisation, PURGE-01, AUDIT-LOG and ROPA are demonstrated; the rest attested.
+    assert report.demonstrated == 5
+    assert report.attested == report.declared - 5
     scores = {s.short: s for s in run_benchmark([CompliantExtractionTechnique()], [TASK], source).scores}
-    assert scores["compliance-aware"].demonstrated == 4 and scores["compliance-aware"].attested > 0
+    assert scores["compliance-aware"].demonstrated == 5 and scores["compliance-aware"].attested > 0
     assert "demonstrated by the pipeline" in run_benchmark([CompliantExtractionTechnique()], [TASK], source).render_table()
 
 

@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "tools/rights_page.html"
+        ],
+        "createdAt": "2026-10-06T11:57:05.021Z",
+        "reason": "Claude (agent) judgement: the template's type scale comes from tools/page_base.css, inlined at /*__BASE__*/ at build time; the built page docs/review/patient-rights.html has h1 2rem over a 1rem body per DESIGN.md, like the other review pages"
+      }
+    ]
+  }
+}

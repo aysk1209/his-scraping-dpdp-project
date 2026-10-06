@@ -49,10 +49,10 @@ from extraction.adapters.portal_his import PortalHISDataSource           # noqa:
 from extraction.techniques import default_techniques                     # noqa: E402
 from extraction.tier2.browser import PortalBrowser                       # noqa: E402
 from tools.mock_portal.serve import BackgroundPortal                     # noqa: E402
-from tools.page_kit import REVIEW_DIR, render, write                     # noqa: E402
+from tools.page_kit import REVIEW_DIR, render, write, part_path   # noqa: E402
 
 TEMPLATE = ROOT / "tools" / "portal_page.html"
-DEFAULT_OUT = REVIEW_DIR / "portal-run.html"
+DEFAULT_OUT = part_path("portal")
 RECORDS, PAGE_SIZE, SEED = 20, 10, 42
 _LIST = re.compile(r"^/m/([^/]+)/$")
 _DETAIL = re.compile(r"^/m/([^/]+)/record/(\d+)$")

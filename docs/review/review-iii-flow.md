@@ -19,8 +19,8 @@ re-budget them against the rubric when it arrives.*
 |---|---|
 | `python -m playwright install chromium` (once per machine) | the portal and update demos drive a real browser |
 | `python scripts/run_pipeline.py` once, discard the output | warms Chromium and the imports |
-| `python tools/build_review_pages.py` | rebuilds every page from the current results (~2 min) |
-| Open `docs/review/index.html`, then each page in its own tab; press `A+` on each | the interactive half of the demo, offline |
+| `python tools/build_review_pages.py` | rebuilds the portal from the current results (~3 min) |
+| Open `docs/review/portal.html` (one file, every demo a tab); press `A+` once | the interactive half of the demo, offline |
 | Open `docs/benchmark_results/benchmark.md`, `benchmark-portal.md`, `benchmark-portal-v2.md` | the fallback if anything fails |
 | Terminal: font ≥ 16 pt, ≥ 100 columns | the tables are wide |
 | No key, no network needed | every AI decision is replayed from the committed recordings (`AI_AGENT_MODE=replay` by default) |
@@ -39,10 +39,10 @@ carry the page-load numbers. Say so plainly and continue.
 | 1 | The claim, with numbers | 1:00 | slide | compliance can be measured |
 | 2 | Why it is hard | 1:30 | slide | the gap in the literature |
 | 3 | One picture | 1:00 | slide | one policy table, three uses |
-| 4 | **Rules vs AI agents** | 3:30 | `rules-vs-just-ai.html` + finished terminal | the contribution |
-| 5 | Compliance is enforced, not declared | 2:00 | terminal stages 4, 5, 7 + `journey.html` | evidence, not paperwork |
-| 6 | Data we did not make | 2:00 | `dataset-walkthrough.html`, `real-data.html` | the path holds on unseen data |
-| 7 | **The HIS is updated** | 3:00 | `his-update.html`, then `assistant.html` (hand over the keyboard) | maturity: nothing hard-coded |
+| 4 | **Rules vs AI agents** | 3:30 | portal *Rules vs AI* + finished terminal | the contribution |
+| 5 | Compliance is enforced, not declared | 2:00 | terminal stages 4, 5, 7 + portal *Journey* | evidence, not paperwork |
+| 6 | Data we did not make | 2:00 | portal *Dataset*, *Real data* | the path holds on unseen data |
+| 7 | **The HIS is updated** | 3:00 | portal *HIS update*, then *Assistant* (hand over the keyboard) | maturity: nothing hard-coded |
 | 8 | A patient asks | 1:00 | `python scripts/answer_access_request.py` | the Act's right of access, answered from evidence |
 | 9 | Rigour | 0:45 | slide | reproducible, tested, honest about uncertainty |
 | 10 | Deliverables and limits | 1:15 | slide | report, manuscript, what is not claimed |
@@ -98,20 +98,20 @@ From the terminal the pipeline just finished:
 - **[7] RETAIN**: the purge the manifest names erases the export on the day,
   and the erasure is in the audit log.
 
-Then `journey.html`: one line of a patient file through all seven stages; pick
+Then the *Journey* tab: one line of a patient file through all seven stages; pick
 `SSN` (stopped at the door) and `Id` (pseudonymised, erased on schedule).
 
 ### Beat 6 — data we did not make
 
-`dataset-walkthrough.html`: Synthea's public sample, 18 files we never saw —
+The *Dataset* tab: Synthea's public sample, 18 files we never saw —
 **29 of 258** columns admitted, SSN and passport stopped by the adapter; the
-ranking holds. `real-data.html`: the hospital's own collection register, 731
+ranking holds. The *Real data* tab: the hospital's own collection register, 731
 days, read through the same gate — aggregate, no patient in it, and the page
 says what it can and cannot answer.
 
 ### Beat 7 — the HIS is updated (new since Review-II)
 
-`his-update.html`. A simulated vendor release: every module renamed and moved,
+The *HIS update* tab. A simulated vendor release: every module renamed and moved,
 billing split in two, fields moved onto record pages, headers relabelled, every
 button renamed.
 
@@ -126,7 +126,7 @@ button renamed.
   compliance, coverage and traps; only the cost moved (32 → 53 page loads,
   because the release put fields behind record pages).
 
-Then `assistant.html` and hand over the keyboard: pick a role, type anything a
+Then the *Assistant* tab and hand over the keyboard: pick a role, type anything a
 receptionist or a nurse would say. Reception asking for a diagnosis is refused
 before being asked a single detail, with the rule cited. `help` lists the
 role's 10–16 tasks; a patient asking for a copy of their data is a privacy
@@ -144,7 +144,15 @@ erased — no value from the record, the record number masked. Then the line tha
 lands: **a patient no task was about** had their records read by ours in **2 of
 8** runs (the whole-ward tasks) and by the baseline in **8 of 8**.
 
+If there is time, `python scripts/breach_drill.py`: the same job exported both
+ways, the folder lost — ours exposes **1** patient as tokens, the baseline **20**
+raw; the notices to the Board and the patient are drafted from the audit log.
+
 ### Beat 9 — rigour (slide)
+
+- **why ours wins, piece by piece** (`ablation.md`): switch off one design choice
+  at a time and only the rule it serves falls — scope, field list, manifest,
+  retention, pseudonymisation;
 
 - the full test suite (count from `pytest -q`), and CI re-derives the
   benchmark and every report table on each push;
@@ -176,7 +184,7 @@ one-provider-family models plus one other.
 | "Isn't 5 samples too few?" | Intervals are printed; the conclusions that matter hold at the interval's edge (no model's repeatability reaches 0.81; unaided traps 0.16–0.29) | ch7 §7.8, Table 1 |
 | "Sonnet scores 1.000 too — so why yours?" | It does 71% of the job and repeats itself 18 of 32 times; it complied because it was handed our policy | Table 1, weight sweep |
 | "Would a better prompt fix the models?" | Possibly the traps; three of four already hold them told the policy. It does not fix coverage or determinism | ch7 §7.8 |
-| "What if the vendor changes the screens?" | Beat 7: one crawl; 14/14 scraper rows identical; the assistant re-words, and withholds what it cannot place | `his-update.html` |
+| "What if the vendor changes the screens?" | Beat 7: one crawl; 14/14 scraper rows identical; the assistant re-words, and withholds what it cannot place | portal *HIS update* |
 | "Is the assistant an LLM?" | No. Rules, a registry, the policy gate. Deterministic by choice | ch6 §6.4 |
 | "Where is the hospital's data?" | Assumed never to arrive (privacy); public export + aggregate register; the path is one column map away | ch5, ch7 §7.7 |
 | "Which DPDP sections?" | Rules name principles; the section mapping was verified against the Gazette text | `docs/compliance/dpdp-provision-map.md` |
@@ -194,4 +202,4 @@ one-provider-family models plus one other.
 | `python scripts/answer_access_request.py` | a patient's access request |
 | `python scripts/ask_agent.py --interactive` | the assistant, typed |
 | `python scripts/compare_purposes.py` | one pull, every purpose |
-| `python tools/build_review_pages.py` | rebuild every page |
+| `python tools/build_review_pages.py` | rebuild the portal |

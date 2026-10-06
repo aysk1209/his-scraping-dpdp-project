@@ -180,9 +180,36 @@ def table_functions() -> str:
     return "\n".join(rows) + "\n"
 
 
+def table_ablation() -> str:
+    data = json.loads((RESULTS / "ablation.json").read_text(encoding="utf-8"))
+    rows = ["| Variant | Serves | Compliance | Excess | Record excess | Traps held | Leaked | Rules below 1.00 |",
+            "|---|---|---|---|---|---|---|---|"]
+    for r in data["rows"]:
+        rx = "—" if r["record_excess"] is None else f"{r['record_excess']:.2f}"
+        lost = ", ".join(f"{k} {v:.2f}" for k, v in r["rules_lost"].items()) or "none"
+        ours = r["without"] is None and r["technique"].startswith("compliance")
+        name = f"**{r['technique']}**" if ours else r["technique"]
+        rows.append(f"| {name} | {r['serves'] or 'all five'} | {r['score']:.3f} | {r['excess']:.2f} | {rx} | "
+                    f"{r['traps']} | {r['leaked']} | {lost} |")
+    return "\n".join(rows) + "\n"
+
+
+def table_scale() -> str:
+    data = json.loads((RESULTS / "scale.json").read_text(encoding="utf-8"))
+    rows = ["| Records per module | Ours: page loads | Baseline: page loads | Baseline ÷ ours | Ours: score | "
+            "Baseline: score | Baseline: records read ÷ needed |",
+            "|---|---|---|---|---|---|---|"]
+    for r in data["rows"]:
+        o, b = r["ours"], r["baseline"]
+        rows.append(f"| {r['records']} | {o['page_loads']} | {b['page_loads']} | {b['page_loads'] / o['page_loads']:.1f}× | "
+                    f"{o['score']:.3f} | {b['score']:.3f} | {b['record_excess'] or 0:.0f}× |")
+    return "\n".join(rows) + "\n"
+
+
 TABLES = {"agents": table_agents, "rules": table_rules, "cost": table_cost, "public": table_public,
           "mapping": table_mapping, "catalogue": table_catalogue, "policy": table_policy, "roles": table_roles,
-          "artefacts": table_artefacts, "functions": table_functions}
+          "artefacts": table_artefacts, "functions": table_functions,
+          "ablation": table_ablation, "scale": table_scale}
 
 
 def rewrite(check: bool = False) -> list[str]:

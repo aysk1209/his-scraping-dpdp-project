@@ -1,5 +1,7 @@
 # Review-II — presentation flow, executables, and the code behind them
 
+> *Note, 2026-10-06: the separate demo pages this script names are now tabs of one file, `docs/review/portal.html`. The script is kept as the record of Review-II.*
+
 A presenter's script: what to run, in what order, what to say at each point,
 and which Python files and functions each moment rests on. The deck
 (`Review-II.pptx`, built by `tools/build_review_deck.py` on the institution's

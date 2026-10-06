@@ -21,7 +21,7 @@ from extraction.tier2.navigation import NavigationMap
 from compliance.audit import AuditLog
 from compliance.roles import StaffRole
 from tools import build_assistant_page, build_portal_page
-from tools.page_kit import PAGES, REVIEW_DIR, nav_html
+from tools.page_kit import BRIDGE, PORTAL, TABS, assemble, parts_in
 
 
 def _data(html: str) -> dict:
@@ -54,12 +54,30 @@ def test_the_recorded_conversations_are_what_the_python_assistant_says(tmp_path)
         assert [session.respond(t).text for t in v["turns"]] == [r["text"] for r in v["replies"]]
 
 
-def test_the_navigation_bar_links_resolve_from_the_review_folder():
-    html = nav_html("index", REVIEW_DIR / "index.html")
-    for href in re.findall(r'href="([^"]+)"', html):
-        assert (REVIEW_DIR / href).resolve() in {p.resolve() for _, p, _ in PAGES}
-    for _, path, _ in PAGES:
-        assert path.exists(), f"{path} is linked from every demo page but does not exist"
+def test_the_portal_is_one_file_with_every_demo_as_a_tab():
+    assert PORTAL.exists(), "build it with python tools/build_review_pages.py"
+    parts = parts_in(PORTAL)
+    assert [k for k, _ in TABS if k in parts] == [k for k, _ in TABS], f"missing tabs: {set(dict(TABS)) - set(parts)}"
+    review = PORTAL.parent
+    assert sorted(p.name for p in review.glob("*.html")) == ["portal.html", "review-i-briefing.html"]
+    assert not (review.parent / "benchmark_results" / "rules-vs-just-ai.html").exists()
+
+
+def test_assembly_round_trips_and_nothing_can_break_out_of_the_data_block():
+    parts = {"index": "<p>a</p><script>x=1</script>", "rules": "<!-- <script> --></script><p>b</p>"}
+    html = assemble(parts)
+    data = html[html.index('<script id="parts"'):]
+    data = data[data.index(">") + 1:data.index("</script>")]
+    assert "<" not in data                                   # every < escaped inside the script element
+    from tools import page_kit
+    tmp = Path(page_kit.ROOT / "build" / "portal-test.html")
+    tmp.parent.mkdir(exist_ok=True)
+    tmp.write_text(html, encoding="utf-8")
+    try:
+        assert parts_in(tmp) == parts
+    finally:
+        tmp.unlink()
+    assert BRIDGE.strip() in html.replace("\u003c", "<") or "portal-settings" in html
 
 
 @pytest.mark.usefixtures("browser_available")
@@ -95,3 +113,15 @@ def test_the_update_page_shows_every_task_placed_after_the_release(tmp_path):
         if t["status"] == "withheld":
             assert t["reasons"] and any(s["withheld"] for s in t["after"])
             assert not any(s["withheld"] for s in t["fixed"])
+
+
+def test_the_rights_page_answers_from_the_log_and_shows_no_record_number(tmp_path):
+    from tools import build_rights_page
+    out = tmp_path / "patient-rights.html"
+    data = build_rights_page.build(out, patients=8)
+    html = out.read_text(encoding="utf-8")
+    assert data == _data(html)
+    assert "MRN" in html and not re.search(r"MRN\d{7}", html)            # masked, never whole
+    assert data["breach"]["ours"]["patients"] == 1
+    assert data["breach"]["baseline"]["patients"] == 8
+    assert data["meta"]["ours_bystander"] < data["meta"]["base_bystander"] == data["meta"]["tasks"]

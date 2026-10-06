@@ -32,11 +32,11 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from compliance.handling import declares_synthetic, git_ignores     # noqa: E402
 from extraction.adapters.dataset_his import load_column_map          # noqa: E402
-from tools.page_kit import REVIEW_DIR, render, write                 # noqa: E402
+from tools.page_kit import REVIEW_DIR, render, write, part_path   # noqa: E402
 from trace_journey import DEFAULT_DATASET, journey                   # noqa: E402
 
 TEMPLATE = ROOT / "tools" / "journey_page.html"
-DEFAULT_OUT = REVIEW_DIR / "journey.html"
+DEFAULT_OUT = part_path("journey")
 
 
 class PageLeak(RuntimeError):

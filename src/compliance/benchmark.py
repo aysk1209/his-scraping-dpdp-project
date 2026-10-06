@@ -673,10 +673,11 @@ def _task_detail(task: ExtractionTask) -> TaskDetail:
 class _Run:
     """One metered run of one technique on one task."""
 
-    def __init__(self, output, cost: ExtractionCost, key: tuple) -> None:
+    def __init__(self, output, cost: ExtractionCost, key: tuple, subject: str | None = None) -> None:
         self.output = output
         self.cost = cost
         self.key = key
+        self.subject = subject          # the one patient every fetch was filtered to, if the meter saw one
 
 
 def _run_task(
@@ -709,7 +710,7 @@ def _run_task(
         if records_necessary is not None:
             output.run.scope = RecordScope(records_pulled=metered.records, records_necessary=records_necessary)
         cost = metered.cost(task.field_refs(), elapsed, records_necessary=records_necessary)
-        runs.append(_Run(output, cost, _decision_key(output, metered)))
+        runs.append(_Run(output, cost, _decision_key(output, metered), metered.subject_scope()))
     return runs
 
 
@@ -934,6 +935,7 @@ def run_benchmark(
                 audit.extraction(
                     output.run, technique=technique.name, records=len(output.records),
                     fields=fields_by_layer(set(run.key[0])), source=dataset_note, rows=output.rows,
+                    scoped_to=run.subject,
                 )
                 events += 1
                 report = run_all(output.run, output.records)

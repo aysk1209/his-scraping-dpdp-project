@@ -1,0 +1,108 @@
+{
+  "rows": [
+    {
+      "technique": "compliance-aware (ours)",
+      "without": null,
+      "serves": "",
+      "score": 1.0,
+      "rules_lost": {},
+      "excess": 1.0,
+      "record_excess": 1.0,
+      "coverage": 1.0,
+      "traps": "4/4",
+      "leaked": "0/1"
+    },
+    {
+      "technique": "ours without scope",
+      "without": "scope",
+      "serves": "data minimisation (records)",
+      "score": 0.948,
+      "rules_lost": {
+        "DM-01": 0.63
+      },
+      "excess": 1.0,
+      "record_excess": 50.0,
+      "coverage": 1.0,
+      "traps": "4/4",
+      "leaked": "0/50"
+    },
+    {
+      "technique": "ours without field list",
+      "without": "field_list",
+      "serves": "data minimisation (fields)",
+      "score": 0.988,
+      "rules_lost": {
+        "DM-01": 0.91
+      },
+      "excess": 3.43,
+      "record_excess": 1.0,
+      "coverage": 1.0,
+      "traps": "1/4",
+      "leaked": "0/3"
+    },
+    {
+      "technique": "ours without manifest",
+      "without": "manifest",
+      "serves": "lawful basis, notice, accountability",
+      "score": 0.69,
+      "rules_lost": {
+        "NT-01": 0.0,
+        "AC-01": 0.33,
+        "LB-01": 0.5
+      },
+      "excess": 1.0,
+      "record_excess": 1.0,
+      "coverage": 1.0,
+      "traps": "4/4",
+      "leaked": "0/1"
+    },
+    {
+      "technique": "ours without retention",
+      "without": "retention",
+      "serves": "storage limitation",
+      "score": 0.857,
+      "rules_lost": {
+        "SL-01": 0.0
+      },
+      "excess": 1.0,
+      "record_excess": 1.0,
+      "coverage": 1.0,
+      "traps": "4/4",
+      "leaked": "0/1"
+    },
+    {
+      "technique": "ours without pseudonymise",
+      "without": "pseudonymise",
+      "serves": "security safeguards",
+      "score": 0.978,
+      "rules_lost": {
+        "SS-01": 0.84
+      },
+      "excess": 1.0,
+      "record_excess": 1.0,
+      "coverage": 1.0,
+      "traps": "4/4",
+      "leaked": "1/1"
+    },
+    {
+      "technique": "unconstrained (baseline)",
+      "without": null,
+      "serves": "--",
+      "score": 0.1,
+      "rules_lost": {
+        "LB-01": 0.0,
+        "SL-01": 0.0,
+        "PL-01": 0.0,
+        "NT-01": 0.0,
+        "AC-01": 0.0,
+        "SS-01": 0.28,
+        "DM-01": 0.42
+      },
+      "excess": 7.77,
+      "record_excess": 136.364,
+      "coverage": 1.0,
+      "traps": "0/4",
+      "leaked": "150/150"
+    }
+  ]
+}

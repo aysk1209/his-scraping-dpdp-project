@@ -139,30 +139,30 @@ adapter boundary and the compliance layer doing what they were designed to do.
 
 First run on a new machine needs the browser: `python -m playwright install chromium`.
 
-### The demo pages (interactive; start at `docs/review/index.html`)
+### The demo portal (interactive; one file, `docs/review/portal.html`, every demo a tab)
 
 Five self-contained pages, each built from a real run and committed, offline,
 with no raw identifier on any of them. `python tools/build_review_pages.py`
 rebuilds them all (~90 s; `--skip-portal` where there is no browser).
 
-- **`portal-run.html`**: the sign-in and discovery replay on their own (step 1),
+- **Portal run**: the sign-in and discovery replay on their own (step 1),
   then each module with its URL hidden (step 2; the layers are still inferred
   from field names), and **the crawl**: press `3` and every page each technique
   loaded plays out on a map of the site (`space` replays; `fast` for a quick run). Ours 32, the AI agent 35, the
   baseline 440, with each total checked against the meter when the page is built.
-- **`assistant.html`**: pick a role and type. The page runs the assistant's own
+- **Assistant**: pick a role and type. The page runs the assistant's own
   recogniser and gate, checked against 435 conversations recorded from the
   Python assistant every time it opens; typing switches off if they ever differ.
   The right-hand panel shows the three gate checks for each answer; the role ×
   function table plays any conversation on click; `▶ Scenes` plays the
   pipeline's four.
-- **`dataset-walkthrough.html`**: Demo F below.
-- **`journey.html`**: Demo 0 above — one line of the export through all seven stages, any column's fate on the rail.
-- **`../benchmark_results/rules-vs-just-ai.html`**: the AI-agent comparison.
+- **Dataset**: Demo F below.
+- **Journey**: Demo 0 above — one line of the export through all seven stages, any column's fate on the rail.
+- **Rules vs AI**: the AI-agent comparison.
 
 ### Demo F: an export we never saw, in the browser (interactive; hand the panel the mouse)
 
-Open `docs/review/dataset-walkthrough.html` by double-clicking it. It is one
+Open `docs/review/portal.html` by double-clicking it and choose the *Dataset* tab. It is one
 self-contained page and needs no network. It shows the dataset path run on
 **Synthea's public sample**: 18 files, 258 columns, a registration file with SSN,
 passport and licence numbers. Five steps; keys `1`–`5` or `←` `→` move between
@@ -197,12 +197,12 @@ python scripts/fetch_public_dataset.py
 python tools/build_dataset_page.py data/public_synthea --column-map data/public_synthea/column_map.json
 ```
 
-That writes `docs/benchmark_results/dataset-walkthrough.html` (git-ignored). The
+That writes a git-ignored page (`build/review-parts/dataset.html` by default). The
 committed copy in `docs/review/` is the fallback for the room.
 
 ### Demo 0 — the journey of one entry (show this first)
 
-Open `docs/review/journey.html` (or, in the terminal, `python scripts/trace_journey.py`).
+Open the portal's *Journey* tab (or, in the terminal, `python scripts/trace_journey.py`).
 
 One line of the export's registration file (`patients.csv`, line 2 of Synthea's
 public sample), and the same patient's first diagnosis line, followed through
@@ -396,7 +396,7 @@ DPDP gate does not move: the release changed the screens, not who may do what.
 The scraper keeps up too: `python scripts/run_pipeline.py --layout v2` benchmarks
 every technique on the updated portal, and all fourteen rows match the original on
 compliance, coverage and traps (`benchmark-portal-v2.md`); only the page loads move.
-The browser version of all of this is `docs/review/his-update.html`.
+The browser version of all of this is the portal's *HIS update* tab.
 
 ### Demo D3 — a patient asks what was done with their data
 
@@ -410,6 +410,42 @@ numbers) and the export retention sidecars: what was read, for which purpose,
 which categories, what was exported and when it will be erased. Then a patient no
 task was about: read by ours in 2 of 8 runs, by the baseline in 8 of 8. With
 `--mrn` it answers from the real log.
+
+### Demo D4 — a breach drill
+
+```
+python scripts/breach_drill.py
+```
+
+One job exported the way each technique would, then the export folder is lost.
+From the audit log alone: ours exposed **one** patient, as tokens; the baseline,
+for the same job, **all twenty**, raw. The notices to the Data Protection Board and
+to each patient are drafted from the assessment, naming no one; found 31 days later,
+the export had passed its erasure date -- a finding of its own. Minimisation is also
+the size of a breach.
+
+### Demo D5 — what each design choice buys
+
+```
+python scripts/run_ablation.py
+```
+
+Our technique with one design choice switched off at a time. Each one moves the rule
+it serves and only that one: scope (records read 50x), the field list (3.4x the
+fields, three traps lost), the manifest (paperwork rules fail, 0.69), retention
+(storage limitation fails), pseudonymisation (the export leaks). No single choice
+explains the gap to the baseline; together they close it.
+
+### Demo D6 — scale
+
+```
+python scripts/run_scale.py
+```
+
+The portal at 20 to 160 records per module, ours against the baseline. Ours reads
+one patient through the search box for the tasks about one patient, and grows only
+where a task genuinely covers every patient (the ward census); the baseline reads
+everyone for every task, and its cost grows many times faster with the hospital.
 
 ### The mock hospital portal (what the scraper will point at)
 
@@ -473,7 +509,7 @@ say, anticipated questions, and the code behind each moment — is
 A five-minute walkthrough. Have a terminal open in the project folder with the
 environment activated.
 
-1. **The mechanism, on one record:** `docs/review/journey.html` (or
+1. **The mechanism, on one record:** the portal's *Journey* tab (or
    `python scripts/trace_journey.py`). Walk the panel down the seven stages —
    the row, the gate and the column map, what each technique took, the export
    and its pseudonym, the purposes, the roles, the audit log and the purge. This answers "what is actually

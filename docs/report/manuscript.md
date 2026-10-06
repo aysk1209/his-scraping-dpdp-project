@@ -384,7 +384,7 @@ unseen. Each model was sampled five times per task: enough to show how often
 decisions vary, not to characterise the distribution; the unaided and
 told-the-Act result — 35 of 160 trap runs held — is unlikely to reverse with
 more samples. The models are one provider's family and one model of another. The capability register, the traps
-and the baseline are ours; four register controls are demonstrated by the
+and the baseline are ours; five register controls are demonstrated by the
 pipeline rather than attested, each trap is a plausible request whose purpose
 and needed fields are lawful, and the baseline is a lower bound on what a
 published scraper, which declares no more, would score. The policy models three

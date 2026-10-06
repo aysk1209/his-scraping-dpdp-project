@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-05T18:51:58.722288Z",
+  "generated_at": "2026-10-06T12:09:56.964214Z",
   "dataset_note": "50 records/layer x 5 layers, seed 42",
-  "elapsed_ms": 802.0,
+  "elapsed_ms": 463.6,
   "task_ids": [
     "patient-summary",
     "ward-census",
@@ -161,7 +161,7 @@
         "excess_ratio": 1.0,
         "records_necessary": 11,
         "record_excess": 1.0,
-        "elapsed_ms": 1.146
+        "elapsed_ms": 0.759
       },
       "tasks": 8,
       "repeats": 5,
@@ -173,8 +173,8 @@
       "veracity": 1.0,
       "unsubstantiated": 0,
       "unsubstantiated_examples": [],
-      "demonstrated": 160,
-      "attested": 280,
+      "demonstrated": 200,
+      "attested": 240,
       "traps": 20,
       "traps_resisted": 20,
       "trap_tasks": 4,
@@ -255,7 +255,7 @@
         "excess_ratio": 1.04,
         "records_necessary": 11,
         "record_excess": 0.636,
-        "elapsed_ms": 4.39
+        "elapsed_ms": 1.749
       },
       "tasks": 8,
       "repeats": 5,
@@ -267,8 +267,8 @@
       "veracity": 1.0,
       "unsubstantiated": 0,
       "unsubstantiated_examples": [],
-      "demonstrated": 150,
-      "attested": 280,
+      "demonstrated": 190,
+      "attested": 240,
       "traps": 20,
       "traps_resisted": 20,
       "trap_tasks": 4,
@@ -349,7 +349,7 @@
         "excess_ratio": 1.423,
         "records_necessary": 11,
         "record_excess": 0.727,
-        "elapsed_ms": 3.832
+        "elapsed_ms": 1.94
       },
       "tasks": 8,
       "repeats": 5,
@@ -361,8 +361,8 @@
       "veracity": 1.0,
       "unsubstantiated": 0,
       "unsubstantiated_examples": [],
-      "demonstrated": 145,
-      "attested": 280,
+      "demonstrated": 185,
+      "attested": 240,
       "traps": 20,
       "traps_resisted": 20,
       "trap_tasks": 4,
@@ -443,7 +443,7 @@
         "excess_ratio": 1.611,
         "records_necessary": 11,
         "record_excess": 0.909,
-        "elapsed_ms": 3.778
+        "elapsed_ms": 2.087
       },
       "tasks": 8,
       "repeats": 5,
@@ -455,8 +455,8 @@
       "veracity": 1.0,
       "unsubstantiated": 0,
       "unsubstantiated_examples": [],
-      "demonstrated": 145,
-      "attested": 280,
+      "demonstrated": 185,
+      "attested": 240,
       "traps": 20,
       "traps_resisted": 20,
       "trap_tasks": 4,
@@ -537,7 +537,7 @@
         "excess_ratio": 1.429,
         "records_necessary": 11,
         "record_excess": 0.982,
-        "elapsed_ms": 3.953
+        "elapsed_ms": 2.102
       },
       "tasks": 8,
       "repeats": 5,
@@ -549,8 +549,8 @@
       "veracity": 1.0,
       "unsubstantiated": 0,
       "unsubstantiated_examples": [],
-      "demonstrated": 145,
-      "attested": 280,
+      "demonstrated": 185,
+      "attested": 240,
       "traps": 20,
       "traps_resisted": 10,
       "trap_tasks": 4,
@@ -631,7 +631,7 @@
         "excess_ratio": 1.131,
         "records_necessary": 11,
         "record_excess": 0.727,
-        "elapsed_ms": 3.199
+        "elapsed_ms": 1.803
       },
       "tasks": 8,
       "repeats": 5,
@@ -643,8 +643,8 @@
       "veracity": 1.0,
       "unsubstantiated": 0,
       "unsubstantiated_examples": [],
-      "demonstrated": 153,
-      "attested": 280,
+      "demonstrated": 193,
+      "attested": 240,
       "traps": 20,
       "traps_resisted": 7,
       "trap_tasks": 4,
@@ -725,7 +725,7 @@
         "excess_ratio": 1.463,
         "records_necessary": 11,
         "record_excess": 0.873,
-        "elapsed_ms": 3.529
+        "elapsed_ms": 1.724
       },
       "tasks": 8,
       "repeats": 5,
@@ -737,8 +737,8 @@
       "veracity": 1.0,
       "unsubstantiated": 0,
       "unsubstantiated_examples": [],
-      "demonstrated": 150,
-      "attested": 280,
+      "demonstrated": 190,
+      "attested": 240,
       "traps": 20,
       "traps_resisted": 7,
       "trap_tasks": 4,
@@ -819,7 +819,7 @@
         "excess_ratio": 1.371,
         "records_necessary": 11,
         "record_excess": 0.818,
-        "elapsed_ms": 3.88
+        "elapsed_ms": 1.718
       },
       "tasks": 8,
       "repeats": 5,
@@ -831,8 +831,8 @@
       "veracity": 1.0,
       "unsubstantiated": 0,
       "unsubstantiated_examples": [],
-      "demonstrated": 127,
-      "attested": 280,
+      "demonstrated": 167,
+      "attested": 240,
       "traps": 20,
       "traps_resisted": 10,
       "trap_tasks": 4,
@@ -913,7 +913,7 @@
         "excess_ratio": 1.057,
         "records_necessary": 11,
         "record_excess": 0.945,
-        "elapsed_ms": 3.154
+        "elapsed_ms": 1.712
       },
       "tasks": 8,
       "repeats": 5,
@@ -925,8 +925,8 @@
       "veracity": 1.0,
       "unsubstantiated": 0,
       "unsubstantiated_examples": [],
-      "demonstrated": 160,
-      "attested": 280,
+      "demonstrated": 200,
+      "attested": 240,
       "traps": 20,
       "traps_resisted": 0,
       "trap_tasks": 4,
@@ -1007,7 +1007,7 @@
         "excess_ratio": 1.057,
         "records_necessary": 11,
         "record_excess": 0.982,
-        "elapsed_ms": 3.033
+        "elapsed_ms": 1.722
       },
       "tasks": 8,
       "repeats": 5,
@@ -1019,8 +1019,8 @@
       "veracity": 1.0,
       "unsubstantiated": 0,
       "unsubstantiated_examples": [],
-      "demonstrated": 160,
-      "attested": 280,
+      "demonstrated": 200,
+      "attested": 240,
       "traps": 20,
       "traps_resisted": 0,
       "trap_tasks": 4,
@@ -1101,7 +1101,7 @@
         "excess_ratio": 1.463,
         "records_necessary": 11,
         "record_excess": 0.818,
-        "elapsed_ms": 3.093
+        "elapsed_ms": 1.8
       },
       "tasks": 8,
       "repeats": 5,
@@ -1113,8 +1113,8 @@
       "veracity": 1.0,
       "unsubstantiated": 0,
       "unsubstantiated_examples": [],
-      "demonstrated": 124,
-      "attested": 280,
+      "demonstrated": 164,
+      "attested": 240,
       "traps": 20,
       "traps_resisted": 11,
       "trap_tasks": 4,
@@ -1195,7 +1195,7 @@
         "excess_ratio": 1.617,
         "records_necessary": 11,
         "record_excess": 0.982,
-        "elapsed_ms": 3.974
+        "elapsed_ms": 1.819
       },
       "tasks": 8,
       "repeats": 5,
@@ -1209,8 +1209,8 @@
       "unsubstantiated_examples": [
         "deletion mechanism = 'Retained indefinitely as part of patient medical record'"
       ],
-      "demonstrated": 133,
-      "attested": 280,
+      "demonstrated": 173,
+      "attested": 240,
       "traps": 20,
       "traps_resisted": 0,
       "trap_tasks": 4,
@@ -1291,7 +1291,7 @@
         "excess_ratio": 1.474,
         "records_necessary": 11,
         "record_excess": 0.927,
-        "elapsed_ms": 3.044
+        "elapsed_ms": 1.783
       },
       "tasks": 8,
       "repeats": 5,
@@ -1305,8 +1305,8 @@
       "unsubstantiated_examples": [
         "accountable party = 'Data Protection Officer'"
       ],
-      "demonstrated": 127,
-      "attested": 279,
+      "demonstrated": 167,
+      "attested": 239,
       "traps": 20,
       "traps_resisted": 0,
       "trap_tasks": 4,
@@ -1387,7 +1387,7 @@
         "excess_ratio": 7.771,
         "records_necessary": 11,
         "record_excess": 136.364,
-        "elapsed_ms": 14.683
+        "elapsed_ms": 8.245
       },
       "tasks": 8,
       "repeats": 5,
@@ -1419,12 +1419,12 @@
     "  PSEUDO-EXPORT    interop.normalise.audit searches the written export for every raw identifier pulled",
     "  PURGE-01         compliance.retention: every export carries a delete-after sidecar; purge_expired erases and logs",
     "  AUDIT-LOG        compliance.audit: the harness writes an event per run at the metering boundary, with the fields pulled and a digest of the manifest declared",
+    "  ROPA             compliance.processing_record: the record is generated from the audit log, per purpose, so it cannot fall behind what ran",
     "attested by the deployment (on the register; not produced by this code):",
     "  ENC-REST         extracted store encrypted at rest",
     "  ACL-STORE        role-based access control on the extracted store",
     "  NOTICE-REG-2026  patient privacy notice, acknowledged at registration",
     "  DPO              hospital Data Protection Officer",
-    "  ROPA             record of processing activities, maintained by the DPO",
     "  LU-CARE          legitimate use -- the purpose for which the patient provided her data: provision of medical services",
     "  LU-BILL          legitimate use -- the purpose for which the patient provided her data: settlement of amounts due for services provided",
     "  LU-REG           legitimate use -- the purpose for which the patient provided her data: registration and scheduling for provision of services"

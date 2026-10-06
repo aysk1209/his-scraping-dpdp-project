@@ -27,10 +27,10 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from agent import REGISTRY, ScreenMap, StaffRole, capabilities, compare        # noqa: E402
 from agent.guidance import build_guidance                                      # noqa: E402
-from tools.page_kit import REVIEW_DIR, render, write                           # noqa: E402
+from tools.page_kit import REVIEW_DIR, render, write, part_path   # noqa: E402
 
 TEMPLATE = ROOT / "tools" / "update_page.html"
-DEFAULT_OUT = REVIEW_DIR / "his-update.html"
+DEFAULT_OUT = part_path("update")
 RESULTS = ROOT / "docs" / "benchmark_results"
 
 

@@ -235,7 +235,7 @@ diagnosis on record pages and split billing in two, so the same fields now sit
 behind more pages; the baseline, which already opened every record, moved from
 440 to 448. A release changed what the work costs and nothing about whether it
 is lawful, which is the property a compliance claim needs to survive an update.
-`docs/review/his-update.html` shows both halves.
+The demo portal's *HIS update* tab (`docs/review/portal.html`) shows both halves.
 
 The assistant remains deliberately rule-based: no model, and no patient data
 leaves the machine. Its value to the project is still the moment in Chapter 7's
@@ -273,3 +273,31 @@ is what lets a fiduciary answer it.
 division; §3.3.4 SS-01; §3.4 claims adjudication unmodelled), Chapter 5 (the
 navigation map and page placement; the audit layer), Chapter 7 (Table 5 the
 audit; Table 6 the role gate).*
+
+## 6.6 A breach, assessed
+
+The Act requires a fiduciary that suffers a personal data breach to tell the
+Data Protection Board and every patient affected. It can only do so quickly
+and truthfully if it can say, from records rather than memory, whose data was
+in what leaked, which kinds of data, and in what form. The pipeline already
+writes what that takes: export events that name the patients an export
+carried, as keyed tokens, and whether it was pseudonymised; the extraction
+events for the same runs, which name the fields read; and the retention
+sidecars, which say when each export should have been erased
+(`compliance/breach.py`; `scripts/breach_drill.py`). From them the two notices
+are drafted — to the Board and to each patient — without reproducing a value
+from any record; turning the tokens back into the patients to notify needs the
+audit key and the register, which stay with the data-protection contact. When
+every fetch of a run was filtered to one patient, the meter says so, and the
+log attributes the run's rows to that patient even where a row carries no
+patient key.
+
+The drill exports one job — one patient's summary — the way each technique
+would, and leaks the folder. Our export exposes **one** patient, with
+identifiers replaced by tokens and three data categories; the baseline's, for
+the same job, exposes **all twenty** patients with raw identifiers across six
+categories. The grading follows: moderate against high. Found thirty-one days
+later, our export had passed the erasure date its manifest declared; a file
+that should no longer have existed to be copied is reported to the Board as a
+finding of its own. Minimisation, scored in Chapter 4 as overreach, is here the
+size of a breach.

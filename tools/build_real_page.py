@@ -41,10 +41,10 @@ from interop.layers import HISLayer                                         # no
 from extraction.adapters.dataset_his import (                               # noqa: E402
     DatasetHISDataSource, is_export_file, load_column_map, read_columns, read_table,
 )
-from tools.page_kit import REVIEW_DIR, render, write                        # noqa: E402
+from tools.page_kit import REVIEW_DIR, render, write, part_path   # noqa: E402
 
 TEMPLATE = ROOT / "tools" / "real_page.html"
-DEFAULT_OUT = REVIEW_DIR / "real-data.html"
+DEFAULT_OUT = part_path("real")
 DEFAULT_DIR = ROOT / "data" / "hospital_export"
 RESULT = ROOT / "docs" / "benchmark_results" / "benchmark-real.json"
 

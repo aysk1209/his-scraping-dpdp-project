@@ -37,9 +37,9 @@ from extraction.techniques.ai_agent import (  # noqa: E402
 )
 from extraction.techniques.ai_providers import PROVIDERS            # noqa: E402
 from run_benchmark import TASKS                                          # noqa: E402
-from tools.page_kit import render, write                                 # noqa: E402
+from tools.page_kit import render, write, part_path   # noqa: E402
 
-PAGE = ROOT / "docs" / "benchmark_results" / "rules-vs-just-ai.html"
+PAGE = part_path("rules")
 TEMPLATE = ROOT / "tools" / "rules_page.html"
 RESULTS = ROOT / "docs" / "benchmark_results"
 

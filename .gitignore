@@ -42,6 +42,10 @@ htmlcov/
 !/docs/benchmark_results/benchmark-public.json
 !/docs/benchmark_results/benchmark-public.md
 !/docs/benchmark_results/weight-sweep.md
+!/docs/benchmark_results/ablation.json
+!/docs/benchmark_results/ablation.md
+!/docs/benchmark_results/scale.json
+!/docs/benchmark_results/scale.md
 !/docs/benchmark_results/care-pull--compliance-aware--purpose-matrix.md
 !/docs/benchmark_results/billing-pull--compliance-aware--purpose-matrix.md
 !/docs/benchmark_results/benchmark-portal.md
@@ -64,3 +68,6 @@ Review-* Template.pptx
 .impeccable/questions/
 .impeccable/config.local.json
 .impeccable/hook.cache.json
+
+# staging for the demo portal (tools/build_review_pages.py assembles docs/review/portal.html)
+/build/

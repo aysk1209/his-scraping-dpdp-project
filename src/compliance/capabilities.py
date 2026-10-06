@@ -144,7 +144,11 @@ DEFAULT_REGISTER = CapabilityRegister(
         evidence="compliance.audit: the harness writes an event per run at the metering boundary, "
                  "with the fields pulled and a digest of the manifest declared",
     ),
-    processing_record=Control(id="ROPA", description="record of processing activities, maintained by the DPO"),
+    processing_record=Control(
+        id="ROPA", description="record of processing activities, maintained by the DPO",
+        evidence="compliance.processing_record: the record is generated from the audit log, per purpose, "
+                 "so it cannot fall behind what ran",
+    ),
     lawful_bases={
         # Each is the "voluntarily provided for the specified purpose" legitimate
         # use, recorded per purpose; the Act has no general medical-services use.

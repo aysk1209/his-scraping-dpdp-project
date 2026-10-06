@@ -2,7 +2,8 @@
 
     python tools/capture_demo_pages.py        # writes docs/review/img/*.png (needs Chromium)
 
-Each page is opened from disk in headless Chromium at a projector-like size,
+Each demo is taken from the portal (``docs/review/portal.html``), written out
+on its own to a temporary file, and opened in headless Chromium at a projector-like size,
 driven into the moment the presenter points at -- the crawl finished, the
 billing trap on one patient, the diagnosis followed into the trap, a refusal
 with its three checks -- and captured.
@@ -23,9 +24,9 @@ REVIEW = ROOT / "docs" / "review"
 OUT = REVIEW / "img"
 VIEWPORT = {"width": 1366, "height": 900}
 
-# name -> (page, script run on it before capture, element to capture[, cut below the lowest of these])
+# name -> (portal tab, script run on it before capture, element to capture[, cut below the lowest of these])
 SHOTS = {
-    "portal-crawl": (REVIEW / "portal-run.html", """
+    "portal-crawl": ("portal", """
         document.querySelector('#steps button[data-step="3"]').click();
         await new Promise(r => setTimeout(r, 500));
         document.querySelector('#speedseg button[data-v="3"]').click();
@@ -33,36 +34,47 @@ SHOTS = {
         await new Promise(r => { const t = setInterval(() => { if (!document.getElementById('play').disabled) { clearInterval(t); r(); } }, 100); });
         document.querySelectorAll('.sq b.now').forEach(b => b.classList.remove('now'));
     """, "#lanes"),
-    "dataset-patient": (REVIEW / "dataset-walkthrough.html", """
+    "dataset-patient": ("dataset", """
         document.querySelector('#steps button[data-step="3"]').click();
         document.querySelector('#taskseg button[data-t="claim-reconciliation"]').click();
     """, "#who", "#who .fchips"),
-    "real-questions": (REVIEW / "real-data.html", """
+    "real-questions": ("real", """
         document.querySelector('#steps button[data-step="2"]').click();
     """, "#funnel", "#pcards"),
-    "journey-follow": (REVIEW / "journey.html", """
+    "journey-follow": ("journey", """
         document.querySelector('#steps button[data-step="3"]').click();
         document.querySelector('#lensseg button[data-k^="agent:gemini"]').click();
         await new Promise(r => setTimeout(r, 100));
         [...document.querySelectorAll('#quick button')].find(b => b.textContent.trim() === 'DESCRIPTION').click();
     """, ".controls", "#techs tr.on"),
-    "assistant-refusal": (REVIEW / "assistant.html", """
+    "assistant-refusal": ("assistant", """
         const box = document.getElementById('input');
         box.value = "what is the patient's diagnosis";
         document.getElementById('compose').requestSubmit();
         document.querySelector('.chat').style.height = '400px';   // no empty chat below the refusal
     """, ".main"),
-    "rules-vs-ai": (ROOT / "docs" / "benchmark_results" / "rules-vs-just-ai.html", "", ".pane"),
+    "rules-vs-ai": ("rules", "", ".pane"),
 }
 
 
 def capture() -> list[Path]:
+    import tempfile
+    sys.path.insert(0, str(ROOT))
+    from tools.page_kit import PORTAL, parts_in
+
+    parts = parts_in(PORTAL)
+    tmp = Path(tempfile.mkdtemp(prefix="demo-parts-"))
     OUT.mkdir(parents=True, exist_ok=True)
     written = []
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page(viewport=VIEWPORT, device_scale_factor=2, color_scheme="light")
-        for name, (path, script, selector, *cut) in SHOTS.items():
+        for name, (key, script, selector, *cut) in SHOTS.items():
+            if key not in parts:
+                print(f"  {name}: the portal has no '{key}' tab -- skipped")
+                continue
+            path = tmp / f"{key}.html"
+            path.write_text(parts[key], encoding="utf-8")
             page.goto(path.resolve().as_uri())
             page.wait_for_load_state("load")
             if script.strip():

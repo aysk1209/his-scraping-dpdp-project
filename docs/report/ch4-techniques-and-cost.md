@@ -357,7 +357,7 @@ accountability principle's own test (§3.3.7). Our technique builds its
 manifest *from* the register and is substantiated by construction; given a
 thinner register it declares less, not more — a test asserts it.
 
-The register is not all attestation. Four of its controls carry *evidence*
+The register is not all attestation. Five of its controls carry *evidence*
 the pipeline produces for every run, and the benchmark reports a manifest's
 substantiated claims split into *demonstrated* and *attested* accordingly.
 Transport encryption is **observed**: the adapter reports the scheme of the
@@ -376,9 +376,10 @@ unattributed, so the log says what it cannot answer for. Pseudonymisation
 is checked by the **export audit** (§6). And the **deletion mechanism** is
 real (`compliance/retention.py`): every export carries a sidecar with the
 retention the manifest declared and the date after which it must go, and
-`purge_expired` erases it and logs the erasure. Encryption at rest, access
-control on the store, the notice, the officer and the record of processing
-remain attested — no extraction pipeline can produce evidence of a notice on
+`purge_expired` erases it and logs the erasure. The **record of processing**
+is generated from the audit log, per purpose (`compliance/processing_record.py`),
+so it cannot fall behind what ran. Encryption at rest, access control on the
+store, the notice and the officer remain attested — no extraction pipeline can produce evidence of a notice on
 a wall — and the report says which is which rather than letting one word
 cover both.
 
@@ -418,3 +419,40 @@ obligations in its prompt.
 policy the compliant technique reads its basis from), Chapter 5 (the portal
 adapter, list versus record pages, layer inference), Chapter 7 (the benchmark
 tables from which the numbers above are taken; the appointment-reminder task).*
+
+## 4.6 What each design choice buys
+
+Our technique is five design choices: it scopes a single-patient task to that
+patient, takes its fields from the purpose's necessary list, declares its
+manifest from the capability register, declares a retention within the
+purpose's ceiling, and pseudonymises identifiers on export. To show what each
+contributes, we switch them off one at a time and hold everything else — the
+eight tasks, the seven rules, the meter — fixed (`scripts/run_ablation.py`;
+`docs/benchmark_results/ablation.md`). *Leaked* is the export audit of §6.2 on
+the patient summary.
+
+<!-- table:ablation -->
+| Variant | Serves | Compliance | Excess | Record excess | Traps held | Leaked | Rules below 1.00 |
+|---|---|---|---|---|---|---|---|
+| **compliance-aware (ours)** | all five | 1.000 | 1.00 | 1.00 | 4/4 | 0/1 | none |
+| ours without scope | data minimisation (records) | 0.948 | 1.00 | 50.00 | 4/4 | 0/50 | DM-01 0.63 |
+| ours without field list | data minimisation (fields) | 0.988 | 3.43 | 1.00 | 1/4 | 0/3 | DM-01 0.91 |
+| ours without manifest | lawful basis, notice, accountability | 0.690 | 1.00 | 1.00 | 4/4 | 0/1 | NT-01 0.00, AC-01 0.33, LB-01 0.50 |
+| ours without retention | storage limitation | 0.857 | 1.00 | 1.00 | 4/4 | 0/1 | SL-01 0.00 |
+| ours without pseudonymise | security safeguards | 0.978 | 1.00 | 1.00 | 4/4 | 1/1 | SS-01 0.84 |
+| unconstrained (baseline) | -- | 0.100 | 7.77 | 136.36 | 0/4 | 150/150 | LB-01 0.00, SL-01 0.00, PL-01 0.00, NT-01 0.00, AC-01 0.00, SS-01 0.28, DM-01 0.42 |
+<!-- /table:ablation -->
+
+Each choice carries a different part of the law, and switching one off moves
+the rule that serves it and, for the field list, the traps. Without the scope,
+the field pull is still exact but every patient's records are read for one —
+fifty times the patient's own — and DM-01 falls on the record axis alone.
+Without the field list, the technique takes whole layers: 3.4 times the fields
+the tasks need, and three of the four traps lost, because a whole layer of a
+lawful source still holds categories a purpose does not permit. Without the
+manifest, the extraction is unchanged and the paperwork rules fail — the
+largest single drop, which is why a model that declares the paperwork well
+(§7.2) scores close to ours. Without a retention, storage limitation fails and
+nothing is scheduled for erasure. Without pseudonymisation, the export carries
+the patient's identifier and SS-01 falls. No one choice explains the gap to the
+baseline; together they close it.

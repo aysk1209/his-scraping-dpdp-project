@@ -2,7 +2,7 @@
 
 _compliance-aware (ours) scores 1.000; unconstrained (baseline) scores 0.113 on the same 7 rules -- a 0.887 gap. The tasks could obtain at most 61% of the 18 fields they require: 5 are not in the source and 2 are in the source but not in the records of the patient a single-patient task is about. That ceiling is a property of this dataset, and the comparison holds on what it does carry. unconstrained (baseline) shows 72% only because it read other patients' records to answer for one. It also pulls 0.61x the fields the purpose requires, against 4.44x for unconstrained (baseline). That surplus is exactly what the data-minimisation rule penalises, so on this workload compliance and extraction cost move together rather than trading off against each other. ai agent: claude-opus-5-5 (told the policy) obtained only 50% of the fields the tasks require: it left out data the purpose lawfully needed, so its low cost is a shortfall, not efficiency. On the single-patient tasks, unconstrained (baseline) read 548.8x the records the patient's own would be -- every patient's, to answer for one; compliance-aware (ours) read 0.5x. On the 1 tasks whose wording invites a violation, ai agent: gemini-3.1-flash-lite (unaided) held the line in 0 of 1 runs; compliance-aware (ours) in 1 of 1 -- it reads the purpose policy, not the prose._
 
-Source: dataset data/public_synthea. 4 extraction tasks, identical DPDP rule set for every technique. Generated 2026-10-05 in 16395 ms (wall-clock, hardware-dependent).
+Source: dataset data/public_synthea. 4 extraction tasks, identical DPDP rule set for every technique. Generated 2026-10-06 in 22542 ms (wall-clock, hardware-dependent).
 
 **By model** -- each AI agent at its *told the policy* briefing (the fairest condition: it is handed the purpose policy our technique reads); the full model x briefing grid is below.
 
@@ -59,19 +59,19 @@ Of the substantiated claims, those the pipeline *demonstrates* rest on evidence 
 
 | Technique | Demonstrated | Attested |
 |---|---|---|
-| compliance-aware (ours) | 16 | 28 |
-| ai agent: claude-opus-5-5 (told the policy) | 14 | 28 |
-| ai agent: claude-sonnet-5-5 (told the policy) | 15 | 28 |
-| ai agent: claude-haiku-4-5 (told the policy) | 14 | 28 |
-| ai agent: gemini-3.1-flash-lite (unaided) | 16 | 28 |
-| ai agent: gemini-3.1-flash-lite (told the Act) | 16 | 28 |
-| ai agent: gemini-3.1-flash-lite (told the policy) | 14 | 28 |
-| ai agent: claude-sonnet-5-5 (unaided) | 15 | 28 |
-| ai agent: claude-sonnet-5-5 (told the Act) | 15 | 28 |
-| ai agent: claude-haiku-4-5 (unaided) | 13 | 28 |
-| ai agent: claude-opus-5-5 (told the Act) | 13 | 28 |
-| ai agent: claude-opus-5-5 (unaided) | 12 | 28 |
-| ai agent: claude-haiku-4-5 (told the Act) | 13 | 28 |
+| compliance-aware (ours) | 20 | 24 |
+| ai agent: claude-opus-5-5 (told the policy) | 18 | 24 |
+| ai agent: claude-sonnet-5-5 (told the policy) | 19 | 24 |
+| ai agent: claude-haiku-4-5 (told the policy) | 18 | 24 |
+| ai agent: gemini-3.1-flash-lite (unaided) | 20 | 24 |
+| ai agent: gemini-3.1-flash-lite (told the Act) | 20 | 24 |
+| ai agent: gemini-3.1-flash-lite (told the policy) | 18 | 24 |
+| ai agent: claude-sonnet-5-5 (unaided) | 19 | 24 |
+| ai agent: claude-sonnet-5-5 (told the Act) | 19 | 24 |
+| ai agent: claude-haiku-4-5 (unaided) | 17 | 24 |
+| ai agent: claude-opus-5-5 (told the Act) | 17 | 24 |
+| ai agent: claude-opus-5-5 (unaided) | 16 | 24 |
+| ai agent: claude-haiku-4-5 (told the Act) | 17 | 24 |
 | unconstrained (baseline) | 4 | 0 |
 
 ```
@@ -80,12 +80,12 @@ demonstrated by the pipeline (evidence produced per run):
   PSEUDO-EXPORT    interop.normalise.audit searches the written export for every raw identifier pulled
   PURGE-01         compliance.retention: every export carries a delete-after sidecar; purge_expired erases and logs
   AUDIT-LOG        compliance.audit: the harness writes an event per run at the metering boundary, with the fields pulled and a digest of the manifest declared
+  ROPA             compliance.processing_record: the record is generated from the audit log, per purpose, so it cannot fall behind what ran
 attested by the deployment (on the register; not produced by this code):
   ENC-REST         extracted store encrypted at rest
   ACL-STORE        role-based access control on the extracted store
   NOTICE-REG-2026  patient privacy notice, acknowledged at registration
   DPO              hospital Data Protection Officer
-  ROPA             record of processing activities, maintained by the DPO
   LU-CARE          legitimate use -- the purpose for which the patient provided her data: provision of medical services
   LU-BILL          legitimate use -- the purpose for which the patient provided her data: settlement of amounts due for services provided
   LU-REG           legitimate use -- the purpose for which the patient provided her data: registration and scheduling for provision of services
@@ -99,20 +99,20 @@ attested by the deployment (on the register; not produced by this code):
 
 | Technique | Compliance | Excess ratio | Coverage | Distinct fields / needed | Fields pulled | Fetches | Pages loaded | Records | Record excess | Wall-clock (ms) | Stable runs |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| compliance-aware (ours) | 1.000 | 0.61 | 0.61 | 11 / 18 | 6262 | 7 | n/a | 6125 | 0.51 | 88.9 | n/a |
-| ai agent: claude-opus-5-5 (told the policy) | 1.000 | 1.00 | 0.50 | 18 / 18 | 12838 | 7 | n/a | 6445 | 1.00 | 108.9 | n/a |
-| ai agent: claude-sonnet-5-5 (told the policy) | 1.000 | 0.89 | 0.50 | 16 / 18 | 12836 | 6 | n/a | 6444 | 1.00 | 143.6 | n/a |
-| ai agent: claude-haiku-4-5 (told the policy) | 0.999 | 0.94 | 0.56 | 17 / 18 | 6971 | 9 | n/a | 6463 | 1.03 | 105.1 | n/a |
-| ai agent: gemini-3.1-flash-lite (unaided) | 0.994 | 0.83 | 0.39 | 15 / 18 | 7025 | 8 | n/a | 6219 | 0.98 | 100.7 | n/a |
-| ai agent: gemini-3.1-flash-lite (told the Act) | 0.994 | 0.72 | 0.39 | 13 / 18 | 6817 | 8 | n/a | 6326 | 0.98 | 101.7 | n/a |
-| ai agent: gemini-3.1-flash-lite (told the policy) | 0.994 | 1.06 | 0.50 | 19 / 18 | 7205 | 8 | n/a | 6376 | 1.06 | 98.7 | n/a |
-| ai agent: claude-sonnet-5-5 (unaided) | 0.992 | 1.17 | 0.56 | 21 / 18 | 12905 | 8 | n/a | 6484 | 1.06 | 114.6 | n/a |
-| ai agent: claude-sonnet-5-5 (told the Act) | 0.992 | 0.89 | 0.39 | 16 / 18 | 12900 | 6 | n/a | 6482 | 1.06 | 111.1 | n/a |
-| ai agent: claude-haiku-4-5 (unaided) | 0.985 | 1.17 | 0.61 | 21 / 18 | 18179 | 10 | n/a | 12055 | 1.06 | 156.9 | n/a |
-| ai agent: claude-opus-5-5 (told the Act) | 0.976 | 0.94 | 0.50 | 17 / 18 | 12391 | 8 | n/a | 6327 | 0.98 | 111.8 | n/a |
-| ai agent: claude-opus-5-5 (unaided) | 0.957 | 1.06 | 0.56 | 19 / 18 | 12590 | 8 | n/a | 6484 | 1.06 | 150.2 | n/a |
-| ai agent: claude-haiku-4-5 (told the Act) | 0.941 | 0.83 | 0.44 | 15 / 18 | 7201 | 8 | n/a | 6435 | 0.98 | 111.2 | n/a |
-| unconstrained (baseline) | 0.113 | 4.44 | 0.72 | 80 / 18 | 1671548 | 16 | n/a | 722280 | 548.85 | 12918.9 | n/a |
+| compliance-aware (ours) | 1.000 | 0.61 | 0.61 | 11 / 18 | 6262 | 7 | n/a | 6125 | 0.51 | 37.4 | n/a |
+| ai agent: claude-opus-5-5 (told the policy) | 1.000 | 1.00 | 0.50 | 18 / 18 | 12838 | 7 | n/a | 6445 | 1.00 | 162.2 | n/a |
+| ai agent: claude-sonnet-5-5 (told the policy) | 1.000 | 0.89 | 0.50 | 16 / 18 | 12836 | 6 | n/a | 6444 | 1.00 | 157.2 | n/a |
+| ai agent: claude-haiku-4-5 (told the policy) | 0.999 | 0.94 | 0.56 | 17 / 18 | 6971 | 9 | n/a | 6463 | 1.03 | 97.6 | n/a |
+| ai agent: gemini-3.1-flash-lite (unaided) | 0.994 | 0.83 | 0.39 | 15 / 18 | 7025 | 8 | n/a | 6219 | 0.98 | 46.1 | n/a |
+| ai agent: gemini-3.1-flash-lite (told the Act) | 0.994 | 0.72 | 0.39 | 13 / 18 | 6817 | 8 | n/a | 6326 | 0.98 | 45.2 | n/a |
+| ai agent: gemini-3.1-flash-lite (told the policy) | 0.994 | 1.06 | 0.50 | 19 / 18 | 7205 | 8 | n/a | 6376 | 1.06 | 45.6 | n/a |
+| ai agent: claude-sonnet-5-5 (unaided) | 0.992 | 1.17 | 0.56 | 21 / 18 | 12905 | 8 | n/a | 6484 | 1.06 | 51.8 | n/a |
+| ai agent: claude-sonnet-5-5 (told the Act) | 0.992 | 0.89 | 0.39 | 16 / 18 | 12900 | 6 | n/a | 6482 | 1.06 | 125.5 | n/a |
+| ai agent: claude-haiku-4-5 (unaided) | 0.985 | 1.17 | 0.61 | 21 / 18 | 18179 | 10 | n/a | 12055 | 1.06 | 73.3 | n/a |
+| ai agent: claude-opus-5-5 (told the Act) | 0.976 | 0.94 | 0.50 | 17 / 18 | 12391 | 8 | n/a | 6327 | 0.98 | 64.4 | n/a |
+| ai agent: claude-opus-5-5 (unaided) | 0.957 | 1.06 | 0.56 | 19 / 18 | 12590 | 8 | n/a | 6484 | 1.06 | 76.0 | n/a |
+| ai agent: claude-haiku-4-5 (told the Act) | 0.941 | 0.83 | 0.44 | 15 / 18 | 7201 | 8 | n/a | 6435 | 0.98 | 46.7 | n/a |
+| unconstrained (baseline) | 0.113 | 4.44 | 0.72 | 80 / 18 | 1671548 | 16 | n/a | 722280 | 548.85 | 13625.4 | n/a |
 
 **Per task**
 

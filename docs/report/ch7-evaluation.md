@@ -272,6 +272,27 @@ because the extra fields live on record pages, not in list tables.
 `claude-sonnet-5-5` matched our 32 — by leaving out a sixth of the fields the
 job needs (coverage 0.83 against our 1.00).
 
+*Scale.* The fixture portal was grown from 20 to 160 records per module and
+the four-task workload re-run for ours and the baseline
+(`scripts/run_scale.py`; `scale.md`).
+
+<!-- table:scale -->
+| Records per module | Ours: page loads | Baseline: page loads | Baseline ÷ ours | Ours: score | Baseline: score | Baseline: records read ÷ needed |
+|---|---|---|---|---|---|---|
+| 20 | 32 | 440 | 13.8× | 1.000 | 0.114 | 50× |
+| 40 | 58 | 880 | 15.2× | 1.000 | 0.114 | 100× |
+| 80 | 110 | 1760 | 16.0× | 1.000 | 0.114 | 200× |
+| 160 | 214 | 3520 | 16.4× | 1.000 | 0.113 | 400× |
+<!-- /table:scale -->
+
+Ours grows only where a task genuinely covers every patient — the ward census
+reads every admission, and its admission time sits on the record page — and by
+the pages that task needs; the single-patient tasks stay flat behind the search
+box. The baseline reads every patient for every task, so it costs fourteen to sixteen
+times ours at every size, and what it holds that it should not grows with the
+hospital: from 50 to 400 times the records the tasks need. The scores do not
+move with size; the cost of non-compliance does.
+
 *Coverage.* Given the job in words, a model decides for itself what a ward
 census or a reminder needs, and decides differently from the policy — a name
 where the task needs the record number, an e-mail where it needs the phone, no
@@ -582,16 +603,16 @@ because the wording is not an input to it, and no sampling luck because it is
 deterministic.
 
 **The register is ours.** The capability register that veracity checks against
-was written by us. Four of its controls are not declared but *demonstrated*:
+was written by us. Five of its controls are not declared but *demonstrated*:
 the pipeline observes the connection's scheme and a TLS claim over plain http
 is marked unsubstantiated whatever the register says
 (`test_a_transport_claim_is_checked_against_what_was_observed`); every run is
 written to an audit log by the harness at the metering boundary, not by the
 technique; the export audit searches the written files for raw identifiers;
-and every export carries a retention sidecar the purge erases and logs. The
-remaining controls — encryption at rest, access control on the store, the
-notice, the officer, the record of processing — are attested by any
-deployment; no extraction pipeline can produce evidence of a notice on a wall,
+every export carries a retention sidecar the purge erases and logs; and the
+record of processing is generated from the audit log rather than kept by hand.
+The remaining controls — encryption at rest, access control on the store, the
+notice, the officer — are attested by any deployment; no extraction pipeline can produce evidence of a notice on a wall,
 and we do not claim to.
 
 **The traps are ours.** The four trap tasks were written by us. Each is a

@@ -68,10 +68,10 @@ from extraction.techniques import (                                        # noq
 )
 from interop.layers import HISLayer                                        # noqa: E402
 from interop.normalise import audit as audit_export, normalise              # noqa: E402
-from tools.page_kit import render, write                                   # noqa: E402
+from tools.page_kit import render, write, part_path   # noqa: E402
 
 TEMPLATE = ROOT / "tools" / "dataset_page.html"
-DEFAULT_OUT = ROOT / "docs" / "benchmark_results" / "dataset-walkthrough.html"
+DEFAULT_OUT = part_path("dataset")
 
 LAYER_LABEL = {
     "patient_administration": "Patient administration",

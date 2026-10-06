@@ -1,0 +1,79 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DPDP Pipeline Demos</title>
+<style>
+/*__BASE__*/
+  html, body { height: 100%; }
+  body { display: flex; flex-direction: column; overflow: hidden; }
+  .bar { flex: none; display: flex; align-items: center; gap: 18px; padding: 10px 20px 0; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .bar .name { font-family: var(--display); font-weight: 600; font-size: 1.05rem; letter-spacing: -0.01em; white-space: nowrap; padding-bottom: 8px; }
+  .bar nav { display: flex; gap: 20px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
+  .bar nav button { flex: none; font: inherit; font-size: .9rem; background: none; border: none; border-bottom: 2px solid transparent; padding: 6px 0 8px; color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+  .bar nav button:hover { color: var(--ink); }
+  .bar nav button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ours); font-weight: 600; }
+  .bar .tools { padding-bottom: 6px; }
+  .frames { flex: 1; min-height: 0; position: relative; }
+  .frames iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: none; background: var(--bg); }
+  .frames iframe.on { display: block; }
+  @media (max-width: 760px) { .bar .name { display: none; } }
+</style>
+
+<header class="bar">
+  <div class="name">DPDP compliance pipeline</div>
+  <nav id="tabs" role="tablist" aria-label="Demos"></nav>
+  <div class="tools">
+    <button id="bigger" title="Larger text for a projector">A+</button>
+    <button id="theme"></button>
+  </div>
+</header>
+<main class="frames" id="frames"></main>
+
+<script id="parts" type="application/json">/*__PARTS__*/null</script>
+<script>
+/*__KIT__*/
+</script>
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById("parts").textContent);
+  const $ = (id) => document.getElementById(id);
+  const frames = {};
+  let current = null;
+
+  // The shell's settings, sent to every loaded demo so all tabs look the same.
+  const settings = () => ({
+    type: "portal-settings",
+    theme: document.documentElement.dataset.theme || "",
+    big: document.documentElement.classList.contains("big"),
+  });
+  const broadcast = () => Object.values(frames).forEach((f) => f.contentWindow && f.contentWindow.postMessage(settings(), "*"));
+  $("bigger").addEventListener("click", () => setTimeout(broadcast));
+  $("theme").addEventListener("click", () => setTimeout(broadcast));
+
+  function open(key) {
+    if (!D.parts[key]) key = D.tabs[0].key;
+    if (!frames[key]) {
+      const f = document.createElement("iframe");
+      f.name = key;
+      f.title = D.tabs.find((t) => t.key === key).label;
+      f.srcdoc = D.parts[key];
+      $("frames").appendChild(f);
+      frames[key] = f;
+    }
+    Object.entries(frames).forEach(([k, f]) => f.classList.toggle("on", k === key));
+    $("tabs").querySelectorAll("button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.key === key)));
+    current = key;
+    try { history.replaceState(null, "", "#" + key); } catch (e) {}
+    frames[key].focus();
+  }
+
+  $("tabs").innerHTML = D.tabs.map((t) => `<button role="tab" data-key="${t.key}">${t.label}</button>`).join("");
+  $("tabs").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => open(b.dataset.key)));
+  addEventListener("message", (e) => {
+    const m = e.data || {};
+    if (m.type === "portal-open") open(m.key);
+    if (m.type === "portal-ready" && e.source) e.source.postMessage(settings(), "*");
+  });
+  open(location.hash.replace("#", "") || D.tabs[0].key);
+})();
+</script>
