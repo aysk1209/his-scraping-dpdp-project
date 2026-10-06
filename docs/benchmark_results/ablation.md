@@ -5,7 +5,7 @@ Ours with one design choice switched off at a time; eight tasks in memory, the s
 | Variant | Serves | Compliance | Excess | Record excess | Traps held | Leaked | Rules below 1.00 |
 |---|---|---|---|---|---|---|---|
 | **compliance-aware (ours)** | all five | 1.000 | 1.00 | 1.00 | 4/4 | 0/1 | none |
-| ours without scope | data minimisation (records) | 0.948 | 1.00 | 50.00 | 4/4 | 0/50 | DM-01 0.63 |
+| ours without scope | data minimisation (records) | 0.948 | 1.00 | 50.00 | 0/4 | 0/50 | DM-01 0.63 |
 | ours without field list | data minimisation (fields) | 0.988 | 3.43 | 1.00 | 1/4 | 0/3 | DM-01 0.91 |
 | ours without manifest | lawful basis, notice, accountability | 0.690 | 1.00 | 1.00 | 4/4 | 0/1 | NT-01 0.00, AC-01 0.33, LB-01 0.50 |
 | ours without retention | storage limitation | 0.857 | 1.00 | 1.00 | 4/4 | 0/1 | SL-01 0.00 |

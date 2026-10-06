@@ -183,6 +183,7 @@ one-provider-family models plus one other.
 |---|---|---|
 | "Isn't 5 samples too few?" | Intervals are printed; the conclusions that matter hold at the interval's edge (no model's repeatability reaches 0.81; unaided traps 0.16–0.29) | ch7 §7.8, Table 1 |
 | "Sonnet scores 1.000 too — so why yours?" | It does 71% of the job and repeats itself 18 of 32 times; it complied because it was handed our policy | Table 1, weight sweep |
+| "What about prompt injection?" | Opus and Sonnet resist overt override text (45/45, 44/45); Haiku obeys it (3/15 unaided). The danger is the plausible request, which the same strong models take unaided | ch7 §7.2, `injection.md` |
 | "Would a better prompt fix the models?" | Possibly the traps; three of four already hold them told the policy. It does not fix coverage or determinism | ch7 §7.8 |
 | "What if the vendor changes the screens?" | Beat 7: one crawl; 14/14 scraper rows identical; the assistant re-words, and withholds what it cannot place | portal *HIS update* |
 | "Is the assistant an LLM?" | No. Rules, a registry, the policy gate. Deterministic by choice | ch6 §6.4 |

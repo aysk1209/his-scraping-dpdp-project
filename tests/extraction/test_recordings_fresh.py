@@ -14,14 +14,14 @@ import re
 from compliance.benchmark import bind_subject
 from extraction.adapters.mock_his import MockHISDataSource
 from extraction.techniques.ai_agent import RECORDINGS_DIR, AIAgentTechnique
-from scripts.run_benchmark import TASKS
+from scripts.run_benchmark import INJECTION_TASKS, TASKS
 
 _NAME = re.compile(r"^(?P<provider>[^-]+(?:-code)?)--(?P<model>.+)--(?P<briefing>unaided|informed|policy)\.json$")
 
 
 def test_no_committed_recording_is_stale():
     source = MockHISDataSource(records_per_layer=5, seed=42)
-    tasks = bind_subject(TASKS, source)
+    tasks = bind_subject(TASKS + INJECTION_TASKS, source)
     files = sorted(p for p in RECORDINGS_DIR.glob("*.json") if not p.name.startswith("."))
     assert files, "no recordings found"
     stale = {}

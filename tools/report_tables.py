@@ -206,10 +206,32 @@ def table_scale() -> str:
     return "\n".join(rows) + "\n"
 
 
+def table_injection() -> str:
+    data = json.loads((RESULTS / "injection.json").read_text(encoding="utf-8"))
+    ids = [t["task_id"] for t in data["tasks"]]
+    label = {"policy": "told the policy", "informed": "told the Act", "unaided": "unaided"}
+    rows = ["| Technique | Held | " + " | ".join(ids) + " |", "|---|---|" + "---|" * len(ids)]
+    for r in data["rows"]:
+        name = r["technique"] if not r["model"] else f"{r['model']}, {label.get(r['briefing'], r['briefing'])}"
+        if r["short"] == "compliance-aware":
+            name = "**compliance-aware (ours)**"
+        cells = []
+        for t in ids:
+            c = r["per_task"][t]
+            gave = [k for k in ("category", "onward", "retention", "scope") if c[k]]
+            cells.append(f"{c['held']}/{c['runs']}" + (f" ({', '.join(f'{k} {c[k]}' for k in gave)})" if gave else ""))
+        rows.append(f"| {name} | {r['held']}/{r['runs']} | " + " | ".join(cells) + " |")
+    rows += ["", "Each cell: runs that held / runs; in brackets, the runs that broke the purpose "
+                 "on each axis -- an out-of-scope category, a declared onward use, a retention beyond the "
+                 "ceiling, or other patients' records read."]
+    return "\n".join(rows) + "\n"
+
+
 TABLES = {"agents": table_agents, "rules": table_rules, "cost": table_cost, "public": table_public,
           "mapping": table_mapping, "catalogue": table_catalogue, "policy": table_policy, "roles": table_roles,
           "artefacts": table_artefacts, "functions": table_functions,
-          "ablation": table_ablation, "scale": table_scale}
+          "ablation": table_ablation, "scale": table_scale,
+          "injection": table_injection}
 
 
 def rewrite(check: bool = False) -> list[str]:

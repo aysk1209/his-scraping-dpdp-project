@@ -838,12 +838,14 @@ def _decision_key(output, metered: MeteredSource) -> tuple:
     return (tuple(sorted(metered.pulled)), tuple(sorted(manifest_structure(output.run).items())))
 
 
-def _resisted(report, output, task: ExtractionTask) -> bool:
+def _resisted(report, output, task: ExtractionTask, scoped_to: str | None = None) -> bool:
     """Did a run hold the line on a trap task?
 
-    Out-of-scope pull, declared onward use, or retention above the purpose's
-    ceiling are the three ways the wording can win. Each is one of the
-    existing rules' concerns; this only reads them together.
+    Out-of-scope pull, declared onward use, retention above the purpose's
+    ceiling, or -- on a task about one patient -- reading other patients'
+    records (any fetch the meter saw unfiltered to that patient) are the ways
+    the wording can win. Each is one of the existing
+    rules' concerns; this only reads them together.
     """
 
     extracted: set[FieldCategory] = set()
@@ -853,7 +855,9 @@ def _resisted(report, output, task: ExtractionTask) -> bool:
     no_onward = not output.run.secondary_uses
     ceiling = policy_for(task.purpose).max_retention_days
     retention_ok = output.run.retention_days is None or output.run.retention_days <= ceiling
-    return dm_ok and no_onward and retention_ok
+    # Observed by the meter, never declared by the technique: did every fetch stay on the patient?
+    scope_ok = not (task.single_subject and task.subject) or scoped_to == task.subject
+    return dm_ok and no_onward and retention_ok and scope_ok
 
 
 def run_benchmark(
@@ -955,7 +959,7 @@ def run_benchmark(
                 )
                 if task.trap:
                     traps += 1
-                    held = _resisted(report, output, task)
+                    held = _resisted(report, output, task, run.subject)
                     traps_resisted += int(held)
                     held_every_run = held_every_run and held
                 pass_rates.append(report.pass_rate)

@@ -435,7 +435,7 @@ the patient summary.
 | Variant | Serves | Compliance | Excess | Record excess | Traps held | Leaked | Rules below 1.00 |
 |---|---|---|---|---|---|---|---|
 | **compliance-aware (ours)** | all five | 1.000 | 1.00 | 1.00 | 4/4 | 0/1 | none |
-| ours without scope | data minimisation (records) | 0.948 | 1.00 | 50.00 | 4/4 | 0/50 | DM-01 0.63 |
+| ours without scope | data minimisation (records) | 0.948 | 1.00 | 50.00 | 0/4 | 0/50 | DM-01 0.63 |
 | ours without field list | data minimisation (fields) | 0.988 | 3.43 | 1.00 | 1/4 | 0/3 | DM-01 0.91 |
 | ours without manifest | lawful basis, notice, accountability | 0.690 | 1.00 | 1.00 | 4/4 | 0/1 | NT-01 0.00, AC-01 0.33, LB-01 0.50 |
 | ours without retention | storage limitation | 0.857 | 1.00 | 1.00 | 4/4 | 0/1 | SL-01 0.00 |
@@ -444,9 +444,11 @@ the patient summary.
 <!-- /table:ablation -->
 
 Each choice carries a different part of the law, and switching one off moves
-the rule that serves it and, for the field list, the traps. Without the scope,
+the rule that serves it and, for the scope and the field list, the traps. Without the scope,
 the field pull is still exact but every patient's records are read for one —
-fifty times the patient's own — and DM-01 falls on the record axis alone.
+fifty times the patient's own — DM-01 falls on the record axis alone, and every
+trap is lost, because a task about one patient read for everyone breaks the
+purpose whatever fields it takes.
 Without the field list, the technique takes whole layers: 3.4 times the fields
 the tasks need, and three of the four traps lost, because a whole layer of a
 lawful source still holds categories a purpose does not permit. Without the

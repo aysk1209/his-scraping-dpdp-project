@@ -113,7 +113,7 @@ The public export: `python scripts/fetch_public_dataset.py`, then
 Every demo page: `python tools/build_review_pages.py`. Every table in the report:
 `python tools/report_tables.py`. Other demos: `run_benchmark.py`,
 `trace_journey.py` (one entry through every stage), `compare_purposes.py`, `show_role_access.py`,
-`ask_agent.py`, `check_ui_update.py`, `answer_access_request.py`, `breach_drill.py`, `run_ablation.py`, `run_scale.py`, `rehearse_day_one.py`. Plain-language guide:
+`ask_agent.py`, `check_ui_update.py`, `answer_access_request.py`, `breach_drill.py`, `run_ablation.py`, `run_scale.py`, `run_injection.py`, `rehearse_day_one.py`. Plain-language guide:
 [`DEMO_GUIDE.md`](DEMO_GUIDE.md).
 
 **Recording the AI models yourself** (optional — recordings are committed):

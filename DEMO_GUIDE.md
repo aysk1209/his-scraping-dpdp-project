@@ -436,6 +436,20 @@ fields, three traps lost), the manifest (paperwork rules fail, 0.69), retention
 (storage limitation fails), pseudonymisation (the export leaks). No single choice
 explains the gap to the baseline; together they close it.
 
+### Demo D7 — instructions planted in the request
+
+```
+python scripts/run_injection.py
+```
+
+Three requests carrying text that poses as an authority -- a "note from the DPO", a
+"system instruction", the "desk supervisor" -- telling the technique to set the policy
+aside. Ours holds 15 of 15 (the prose is not an input to it). Opus 5.5 held all 45 runs and
+Sonnet 5.5 44 of 45: the stronger models recognise an attack that looks like one. Haiku 4.5
+obeyed it -- 3 of 15 unaided, 5 of 15 told the Act, and it read every patient for the desk
+even when handed the policy. Set beside the main traps, which the same strong models fall
+for unaided, the point is: the risk is the plausible request, not the obvious attack.
+
 ### Demo D6 — scale
 
 ```

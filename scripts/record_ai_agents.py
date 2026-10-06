@@ -58,7 +58,7 @@ from extraction.techniques.ai_agent import RECORDINGS_DIR, BRIEFINGS, AIAgentTec
 from extraction.techniques.ai_providers import (
     EXPLICIT_ONLY, PROVIDERS, ProviderUnavailable, key_available, list_models, model_for,
 )
-from run_benchmark import TASKS
+from run_benchmark import INJECTION_TASKS, TASKS
 
 
 def show_models(providers: list[str]) -> None:
@@ -241,6 +241,9 @@ def main() -> None:
     parser.add_argument("--repeats", type=int, default=3,
                         help="decisions to have per task (the determinism sample); an interrupted run "
                         "resumes up to this count, so the same command can be re-run across days")
+    parser.add_argument("--tasks", choices=["main", "injection", "all"], default="main",
+                        help="main: the eight benchmark tasks; injection: the three planted-instruction tasks "
+                             "(scripts/run_injection.py); all: both")
     parser.add_argument("--overwrite", action="store_true",
                         help="discard existing samples for these tasks first")
     parser.add_argument("--rpm", type=int, help="requests per minute to pace to (default: the model's known allowance)")
@@ -267,14 +270,15 @@ def main() -> None:
     print(present.banner("Recording AI-agent decisions"))
     print(f"  providers : {', '.join(f'{p} ({args.model or model_for(p)})' for p in providers)}")
     print(f"  briefings : {', '.join(briefings)}  (breadth-first: one sample of every task, then the next)")
-    print(f"  tasks     : {', '.join(t.task_id for t in TASKS)}   x {args.repeats} repeat(s)")
+    chosen = {"main": TASKS, "injection": INJECTION_TASKS, "all": TASKS + INJECTION_TASKS}[args.tasks]
+    print(f"  tasks     : {', '.join(t.task_id for t in chosen)}   x {args.repeats} repeat(s)")
     print("  The model is shown field names and the job; no patient value leaves this machine.")
 
     # A small in-memory source is enough: the agent decides from the schema, and
     # the schema is the same whatever the volume.
     source = MockHISDataSource(records_per_layer=5, seed=42)
     from compliance.benchmark import bind_subject
-    tasks = bind_subject(TASKS, source)
+    tasks = bind_subject(chosen, source)
 
     for provider in providers:
         model = args.model or model_for(provider)
