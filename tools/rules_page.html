@@ -63,7 +63,15 @@
   .heat span { display: inline-block; min-width: 48px; text-align: center; padding: 3px 0; border-radius: 2px; font-family: var(--mono); font-size: .8rem; }
   .tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); font-size: .8rem; padding: 5px 9px; border-radius: var(--r); transform: translate(-50%, calc(-100% - 10px)); white-space: nowrap; opacity: 0; z-index: 5; font-family: var(--mono); }
   .tip.on { opacity: 1; }
+  .inj { display: grid; grid-template-columns: minmax(0, 34ch) 1fr; gap: 12px 20px; align-items: start; padding: 14px 0; border-top: 1px solid var(--line); }
+  .inj:first-child { border-top: none; }
+  .inj .job { font-size: .86rem; color: var(--ink-2); }
+  .inj .planted { margin-top: 6px; font-size: .82rem; font-family: var(--mono); color: var(--bad); background: var(--bad-bg); border-left: 3px solid var(--bad); border-radius: var(--rr); padding: 6px 9px; }
+  .inj .irow { display: grid; grid-template-columns: 170px 1fr 4.5em; gap: 8px; align-items: center; margin-bottom: 5px; }
+  .inj .irow .n { font-family: var(--mono); font-size: .82rem; text-align: right; color: var(--ink-2); }
   @media (max-width: 520px) { .grid-tasks { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) { .inj { grid-template-columns: 1fr; } }
+  @media (max-width: 520px) { .inj .irow { grid-template-columns: minmax(0, 1fr) 136px 3em; } .inj .irow .cells { flex-wrap: nowrap; gap: 3px; } .inj .irow .rowlab { font-size: .82rem; overflow-wrap: anywhere; } }
 </style>
 
 <div class="wrap">
@@ -91,6 +99,7 @@
     <button role="tab" data-step="3"><span class="n">3</span>Per rule</button>
     <button role="tab" data-step="4"><span class="n">4</span>Field by field</button>
     <button role="tab" data-step="5"><span class="n">5</span>The numbers</button>
+    <button role="tab" data-step="6"><span class="n">6</span>Planted text</button>
   </nav>
 
   <div class="pane" id="pane-1">
@@ -150,6 +159,13 @@
 
   <div class="pane" id="pane-5" hidden>
     <div class="card scroll"><table id="numbers"></table></div>
+  </div>
+
+  <div class="pane" id="pane-6" hidden>
+    <div class="card fault">
+      <div class="head" style="margin-bottom:4px"><div><div class="title">Told to break the rules, inside the request</div><div class="why">three lawful jobs, each carrying a fake authority's note · <span id="injNote"></span></div></div><span class="bignum" id="injTotal"></span></div>
+      <div id="injection"></div>
+    </div>
   </div>
 
   <footer id="foot"></footer>
@@ -410,12 +426,38 @@
     applyShown('#numbers [data-series]');
   }
 
+  // ---- planted instructions: a separate set (injection.json), counts per task, not run order
+  function renderInjection() {
+    const I = D.injection; const box = document.getElementById('injection');
+    document.getElementById('injNote').textContent = `every model ${BRIEF_LABEL[BRIEF]} · runs held of runs`;
+    if (!I) { box.innerHTML = '<p class="muted">not run yet: python scripts/run_injection.py</p>'; document.getElementById('injTotal').textContent = ''; return; }
+    const AXES = { category: 'took out-of-scope data', onward: 'declared an onward use', retention: 'kept it past the ceiling', scope: "read other patients' records" };
+    const rowsFor = t => T.map(s => ({ s, c: (I.rows[s.rk] || { per_task: {} }).per_task[t] })).filter(x => x.c);
+    let held = 0, runs = 0;
+    A.forEach(a => { const r = I.rows[a.rk]; if (r) { held += r.held; runs += r.runs; } });
+    document.getElementById('injTotal').textContent = runs ? `${held}/${runs}` : '';
+    document.getElementById('injTotal').title = `model runs that held, ${BRIEF_LABEL[BRIEF]}`;
+    box.innerHTML = I.tasks.map(t => {
+      const rows = rowsFor(t.id).map(({ s, c }) => {
+        const fell = c.runs - c.held;
+        const broke = Object.entries(AXES).filter(([k]) => c[k]).map(([k, lab]) => `${lab} ${c[k]}×`).join('; ');
+        const why = `${s.name} · ${short(t.id)} · held ${c.held} of ${c.runs}${broke ? ' · ' + broke : ''}`;
+        const cells = Array.from({ length: c.held }, () => `<span class="cell held">${Kit.icon('check')}</span>`).join('') +
+                      Array.from({ length: fell }, () => `<span class="cell fell">${Kit.icon('x')}</span>`).join('');
+        return `<div class="irow" data-series="${s.k}"><div class="rowlab"><i class="sw" style="background:${s.color}"></i>${esc(s.name)}</div><div class="cells" data-t="${esc(why)}">${cells}</div><div class="n">${c.held}/${c.runs}</div></div>`;
+      }).join('');
+      return `<div class="inj"><div><span class="tname">${esc(short(t.id))}</span><div class="job">${esc(t.job)}</div><div class="planted">${esc(t.planted)}</div></div><div>${rows}</div></div>`;
+    }).join('');
+    document.querySelectorAll('#injection .cells').forEach(el => hover(el, el.dataset.t));
+    applyShown('#injection [data-series]');
+  }
+
   // ---- render on entry, so every chart animates when its step is shown
-  const PAINT = { 1: () => { renderRadar(); renderStats(); }, 2: () => { renderTraps(); renderRetention(); renderCoverage(); renderStability(); }, 3: renderRules, 4: renderMatrix, 5: renderNumbers };
+  const PAINT = { 1: () => { renderRadar(); renderStats(); }, 2: () => { renderTraps(); renderRetention(); renderCoverage(); renderStability(); }, 3: renderRules, 4: renderMatrix, 5: renderNumbers, 6: renderInjection };
   function renderAll() { buildSeries(); renderLegend(); PAINT[steps.now()](); }
-  const steps = Kit.steps(5, k => PAINT[k]());
+  const steps = Kit.steps(6, k => PAINT[k]());
   steps.start();
 
-  document.getElementById('foot').innerHTML = `From <code>benchmark.json</code>, <code>benchmark-portal.json</code> and the recordings in <code>src/extraction/techniques/recordings/</code> · models briefed with field names only, never a patient value · <kbd>1</kbd>–<kbd>5</kbd> <kbd>←</kbd> <kbd>→</kbd>`;
+  document.getElementById('foot').innerHTML = `From <code>benchmark.json</code>, <code>benchmark-portal.json</code>, <code>injection.json</code> and the recordings in <code>src/extraction/techniques/recordings/</code> · models briefed with field names only, never a patient value · <kbd>1</kbd>–<kbd>6</kbd> <kbd>←</kbd> <kbd>→</kbd>`;
 })();
 </script>

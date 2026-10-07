@@ -98,6 +98,24 @@ def _runs_for(task, provider: str, model: str, briefing: str, source) -> list[di
     return out
 
 
+def _injection() -> dict | None:
+    """The planted-instruction set (``injection.json``): per task, the lawful job and the planted text;
+    per technique, runs held of runs and which axis each broken run broke. None until it has been run."""
+
+    path = RESULTS / "injection.json"
+    if not path.exists():
+        return None
+    from run_benchmark import INJECTION_TASKS
+    data = json.loads(path.read_text(encoding="utf-8"))
+    wording = {t.task_id: t.description for t in INJECTION_TASKS}
+    tasks = []
+    for t in data["tasks"]:
+        job, _, planted = wording[t["task_id"]].partition(". ")
+        tasks.append({"id": t["task_id"], "trap": t["trap"], "job": job + ".", "planted": planted.strip()})
+    rows = {r["short"]: {"held": r["held"], "runs": r["runs"], "per_task": r["per_task"]} for r in data["rows"]}
+    return {"tasks": tasks, "rows": rows}
+
+
 def build_data() -> dict:
     memory = json.loads((RESULTS / "benchmark.json").read_text(encoding="utf-8"))
     portal = json.loads((RESULTS / "benchmark-portal.json").read_text(encoding="utf-8"))
@@ -124,6 +142,7 @@ def build_data() -> dict:
     catalogue = {layer.value: {name: cat.value for name, cat in fields.items()}
                  for layer, fields in FIELD_CATALOGUE.items()}
     return {
+        "injection": _injection(),
         "rules": [r.rule_id for r in ALL_RULES],
         "memory": memory["scores"],
         "portal": portal["scores"],
