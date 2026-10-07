@@ -11,6 +11,24 @@
         ],
         "createdAt": "2026-10-06T11:57:05.021Z",
         "reason": "Claude (agent) judgement: the template's type scale comes from tools/page_base.css, inlined at /*__BASE__*/ at build time; the built page docs/review/patient-rights.html has h1 2rem over a 1rem body per DESIGN.md, like the other review pages"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "tools/rules_page.html"
+        ],
+        "createdAt": "2026-10-07T10:10:57.601Z",
+        "reason": "Claude, 2026-10-07: false positive -- the h1 and display sizes live in tools/page_base.css, injected at build time via the /*__BASE__*/ placeholder, so the template alone looks flat; the built page renders a large title over 14px body (checked in headless screenshots). Same case as rights_page.html."
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "tools/assistant_page.html"
+        ],
+        "createdAt": "2026-10-07T10:21:47.159Z",
+        "reason": "Claude, 2026-10-07: false positive -- h1/h2 sizes live in tools/page_base.css, injected at build time via /*__BASE__*/, so the raw template reads flat; the built page renders a 2rem title over 1rem body (checked in headless screenshots). Same case as rules_page.html and rights_page.html."
       }
     ]
   }

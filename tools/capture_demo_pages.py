@@ -51,7 +51,7 @@ SHOTS = {
         const box = document.getElementById('input');
         box.value = "what is the patient's diagnosis";
         document.getElementById('compose').requestSubmit();
-        document.querySelector('.chat').style.height = '400px';   // no empty chat below the refusal
+        document.querySelector('.chat').style.height = '560px';   // the whole refusal, no empty chat below it
     """, ".main"),
     "rules-vs-ai": ("rules", "", ".pane"),
 }

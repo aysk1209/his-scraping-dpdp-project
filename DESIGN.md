@@ -320,7 +320,7 @@ Corners are small and consistent: 6px on panels, controls, fields, notes, verdic
 ### Buttons
 - **Shape:** 6px corners, 1px border.
 - **Primary (Play, Send):** solid ours blue with on-fill text at 600, 5px 12px; hover mixes 15% ink into the blue; 55% opacity when disabled (50% for Send).
-- **Plain:** page-grey with a line border and ink text at 600 (New, Scenes); hover takes the recess fill. The assistant's option buttons are the same on card, hover darkening the border to ink-quiet.
+- **Plain:** page-grey with a line border and ink text at 600 (Start over, Watch a demo); hover takes the recess fill. The assistant's option buttons are the same on card, hover darkening the border to ink-quiet.
 - **Tool buttons (A+, theme):** 2rem-high white bordered boxes in ink-soft; hover darkens text to ink and border to ink-quiet; pressed takes an ink border and ink text.
 - **Focus:** a 2px Ours Blue outline at 2px offset on every control.
 

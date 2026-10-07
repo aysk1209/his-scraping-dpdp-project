@@ -1,85 +1,159 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ask the Assistant</title>
+<title>Staff Assistant</title>
 <style>
 /*__BASE__*/
+  /* ---- who you are working as */
   .roles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
-  @media (max-width: 760px) { .roles { grid-template-columns: 1fr; } }
-  .role { text-align: left; font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; cursor: pointer; display: grid; gap: 6px; }
+  .role { text-align: left; font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: baseline; }
   .role:hover { border-color: var(--ink-3); }
   .role[aria-pressed="true"] { border-color: var(--ours); background: color-mix(in srgb, var(--ours) 7%, var(--card)); }
-  .role .rt { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .role .rn { font-family: var(--display); font-weight: 600; text-transform: capitalize; font-size: 1.1rem; }
-  .role .rc { font-size: .8rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
-  .cats { display: flex; flex-wrap: wrap; gap: 4px; }
-  .cat { font-size: .72rem; font-weight: 600; padding: 1px 6px; border-radius: var(--rr); background: var(--card-2); color: var(--ink-2); }
-  .cat.clinical { background: var(--good-bg); color: var(--good); }
-  .cat.financial { background: var(--warn-bg); color: var(--warn); }
-  .cat.direct_identifier, .cat.contact { background: var(--bad-bg); color: var(--bad); }
+  .role .rn { font-family: var(--display); font-weight: 600; font-size: 1.12rem; letter-spacing: -0.005em; }
+  .role .rc { font-size: .84rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .role .rt { grid-column: 1 / -1; font-size: .88rem; color: var(--ink-2); }
+  .role[aria-pressed="true"] .rc { color: var(--ours); font-weight: 600; }
+  @media (max-width: 640px) { .roles { grid-template-columns: 1fr; gap: 6px; } .role { grid-template-columns: auto 1fr auto; padding: 9px 12px; } .role .rn { font-size: 1.05rem; } .role .rt { grid-column: 2; grid-row: 1; } .role .rc { grid-column: 3; grid-row: 1; } }
 
-  .main { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 14px; align-items: start; margin-top: 14px; }
+  /* ---- the working area: tasks beside the conversation */
+  .main { display: grid; grid-template-columns: minmax(250px, 300px) minmax(0, 1fr); gap: 16px; align-items: start; margin-top: 16px; }
   @media (max-width: 900px) { .main { grid-template-columns: 1fr; } }
-  .chat { display: grid; grid-template-rows: auto 1fr auto; height: 600px; padding: 0; overflow: hidden; }
-  .chat .bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--line); gap: 10px; flex-wrap: wrap; }
-  .log { overflow-y: auto; padding: 16px; display: grid; gap: 10px; align-content: start; scroll-behavior: smooth; }
-  .msg { max-width: 88%; padding: 10px 13px; border-radius: var(--r); font-size: .92rem; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .msg.you { justify-self: end; background: color-mix(in srgb, var(--ours) 12%, var(--card)); border: 1px solid transparent; }
-  .msg.bot { justify-self: start; border: 1px solid var(--line); white-space: normal; }
-  .msg.bot.declined { background: var(--bad-bg); border-color: transparent; }
-  .msg.bot.guidance { max-width: 100%; }
-  .msg .who { font-size: .76rem; color: var(--ink-3); margin-bottom: 2px; text-transform: capitalize; }
-  .msg.you .who { text-align: right; }
-  .gtitle { font-weight: 600; margin-bottom: 6px; }
-  .gstep { display: grid; grid-template-columns: 1.8rem 1fr; gap: 2px 8px; margin: 8px 0; }
-  .gstep .no { font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; }
-  .where { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
-  .where span { font-family: var(--mono); font-size: .72rem; color: var(--ink-3); }
-  .where span:not(:last-child)::after { content: " /"; }
-  .where span.page { color: var(--good); background: var(--good-bg); border-radius: 2px; padding: 0 4px; font-weight: 600; }
-  .caution { font-size: .78rem; color: var(--warn); margin-top: 4px; }
-  .gfoot { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
-  .rulechip { display: inline-block; font-family: var(--mono); font-size: .78rem; font-weight: 600; padding: 1px 7px; border-radius: var(--rr); background: color-mix(in srgb, var(--bad) 14%, var(--card)); color: var(--bad); margin-top: 6px; }
-  .opts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  .grp { font-size: .76rem; font-weight: 600; color: var(--ink-3); margin-top: 10px; }
-  .chg { padding-left: 12px; position: relative; font-size: .88rem; margin-top: 3px; }
-  .chg::before { content: "–"; position: absolute; left: 0; color: var(--ink-3); }
-  .opt { font: inherit; font-size: .84rem; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: var(--r); padding: 3px 10px; cursor: pointer; }
+
+  .tasks { padding: 0; }
+  .tasks > summary { list-style: none; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 14px 18px 10px; cursor: pointer; }
+  .tasks > summary::-webkit-details-marker { display: none; }
+  .tasks > summary .chev { color: var(--ink-3); display: none; }
+  .tasks[open] > summary .chev { transform: rotate(90deg); }
+  .tasklist { padding: 0 10px 12px; max-height: 628px; overflow-y: auto; }
+  .tgroup + .tgroup { margin-top: 10px; }
+  .tgroup h3 { padding: 6px 8px 4px; font-size: .8rem; color: var(--ink-3); }
+  .tgroup ul { list-style: none; margin: 0; padding: 0; }
+  .task { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; font: inherit; font-size: .92rem; text-align: left; color: var(--ink); background: none; border: none; border-radius: var(--r); padding: 7px 8px; cursor: pointer; line-height: 1.35; }
+  .task .ico { color: var(--ink-3); flex: none; }
+  .task:hover { background: var(--card-2); }
+  .task:hover .ico { color: var(--ours); }
+  .busy .task, .busy .role { pointer-events: none; opacity: .6; }
+  @media (max-width: 900px) {
+    .tasks > summary .chev { display: inline-block; }
+    .tasklist { max-height: none; }
+  }
+
+  /* ---- the conversation */
+  .chat { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; height: min(700px, 86vh); min-height: 520px; padding: 0; overflow: hidden; }
+  .chat .bar { display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .chat .bar .who { display: flex; align-items: baseline; gap: 8px; }
+  .acts { display: flex; gap: 6px; }
+  .plain { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: .86rem; font-weight: 600; padding: 5px 11px; border-radius: var(--r); border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; }
+  .plain:hover { background: var(--card-2); }
+  .plain:disabled { opacity: .55; cursor: not-allowed; }
+  .offline { margin: 10px 16px 0; }
+
+  .log { position: relative; overflow-y: auto; padding: 18px 16px; display: grid; gap: 14px; align-content: start; }
+  .msg { max-width: 640px; font-size: 1rem; overflow-wrap: anywhere; }
+  .msg.you { justify-self: end; max-width: 78%; padding: 8px 13px; border-radius: var(--r); background: color-mix(in srgb, var(--ours) 12%, var(--card)); white-space: pre-wrap; }
+  .msg.bot { justify-self: stretch; max-width: none; }
+  .msg p { color: var(--ink); max-width: 76ch; text-wrap: pretty; }
+  .msg p + p { margin-top: 4px; }
+  .msg .soft { color: var(--ink-2); }
+
+  /* an answer: one ruled card */
+  .ans { border: 1px solid var(--line); border-radius: var(--r); background: var(--card); }
+  .ans > .body { padding: 14px 16px; }
+  .ah { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; padding: 14px 16px 12px; border-bottom: 1px solid var(--line); }
+  .ai { width: 2rem; height: 2rem; border-radius: 50%; display: grid; place-items: center; font-size: 1.05rem; }
+  .ai.ok { background: var(--good-bg); color: var(--good); }
+  .ai.no { background: var(--bad-bg); color: var(--bad); }
+  .at { font-family: var(--display); font-size: 1.12rem; font-weight: 600; letter-spacing: -0.005em; line-height: 1.25; }
+  .as { font-size: .86rem; color: var(--ink-2); margin-top: 1px; }
+  .as.no { color: var(--bad); font-weight: 600; }
+  .ans.no { background: color-mix(in srgb, var(--bad-bg) 55%, var(--card)); border-color: color-mix(in srgb, var(--bad) 22%, var(--line)); }
+  .ans.no .ah { border-bottom-color: color-mix(in srgb, var(--bad) 18%, var(--line)); }
+
+  .gsteps { list-style: none; margin: 0; padding: 6px 16px 4px; counter-reset: s; }
+  .gsteps li { display: grid; grid-template-columns: 1.7rem 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .gsteps li:last-child { border-bottom: none; }
+  .gsteps .no { width: 1.7rem; height: 1.7rem; border-radius: 50%; display: grid; place-items: center; font-weight: 600; font-size: .86rem; font-variant-numeric: tabular-nums; color: var(--ours); background: color-mix(in srgb, var(--ours) 11%, var(--card)); }
+  .gsteps .tx { line-height: 1.5; }
+  .loc { display: inline-flex; align-items: center; gap: 6px; margin-top: 5px; font-size: .84rem; color: var(--ink-2); }
+  .loc .ico { color: var(--ink-3); }
+  .warnline { display: flex; gap: 7px; align-items: flex-start; margin-top: 6px; font-size: .86rem; color: var(--warn); }
+  .warnline .ico { margin-top: .22em; }
+  .withheld { margin: 12px 16px 0; padding: 9px 12px; border-radius: var(--r); background: var(--warn-bg); color: var(--warn); font-size: .9rem; display: flex; gap: 8px; }
+
+  .afoot { display: grid; gap: 4px; padding: 11px 16px; border-top: 1px solid var(--line); background: var(--card-2); font-size: .88rem; color: var(--ink-2); border-radius: 0 0 var(--r) var(--r); }
+  .afoot .ok { color: var(--good); font-weight: 600; display: inline-flex; gap: 6px; align-items: center; }
+  .afoot .row { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .ans.no .afoot { background: transparent; }
+
+  .handoff { display: flex; gap: 8px; align-items: flex-start; margin-top: 10px; padding: 9px 12px; border-radius: var(--r); background: var(--card); border: 1px solid var(--line); font-weight: 600; }
+  .handoff .ico { color: var(--ours); margin-top: .22em; }
+  .nothing { margin-top: 8px; font-size: .86rem; color: var(--ink-2); }
+
+  /* how it was checked: closed until asked */
+  details.how { border-top: 1px solid var(--line); }
+  details.how > summary { cursor: pointer; padding: 9px 16px; font-size: .86rem; color: var(--ink-2); list-style: none; display: flex; align-items: center; gap: 6px; }
+  details.how > summary::-webkit-details-marker { display: none; }
+  details.how > summary:hover { color: var(--ink); }
+  details.how > summary .ico { transition: none; }
+  details.how[open] > summary .chev { transform: rotate(90deg); }
+  details.how .inner { padding: 0 16px 14px; display: grid; gap: 10px; }
+  .check { display: grid; grid-template-columns: 1.6rem 1fr; gap: 2px 10px; }
+  .mark { width: 1.6rem; height: 1.6rem; border-radius: 50%; display: grid; place-items: center; font-size: .9rem; }
+  .mark.ok { background: var(--good-bg); color: var(--good); }
+  .mark.no { background: var(--bad-bg); color: var(--bad); }
+  .mark.skip { color: var(--ink-3); background: var(--card-2); }
+  .cn { font-weight: 600; font-size: .88rem; }
+  .cd { font-size: .8rem; color: var(--ink-2); }
+  .rid { font-family: var(--mono); font-size: .76rem; color: var(--ink-3); margin-right: 6px; font-weight: 400; }
+  .facts { display: grid; grid-template-columns: max-content 1fr; gap: 3px 12px; font-size: .8rem; }
+  .facts dt { color: var(--ink-3); }
+  .facts dd { margin: 0; color: var(--ink-2); }
+  .facts code { font-size: .76rem; }
+  .rulechip { display: inline-block; font-family: var(--mono); font-size: .76rem; font-weight: 600; padding: 1px 7px; border-radius: var(--rr); background: var(--bad-bg); color: var(--bad); }
+
+  /* questions and choices */
+  .askline { font-weight: 600; margin-top: 2px; }
+  .misfit { color: var(--warn); display: flex; gap: 7px; align-items: flex-start; }
+  .misfit .ico { margin-top: .22em; }
+  .qrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 10px; }
+  .prog { font-size: .82rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .opt { font: inherit; font-size: .88rem; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: var(--r); padding: 4px 11px; cursor: pointer; }
   .opt:hover { border-color: var(--ink-3); }
-  .compose { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); background: var(--card); }
-  .compose input { font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--r); background: var(--card); color: var(--ink); min-width: 0; }
-  .compose button, .bar button.plain { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: .88rem; font-weight: 600; padding: 5px 12px; border-radius: var(--r); border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; }
-  .compose button:hover, .bar button.plain:hover { background: var(--card-2); }
-  .compose button.send { background: var(--ours); border-color: var(--ours); color: var(--on-fill); }
-  .compose button.send:hover { background: color-mix(in srgb, var(--ours) 85%, var(--ink)); }
-  .compose button:disabled, .compose input:disabled { opacity: .5; cursor: not-allowed; }
-  .suggest { display: flex; flex-wrap: wrap; gap: 6px; }
+  .opt b { font-weight: 600; }
+  .choices { display: grid; gap: 4px; margin-top: 10px; max-width: 460px; }
+  .choices .task { border: 1px solid var(--line); background: var(--card); }
+  .choices .task:hover { background: var(--card-2); }
+  .grp { font-size: .8rem; font-weight: 600; color: var(--ink-3); margin: 10px 0 4px; }
+  .examples { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .bul { margin: 6px 0 0; padding-left: 18px; color: var(--ink); }
+  .bul li + li { margin-top: 2px; }
 
-  .why h2 { margin-bottom: 4px; }
-  .why .fnline { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 6px; }
-  .why .check { display: grid; grid-template-columns: 2rem 1fr; gap: 2px 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
-  .why .check:last-of-type { border-bottom: none; }
-  .mark { display: grid; place-items: center; font-weight: 600; font-size: 1rem; padding-top: 1px; }
-  .mark.ok { color: var(--good); }
-  .mark.no { color: var(--bad); }
-  .mark { width: 1.6rem; height: 1.6rem; border-radius: 50%; }
-  .mark.ok { background: var(--good-bg); }
-  .mark.no { background: var(--bad-bg); }
-  .mark.skip { color: var(--ink-3); }
-  .why .cn { font-weight: 600; font-size: .9rem; }
-  .why .cn .r { font-family: var(--mono); font-size: .78rem; color: var(--ink-3); margin-right: 6px; }
-  .why .cd { font-size: .78rem; color: var(--ink-2); }
-  .verdict { margin-top: 10px; padding: 9px 12px; border-radius: var(--r); font-weight: 600; border: 1px solid; }
-  .verdict.ok { color: var(--good); border-color: transparent; background: var(--good-bg); }
-  .verdict.no { color: var(--bad); border-color: transparent; background: var(--bad-bg); }
-  .empty { color: var(--ink-3); font-size: .9rem; margin-top: 8px; }
-  .pages { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
-  .pages code { font-size: .76rem; color: var(--good); background: var(--good-bg); border-radius: var(--rr); padding: 1px 6px; }
+  /* compose */
+  .compose { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 12px 16px 6px; border-top: 1px solid var(--line); }
+  .compose input { font: inherit; font-size: 1rem; padding: 9px 12px; border: 1px solid var(--line); border-radius: var(--r); background: var(--card); color: var(--ink); min-width: 0; }
+  .compose input::placeholder { color: var(--ink-3); }
+  .compose input:focus-visible { outline: 2px solid var(--ours); outline-offset: 0; border-color: var(--ours); }
+  .send { display: inline-flex; align-items: center; gap: 7px; font: inherit; font-weight: 600; padding: 0 16px; border-radius: var(--r); border: 1px solid var(--ours); background: var(--ours); color: var(--on-fill); cursor: pointer; }
+  .send:hover { background: color-mix(in srgb, var(--ours) 85%, var(--ink)); }
+  .compose :disabled { opacity: .5; cursor: not-allowed; }
+  .hint { padding: 0 16px 12px; font-size: .8rem; color: var(--ink-3); }
+  .hint b { color: var(--ink-2); font-weight: 600; }
 
-  .matrix td, .matrix th { text-align: center; }
-  .matrix td:first-child, .matrix th:first-child { text-align: left; }
-  .cell { font: inherit; font-family: var(--mono); font-size: .8rem; border: 1px solid transparent; border-radius: var(--rr); background: none; padding: 2px 8px; cursor: pointer; min-width: 56px; }
-  .cell:hover { border-color: var(--line); }
+  /* technical details, for reviewers */
+  .tech { margin-top: 16px; padding: 0; }
+  .tech > summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 4px 10px; flex-wrap: wrap; padding: 14px 18px; }
+  @media (max-width: 640px) { .tech > summary .muted { flex-basis: 100%; padding-left: 26px; } }
+  .tech > summary::-webkit-details-marker { display: none; }
+  .tech > summary .chev { color: var(--ink-3); align-self: center; }
+  .tech[open] > summary .chev { transform: rotate(90deg); }
+  .tech .inner { padding: 0 18px 18px; display: grid; gap: 16px; }
+  .tech h3 { color: var(--ink); font-size: .92rem; margin-bottom: 6px; }
+  .cats { display: flex; flex-wrap: wrap; gap: 4px; }
+  .cat { font-size: .76rem; font-weight: 600; padding: 1px 6px; border-radius: var(--rr); background: var(--card-2); color: var(--ink-2); white-space: nowrap; }
+  .matrix td, .matrix th { text-align: center; vertical-align: middle; }
+  .matrix td:first-child, .matrix th:first-child, .matrix td:nth-child(2), .matrix th:nth-child(2) { text-align: left; }
+  .cell { font: inherit; font-family: var(--mono); font-size: .78rem; border: 1px solid transparent; border-radius: var(--rr); background: none; padding: 2px 8px; cursor: pointer; min-width: 56px; }
+  .cell:hover { border-color: var(--ink-3); }
   .cell.ok { color: var(--good); background: var(--good-bg); }
   .cell.no { color: var(--bad); background: var(--bad-bg); }
 </style>
@@ -88,8 +162,8 @@
   <!--__NAV__-->
   <div class="top">
     <div>
-      <h1>Ask the assistant</h1>
-      <p class="sub">Steps for your role, or a refusal, before anything is asked. <span class="badge" id="count"></span><span id="selftest" class="badge"></span></p>
+      <h1>Staff assistant</h1>
+      <p class="sub">Say what you need to do. You get the steps for your role, or who can do it instead.</p>
     </div>
     <div class="tools">
       <button id="bigger" title="Larger text for a projector">A+</button>
@@ -97,28 +171,46 @@
     </div>
   </div>
 
-  <div class="roles" id="roles"></div>
+  <div class="roles" id="roles" role="group" aria-label="Working as"></div>
 
   <div class="main">
-    <div class="card chat">
+    <details class="card tasks" id="tasks" open>
+      <summary><h2>Common tasks</h2><span class="muted" id="tasksFor"></span><span data-icon="arrow" data-cls="chev"></span></summary>
+      <div class="tasklist" id="tasklist"></div>
+    </details>
+
+    <section class="card chat" aria-label="Conversation">
       <div class="bar">
-        <div class="suggest" id="suggest"></div>
-        <button class="plain" id="reset" title="Start a new conversation"><span data-icon="replay"></span> New</button>
+        <div class="who"><h2>Conversation</h2><span class="muted" id="asWho"></span></div>
+        <div class="acts">
+          <button type="button" class="plain" id="play" title="Play four example conversations"><span data-icon="play"></span> Watch a demo</button>
+          <button type="button" class="plain" id="reset" title="Clear the conversation"><span data-icon="replay"></span> Start over</button>
+        </div>
       </div>
       <div class="log" id="log" aria-live="polite"></div>
       <form class="compose" id="compose" autocomplete="off">
-        <input id="input" placeholder="What do you need?" aria-label="Your request">
-        <button type="submit" class="send" id="send">Send</button>
-        <button type="button" class="scenes" id="play" title="Play the four scenes from the live pipeline"><span data-icon="play"></span> Scenes</button>
+        <label class="sr-only" for="input">What do you need to do?</label>
+        <input id="input" placeholder="Type what you need to do">
+        <button type="submit" class="send" id="send">Send <span data-icon="arrow"></span></button>
       </form>
-    </div>
-    <div class="card why" id="why"></div>
+      <div class="hint">Press Enter to send · type <b>help</b> to see your tasks · <b>cancel</b> to stop</div>
+    </section>
   </div>
 
-  <div class="card" style="margin-top:14px">
-    <div class="head"><h2>Who may be walked through what</h2><span class="muted">click a cell</span></div>
-    <div class="scroll"><table class="matrix" id="matrix"></table></div>
-  </div>
+  <details class="card tech" id="tech">
+    <summary><span data-icon="arrow" data-cls="chev"></span><h2>Technical details</h2><span class="muted">how each answer is checked, for reviewers</span></summary>
+    <div class="inner">
+      <div class="cats"><span class="badge" id="count"></span><span class="badge" id="selftest"></span></div>
+      <div>
+        <h3>What each role may see</h3>
+        <div class="scroll"><table id="scope"></table></div>
+      </div>
+      <div>
+        <h3>Who may be walked through what <span class="muted" style="font-weight:400">· click a cell to play it</span></h3>
+        <div class="scroll"><table class="matrix" id="matrix"></table></div>
+      </div>
+    </div>
+  </details>
 
   <footer id="foot"></footer>
 </div>
@@ -273,83 +365,145 @@
     ? `${Kit.icon("check")} identical to the Python assistant · ${D.vectors.length} conversations`
     : `typing off: differs from the Python assistant`;
   if (mismatch) console.warn("assistant page self-check mismatch", mismatch);
-  $("count").textContent = `${D.functions.length} functions · no model`;
+
+  $("count").textContent = `${D.functions.length} fixed tasks · rule-based, no AI model`;
 
   /* ---------------------------------------------------- state */
   let role = "reception", session = new Session(role), history = [], busy = false, epoch = 0;
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const cap = (s) => String(s).charAt(0).toUpperCase() + String(s).slice(1);
+  const dash = (s) => String(s).replace(/ -- /g, " — ").replace(/--/g, "—");
+  const Role = () => cap(role);
+  const mine = (r) => D.functions.filter((f) => R[r].gate[f.id].allowed);
 
   function replay(turns) {
     // Typing is off: answer only from a recorded Python conversation with this exact prefix.
     const v = D.vectors.concat(D.scenes).find((c) => c.role === role && turns.every((t, i) => c.turns[i] === t));
-    return v ? v.replies[turns.length - 1] : { kind: "unrecognised", fn: null, text: "(Typing is off on this page — pick a suggestion or a cell in the table.)" };
+    return v ? v.replies[turns.length - 1] : { kind: "unrecognised", fn: null, text: "(Typing is off on this page — choose a task from the list.)" };
   }
   function respond(text) {
     history.push(text);
-    return LIVE ? session.respond(text) : replay(history);
+    const r = LIVE ? session.respond(text) : replay(history);
+    // Which detail of how many: read off the live session (the recorded replies carry no state).
+    if (LIVE && r.kind === "ask_input" && session.state === "collecting") {
+      const total = F[session.spec].inputs.length;
+      return { ...r, progress: [Object.keys(session.inputs).length + 1, total] };
+    }
+    return r;
   }
 
-  /* ---------------------------------------------------- rendering */
-  function botHTML(r) {
-    const lines = r.text.split("\n");
-    if (r.kind === "guidance") {
-      let h = `<div class="gtitle">${esc(lines[0])}</div>`, i = 2, n = 0;
-      if (lines[2] === D.texts.withheldHead) { h += `<div class="caution">${Kit.icon("flag")} ${esc(lines[2].trim())}</div>`; i = 4; }
-      const steps = (F[r.fn] || { steps: [] }).steps;
-      while (i < lines.length && lines[i] !== "") {
-        const m = lines[i].match(/^  (\d+)\. (.*)$/);
-        if (m) {
-          let where = "", note = "";
-          if (/^\s+\[(.*)\]$/.test(lines[i + 1] || "")) {
-            const st = steps[n] || {};
-            where = [st.layer, st.artefact, st.where].filter(Boolean).map((p, k) => `<span class="${k === 2 ? "page" : ""}">${esc(p)}</span>`).join("");
-            i++;
-          }
-          const c = (lines[i + 1] || "").match(/^\s+note: (.*)$/);
-          if (c) { note = `<div class="caution">${Kit.icon("flag")} ${esc(c[1])}</div>`; i++; }
-          h += `<div class="gstep"><span class="no">${m[1]}</span><div>${esc(m[2])}<div class="where">${where}</div>${note}</div></div>`;
-          n++;
-        }
-        i++;
-      }
-      const foot = lines.slice(i + 1).map((l) => l.match(/^\s+(\w[\w ]*?)\s+: (.*)$/)).filter(Boolean);
-      h += `<div class="gfoot">${foot.map((m) => `<span class="badge" title="${esc(m[2])}">${esc(m[1])}: ${esc(m[2].replace(/ \(.*\)$/, ""))}</span>`).join("")}</div>`;
-      return h;
-    }
-    if (r.kind === "declined") {
-      const rule = lines.find((l) => /^\s+\[/.test(l)) || "";
-      const rest = lines.filter((l) => l !== rule).slice(1);
-      return `<b>${esc(lines[0])}</b><div>${rest.map((l) => esc(l.trim())).join("<br>")}</div><span class="rulechip">${esc(rule.trim().replace(/^\[|\]$/g, ""))}</span>`;
-    }
-    if (r.kind === "ask_choose" || r.kind === "unrecognised" || r.kind === "help") {
-      let h = "", opts = [];
-      const flush = () => { if (opts.length) { h += `<div class="opts">${opts.join("")}</div>`; opts = []; } };
-      for (const l of lines) {
-        const m = l.match(/^\s+(?:(\d+)\.|-) (.*)$/);
-        if (m) { opts.push(`<button class="opt" data-say="${esc(m[1] || m[2])}">${esc(m[2])}</button>`); continue; }
-        flush();
-        const g = l.match(/^\s+(.*):$/);
-        h += g ? `<div class="grp">${esc(g[1])}</div>` : `<div>${esc(l)}</div>`;
-      }
-      flush();
-      return h;
-    }
-    if (r.kind === "changes") {
-      return `<b>${esc(lines[0])}</b>` + lines.slice(1).map((l) => `<div class="${/^\s+- /.test(l) ? "chg" : ""}">${esc(l.replace(/^\s+- /, "").trim())}</div>`).join("");
-    }
-    if (r.kind === "ask_input") {
-      const ex = r.text.match(/\(e\.g\. (.*)\)$/);
-      return esc(r.text).replace(/\n/g, "<br>") + (ex ? `<div class="opts"><button class="opt" data-say="${esc(ex[1])}">use ${esc(ex[1])}</button></div>` : "");
-    }
-    return esc(r.text);
+  /* ---------------------------------------------------- how it was checked (closed until asked) */
+  function howHTML(id, label) {
+    const f = F[id], g = R[role].gate[id], p = D.purposes[f.purpose];
+    let stopped = false;
+    const checks = g.checks.map((c) => {
+      const state = stopped ? "skip" : (c.ok ? "ok" : "no");
+      if (!c.ok) stopped = true;
+      return `<div class="check"><span class="mark ${state}">${state === "ok" ? Kit.icon("check") : state === "no" ? Kit.icon("x") : "·"}</span><div><div class="cn"><span class="rid">${esc(c.rule)}</span>${esc(cap(c.name))}</div><div class="cd">${esc(c.detail)}${state === "skip" ? " · not reached" : ""}</div></div></div>`;
+    }).join("");
+    const pages = [...new Set(f.steps.map((s) => s.page).filter(Boolean))];
+    const facts = [
+      ["Purpose", `${f.purpose.replace(/_/g, " ")} — ${dash(p.note)}`],
+      ["Data touched", f.touched.replace(/_/g, " ")],
+      ["Records", f.artefacts.join(" · ")],
+      ...(pages.length ? [["Screens", pages.map((u) => `<code>${esc(u)}</code>`).join(" ")]] : []),
+    ];
+    return `<details class="how"><summary><span class="chev">${Kit.icon("arrow")}</span>${esc(label)}</summary><div class="inner">${checks}`
+      + `<dl class="facts">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${k === "Screens" ? v : esc(v)}</dd>`).join("")}</dl></div></details>`;
   }
-  function add(kind, html, cls = "") {
+
+  /* ---------------------------------------------------- rendering a reply */
+  function stepLocation(where) {
+    if (!where) return "";
+    const parts = where.split(", ");
+    const screen = parts.length > 1 && /page$/.test(parts[parts.length - 1]) ? parts[parts.length - 1] : "";
+    return `<div class="loc">${Kit.icon("grid")}<span>${esc(parts[0])}${screen ? " · " + esc(screen) : ""}</span></div>`;
+  }
+  function guidanceHTML(r) {
+    const lines = r.text.split("\n"), f = F[r.fn] || { steps: [], label: "", purpose: "" };
+    let i = 2, n = 0, h = "";
+    const withheld = lines[2] === D.texts.withheldHead;
+    if (withheld) i = 4;
+    while (i < lines.length && lines[i] !== "") {
+      const m = lines[i].match(/^  (\d+)\. (.*)$/);
+      if (m) {
+        const st = f.steps[n] || {};
+        let note = "";
+        if (/^\s+\[(.*)\]$/.test(lines[i + 1] || "")) i++;
+        const c = (lines[i + 1] || "").match(/^\s+note: (.*)$/);
+        if (c) { note = `<div class="warnline">${Kit.icon("flag")}<span>${esc(dash(c[1]))}</span></div>`; i++; }
+        h += `<li><span class="no">${m[1]}</span><div><div class="tx">${esc(dash(m[2]))}</div>${stepLocation(st.where)}${note}</div></li>`;
+        n++;
+      }
+      i++;
+    }
+    const p = D.purposes[f.purpose] || {};
+    return `<div class="ans">`
+      + `<div class="ah"><span class="ai ok">${Kit.icon("check")}</span><div><div class="at">${esc(cap(f.label))}</div><div class="as">Steps for ${esc(Role())}</div></div></div>`
+      + (withheld ? `<div class="withheld">${Kit.icon("alert")}<span>${esc(dash(D.texts.withheldHead.trim()))}</span></div>` : "")
+      + `<ol class="gsteps">${h}</ol>`
+      + `<div class="afoot"><span class="ok">${Kit.icon("shield")} Part of your work as ${esc(role)}: ${esc(p.plain || "")}.</span>`
+      + `<div class="row"><span>Keep these details no longer than ${p.days} days.</span>${D.screensAsOf ? `<span>Screens as found on ${esc(D.screensAsOf)}</span>` : ""}</div></div>`
+      + howHTML(r.fn, "How this was checked") + `</div>`;
+  }
+  function declinedHTML(r) {
+    const lines = r.text.split("\n"), f = F[r.fn];
+    const ruleAt = lines.findIndex((l) => /^\s+\[/.test(l));
+    const after = lines.slice(ruleAt + 1).map((l) => l.trim()).filter(Boolean);
+    return `<div class="ans no">`
+      + `<div class="ah"><span class="ai no">${Kit.icon("ban")}</span><div><div class="at">${esc(cap(f.label))}</div><div class="as no">Not part of ${esc(role)}'s work</div></div></div>`
+      + `<div class="body"><p>${esc(dash(lines[0]))}</p>`
+      + after.map((l) => `<div class="handoff">${Kit.icon("arrow")}<span>${esc(dash(l))}</span></div>`).join("")
+      + `<div class="nothing">No patient details were asked for.</div></div>`
+      + howHTML(r.fn, "Why not") + `</div>`;
+  }
+  function listHTML(r) {
+    // help, unrecognised and "which one?": the role's tasks as buttons, grouped as the assistant lists them.
+    const lines = r.text.split("\n");
+    let h = "", opts = [];
+    const flush = () => { if (opts.length) { h += `<div class="choices">${opts.join("")}</div>`; opts = []; } };
+    for (const l of lines) {
+      const m = l.match(/^\s+(?:(\d+)\.|-) (.*)$/);
+      if (m) { opts.push(`<button class="task opt-say" data-say="${esc(m[1] || m[2])}"><span>${esc(cap(m[2]))}</span>${Kit.icon("arrow")}</button>`); continue; }
+      flush();
+      const g = l.match(/^\s+(.*):$/);
+      if (g) h += `<div class="grp">${esc(g[1])}</div>`;
+      else if (l.trim()) h += `<p class="${/^Say "cancel"/.test(l) ? "soft" : ""}">${esc(dash(l))}</p>`;
+    }
+    flush();
+    return h;
+  }
+  function askHTML(r) {
+    const lines = r.text.split("\n");
+    const last = lines.pop(), ex = last.match(/^(.*) \(e\.g\. (.*)\)$/);
+    const pre = lines.map((l) => l === D.texts.misfit
+      ? `<p class="misfit">${Kit.icon("alert")}<span>${esc(l)}</span></p>`
+      : `<p class="soft">${esc(dash(l))}</p>`).join("");
+    return pre + `<p class="askline">${esc(ex ? ex[1] : last)}</p>`
+      + `<div class="qrow">${r.progress ? `<span class="prog">Detail ${r.progress[0]} of ${r.progress[1]}</span>` : ""}`
+      + (ex ? `<button class="opt opt-say" data-say="${esc(ex[2])}">Use example: <b>${esc(ex[2])}</b></button>` : "") + `</div>`;
+  }
+  function botHTML(r) {
+    if (r.kind === "guidance") return guidanceHTML(r);
+    if (r.kind === "declined") return declinedHTML(r);
+    if (r.kind === "ask_choose" || r.kind === "unrecognised" || r.kind === "help") return listHTML(r);
+    if (r.kind === "ask_input") return askHTML(r);
+    if (r.kind === "changes") {
+      const lines = r.text.split("\n"), items = lines.slice(1).filter((l) => l.trim());
+      return `<p>${esc(dash(lines[0]))}</p>` + (items.length ? `<ul class="bul">${items.map((l) => `<li>${esc(dash(l.replace(/^\s+- /, "").trim()))}</li>`).join("")}</ul>` : "");
+    }
+    return `<p>${esc(dash(r.text))}</p>`;
+  }
+  function add(kind, html) {
     const div = document.createElement("div");
-    div.className = `msg ${kind} ${cls}`;
-    div.innerHTML = `<div class="who">${kind === "you" ? esc(role) : "assistant"}</div>` + html;
+    div.className = `msg ${kind}`;
+    div.innerHTML = `<span class="sr-only">${kind === "you" ? "You said:" : "Assistant:"}</span>` + html;
     $("log").appendChild(div);
-    div.querySelectorAll(".opt").forEach((b) => b.addEventListener("click", () => { if (!busy) say(b.dataset.say); }));
-    $("log").scrollTop = $("log").scrollHeight;
+    div.querySelectorAll(".opt-say").forEach((b) => b.addEventListener("click", () => { if (!busy) say(b.dataset.say); }));
+    div.querySelectorAll("[data-example]").forEach((b) => b.addEventListener("click", () => { if (!busy) say(b.dataset.example); }));
+    // Keep the start of a long answer in view, not its end.
+    const log = $("log");
+    log.scrollTop = kind === "bot" && div.offsetHeight > log.clientHeight * 0.6 ? div.offsetTop - 12 : log.scrollHeight;
     return div;
   }
   async function say(text) {
@@ -358,65 +512,54 @@
     add("you", esc(text || "(nothing)"));
     const r = respond(text);
     if (mine !== epoch) { busy = was; return; }
-    add("bot", botHTML(r), r.kind);
-    why(r);
+    add("bot", botHTML(r));
     busy = was;
   }
-  function why(r) {
-    if (!r.fn) {
-      const said = {
-        ask_choose: "Several functions match and this role may use more than one of them — it asks rather than guesses.",
-        help: "The menu is this role's tasks, read off the same gate as every answer.",
-        cancelled: "Dropped. Nothing typed for that request was kept.",
-        changes: "Read off the comparison of the last two crawls of the HIS.",
-      }[r.kind] || "No function matched. It offers only what this role may do.";
-      $("why").innerHTML = `<h2>Why this answer</h2><p class="empty">${said}</p>`;
-      return;
-    }
-    const f = F[r.fn], g = R[role].gate[r.fn];
-    let stopped = false;
-    const checks = g.checks.map((c, i) => {
-      const state = stopped ? "skip" : (c.ok ? "ok" : "no");
-      if (!c.ok) stopped = true;
-      return `<div class="check"><span class="mark ${state}">${state === "ok" ? Kit.icon("check") : state === "no" ? Kit.icon("x") : "·"}</span><div><div class="cn"><span class="r">${esc(c.rule)}</span>${esc(c.name)}</div><div class="cd">${esc(c.detail)}${state === "skip" ? " · not reached" : ""}</div></div></div>`;
-    }).join("");
-    const pages = [...new Set(f.steps.map((s) => s.page).filter(Boolean))];
-    const after = g.checks.length * 220 + 80;
-    $("why").innerHTML = `<h2>Why this answer</h2><div class="fnline"><span class="badge">${esc(f.label)}</span><span class="badge">${esc(f.purpose.replace(/_/g, " "))}</span>${f.artefacts.map((a) => `<span class="badge">${esc(a)}</span>`).join("")}</div>${checks}`
-      + (g.allowed
-        ? `<div class="verdict ok">${Kit.icon("check")} Allowed for ${esc(role)}</div>` + (pages.length ? `<div class="pages">${pages.map((p) => `<code>${esc(p)}</code>`).join("")}</div>` : "")
-        : `<div class="verdict no">${Kit.icon("x")} Declined · ${esc(g.rule)}<div class="muted" style="font-weight:500;margin-top:2px">${esc(g.provision)} · nothing asked first</div></div>`);
+  function welcome() {
+    const ex = mine(role).slice(0, 3).map((f) => f.synonyms[0] || f.label);
+    add("bot", `<p>What do you need to do? Describe it in your own words, or choose a task from the list.</p>`
+      + `<p class="soft">You'll get the steps for ${esc(role)}, or be told who can do it instead.</p>`
+      + `<div class="examples">${ex.map((e) => `<button class="opt" data-example="${esc(e)}">${esc(cap(e))}</button>`).join("")}</div>`);
   }
+
+  /* ---------------------------------------------------- roles, tasks, technical details */
   function setRole(r) {
     epoch++;
     role = r; session = new Session(role); history = [];
-    $("log").innerHTML = ""; $("why").innerHTML = `<h2>Why this answer</h2><p class="empty">Ask something — the three checks appear here.</p>`;
-    paintRoles(); paintSuggest();
+    $("log").innerHTML = "";
+    $("asWho").textContent = `as ${Role()}`;
+    $("tasksFor").textContent = `for ${role}`;
+    paintRoles(); paintTasks(); welcome();
   }
   function paintRoles() {
     $("roles").innerHTML = D.roles.map((r) => {
-      const n = D.functions.filter((f) => r.gate[f.id].allowed).length;
-      return `<button class="role" aria-pressed="${r.id === role}" data-r="${r.id}" title="${esc(r.description)}"><span class="rt"><span class="rn">${esc(r.id)}</span><span class="rc">${n} of ${D.functions.length}</span></span>`
-        + `<span class="cats">${r.may_touch.map((c) => `<span class="cat ${c}">${esc(c.replace(/_/g, " "))}</span>`).join("")}</span></button>`;
+      const n = mine(r.id).length;
+      return `<button class="role" aria-pressed="${r.id === role}" data-r="${r.id}"><span class="rn">${esc(cap(r.id))}</span><span class="rc">${n} tasks</span><span class="rt">${esc(r.title)}</span></button>`;
     }).join("");
-    $("roles").querySelectorAll(".role").forEach((b) => b.addEventListener("click", () => { if (!busy) setRole(b.dataset.r); }));
+    $("roles").querySelectorAll(".role").forEach((b) => b.addEventListener("click", () => { if (!busy && b.dataset.r !== role) setRole(b.dataset.r); }));
   }
-  function paintSuggest() {
-    const mine = D.functions.filter((f) => R[role].gate[f.id].allowed).slice(0, 2).map((f) => f.synonyms[0] || f.label);
-    const refused = D.functions.find((f) => !R[role].gate[f.id].allowed);
-    const picks = [...mine, refused ? refused.synonyms[0] || refused.label : null, "help", "tell me a joke"].filter(Boolean);
-    $("suggest").innerHTML = picks.map((p) => `<button class="opt" data-say="${esc(p)}">${esc(p)}</button>`).join("");
-    $("suggest").querySelectorAll(".opt").forEach((b) => b.addEventListener("click", () => { if (!busy) { session.reset(); history = []; say(b.dataset.say); } }));
+  function paintTasks() {
+    const groups = [];
+    mine(role).forEach((f) => { let g = groups.find((x) => x.name === f.group); if (!g) groups.push(g = { name: f.group, fns: [] }); g.fns.push(f); });
+    $("tasklist").innerHTML = groups.map((g) => `<div class="tgroup"><h3>${esc(g.name)}</h3><ul>${g.fns.map((f) => `<li><button class="task" data-f="${f.id}"><span>${esc(cap(f.label))}</span>${Kit.icon("arrow")}</button></li>`).join("")}</ul></div>`).join("");
+    $("tasklist").querySelectorAll(".task").forEach((b) => b.addEventListener("click", () => {
+      if (busy) return;
+      session.reset(); history = [];
+      say(F[b.dataset.f].label);
+      if (matchMedia("(max-width: 900px)").matches) { $("tasks").open = false; $("log").scrollIntoView({ block: "start" }); }
+    }));
   }
-  function paintMatrix() {
-    $("matrix").innerHTML = `<tr><th>Function</th><th>Purpose</th>${D.roles.map((r) => `<th>${esc(r.id)}</th>`).join("")}</tr>`
-      + D.functions.map((f) => `<tr><td>${esc(f.label)}</td><td class="muted">${esc(f.purpose.replace(/_/g, " "))}</td>`
-        + D.roles.map((r) => { const g = r.gate[f.id]; return `<td><button class="cell ${g.allowed ? "ok" : "no"}" data-r="${r.id}" data-f="${f.id}" title="${esc(g.reason)}">${g.allowed ? Kit.icon("check") : esc(g.rule)}</button></td>`; }).join("") + "</tr>").join("");
+  function paintTech() {
+    $("scope").innerHTML = `<thead><tr><th>Role</th><th>Purposes</th><th>May see</th></tr></thead><tbody>`
+      + D.roles.map((r) => `<tr><td>${esc(cap(r.id))}</td><td class="muted">${esc(r.purposes.map((p) => p.replace(/_/g, " ")).join(", "))}</td><td><span class="cats">${r.may_touch.map((c) => `<span class="cat">${esc(c.replace(/_/g, " "))}</span>`).join("")}</span></td></tr>`).join("") + `</tbody>`;
+    $("matrix").innerHTML = `<thead><tr><th>Task</th><th>Purpose</th>${D.roles.map((r) => `<th>${esc(cap(r.id))}</th>`).join("")}</tr></thead><tbody>`
+      + D.functions.map((f) => `<tr><td>${esc(cap(f.label))}</td><td class="muted">${esc(f.purpose.replace(/_/g, " "))}</td>`
+        + D.roles.map((r) => { const g = r.gate[f.id]; return `<td><button class="cell ${g.allowed ? "ok" : "no"}" data-r="${r.id}" data-f="${f.id}" title="${esc(g.reason)}" aria-label="${esc(cap(r.id))}: ${esc(f.label)}: ${g.allowed ? "allowed" : "declined, " + esc(g.rule)}">${g.allowed ? Kit.icon("check") : esc(g.rule)}</button></td>`; }).join("") + "</tr>").join("") + `</tbody>`;
     $("matrix").querySelectorAll(".cell").forEach((b) => b.addEventListener("click", () => {
       if (busy) return;
       const f = F[b.dataset.f];
       setRole(b.dataset.r);
-      window.scrollTo({ top: $("roles").offsetTop - 10, behavior: "smooth" });
+      document.querySelector(".main").scrollIntoView({ behavior: "smooth", block: "start" });
       autoplay([f.label, ...(R[b.dataset.r].gate[f.id].allowed ? f.inputs.map((i) => i.example) : [])]);
     }));
   }
@@ -435,7 +578,10 @@
     for (const t of turns) { if (mine !== epoch) break; await type(t); await say(t); await wait(700); }
     busy = false; lock(false);
   }
-  function lock(on) { ["input", "send", "play"].forEach((id) => { $(id).disabled = on || (!LIVE && id !== "play"); }); }
+  function lock(on) {
+    ["input", "send", "play", "reset"].forEach((id) => { $(id).disabled = on || (!LIVE && (id === "input" || id === "send")); });
+    document.body.classList.toggle("busy", on);
+  }
   $("play").addEventListener("click", async () => {
     if (busy) return;
     for (const scene of D.scenes) { setRole(scene.role); await autoplay(scene.turns); await wait(1400); }
@@ -443,7 +589,14 @@
   $("compose").addEventListener("submit", (e) => { e.preventDefault(); if (busy || !LIVE) return; const t = $("input").value; $("input").value = ""; say(t); });
   $("reset").addEventListener("click", () => { if (!busy) setRole(role); });
 
-  setRole(role); paintMatrix(); lock(false);
+  if (!LIVE) {
+    const note = document.createElement("div");
+    note.className = "note offline";
+    note.textContent = "Typing is off on this copy. Choose a task from the list to see a recorded answer.";
+    $("log").before(note);
+  }
+  if (matchMedia("(max-width: 900px)").matches) $("tasks").open = false;
+  setRole(role); paintTech(); lock(false);
   $("foot").innerHTML = `Built by <code>tools/build_assistant_page.py</code> from <code>src/agent/</code> and the portal's navigation map · checked against ${D.vectors.length} recorded Python conversations on every open`;
 })();
 </script>

@@ -150,12 +150,15 @@ rebuilds them all (~90 s; `--skip-portal` where there is no browser).
   from field names), and **the crawl**: press `3` and every page each technique
   loaded plays out on a map of the site (`space` replays; `fast` for a quick run). Ours 32, the AI agent 35, the
   baseline 440, with each total checked against the meter when the page is built.
-- **Assistant**: pick a role and type. The page runs the assistant's own
-  recogniser and gate, checked against 435 conversations recorded from the
+- **Assistant**: laid out for staff (2026-10-07): pick a role, then a task from
+  that role's list or type it in plain words; answers are numbered steps with
+  the screen each happens on, or a refusal naming who can do it. Each answer's
+  *How this was checked* opens the three gate checks with their rule ids; the
+  *Technical details* panel at the foot holds the role scopes and the role ×
+  task table (click a cell to play it). The page runs the assistant's own
+  recogniser and gate, checked against 975 conversations recorded from the
   Python assistant every time it opens; typing switches off if they ever differ.
-  The right-hand panel shows the three gate checks for each answer; the role ×
-  function table plays any conversation on click; `▶ Scenes` plays the
-  pipeline's four.
+  *Watch a demo* plays the pipeline's four scenes.
 - **Dataset**: Demo F below.
 - **Journey**: Demo 0 above — one line of the export through all seven stages, any column's fate on the rail.
 - **Rules vs AI**: the AI-agent comparison.

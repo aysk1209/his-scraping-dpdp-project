@@ -177,6 +177,8 @@ def build(out: Path = DEFAULT_OUT) -> dict:
         session = Session(role, navigation=nav)
         roles.append({
             "id": role.value, "description": policy.description,
+            # "Front desk: registers ..." -> "Front desk", the staff-facing name of the job.
+            "title": policy.description.split(":", 1)[0].strip(),
             "purposes": sorted(p.value for p in policy.purposes),
             "may_touch": sorted(c.value for c in policy.allowed_categories()),
             "gate": {spec.id: _gate(role, spec) for spec in REGISTRY},
@@ -224,7 +226,9 @@ def build(out: Path = DEFAULT_OUT) -> dict:
         "order": [s.id for s in REGISTRY],
         "functions": functions,
         "roles": roles,
-        "purposes": {p.value: {"note": pol.legitimate_use_note, "days": pol.max_retention_days}
+        # ``plain`` is the note's own wording after "...her data:", for staff-facing copy.
+        "purposes": {p.value: {"note": pol.legitimate_use_note, "days": pol.max_retention_days,
+                               "plain": pol.legitimate_use_note.rsplit(":", 1)[-1].strip()}
                      for p, pol in PURPOSE_POLICY.items()},
         "pages": nav_map.agent_pages(),
         "vectors": vectors,
