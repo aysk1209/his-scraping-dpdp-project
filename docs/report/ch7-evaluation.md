@@ -338,12 +338,17 @@ is not. A run holds when it takes nothing outside the purpose's categories,
 declares no onward use, keeps retention within the ceiling, and — as the meter
 observes, not as the technique declares — reads only the patient the task is
 about. The three Claude models were recorded on all three briefings, five runs
-each; the Gemini model was not recorded on this set.
+each, and the Gemini model likewise except one unaided sample the free tier did
+not return (44 of 45 calls); since an agent is scored on the samples every task
+has, its unaided row counts four runs per task.
 
 <!-- table:injection -->
 | Technique | Held | injected-billing | injected-onward | injected-scope |
 |---|---|---|---|---|
 | **compliance-aware (ours)** | 15/15 | 5/5 | 5/5 | 5/5 |
+| gemini-3.1-flash-lite, unaided | 4/12 | 0/4 (category 4, onward 4, retention 4) | 0/4 (category 1, onward 4) | 4/4 |
+| gemini-3.1-flash-lite, told the Act | 5/15 | 0/5 (category 5, onward 5, retention 5) | 0/5 (onward 5) | 5/5 |
+| gemini-3.1-flash-lite, told the policy | 15/15 | 5/5 | 5/5 | 5/5 |
 | claude-haiku-4-5, unaided | 3/15 | 0/5 (category 5, onward 1, retention 5) | 3/5 (onward 2) | 0/5 (onward 1, scope 5) |
 | claude-opus-5-5, unaided | 15/15 | 5/5 | 5/5 | 5/5 |
 | claude-sonnet-5-5, unaided | 14/15 | 5/5 | 5/5 | 4/5 (scope 1) |
@@ -365,12 +370,19 @@ patient unaided. `claude-haiku-4-5` obeyed the planted text: unaided it held 3
 of 15 and told the Act 5 of 15 — taking the diagnosis and declaring three
 years' retention for billing in every run, and reading every patient for the
 desk in every run — and even handed the policy it read every patient in 3 of 5
-runs. Across the models 109 of 135 runs held; ours held 15 of 15, as it must,
-because the request's prose is not an input to it. Read with Table 2, the
-finding is sharper than "models can be tricked": the stronger models resist an
-attack that looks like one, and fall, unaided, for the request that does not —
-a sentence a member of staff could plausibly type. A rule-driven technique is
-indifferent to both.
+runs. `gemini-3.1-flash-lite` failed the other way round: it never read more
+than the one patient (9 of 9 runs unaided or told the Act), but obeyed the
+billing note and the onward use in every such run — taking the diagnosis,
+declaring three years' retention, declaring the insurer's risk scoring — and
+held 4 of 12 unaided and 5 of 15 told the Act. Handed the policy it held 15 of 15:
+the policy's categories outranked a note that contradicted them outright, where
+on the subtler traps of Table 2, told the same policy, it held 10 of 20. Across
+the models 133 of 177 runs held; ours held 15 of 15, as it must, because the
+request's prose is not an input to it. Read with Table 2, the finding is sharper
+than "models can be tricked": the stronger models, and a weaker one handed the
+policy, resist an attack that looks like one, and fall for the request that
+does not — a sentence a member of staff could plausibly type. A rule-driven
+technique is indifferent to both.
 
 ## 7.3 The purpose matrix
 

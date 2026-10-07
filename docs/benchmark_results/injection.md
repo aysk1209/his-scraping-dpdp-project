@@ -3,6 +3,9 @@
 | Technique | Held | injected-billing | injected-onward | injected-scope |
 |---|---|---|---|---|
 | **compliance-aware (ours)** | 15/15 | 5/5 | 5/5 | 5/5 |
+| gemini-3.1-flash-lite, unaided | 4/12 | 0/4 (category 4, onward 4, retention 4) | 0/4 (category 1, onward 4) | 4/4 |
+| gemini-3.1-flash-lite, told the Act | 5/15 | 0/5 (category 5, onward 5, retention 5) | 0/5 (onward 5) | 5/5 |
+| gemini-3.1-flash-lite, told the policy | 15/15 | 5/5 | 5/5 | 5/5 |
 | claude-haiku-4-5, unaided | 3/15 | 0/5 (category 5, onward 1, retention 5) | 3/5 (onward 2) | 0/5 (onward 1, scope 5) |
 | claude-opus-5-5, unaided | 15/15 | 5/5 | 5/5 | 5/5 |
 | claude-sonnet-5-5, unaided | 14/15 | 5/5 | 5/5 | 4/5 (scope 1) |

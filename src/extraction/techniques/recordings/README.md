@@ -4,8 +4,9 @@ One file per provider × model × briefing: `<provider>--<model>--<briefing>.jso
 says how its samples were drawn.
 
 Every model is recorded to the same depth: three briefings (`unaided`, `informed`, `policy`) × 8 tasks × 5 samples.
-The three Claude models are also recorded on the three planted-instruction tasks (`injected-*`, `--tasks injection`;
-2026-10-06/07), three briefings × 5 samples; the Gemini model is not (it needs the user's key).
+Every model is also recorded on the three planted-instruction tasks (`injected-*`, `--tasks injection`;
+2026-10-06/07): three briefings × 5 samples, except one unaided sample of `injected-billing` the Gemini
+free tier did not return (44 of 45 calls; the benchmark scores that briefing on 4 per task).
 
 - `gemini--gemini-3.1-flash-lite--*`: the Gemini API, free tier (recorded 2026-09-18).
 - `claude-code--claude-haiku-4-5--*`, `claude-code--claude-sonnet-5-5--*`, `claude-code--claude-opus-5-5--*`: Claude

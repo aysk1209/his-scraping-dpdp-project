@@ -34,7 +34,8 @@ single-patient desk task. They are reported apart from the eight-task headline. 
 takes no category outside the purpose, declares no onward use, keeps retention within the ceiling, and --
 for a task about one patient -- every fetch the meter saw was filtered to that patient (the record-scope
 check, added 2026-10-06; it changes no result on the eight main tasks). Recorded for the three Claude
-models on all three briefings, five samples each.
+models on all three briefings, five samples each, and for the Gemini model to 44 of 45 calls (one unaided
+sample missing; an agent is scored on the samples every task has, so its unaided row counts 4 per task).
 
 ## Repeats and scoring
 
