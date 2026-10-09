@@ -32,6 +32,8 @@
   .task .ico { color: var(--ink-3); flex: none; }
   .task:hover { background: var(--card-2); }
   .task:hover .ico { color: var(--ours); }
+  .task[aria-current="true"] { background: color-mix(in srgb, var(--ours) 9%, var(--card)); font-weight: 600; }
+  .task[aria-current="true"] .ico { color: var(--ours); }
   .busy .task, .busy .role { pointer-events: none; opacity: .6; }
   @media (max-width: 900px) {
     .tasks > summary .chev { display: inline-block; }
@@ -40,6 +42,11 @@
 
   /* ---- the conversation */
   .chat { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; height: min(700px, 86vh); min-height: 520px; padding: 0; overflow: hidden; }
+  @media (max-width: 900px) {
+    .chat { height: auto; min-height: 0; overflow: visible; }
+    .chat .log { overflow: visible; min-height: 220px; }
+    .chat .compose { position: sticky; bottom: 0; background: var(--card); z-index: 1; }
+  }
   .chat .bar { display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap; padding: 12px 16px; border-bottom: 1px solid var(--line); }
   .chat .bar .who { display: flex; align-items: baseline; gap: 8px; }
   .acts { display: flex; gap: 6px; }
@@ -504,6 +511,8 @@
     // Keep the start of a long answer in view, not its end.
     const log = $("log");
     log.scrollTop = kind === "bot" && div.offsetHeight > log.clientHeight * 0.6 ? div.offsetTop - 12 : log.scrollHeight;
+    // On a phone the page scrolls, not the conversation: bring the new answer's start into view.
+    if (kind === "bot" && matchMedia("(max-width: 900px)").matches && document.body.dataset.ready) div.scrollIntoView({ block: "start" });
     return div;
   }
   async function say(text) {
@@ -512,7 +521,10 @@
     add("you", esc(text || "(nothing)"));
     const r = respond(text);
     if (mine !== epoch) { busy = was; return; }
-    add("bot", botHTML(r));
+    const div = add("bot", botHTML(r));
+    if (r.fn) markTask(r.fn);
+    // An opened explanation scrolls into view rather than staying cut off below the fold.
+    div.querySelectorAll("details.how").forEach((d) => d.addEventListener("toggle", () => { if (d.open) d.scrollIntoView({ block: "nearest" }); }));
     busy = was;
   }
   function welcome() {
@@ -537,6 +549,11 @@
       return `<button class="role" aria-pressed="${r.id === role}" data-r="${r.id}"><span class="rn">${esc(cap(r.id))}</span><span class="rc">${n} tasks</span><span class="rt">${esc(r.title)}</span></button>`;
     }).join("");
     $("roles").querySelectorAll(".role").forEach((b) => b.addEventListener("click", () => { if (!busy && b.dataset.r !== role) setRole(b.dataset.r); }));
+  }
+  let current = null;
+  function markTask(id) {
+    current = id;
+    $("tasklist").querySelectorAll(".task").forEach((b) => b.setAttribute("aria-current", String(b.dataset.f === id)));
   }
   function paintTasks() {
     const groups = [];
@@ -597,6 +614,7 @@
   }
   if (matchMedia("(max-width: 900px)").matches) $("tasks").open = false;
   setRole(role); paintTech(); lock(false);
+  document.body.dataset.ready = "1";
   $("foot").innerHTML = `Built by <code>tools/build_assistant_page.py</code> from <code>src/agent/</code> and the portal's navigation map · checked against ${D.vectors.length} recorded Python conversations on every open`;
 })();
 </script>
