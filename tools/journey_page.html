@@ -4,9 +4,11 @@
 <title>The Journey of One Entry</title>
 <style>
 /*__BASE__*/
-  .controls { display: grid; gap: 10px; margin-top: 16px; }
+  .controls { display: grid; gap: 10px; margin-top: 16px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 16px; }
+  .controls .walkrow { justify-content: space-between; }
+  .note-l { margin-top: 6px; font-size: .84rem; color: var(--ink-3); max-width: none; }
   .row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
-  .row > .lab { font-size: .84rem; color: var(--ink-2); min-width: 72px; }
+  .row > .lab { font-size: .8rem; color: var(--ink-3); min-width: 72px; }
   .quick { font: inherit; font-size: .8rem; border: 1px solid var(--line); background: var(--card); color: var(--ink-2); border-radius: var(--rr); padding: 2px 8px; cursor: pointer; }
   .quick:hover { border-color: var(--ink-3); color: var(--ink); }
   .quick[aria-pressed="true"] { border-color: var(--ours); color: var(--ink); background: color-mix(in srgb, var(--ours) 9%, var(--card)); }
@@ -20,6 +22,7 @@
   #steps.rail button[aria-selected="true"] { border-bottom-color: var(--ours); background: color-mix(in srgb, var(--ours) 6%, var(--card)); }
   .rail .nm { display: flex; gap: 7px; align-items: baseline; font-weight: 600; color: var(--ink); }
   .rail .fate { font-size: .76rem; line-height: 1.35; color: var(--ink-2); display: flex; gap: 6px; align-items: flex-start; min-height: 2.7em; }
+  .rail .fate span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .rail .fate i { flex: none; width: 8px; height: 8px; border-radius: 50%; margin-top: .35em; background: var(--line); }
   .s-ok i { background: var(--good) !important; } .s-warn i { background: var(--base) !important; }
   .s-bad i { background: var(--bad) !important; } .s-stop i { background: var(--bad) !important; }
@@ -42,6 +45,23 @@
   .cat.financial { background: var(--warn-bg); color: var(--warn); }
   .cat.direct_identifier, .cat.contact { background: var(--bad-bg); color: var(--bad); }
   .checks { display: grid; }
+  .gatebar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
+  .gatebar .g { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; padding: 2px 14px; border-left: 1px solid var(--line); }
+  .gatebar .g:first-child { border-left: none; padding-left: 0; }
+  .gatebar .g .ico { color: var(--good); margin-top: 3px; }
+  .gatebar .g.no .ico { color: var(--bad); }
+  .gatebar .g b { font-size: .9rem; }
+  .gatebar .g .muted { grid-column: 2; font-size: .8rem; }
+  @media (max-width: 860px) { .gatebar { grid-template-columns: 1fr 1fr; gap: 10px 0; } .gatebar .g:nth-child(3) { border-left: none; padding-left: 0; } }
+  .colflow { display: flex; flex-wrap: wrap; gap: 5px; }
+  .cc { font: inherit; font-family: var(--mono); font-size: .76rem; padding: 2px 7px; border-radius: var(--rr); border: 1px solid transparent; cursor: pointer; background: none; color: var(--ink-3); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--ink-3) 60%, transparent); }
+  .cc.in { background: var(--good-bg); color: var(--good); text-decoration: none; font-weight: 600; }
+  .cc:hover { border-color: var(--ink-3); }
+  .cc.on { border-color: var(--ours); outline: 1px solid var(--ours); }
+  .fol { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); font-size: .9rem; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+  .fol .mono { font-size: .84rem; }
+  .rsum { font-size: .84rem; font-weight: 600; white-space: nowrap; }
+  .rsum.ok { color: var(--good); }
   .check { display: grid; grid-template-columns: 1.4rem 1fr; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: .88rem; }
   .check:last-child { border-bottom: none; }
   .check .ico { color: var(--good); margin-top: 3px; }
@@ -59,6 +79,7 @@
   .kv .on { background: color-mix(in srgb, var(--ours) 12%, var(--card)); border-radius: 2px; }
 
   .techs td { vertical-align: middle; }
+  .techs td:first-child { white-space: nowrap; }
   .techs tr { cursor: pointer; }
   .techs tr.on td { background: color-mix(in srgb, var(--ours) 8%, var(--card)); }
   .techs .score { font-family: var(--display); font-size: 1.25rem; font-weight: 600; color: var(--c); }
@@ -115,24 +136,22 @@
   <div class="controls">
     <div class="row"><span class="lab">Job</span><div class="seg" id="taskseg"></div><span id="taskbadge"></span></div>
     <div class="row"><span class="lab">Technique</span><div class="seg" id="lensseg"></div></div>
-    <div class="row"><span class="lab">Follow</span><select id="follow" aria-label="Column to follow"></select><span id="quick" class="row" style="gap:6px"></span>
+    <div class="row walkrow"><div class="row"><span class="lab">Follow</span><select id="follow" aria-label="Column to follow"></select><span id="quick" class="row" style="gap:6px"></span></div>
       <button class="play" id="walk"><span data-icon="play"></span> Walk the journey</button></div>
   </div>
 
   <nav class="steps rail" role="tablist" id="steps"></nav>
 
   <section class="pane" id="pane-1">
-    <div class="split">
-      <div class="card"><div class="head"><h2 id="e1title"></h2><span class="muted" id="e1meta"></span></div><div class="scroll"><table class="entry" id="entry0"></table></div></div>
-      <div style="display:grid;gap:16px;align-content:start">
-        <div class="card"><div class="head"><h2>The gate</h2><span class="muted">before a row is read</span></div><div class="checks" id="gate"></div></div>
-        <div class="card" id="e2card"><div class="head"><h2 id="e2title"></h2><span class="muted" id="e2meta"></span></div><div class="scroll"><table class="entry" id="entry1"></table></div></div>
-      </div>
+    <div class="card"><div class="head"><h2>The gate</h2><span class="muted">checked before a single row is read</span></div><div class="gatebar" id="gate"></div></div>
+    <div class="cols">
+      <div class="card"><div class="head"><h2 id="e1title"></h2><span class="muted" id="e1meta"></span></div><div class="colflow" id="entry0"></div><div class="fol" id="fol0"></div></div>
+      <div class="card" id="e2card"><div class="head"><h2 id="e2title"></h2><span class="muted" id="e2meta"></span></div><div class="colflow" id="entry1"></div><div class="fol" id="fol1"></div></div>
     </div>
   </section>
 
   <section class="pane" id="pane-2" hidden>
-    <div class="card"><div class="head"><h2>Column by column</h2><span class="muted">as the file holds it, and as the adapter holds it</span></div><div class="scroll"><table class="entry" id="understand"></table></div></div>
+    <div class="card"><div class="head"><h2>Column by column</h2><div class="seg" id="allseg"><button data-v="read" aria-pressed="true">Columns read</button><button data-v="all" aria-pressed="false">All columns</button></div></div><div class="scroll"><table class="entry" id="understand"></table></div></div>
     <div class="cols">
       <div class="card"><div class="head"><h2>This patient across the export</h2><span class="muted" id="footnote"></span></div><div class="foot" id="footprint"></div></div>
       <div class="card"><div class="head"><h2>As the adapter holds it</h2><span class="muted">first record per layer</span></div><div class="samples" id="samples"></div></div>
@@ -205,9 +224,9 @@
 
   /* ------------------------------------------------------------- header + controls */
   const reg = D.entries[0];
-  $("sub").innerHTML = `<span><span class="mono">${esc(reg.file)}</span>, line ${reg.line} · ${esc(M.dataset)}, through the seven stages of the pipeline</span>`
-    + (M.values_shown ? ` <span class="badge warn">synthetic · values shown</span>` : ` <span class="badge bad">real export · structure only</span>`)
-    + ` <span class="badge">identifiers and unread columns masked</span>`;
+  $("sub").textContent = "One line of a patient file, followed through the seven stages of the pipeline.";
+  $("sub").insertAdjacentHTML("afterend", `<p class="note-l">${esc(reg.file)}, line ${reg.line} of ${esc(M.dataset)} · `
+    + (M.values_shown ? "synthetic, values shown" : `<span style="color:var(--bad)">real export: structure only</span>`) + " · identifiers and unread columns masked</p>");
   function paintControls() {
     $("taskseg").innerHTML = D.tasks.map((t) => `<button aria-pressed="${t.id === TASK}" data-t="${esc(t.id)}">${esc(human(t.id).replace(/-/g, " "))}${t.trap ? " " + Kit.icon("alert") : ""}</button>`).join("");
     $("taskseg").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { TASK = b.dataset.t; paintAll(); }));
@@ -237,9 +256,10 @@
   }
 
   /* ------------------------------------------------------------- 1 dataset */
+  let SHOWALL = false;
   function entryTable(e, withHeld) {
     return `<tr><th>Column</th><th>Value</th>${withHeld ? "<th></th><th>Field</th><th>Category</th><th>Held as</th>" : "<th></th>"}</tr>`
-      + e.columns.map((c) => {
+      + e.columns.filter((c) => SHOWALL || c.status === "in" || c.id === FOLLOW).map((c) => {
         const tag = c.status === "in" ? `<span class="tag in">read as ${esc(c.field)}</span>` : `<span class="tag out">${c.status === "blank" ? "dropped by the map" : "not understood"}</span>`;
         const tail = withHeld
           ? (c.status === "in" ? `<td class="arrow">→</td><td class="h">${esc(c.field)}</td><td><span class="cat ${esc(c.cat)}">${esc(human(c.cat))}</span></td><td class="v">${esc(c.held)}</td>` : `<td class="arrow"></td><td colspan="3"><span class="tag out">${c.status === "blank" ? "dropped by the column map: never read" : "not a catalogue field: dropped"}</span></td>`)
@@ -248,20 +268,35 @@
       }).join("");
   }
   function bindRows(root) { root.querySelectorAll("tr[data-c]").forEach((tr) => tr.addEventListener("click", () => setFollow(tr.dataset.c))); }
+  function colFlow(e, i) {
+    const read = e.columns.filter((c) => c.status === "in").length;
+    $(`entry${i}`).innerHTML = e.columns.map((c) => `<button class="cc${c.status === "in" ? " in" : ""}${c.id === FOLLOW ? " on" : ""}" data-c="${esc(c.id)}" title="${c.status === "in" ? "read as " + esc(c.field) : "never read"}">${esc(c.h)}</button>`).join("");
+    $(`entry${i}`).querySelectorAll(".cc").forEach((b) => b.addEventListener("click", () => setFollow(b.dataset.c)));
+    const f = e.columns.find((c) => c.id === FOLLOW);
+    $(`fol${i}`).innerHTML = f
+      ? `<span class="muted">Following</span> <b class="mono">${esc(f.h)}</b> <span class="mono">${esc(f.raw) || '<span class="hid">empty</span>'}</span> ${f.status === "in" ? `<span class="tag in">read as ${esc(f.field)}</span>` : `<span class="tag out">never read: ${f.status === "blank" ? "dropped by the column map" : "not understood"}</span>`}`
+      : `<span class="muted">${read} of ${e.columns.length} columns read; the rest never leave the file. Click one to follow it.</span>`;
+    return read;
+  }
   function paint1() {
     const e0 = D.entries[0], e1 = D.entries[1];
     $("e1title").innerHTML = `<span class="mono">${esc(e0.file)}</span>, line ${e0.line}`;
-    $("e1meta").textContent = `one of ${num(e0.rows)} rows · ${e0.columns.length} columns`;
-    $("entry0").innerHTML = entryTable(e0, false); bindRows($("entry0"));
+    const r0 = colFlow(e0, 0);
+    $("e1meta").textContent = `${r0} of ${e0.columns.length} columns read · one of ${num(e0.rows)} rows`;
     if (e1) {
-      $("e2title").innerHTML = `The same patient in <span class="mono">${esc(e1.file)}</span>, line ${e1.line}`;
-      $("e2meta").textContent = `their first diagnosis line`;
-      $("entry1").innerHTML = entryTable(e1, false); bindRows($("entry1"));
+      $("e2title").innerHTML = `Same patient, <span class="mono">${esc(e1.file)}</span>, line ${e1.line}`;
+      const r1 = colFlow(e1, 1);
+      $("e2meta").textContent = `${r1} of ${e1.columns.length} columns read · first diagnosis`;
     } else { $("e2card").hidden = true; }
-    $("gate").innerHTML = D.gate.checks.map((c) => `<div class="check">${Kit.icon(c.ok ? "check" : "x")}<div><b>${esc(c.name)}</b><div class="muted">${esc(c.detail)}</div></div></div>`).join("");
+    $("gate").innerHTML = D.gate.checks.map((c) => `<div class="g${c.ok ? "" : " no"}">${Kit.icon(c.ok ? "check" : "x")}<b>${esc(c.name)}</b><span class="muted">${esc(c.detail)}</span></div>`).join("");
   }
 
   /* ------------------------------------------------------------- 2 understand */
+  $("allseg").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
+    SHOWALL = b.dataset.v === "all";
+    $("allseg").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    paint2();
+  }));
   function paint2() {
     $("understand").innerHTML = D.entries.map((e, i) => `<tr><td colspan="6" style="background:var(--card-2);font-weight:600">${esc(e.file)} → ${esc(D.layer_labels[e.layer])}${e.confidence ? ` <span class="muted">· ${Math.round(e.confidence * 100)}% of the columns it keeps are catalogue fields</span>` : ""}</td></tr>`
       + entryTable(e, true).replace(/^<tr>.*?<\/tr>/, i ? "" : "$&")).join("");
@@ -275,6 +310,12 @@
   }
 
   /* ------------------------------------------------------------- 3 extract */
+  function rulesCell(rules) {
+    const bad = rules.filter((q) => q.status === "fail" || q.status === "partial");
+    const tip = (q) => `${esc(q.title)}${q.finding ? ": " + esc(q.finding) : ""}`;
+    if (!bad.length) return `<span class="rsum ok" title="${rules.map(tip).join(" · ")}">${Kit.icon("check")} ${rules.length} of ${rules.length} held</span>`;
+    return `<div class="rules">${bad.map((q) => `<span class="rule ${esc(q.status)}" title="${tip(q)}">${esc(q.id)}</span>`).join("")}</div><div class="muted" style="font-size:.76rem;margin-top:2px">${rules.length - bad.length} of ${rules.length} held</div>`;
+  }
   function paint3() {
     const t = task(), followed = colById[FOLLOW];
     $("taskdesc").textContent = t.description;
@@ -286,7 +327,7 @@
         return `<tr class="${r.kind === LENS ? "on" : ""}" data-k="${esc(r.kind)}" style="--c:${KC(r.kind)}"><td><span class="dot-c"></span><b>${esc(r.label)}</b></td>`
           + `<td class="n"><span class="score">${f2(r.score)}</span></td>`
           + `<td class="n">${num(r.records)}<div class="muted">${x ? (x > 1.05 ? `<span class="no">${x >= 10 ? num(Math.round(x)) : f2(x)}× own</span>` : "≤1× own") : ""}</div></td>`
-          + `<td><div class="fchips">${chips}</div></td><td><div class="rules">${r.rules.map((q) => `<span class="rule ${esc(q.status)}" title="${esc(q.title)}${q.finding ? ": " + esc(q.finding) : ""}">${esc(q.id)}</span>`).join("")}</div></td></tr>`;
+          + `<td><div class="fchips">${chips}</div></td><td>${rulesCell(r.rules)}</td></tr>`;
       }).join("");
     $("techs").querySelectorAll("tr[data-k]").forEach((tr) => tr.addEventListener("click", () => { LENS = tr.dataset.k; paintAll(); }));
   }
