@@ -6,8 +6,8 @@
 /*__BASE__*/
   /* 1 -- the portal */
   .stage { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 14px; align-items: stretch; }
-  @media (max-width: 900px) { .stage { grid-template-columns: 1fr; } }
-  .browser { padding: 0; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+  @media (max-width: 900px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+  .browser { padding: 0; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr auto; }
   .chrome { display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: var(--card-2); border-bottom: 1px solid var(--line); }
   .dots { display: flex; gap: 5px; } .dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); display: block; }
   .addr { flex: 1; font-family: var(--mono); font-size: .8rem; background: var(--bg); border: 1px solid var(--line); border-radius: var(--rr); padding: 3px 10px; color: var(--ink-2); display: flex; gap: 6px; align-items: center; min-width: 0; overflow: hidden; white-space: nowrap; }
@@ -21,15 +21,26 @@
   .login .b { background: var(--ink); color: var(--bg); border-radius: var(--r); padding: 7px 10px; text-align: center; font-weight: 600; }
   .login .b.press { opacity: .7; }
   .caret::after { content: "▍"; animation: pulse 1s steps(1) infinite; color: var(--ours); }
-  .crumbs { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; font-family: var(--mono); font-size: .76rem; }
-  .crumbs span { padding: 1px 7px; border-radius: var(--rr); border: 1px solid var(--line); }
-  .crumbs span.cur { border-color: transparent; background: color-mix(in srgb, var(--ours) 14%, var(--card)); color: var(--ink); font-weight: 600; }
   .facts { display: grid; gap: 12px; align-content: start; }
   .fact { display: grid; grid-template-columns: 1.2rem 1fr; gap: 10px; align-items: start; }
   .fact .ic { color: var(--ink-3); font-size: 1.05rem; padding-top: 2px; }
   .fact .k { font-size: .8rem; color: var(--ink-2); }
   .fact .v { font-weight: 500; }
-  .term { font-family: var(--mono); font-size: .78rem; white-space: pre-wrap; background: #111316; color: #d7dde3; border-radius: var(--r); padding: 8px 10px; margin-top: 4px; }
+  .robots { font-size: .82rem; color: var(--ink-2); font-weight: 400; }
+  .status { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 8px 12px; border-top: 1px solid var(--line); font-size: .8rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .sbar { height: 3px; border-radius: 2px; background: var(--card-2); overflow: hidden; }
+  .sbar i { display: block; height: 100%; width: 0; background: var(--ours); }
+  .found { width: min(420px, 100%); display: grid; gap: 2px; }
+  .found .fh { font-family: var(--display); font-size: 1.12rem; font-weight: 600; margin-bottom: 6px; }
+  .frow { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--line); }
+  .frow:last-of-type { border-bottom: none; }
+  .frow .ft { font-weight: 600; }
+  .frow .fl { font-size: .8rem; color: var(--ink-2); }
+  @media (max-width: 520px) { .view { padding: 16px; } .frow { grid-template-columns: auto 1fr; } .frow .fl { grid-column: 2; margin-top: -4px; } }
+  .fn .v .vs { font-family: var(--font); font-size: .9rem; font-weight: 400; color: var(--ink-3); margin: 0 2px; }
+  details.more > summary { cursor: pointer; font-size: .88rem; color: var(--ink-2); }
+  details.more > summary:hover { color: var(--ink); }
+  details.more[open] > summary { margin-bottom: 10px; }
 
   /* 2 -- discovery */
   .mods { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
@@ -84,7 +95,7 @@
   <div class="top">
     <div>
       <h1>The portal run</h1>
-      <p class="sub">A real browser, a portal it was never told about. <span class="badge good" id="tlsbadge"></span><span class="badge good">every page load recorded</span></p>
+      <p class="sub">A real browser signs in to a portal it was never told about, and each technique scrapes it.</p>
     </div>
     <div class="tools">
       <button id="bigger" title="Larger text for a projector">A+</button>
@@ -106,10 +117,10 @@
       <div class="card browser">
         <div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="addr" id="addr"></span><button class="mini" id="replay1" title="Replay the sign-in" aria-label="Replay the sign-in"><span data-icon="replay"></span></button></div>
         <div class="view" id="view"></div>
+        <div class="status"><div class="sbar"><i id="sfill"></i></div><span id="discnote"></span></div>
       </div>
       <div class="card facts" id="facts"></div>
     </div>
-    <div class="card"><div class="head"><h2>Discovery</h2><span class="muted" id="discnote"></span></div><div class="crumbs" id="crumbs"></div></div>
   </section>
 
   <section class="pane" id="pane-2" hidden>
@@ -135,7 +146,7 @@
       <div class="card"><div class="head"><h2>Compliance score</h2><span class="muted">7 DPDP rules</span></div><div id="scorebars"></div></div>
       <div class="card"><div class="head"><h2>Page loads</h2><span class="muted">all four tasks</span></div><div id="pagebars"></div></div>
     </div>
-    <div class="card"><div class="scroll"><table id="table"></table></div></div>
+    <details class="card more"><summary>Every technique and briefing, every measure</summary><div class="scroll"><table id="table"></table></div></details>
   </section>
 
   <footer id="foot"></footer>
@@ -162,15 +173,13 @@
   const shortName = (n) => T[n] && T[n].kind === "ours" ? "ours (rules)" : T[n] && T[n].kind === "baseline" ? "baseline (take all)" : n.replace(/^ai agent: /, "");
 
   /* ------------------------------------------------------------- header */
-  $("tlsbadge").textContent = M.tls ? "TLS observed" : "not encrypted";
   const ours = D.techniques.find((t) => t.kind === "ours"), base = D.techniques.find((t) => t.kind === "baseline");
+  const vs = (a, b) => `<span style="color:var(--ours)">${a}</span> <span class="vs">vs</span> <span style="color:var(--base)">${b}</span>`;
   $("funnel").innerHTML = [
-    [Kit.count(D.modules.length), "modules found"],
-    [Kit.count(M.discovery_loads), "loads to find them"],
-    [Kit.count(ours.pages), "loads · ours", "ours"],
-    [Kit.count(base.pages), "loads · baseline", "base"],
-    [`${Kit.count(ours.score, 2)} <span style="color:var(--ink-3);font-weight:500">/</span> ${Kit.count(base.score, 2)}`, "score · ours / baseline"],
-  ].map(([v, l, k]) => `<div class="fn"${k ? ` style="--c:var(--${k});--c-v:var(--${k})"` : ""}><div class="v">${v}</div><div class="l">${esc(l)}</div></div>`).join("");
+    [vs(Kit.count(ours.pages), Kit.count(base.pages)), "page loads · ours vs the baseline, same coverage"],
+    [vs(Kit.count(ours.score, 2), Kit.count(base.score, 2)), "compliance score · seven DPDP rules"],
+    [Kit.count(D.modules.length), `modules found in ${Kit.count(M.discovery_loads)} page loads · none named in advance`],
+  ].map(([v, l]) => `<div class="fn"><div class="v">${v}</div><div class="l">${esc(l)}</div></div>`).join("");
   Kit.countIn($("funnel"));
 
   /* ------------------------------------------------------------- 1 sign in */
@@ -178,16 +187,16 @@
     ["lock", "Transport", M.tls ? "TLS, observed at the adapter" : "not encrypted"],
     ["grid", "Serves", `${D.modules.length} modules · ${num(M.records)} records each · ${M.page_size} a page`],
     ["ban", "No API, no hooks", "HTML tables, Next links, a search box"],
-    ["file", "robots.txt", `<div class="term">${esc(M.robots)}</div>`],
+    ["file", "robots.txt", `<span class="mono robots">${esc(M.robots).split("\n").join(" · ")}</span>`],
   ].map(([i, k, v]) => `<div class="fact"><span class="ic">${Kit.icon(i)}</span><div><div class="k">${esc(k)}</div><div class="v">${v}</div></div></div>`).join("");
   const disc = D.visits.filter((v) => v.who === "discover");
   const label = (v) => v.kind === "login" ? "GET /login" : v.kind === "login-submit" ? "POST sign in" : v.kind === "home" ? "/" : v.kind === "list" ? `/m/${v.module}/${v.n > 1 ? "?page=" + v.n : ""}` : v.kind === "detail" ? `/m/${v.module}/record/${v.n}` : v.kind === "search" ? `/m/${v.module}/?q=${v.q}` : (v.path || v.kind);
-  $("discnote").innerHTML = `${Kit.count(disc.length)} page loads`;
+  const note = (i) => { $("discnote").textContent = i ? `page load ${i} of ${disc.length}` : `${disc.length} page loads to sign in and look around`; $("sfill").style.width = `${100 * i / disc.length}%`; };
   let run1 = 0;
   async function signIn() {
     const me = ++run1;
     const alive = () => me === run1 && !$("pane-1").hidden;
-    $("crumbs").innerHTML = "";
+    note(0);
     $("addr").innerHTML = `<span class="lock">${M.tls ? Kit.icon("lock") : ""}</span>https://127.0.0.1/login`;
     $("view").innerHTML = `<div class="login"><div class="t">Hospital portal</div><div class="f" id="u"></div><div class="f" id="p"></div><div class="b" id="b">Sign in</div></div>`;
     await wait(500);
@@ -201,13 +210,14 @@
       $("addr").innerHTML = `<span class="lock">${M.tls ? Kit.icon("lock") : ""}</span>https://127.0.0.1${esc(l.replace(/^(GET|POST) /, "").replace("sign in", "/login"))}`;
       if (i === 2) $("view").innerHTML = `<div style="text-align:center"><div style="font-size:1.6rem;color:var(--good)">${Kit.icon("shield")}</div><div style="font-weight:600;margin-top:6px">Signed in as ${esc(M.account)}</div><div class="muted">reading the home page…</div></div>`;
       if (i > 2) $("view").innerHTML = `<div style="text-align:center"><div class="mono" style="font-size:1rem;font-weight:650">${esc(l)}</div><div class="muted" style="margin-top:6px">${disc[i].kind === "detail" ? "a record page — which fields live here?" : "a list page — which columns?"}</div></div>`;
-      $("crumbs").querySelectorAll(".cur").forEach((c) => c.classList.remove("cur"));
-      $("crumbs").insertAdjacentHTML("beforeend", `<span class="cur">${esc(l)}</span>`);
+      note(i + 1);
       await wait(i < 3 ? 420 : 260);
     }
     if (!alive()) return;
-    $("crumbs").querySelectorAll(".cur").forEach((c) => c.classList.remove("cur"));
-    $("view").innerHTML = `<div style="text-align:center"><div style="font-size:1.5rem;font-weight:600;color:var(--good)">${D.modules.length} modules</div><div class="muted">found in ${disc.length} page loads — none named in advance</div></div>`;
+    $("discnote").textContent = `${disc.length} page loads · nothing named in advance`;
+    $("view").innerHTML = `<div class="found"><div class="fh">${D.modules.length} modules found</div>`
+      + D.modules.map((m) => `<div class="frow"><span class="dot-c" style="--c:${LCOL[m.layer] || "var(--ink-3)"}"></span><span class="ft">${esc(m.title)}</span><span class="fl">${esc(LAYER[m.layer] || "not inferred")}</span></div>`).join("")
+      + `<div class="muted" style="margin-top:6px">Each one's layer read from its fields — step 2.</div></div>`;
   }
   $("replay1").addEventListener("click", signIn);
 
