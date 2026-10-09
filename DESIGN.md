@@ -299,7 +299,7 @@ A single centred column (max 1140px, padded 16px 20px 48px) on the grey page. Th
 
 Inside panes, panels tile in fluid grids (`auto-fit`, 300px minimum) at a 16px gap; paired views use a 5:7 or 7:5 split that collapses to one column at 860–900px; the three technique lanes collapse at 980px; role, index and command rows collapse at 760px; the rules page's task grid stacks at 520px. Gaps step 4 / 8 / 12 / 16px; panels pad 16px 18px. Wide tables sit in a horizontal scroller. The root font size is the only density knob: 15px normally, 18px under A+, everything in rem.
 
-The index is a plain list on the grey page: each demo is one ruled row of a coloured dot and name, a key number in the demo's colour with its caption, one line and an arrow (the portal row in ours blue, the dataset in green, the assistant in violet, the rules page in amber). Below it, a white panel of terminal commands (a label column and a mono command column).
+The portal has six tabs and no index page (2026-10-09); it opens on the portal run. The HIS-update tab draws the release as rows of old screen, a drawn connector (a fork for a split) and new screen(s), and its tasks as wash-coloured tiles (green placed, ochre withheld).
 
 ### Named Rules
 **The One-Line Brief Rule.** A page carries a title, a one-line brief, and a short lead per step. The presenter explains; the page never grows paragraphs of explanation, and every number stays labelled so an offline reader can still read it.

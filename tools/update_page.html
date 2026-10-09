@@ -4,36 +4,114 @@
 <title>The HIS Is Updated</title>
 <style>
 /*__BASE__*/
-  .chg { display: grid; gap: 6px; }
-  .chg div { font-size: .9rem; color: var(--ink); padding-left: 14px; position: relative; }
-  .chg div::before { content: "–"; position: absolute; left: 0; color: var(--ink-3); }
-  .tlist { display: grid; gap: 2px; max-height: 520px; overflow-y: auto; }
-  .tlist button { font: inherit; font-size: .9rem; text-align: left; display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 6px 10px; border: 1px solid transparent; border-radius: var(--r); background: none; color: var(--ink); cursor: pointer; }
-  .tlist button:hover { border-color: var(--line); }
-  .tlist button[aria-pressed="true"] { border-color: var(--ours); background: color-mix(in srgb, var(--ours) 7%, var(--card)); }
-  .tlist .grp { font-size: .76rem; font-weight: 600; color: var(--ink-3); margin: 10px 0 2px 10px; }
-  .tag { font-size: .74rem; font-weight: 600; padding: 1px 7px; border-radius: var(--rr); white-space: nowrap; }
-  .tag.re-worded { background: var(--good-bg); color: var(--good); }
-  .tag.withheld { background: var(--bad-bg); color: var(--bad); }
-  .tag.unchanged { background: var(--card-2); color: var(--ink-2); }
-  .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  /* ---- 1. the release: old screens, where their content lives now */
+  .release { padding: 6px 0; }
+  .rrow { display: grid; grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr) 9.5rem; align-items: center; gap: 0 4px; width: 100%; font: inherit; color: inherit; text-align: left; background: none; border: none; border-radius: var(--r); padding: 10px 14px; cursor: pointer; }
+  .rrow + .rrow { border-top: 1px solid var(--line); border-radius: 0; }
+  .rrow:hover { background: var(--card-2); }
+  .rrow[aria-pressed="true"] { background: color-mix(in srgb, var(--ours) 7%, var(--card)); }
+  .scr { display: grid; gap: 1px; padding: 9px 12px; border-radius: var(--r); min-width: 0; }
+  .scr .t { font-family: var(--display); font-weight: 600; font-size: 1.06rem; letter-spacing: -0.005em; line-height: 1.25; }
+  .scr .p { font-family: var(--mono); font-size: .76rem; color: var(--ink-3); overflow-wrap: anywhere; }
+  .scr.old { background: var(--card-2); }
+  .scr.old .t { color: var(--ink-2); }
+  .scr.new { background: var(--card); border: 1px solid var(--line); }
+  .news { display: grid; gap: 6px; }
+  .wire { width: 100%; height: 100%; min-height: 48px; color: var(--ink-3); }
+  .rrow[aria-pressed="true"] .wire { color: var(--ours); }
+  .rmeta { text-align: right; display: grid; gap: 2px; justify-items: end; }
+  .rmeta .k { font-size: .8rem; font-weight: 600; color: var(--ink-2); }
+  .rmeta .n { font-size: .8rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .rrow.across .scr.old { background: none; padding-left: 0; }
+  @media (max-width: 760px) {
+    .rrow { grid-template-columns: 1fr; gap: 4px; }
+    .wire { display: none; }
+    .rmeta { text-align: left; justify-items: start; grid-row: 1; }
+  }
+
+  .clist h2 { margin-bottom: 4px; }
+  .cgroup { margin-top: 12px; }
+  .cgroup h3 { margin-bottom: 4px; }
+  .ch { display: grid; grid-template-columns: minmax(0, 15rem) auto minmax(0, 1fr); gap: 4px 12px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: .92rem; }
+  .ch:last-child { border-bottom: none; }
+  .ch .from { color: var(--ink-3); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--ink-3) 55%, transparent); }
+  .ch .to { font-weight: 600; }
+  .ch .ar { color: var(--ink-3); }
+  .ch .where { grid-column: 1 / -1; font-size: .78rem; color: var(--ink-3); margin-top: -2px; }
+  .ch.plain { grid-template-columns: 1fr; color: var(--ink-2); }
+  .ch.gone { grid-template-columns: auto 1fr; gap: 8px; color: var(--ink-2); }
+  .ch.gone .ico { color: var(--warn); margin-top: .2em; }
+  .ch.warn { grid-template-columns: 1fr; color: var(--warn); background: var(--warn-bg); border-radius: var(--r); padding: 8px 10px; border: none; margin-top: 4px; }
+
+  /* ---- 2. your tasks: the two proposals, then every task as a tile */
+  .props { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 12px; align-items: stretch; }
+  @media (max-width: 860px) { .props { grid-template-columns: 1fr; } }
+  .prop { display: grid; gap: 2px; align-content: center; padding: 12px 14px; border-radius: var(--r); background: var(--warn-bg); }
+  .prop.ok { background: var(--good-bg); }
+  .prop .q { font-size: .8rem; color: var(--ink-2); }
+  .prop .big { font-family: var(--display); font-size: 1.12rem; font-weight: 600; color: var(--ink); }
+  .prop .big .ar { color: var(--ink-3); font-weight: 400; margin: 0 6px; }
+  .prop .why { font-size: .8rem; color: var(--ink-2); }
+  .act { display: grid; gap: 6px; align-content: center; justify-items: start; }
+  .confirm { font: inherit; font-weight: 600; font-size: .92rem; padding: 8px 16px; border-radius: var(--r); border: 1px solid var(--ours); background: var(--ours); color: var(--on-fill); cursor: pointer; white-space: nowrap; display: inline-flex; gap: 7px; align-items: center; }
+  .confirm:hover { background: color-mix(in srgb, var(--ours) 85%, var(--ink)); }
+  .undo { font: inherit; font-size: .84rem; padding: 4px 10px; border-radius: var(--r); border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; }
+  .undo:hover { background: var(--card-2); }
+  .act .note-s { font-size: .8rem; color: var(--ink-2); max-width: 22ch; }
+
+  .tally { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; }
+  .tally .big { font-family: var(--display); font-size: 1.8rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .tally .lab { color: var(--ink-2); font-size: .92rem; }
+  .key { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .8rem; color: var(--ink-2); margin-left: auto; }
+  .key span { display: inline-flex; gap: 6px; align-items: center; }
+  .key i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+  .tgrid { display: grid; gap: 14px; margin-top: 14px; }
+  .tg h3 { margin-bottom: 6px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px; }
+  .tile { font: inherit; font-size: .86rem; text-align: left; line-height: 1.3; color: var(--ink); border: 1px solid transparent; border-radius: var(--r); padding: 8px 10px; cursor: pointer; display: flex; gap: 8px; align-items: flex-start; }
+  .tile .ico { margin-top: .12em; }
+  .tile.placed { background: var(--good-bg); }
+  .tile.placed .ico { color: var(--good); }
+  .tile.withheld { background: var(--warn-bg); }
+  .tile.withheld .ico { color: var(--warn); }
+  .tile.same { background: var(--card-2); }
+  .tile:hover { border-color: var(--ink-3); }
+  .tile[aria-pressed="true"] { border-color: var(--ours); outline: 1px solid var(--ours); outline-offset: -2px; }
+
+  .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 4px; }
   @media (max-width: 760px) { .ba { grid-template-columns: 1fr; } }
   .ba h3 { margin-bottom: 6px; }
-  .st { display: grid; grid-template-columns: 1.4rem 1fr; gap: 2px 6px; padding: 7px 8px; border-radius: var(--r); margin-bottom: 4px; font-size: .88rem; }
-  .st .no { color: var(--ink-3); font-variant-numeric: tabular-nums; font-weight: 600; }
-  .st .w { grid-column: 2; font-family: var(--mono); font-size: .72rem; color: var(--ink-3); }
+  .st { display: grid; grid-template-columns: 1.5rem 1fr; gap: 2px 8px; padding: 8px 10px; border-radius: var(--r); margin-bottom: 4px; font-size: .9rem; line-height: 1.45; }
+  .st .no { font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .st .w { grid-column: 2; font-size: .78rem; color: var(--ink-3); display: inline-flex; gap: 5px; align-items: center; }
   .st.diff { background: var(--good-bg); }
-  .st.held { background: var(--bad-bg); }
-  .st.held .tx { color: var(--bad); }
-  .prop { display: grid; gap: 8px; align-content: start; }
-  .prop .big { font-family: var(--display); font-size: 1.25rem; font-weight: 600; }
-  .prop code { font-size: .86rem; }
-  .confirm { font: inherit; font-weight: 600; font-size: .9rem; padding: 6px 14px; border-radius: var(--r); border: 1px solid var(--ours); background: var(--ours); color: var(--on-fill); cursor: pointer; justify-self: start; }
-  .confirm[aria-pressed="true"] { background: var(--card); color: var(--ours); }
-  tr.ours td { background: color-mix(in srgb, var(--ours) 7%, transparent); }
+  .st.diff .w { color: var(--good); }
+  .st.held { background: var(--warn-bg); color: var(--warn); }
+
+  /* ---- 3. the scraper */
+  .verdict { display: flex; gap: 12px; align-items: center; padding: 14px 16px; border-radius: var(--r); background: var(--good-bg); color: var(--good); }
+  .verdict .big { font-family: var(--display); font-size: 1.8rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .verdict .lab { color: var(--ink); font-weight: 600; }
+  .verdict .sub2 { color: var(--ink-2); font-size: .86rem; font-weight: 400; }
+  .srows { display: grid; }
+  .srow { display: grid; grid-template-columns: minmax(150px, 230px) 6.5rem minmax(0, 1fr) 6.5rem; gap: 12px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: .9rem; }
+  .srow:last-child { border-bottom: none; }
+  .srow.head { font-size: .8rem; color: var(--ink-2); font-weight: 600; padding-top: 0; }
+  .srow.head span { font-family: var(--font); font-size: .8rem; }
+  .srow .nm { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+  .srow .sc { font-family: var(--mono); font-size: .84rem; text-align: right; }
+  .srow .sc .ico { color: var(--good); }
+  .srow .pl { font-family: var(--mono); font-size: .84rem; text-align: right; white-space: nowrap; }
+  .pbar { position: relative; height: 18px; }
+  .pbar i { position: absolute; top: 3px; height: 5px; left: 0; border-radius: 2px; }
+  .pbar i.v2 { top: 10px; opacity: .45; }
+  @media (max-width: 640px) { .srow { grid-template-columns: 1fr auto; } .srow .pbar, .srow.head .h-bar, .srow .sc { display: none; } }
+  details.all { margin-top: 2px; }
+  details.all > summary { cursor: pointer; font-size: .86rem; color: var(--ink-2); padding: 6px 0; }
+  details.all > summary:hover { color: var(--ink); }
   td.same { color: var(--good); font-weight: 600; }
   td.diff { color: var(--bad); font-weight: 600; }
-  .heard { white-space: pre-wrap; font-size: .86rem; color: var(--ink-2); }
 </style>
 
 <div class="wrap">
@@ -41,7 +119,7 @@
   <div class="top">
     <div>
       <h1>The HIS is updated</h1>
-      <p class="sub">A vendor release renames, moves and splits the screens. One new crawl; nothing in the code changes.</p>
+      <p class="sub">A vendor release renames, moves and splits the screens. One new crawl; no code changes.</p>
     </div>
     <div class="tools">
       <button id="bigger" title="Larger text for a projector">A+</button>
@@ -51,39 +129,40 @@
   <div class="funnel" id="funnel"></div>
 
   <nav class="steps" role="tablist" id="steps">
-    <button role="tab" data-step="1" aria-selected="true"><span class="n">1</span>What changed</button>
+    <button role="tab" data-step="1" aria-selected="true"><span class="n">1</span>The release</button>
     <button role="tab" data-step="2"><span class="n">2</span>Your tasks</button>
-    <button role="tab" data-step="3"><span class="n">3</span>Withheld, then confirmed</button>
-    <button role="tab" data-step="4"><span class="n">4</span>The scraper</button>
+    <button role="tab" data-step="3"><span class="n">3</span>The scraper</button>
   </nav>
 
   <section class="pane" id="pane-1">
-    <p class="lead">Two crawls of the same portal, compared the way someone who knew the old screens would: modules matched by what they hold, not by their names.</p>
-    <div class="cols" id="groups"></div>
+    <p class="lead">Each old screen, and where its content lives now. Matched by what a screen holds, not by its name.</p>
+    <div class="card release" id="release" style="padding:6px"></div>
+    <div class="card clist" id="clist"></div>
   </section>
 
   <section class="pane" id="pane-2" hidden>
-    <div class="head" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div class="seg" id="roles"></div><span class="muted" id="rolecount"></span></div>
-    <div class="split">
-      <div class="card"><div class="tlist" id="tlist"></div></div>
-      <div class="card"><div class="head"><h2 id="tname"></h2><span id="tstatus"></span></div><div class="ba" id="ba"></div></div>
+    <p class="lead">Every task is placed on the new screens. Two changes could not be read with certainty, so the steps they touch are withheld, not guessed, until a person confirms.</p>
+    <div class="props" id="props"></div>
+    <div class="card">
+      <div class="tally" id="tally"></div>
+      <div class="tgrid" id="tgrid"></div>
     </div>
-    <div class="card"><div class="head"><h2>Asked "what changed?"</h2><span class="muted">only what touches this role's tasks</span></div><div class="heard" id="heard"></div></div>
+    <div class="card">
+      <div class="head"><h2 id="tname"></h2><span id="tstatus"></span></div>
+      <div class="ba" id="ba"></div>
+    </div>
   </section>
 
   <section class="pane" id="pane-3" hidden>
-    <p class="lead">Two changes nothing could predict. The assistant withholds the steps they touch, with the reason, and proposes what each probably is. A person decides.</p>
-    <div class="cols" id="props"></div>
-    <button class="confirm" id="confirm" aria-pressed="false">Confirm both proposals</button>
-    <div class="card"><div class="head"><h2 id="fixname"></h2><span id="fixstatus"></span></div><div id="fixsteps"></div></div>
+    <p class="lead">Every technique benchmarked again on the updated portal.</p>
+    <div class="verdict" id="verdict"></div>
+    <div class="card">
+      <div class="srows" id="srows"></div>
+      <details class="all"><summary>All techniques and briefings</summary><div class="scroll"><table id="scraper"></table></div></details>
+    </div>
   </section>
 
-  <section class="pane" id="pane-4" hidden>
-    <p class="lead">Every technique benchmarked on the updated portal: compliance, coverage and traps unchanged. Only the cost moved, because the release put fields on record pages.</p>
-    <div class="card scroll"><table id="scraper"></table></div>
-  </section>
-
-  <footer>Built by <code>tools/build_update_page.py</code> from <code>agent.drift</code>, <code>agent.guidance</code> and <code>benchmark-portal(-v2).json</code> · layouts in <code>tools/mock_portal/layouts.py</code></footer>
+  <footer id="foot"></footer>
 </div>
 
 <script id="data" type="application/json">/*__DATA__*/null</script>
@@ -95,80 +174,149 @@
   const D = JSON.parse(document.getElementById("data").textContent);
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const cap = (s) => String(s).charAt(0).toUpperCase() + String(s).slice(1);
+  const dash = (s) => String(s).replace(/ -- /g, " — ");
   const T = Object.fromEntries(D.tasks.map((t) => [t.id, t]));
   const M = D.meta;
+  const screens = D.release.filter((r) => r.old);
 
+  /* ---------------------------------------------------- key numbers */
+  const changed = screens.filter((r) => r.kind !== "same").length;
   $("funnel").innerHTML = [
-    [M.modules, "modules renamed, moved or split"], [M.buttons, "button changes"],
-    [`${M.reworded} / ${M.tasks}`, "tasks re-worded by themselves"], [M.withheld, "withheld, not guessed"],
-    [`${M.restored} / ${M.tasks}`, "after two confirmations"],
-    [`${M.scraper_same} / ${M.scraper_rows}`, "scraper rows unchanged"],
-  ].map(([v, l], i) => `<div class="fn${i === 5 ? " hero" : ""}"><div class="v">${esc(v)}</div><div class="l">${esc(l)}</div></div>`).join("");
+    [`${changed} / ${screens.length}`, "screens renamed, moved or split", ""],
+    [`${M.reworded + M.unchanged} / ${M.tasks}`, "tasks placed again by themselves", ""],
+    [`${M.restored} / ${M.tasks}`, "after two confirmations", "var(--good)"],
+    ...(D.scraper.available ? [[`${M.scraper_same} / ${M.scraper_rows}`, "scraper results unchanged", "var(--good)"]] : []),
+  ].map(([v, l, c]) => `<div class="fn"${c ? ` style="--c:${c}"` : ""}><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
 
-  const heads = { module: "Modules", field: "Fields", button: "Buttons", unmapped: "Needs a person" };
-  $("groups").innerHTML = Object.keys(heads).filter((k) => D.groups[k]).map((k) =>
-    `<div class="card"><div class="head"><h2>${heads[k]}</h2><span class="muted">${D.groups[k].length}</span></div><div class="chg">${D.groups[k].map((t) => `<div>${esc(t)}</div>`).join("")}</div></div>`).join("");
-
-  function stepList(steps, other, cls) {
-    return steps.map((s, i) => {
-      const o = other ? other[i] : null;
-      const changed = o && (o.text !== s.text || o.where !== s.where);
-      const k = s.withheld ? "held" : (changed && cls === "after" ? "diff" : "");
-      return `<div class="st ${k}"><span class="no">${i + 1}</span><span class="tx">${esc(s.text)}</span>${s.where ? `<span class="w">${esc(s.where)}</span>` : ""}</div>`;
+  /* ---------------------------------------------------- 1. the release */
+  const KIND = { renamed: "renamed", split: "split in two", moved: "moved", gone: "gone", same: "unchanged", across: "on every screen" };
+  function wire(n) {
+    // One line for a rename, a fork for a split: drawn, so it scales with the row.
+    if (n <= 1) return `<svg class="wire" viewBox="0 0 72 48" preserveAspectRatio="none" aria-hidden="true"><path d="M6 24H62" stroke="currentColor" stroke-width="1.6" fill="none" vector-effect="non-scaling-stroke"/><path d="M56 19l7 5-7 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
+    return `<svg class="wire" viewBox="0 0 72 96" preserveAspectRatio="none" aria-hidden="true"><path d="M6 48H30M30 48C40 48 40 22 50 22H62M30 48C40 48 40 74 50 74H62" stroke="currentColor" stroke-width="1.6" fill="none" vector-effect="non-scaling-stroke"/><path d="M56 17l7 5-7 5M56 69l7 5-7 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
+  }
+  let sel = Math.max(0, D.release.findIndex((r) => r.kind === "split"));
+  function paintRelease() {
+    $("release").innerHTML = D.release.map((r, i) => {
+      const n = r.changes.length;
+      const left = r.old
+        ? `<div class="scr old"><span class="t">${esc(r.old.title)}</span><span class="p">${esc(r.old.path)}</span></div>`
+        : `<div class="scr old"><span class="t">Column headings</span><span class="p">wherever they appear</span></div>`;
+      const right = r.new.length
+        ? `<div class="news">${r.new.map((s) => `<div class="scr new"><span class="t">${esc(s.title)}</span><span class="p">${esc(s.path)}</span></div>`).join("")}</div>`
+        : `<div class="news"><div class="scr new"><span class="t">Renamed</span><span class="p">same columns, new words</span></div></div>`;
+      return `<button class="rrow${r.old ? "" : " across"}" data-i="${i}" aria-pressed="${i === sel}">${left}${wire(r.new.length)}${right}`
+        + `<span class="rmeta"><span class="k">${esc(KIND[r.kind] || r.kind)}</span><span class="n">${n ? `${n} change${n > 1 ? "s" : ""} inside` : "nothing else"}</span></span></button>`;
     }).join("");
+    $("release").querySelectorAll(".rrow").forEach((b) => b.addEventListener("click", () => { sel = +b.dataset.i; paintRelease(); }));
+    paintChanges();
+  }
+  function changeRow(c) {
+    let m = c.text.match(/^The "(.+?)" column is now headed "(.+?)"\.$/);
+    if (m) return `<div class="ch"><span class="from">${esc(m[1])}</span><span class="ar">→</span><span class="to">${esc(m[2])}</span></div>`;
+    m = c.text.match(/^(.+?) moved: (.+?) → (.+?)\.$/);
+    if (m) return `<div class="ch"><span class="from">${esc(m[2])}</span><span class="ar">→</span><span class="to">${esc(m[3])}</span><span class="where">the ${esc(m[1])} column</span></div>`;
+    m = c.text.match(/^"(.+?)" is now "(.+?)"(?: \((.+)\)|, on (.+))?\.$/);
+    if (m) return `<div class="ch"><span class="from">${esc(m[1])}</span><span class="ar">→</span><span class="to">${esc(m[2])}</span>${m[3] || m[4] ? `<span class="where">${esc(m[3] || m[4])}</span>` : ""}</div>`;
+    if (/ is gone| no longer found/.test(c.text)) return `<div class="ch gone">${Kit.icon("alert")}<span>${esc(dash(c.text))}</span></div>`;
+    return `<div class="ch ${c.kind === "unmapped" ? "warn" : "plain"}">${esc(dash(c.text))}</div>`;
+  }
+  function paintChanges() {
+    const r = D.release[sel];
+    const title = r.old ? (r.new.length ? `${r.old.title} → ${r.new.map((s) => s.title).join(" + ")}` : r.old.title) : "Column headings, on every screen";
+    const groups = [["field", "Columns"], ["button", "Buttons"], ["unmapped", "Not recognised — a person decides"]]
+      .map(([k, h]) => [h, r.changes.filter((c) => c.kind === k)]).filter(([, cs]) => cs.length);
+    $("clist").innerHTML = `<h2>${esc(title)}</h2>`
+      + (groups.length ? groups.map(([h, cs]) => `<div class="cgroup"><h3>${h}</h3>${cs.map(changeRow).join("")}</div>`).join("")
+        : `<p class="muted" style="margin-top:6px">Only the name and address changed; every column and button is where it was.</p>`);
   }
 
-  let role = D.roles[0].id, task = null;
-  function paintRoles() {
-    $("roles").innerHTML = D.roles.map((r) => `<button data-r="${r.id}" aria-pressed="${r.id === role}">${esc(r.id)}</button>`).join("");
-    $("roles").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { role = b.dataset.r; task = null; paintRoles(); paintTasks(); }));
+  /* ---------------------------------------------------- 2. your tasks */
+  let confirmed = false;
+  const statusOf = (t) => (t.status === "withheld" && confirmed ? t.fixed_status : t.status);
+  const tileClass = (s) => (s === "withheld" ? "withheld" : s === "unchanged" ? "same" : "placed");
+  let task = (D.tasks.find((t) => t.status === "withheld") || D.tasks[0]).id;
+  const human = (id) => id.replace(/_/g, " ");
+
+  function paintProps() {
+    const items = [
+      ...Object.entries(D.proposals.fields).map(([h, f]) => ({ q: "A column it does not know", from: h, to: human(f), why: "the only field to vanish from that screen" })),
+      ...Object.entries(D.proposals.buttons).map(([b, a]) => ({ q: "A button it does not know", from: b, to: human(a), why: "the only button of that kind to vanish" })),
+    ];
+    $("props").innerHTML = items.map((p) => `<div class="prop${confirmed ? " ok" : ""}"><span class="q">${p.q}${confirmed ? " · confirmed" : " · probably"}</span>`
+      + `<span class="big">“${esc(p.from)}”<span class="ar">→</span>${esc(p.to)}</span><span class="why">${esc(p.why)}</span></div>`).join("")
+      + `<div class="act">${confirmed
+        ? `<span class="note-s">Confirmed. Every withheld step is placed again.</span><button class="undo" id="undo">Undo</button>`
+        : `<button class="confirm" id="confirm">${Kit.icon("check")} Confirm both</button><span class="note-s">A person checks; nothing is assumed.</span>`}</div>`;
+    const btn = $("confirm") || $("undo");
+    btn.addEventListener("click", () => { confirmed = !confirmed; paintTasks(); });
   }
   function paintTasks() {
-    const R = D.roles.find((r) => r.id === role);
-    const ids = R.tasks;
-    task = task || ids.find((id) => T[id].status === "withheld") || ids[0];
-    let html = "", g = null;
-    for (const id of ids) {
-      const t = T[id];
-      if (t.group !== g) { g = t.group; html += `<div class="grp">${esc(g)}</div>`; }
-      html += `<button data-t="${id}" aria-pressed="${id === task}"><span>${esc(t.label)}</span><span class="tag ${t.status}">${t.status}</span></button>`;
-    }
-    $("tlist").innerHTML = html;
-    $("tlist").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { task = b.dataset.t; paintTasks(); }));
-    const counts = ids.reduce((a, id) => (a[T[id].status] = (a[T[id].status] || 0) + 1, a), {});
-    $("rolecount").textContent = Object.entries(counts).map(([k, n]) => `${n} ${k}`).join(" · ");
-    const t = T[task];
-    $("tname").textContent = t.label;
-    $("tstatus").innerHTML = `<span class="tag ${t.status}">${t.status}</span>`;
-    $("ba").innerHTML = `<div><h3>Before the release</h3>${stepList(t.before, null, "before")}</div><div><h3>After it, from the new crawl</h3>${stepList(t.after, t.before, "after")}</div>`;
-    $("heard").textContent = R.heard;
+    paintProps();
+    const placed = D.tasks.filter((t) => statusOf(t) !== "withheld").length;
+    const held = D.tasks.length - placed;
+    $("tally").innerHTML = `<span class="big">${placed} / ${D.tasks.length}</span><span class="lab">tasks placed on the new screens${held ? ` · ${held} withheld, not guessed` : ""}</span>`
+      + `<span class="key"><span><i style="background:var(--good-bg);border:1px solid var(--good)"></i>steps re-worded for the new screens</span><span><i style="background:var(--warn-bg);border:1px solid var(--warn)"></i>a step withheld</span></span>`;
+    const groups = [];
+    D.tasks.forEach((t) => { let g = groups.find((x) => x.name === t.group); if (!g) groups.push(g = { name: t.group, ts: [] }); g.ts.push(t); });
+    $("tgrid").innerHTML = groups.map((g) => `<div class="tg"><h3>${esc(g.name)}</h3><div class="tiles">${g.ts.map((t) => {
+      const s = statusOf(t);
+      return `<button class="tile ${tileClass(s)}" data-t="${t.id}" aria-pressed="${t.id === task}" title="${esc(s)}">${Kit.icon(s === "withheld" ? "alert" : "check")}<span>${esc(cap(t.label))}</span></button>`;
+    }).join("")}</div></div>`).join("");
+    $("tgrid").querySelectorAll(".tile").forEach((b) => b.addEventListener("click", () => { task = b.dataset.t; paintTasks(); }));
+    paintTask();
+  }
+  function where(w) {
+    if (!w) return "";
+    const parts = w.split(", ");
+    const screen = parts.length > 1 && /page$/.test(parts[parts.length - 1]) ? parts[parts.length - 1] : "";
+    return `<span class="w">${Kit.icon("grid")}${esc(parts[0])}${screen ? " · " + esc(screen) : ""}</span>`;
+  }
+  function steps(list, against) {
+    return list.map((s, i) => {
+      if (s.withheld) return `<div class="st held"><span class="no">${i + 1}</span><span>${Kit.icon("alert")} ${esc(dash(s.withheld))}</span></div>`;
+      const o = against && against[i];
+      const diff = o && (o.text !== s.text || o.where !== s.where);
+      return `<div class="st${diff ? " diff" : ""}"><span class="no">${i + 1}</span><span>${esc(dash(s.text))}</span>${where(s.where)}</div>`;
+    }).join("");
+  }
+  function paintTask() {
+    const t = T[task], s = statusOf(t);
+    const after = t.status === "withheld" && confirmed ? t.fixed : t.after;
+    $("tname").textContent = cap(t.label);
+    const lab = s === "withheld" ? ["warn", "a step withheld"] : t.status === "withheld" ? ["good", "placed after confirming"] : s === "unchanged" ? ["", "unchanged"] : ["good", "re-worded for the new screens"];
+    $("tstatus").innerHTML = `<span class="badge ${lab[0]}">${lab[1]}</span>`;
+    $("ba").innerHTML = `<div><h3>Before the release</h3>${steps(t.before)}</div><div><h3>After it</h3>${steps(after, t.before)}</div>`;
   }
 
-  let confirmed = false;
-  const fixTask = D.tasks.find((t) => t.status === "withheld" && t.reasons.some((r) => r.includes("button"))) || D.tasks.find((t) => t.status === "withheld");
-  function paintProps() {
-    const fields = Object.entries(D.proposals.fields).map(([h, f]) => `<div class="card prop"><h3>An unmapped column</h3><div class="big">"${esc(h)}"</div><div>proposed: <code>${esc(f)}</code> — it vanished from the same module in the same release</div></div>`);
-    const buttons = Object.entries(D.proposals.buttons).map(([b, a]) => `<div class="card prop"><h3>A button outside the vocabulary</h3><div class="big">"${esc(b)}"</div><div>proposed: <code>${esc(a)}</code> — the only button of that kind to disappear</div></div>`);
-    $("props").innerHTML = fields.concat(buttons).join("");
-    $("confirm").setAttribute("aria-pressed", String(confirmed));
-    $("confirm").textContent = confirmed ? "Confirmed — undo" : "Confirm both proposals";
-    if (!fixTask) return;
-    $("fixname").textContent = fixTask.label;
-    const st = confirmed ? fixTask.fixed_status : fixTask.status;
-    $("fixstatus").innerHTML = `<span class="tag ${st}">${confirmed ? "restored" : st}</span>`;
-    $("fixsteps").innerHTML = stepList(confirmed ? fixTask.fixed : fixTask.after, fixTask.after, confirmed ? "after" : "before");
-  }
-  $("confirm").addEventListener("click", () => { confirmed = !confirmed; paintProps(); });
-
+  /* ---------------------------------------------------- 3. the scraper */
   function paintScraper() {
     const S = D.scraper;
-    if (!S.available) { $("scraper").innerHTML = `<tr><td>Run <code>python scripts/run_pipeline.py --layout v2</code> to benchmark the updated portal.</td></tr>`; return; }
+    if (!S.available) {
+      $("verdict").outerHTML = `<p class="note">Run <code>python scripts/run_pipeline.py --layout v2</code> to benchmark the updated portal.</p>`;
+      return;
+    }
+    $("verdict").innerHTML = `${Kit.icon("check")}<span class="big">${M.scraper_same} / ${M.scraper_rows}</span><span><span class="lab">results identical on the new screens</span><br><span class="sub2">compliance, coverage, traps held and fields taken — only the page loads moved, because the release put fields on record pages</span></span>`;
+    // One row per technique: ours, each model at its headline briefing, the baseline.
+    const pick = [...S.rows.filter((r) => r.kind === "ours"), ...S.rows.filter((r) => r.kind === "agent" && r.briefing === "policy"), ...S.rows.filter((r) => r.kind === "baseline")];
+    const color = (k) => (k === "ours" ? "var(--ours)" : k === "baseline" ? "var(--base)" : "var(--agent)");
+    const name = (r) => r.kind === "agent" ? r.name.replace(/^ai agent: /, "").replace(/ \(told the policy\)$/, "") : r.kind === "ours" ? "ours (rules)" : "baseline (take all)";
+    const max = Math.max(...pick.flatMap((r) => r.pages));
+    const w = (v) => `${Math.max(1.5, 100 * v / max).toFixed(1)}%`;
+    $("srows").innerHTML = `<div class="srow head"><span>Technique</span><span class="sc">Compliance</span><span class="h-bar">Page loads, before and after</span><span class="pl">Before → after</span></div>`
+      + pick.map((r) => `<div class="srow"><span class="nm"><span class="dot-c" style="--c:${color(r.kind)}"></span>${esc(name(r))}</span>`
+        + `<span class="sc">${r.score[1].toFixed(3)} ${r.same ? Kit.icon("check") : ""}</span>`
+        + `<span class="pbar" title="${r.pages[0]} before, ${r.pages[1]} after"><i style="width:${w(r.pages[0])};background:${color(r.kind)}"></i><i class="v2" style="width:${w(r.pages[1])};background:${color(r.kind)}"></i></span>`
+        + `<span class="pl">${r.pages[0]} → ${r.pages[1]}</span></div>`).join("")
+      + `<p class="muted" style="margin-top:8px">AI models shown told the policy. Solid bar before the release, faint bar after.</p>`;
     const pct = (v) => (v * 100).toFixed(0) + "%";
-    $("scraper").innerHTML = `<tr><th>Technique</th><th class="n">Compliance v1 → v2</th><th class="n">Coverage</th><th class="n">Traps held</th><th class="n">Page loads</th><th>Same result</th></tr>`
-      + S.rows.map((r) => `<tr class="${r.kind === "ours" ? "ours" : ""}"><td>${esc(r.name)}</td><td class="n">${r.score[0].toFixed(3)} → ${r.score[1].toFixed(3)}</td><td class="n">${pct(r.coverage[0])} → ${pct(r.coverage[1])}</td><td class="n">${esc(r.traps[0])} → ${esc(r.traps[1])}</td><td class="n">${r.pages[0]} → ${r.pages[1]}</td><td class="${r.same ? "same" : "diff"}">${r.same ? "yes" : "no"}</td></tr>`).join("");
+    $("scraper").innerHTML = `<thead><tr><th>Technique</th><th class="n">Compliance</th><th class="n">Coverage</th><th class="n">Traps held</th><th class="n">Page loads</th><th>Same</th></tr></thead><tbody>`
+      + S.rows.map((r) => `<tr><td>${esc(r.name)}</td><td class="n">${r.score[0].toFixed(3)} → ${r.score[1].toFixed(3)}</td><td class="n">${pct(r.coverage[0])} → ${pct(r.coverage[1])}</td><td class="n">${esc(r.traps[0])} → ${esc(r.traps[1])}</td><td class="n">${r.pages[0]} → ${r.pages[1]}</td><td class="${r.same ? "same" : "diff"}">${r.same ? "yes" : "no"}</td></tr>`).join("") + `</tbody>`;
   }
 
-  paintRoles(); paintTasks(); paintProps(); paintScraper();
-  Kit.steps(4).start();
+  paintRelease(); paintTasks(); paintScraper();
+  Kit.steps(3).start();
+  $("foot").innerHTML = `Built by <code>tools/build_update_page.py</code> from <code>agent.drift</code>, <code>agent.guidance</code> and <code>benchmark-portal(-v2).json</code> · layouts in <code>tools/mock_portal/layouts.py</code>`;
 })();
 </script>

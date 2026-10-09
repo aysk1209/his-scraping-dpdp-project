@@ -141,9 +141,12 @@ First run on a new machine needs the browser: `python -m playwright install chro
 
 ### The demo portal (interactive; one file, `docs/review/portal.html`, every demo a tab)
 
-Five self-contained pages, each built from a real run and committed, offline,
-with no raw identifier on any of them. `python tools/build_review_pages.py`
-rebuilds them all (~90 s; `--skip-portal` where there is no browser).
+Six tabs (cut from nine on 2026-10-09), each built from a real run and
+committed, offline, with no raw identifier on any of them: Portal run, Rules vs
+AI, Journey, Patient rights, Assistant, HIS update. `python
+tools/build_review_pages.py` rebuilds the portal (~90 s; `--skip-portal` where
+there is no browser). The Synthea walkthrough (Demo F) and the hospital-register
+page are built on their own now, outside the portal.
 
 - **Portal run**: the sign-in and discovery replay on their own (step 1),
   then each module with its URL hidden (step 2; the layers are still inferred
@@ -159,13 +162,18 @@ rebuilds them all (~90 s; `--skip-portal` where there is no browser).
   recogniser and gate, checked against 975 conversations recorded from the
   Python assistant every time it opens; typing switches off if they ever differ.
   *Watch a demo* plays the pipeline's four scenes.
-- **Dataset**: Demo F below.
 - **Journey**: Demo 0 above — one line of the export through all seven stages, any column's fate on the rail.
-- **Rules vs AI**: the AI-agent comparison.
+- **Rules vs AI**: the AI-agent comparison; step 6 is the planted-instruction set.
+- **Patient rights**: an access request and a leaked export, both answered from the audit log.
+- **HIS update**: a vendor release in three steps — each old screen beside its
+  new one(s), all 29 tasks as tiles (25 placed by themselves, 4 withheld until
+  *Confirm both*), and the scraper's 14 of 14 identical results.
 
 ### Demo F: an export we never saw, in the browser (interactive; hand the panel the mouse)
 
-Open `docs/review/portal.html` by double-clicking it and choose the *Dataset* tab. It is one
+Build it with `python tools/build_dataset_page.py data/public_synthea --column-map
+data/public_synthea/column_map.json` and open `build/review-parts/dataset.html` by
+double-clicking it (since 2026-10-09 it is no longer a tab of the portal). It is one
 self-contained page and needs no network. It shows the dataset path run on
 **Synthea's public sample**: 18 files, 258 columns, a registration file with SSN,
 passport and licence numbers. Five steps; keys `1`–`5` or `←` `→` move between

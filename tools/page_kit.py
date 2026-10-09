@@ -25,16 +25,15 @@ PORTAL = REVIEW_DIR / "portal.html"
 SHELL = ROOT / "tools" / "portal_shell.html"
 
 # The portal's tabs, in the order the review shows them: key, label.
+# Cut to six on 2026-10-09 (user: "too many tabs"): the overview, the Synthea walkthrough and
+# the aggregate hospital register left the portal; their builders still run on their own.
 TABS = [
-    ("index", "Overview"),
     ("portal", "Portal run"),
-    ("dataset", "Dataset"),
-    ("real", "Real data"),
+    ("rules", "Rules vs AI"),
     ("journey", "Journey"),
+    ("rights", "Patient rights"),
     ("assistant", "Assistant"),
     ("update", "HIS update"),
-    ("rights", "Patient rights"),
-    ("rules", "Rules vs AI"),
 ]
 
 

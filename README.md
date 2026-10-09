@@ -86,7 +86,7 @@ can cite are **demonstrated, not declared**: the observed connection, an audit
 log written by the harness, the export audit, a retention sidecar that the purge
 erases and logs, and a record of processing generated from the log.
 
-**The demo portal** (offline, one file, built from real runs, no raw identifier on any tab): [`docs/review/portal.html`](docs/review/portal.html) — an overview, the portal run with its crawl replayed, an export we never saw, the hospital's own register, one entry's journey, the assistant you can type to, the HIS update, patient rights (an access request and a breach), and rules vs AI. `python tools/build_review_pages.py` rebuilds it.
+**The demo portal** (offline, one file, built from real runs, no raw identifier on any tab): [`docs/review/portal.html`](docs/review/portal.html) — six tabs: the portal run with its crawl replayed, rules vs AI, one entry's journey, patient rights (an access request and a breach), the staff assistant, and the HIS update. `python tools/build_review_pages.py` rebuilds it.
 
 ## Run it
 

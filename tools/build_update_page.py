@@ -27,6 +27,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from agent import REGISTRY, ScreenMap, StaffRole, capabilities, compare        # noqa: E402
 from agent.guidance import build_guidance                                      # noqa: E402
+from agent.drift import _successors                                            # noqa: E402
 from tools.page_kit import REVIEW_DIR, render, write, part_path   # noqa: E402
 
 TEMPLATE = ROOT / "tools" / "update_page.html"
@@ -64,6 +65,36 @@ def _scraper() -> dict:
     return {"rows": rows, "available": bool(v2)}
 
 
+def _release(before: ScreenMap, after: ScreenMap, changes) -> list[dict]:
+    """The release as rows: each old module, the module(s) now holding its content, and every
+    change (field, button, unmapped) drift tagged to either side -- matched by content, as
+    ``agent.drift`` matches them, so the picture and the sentences cannot disagree."""
+
+    succ, _ = _successors(before, after)
+    rows = []
+    for o in before.modules or []:
+        news = succ[o.title]
+        names = {o.title, *(n.title for n in news)}
+        # Tagged by drift, or naming the module in its own words ("... (Front Office, record page).").
+        mine = [c for c in changes.changes if c.kind != "module"
+                and (c.modules & names or any(name in c.text for name in names))]
+        kind = ("gone" if not news else "split" if len(news) > 1
+                else "renamed" if news[0].title != o.title else "moved" if news[0].path != o.path else "same")
+        rows.append({
+            "old": {"title": o.title, "path": o.path},
+            "new": [{"title": n.title, "path": n.path} for n in news],
+            "kind": kind,
+            "changes": [{"kind": c.kind, "text": c.text.replace(" -> ", " → ").replace("--", "—")} for c in mine],
+        })
+    placed = {c["text"] for r in rows for c in r["changes"]}
+    rest = [c for c in changes.changes if c.kind != "module"
+            and c.text.replace(" -> ", " → ").replace("--", "—") not in placed]
+    if rest:
+        rows.append({"old": None, "new": [], "kind": "across",
+                     "changes": [{"kind": c.kind, "text": c.text.replace(" -> ", " → ").replace("--", "—")} for c in rest]})
+    return rows
+
+
 def build(out: Path = DEFAULT_OUT) -> dict:
     from scripts.check_ui_update import _crawl
     from tools.mock_portal.layouts import V2_FIELD_ALIASES
@@ -95,6 +126,7 @@ def build(out: Path = DEFAULT_OUT) -> dict:
     scraper = _scraper()
     counts = changes.by_status()
     data = {
+        "release": _release(before, after, changes),
         "groups": groups,
         "proposals": {"fields": changes.field_proposals, "buttons": changes.control_proposals},
         "tasks": tasks, "roles": roles, "scraper": scraper,

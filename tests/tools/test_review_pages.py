@@ -64,7 +64,7 @@ def test_the_portal_is_one_file_with_every_demo_as_a_tab():
 
 
 def test_assembly_round_trips_and_nothing_can_break_out_of_the_data_block():
-    parts = {"index": "<p>a</p><script>x=1</script>", "rules": "<!-- <script> --></script><p>b</p>"}
+    parts = {"portal": "<p>a</p><script>x=1</script>", "rules": "<!-- <script> --></script><p>b</p>"}
     html = assemble(parts)
     data = html[html.index('<script id="parts"'):]
     data = data[data.index(">") + 1:data.index("</script>")]

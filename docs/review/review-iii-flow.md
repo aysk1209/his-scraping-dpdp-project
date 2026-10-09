@@ -20,7 +20,7 @@ re-budget them against the rubric when it arrives.*
 | `python -m playwright install chromium` (once per machine) | the portal and update demos drive a real browser |
 | `python scripts/run_pipeline.py` once, discard the output | warms Chromium and the imports |
 | `python tools/build_review_pages.py` | rebuilds the portal from the current results (~3 min) |
-| Open `docs/review/portal.html` (one file, every demo a tab); press `A+` once | the interactive half of the demo, offline |
+| Open `docs/review/portal.html` (one file, six tabs; opens on *Portal run*); press `A+` once | the interactive half of the demo, offline |
 | Open `docs/benchmark_results/benchmark.md`, `benchmark-portal.md`, `benchmark-portal-v2.md` | the fallback if anything fails |
 | Terminal: font ≥ 16 pt, ≥ 100 columns | the tables are wide |
 | No key, no network needed | every AI decision is replayed from the committed recordings (`AI_AGENT_MODE=replay` by default) |
@@ -41,7 +41,7 @@ carry the page-load numbers. Say so plainly and continue.
 | 3 | One picture | 1:00 | slide | one policy table, three uses |
 | 4 | **Rules vs AI agents** | 3:30 | portal *Rules vs AI* + finished terminal | the contribution |
 | 5 | Compliance is enforced, not declared | 2:00 | terminal stages 4, 5, 7 + portal *Journey* | evidence, not paperwork |
-| 6 | Data we did not make | 2:00 | portal *Dataset*, *Real data* | the path holds on unseen data |
+| 6 | Data we did not make | 2:00 | slide (pages built on their own, if asked) | the path holds on unseen data |
 | 7 | **The HIS is updated** | 3:00 | portal *HIS update*, then *Assistant* (hand over the keyboard) | maturity: nothing hard-coded |
 | 8 | A patient asks | 1:00 | `python scripts/answer_access_request.py` | the Act's right of access, answered from evidence |
 | 9 | Rigour | 0:45 | slide | reproducible, tested, honest about uncertainty |
@@ -103,11 +103,14 @@ Then the *Journey* tab: one line of a patient file through all seven stages; pic
 
 ### Beat 6 — data we did not make
 
-The *Dataset* tab: Synthea's public sample, 18 files we never saw —
-**29 of 258** columns admitted, SSN and passport stopped by the adapter; the
-ranking holds. The *Real data* tab: the hospital's own collection register, 731
-days, read through the same gate — aggregate, no patient in it, and the page
-says what it can and cannot answer.
+On a slide (the two pages left the portal on 2026-10-09 to keep it to six tabs):
+Synthea's public sample, 18 files we never saw — **29 of 258** columns
+admitted, SSN and passport stopped by the adapter; the ranking holds. The
+hospital's own collection register, 731 days, read through the same gate —
+aggregate, no patient in it. If the panel wants to click through, build either
+page on its own: `python tools/build_dataset_page.py data/public_synthea
+--column-map data/public_synthea/column_map.json` (opens
+`build/review-parts/dataset.html`) or `python tools/build_real_page.py`.
 
 ### Beat 7 — the HIS is updated (new since Review-II)
 
@@ -115,14 +118,15 @@ The *HIS update* tab. A simulated vendor release: every module renamed and moved
 billing split in two, fields moved onto record pages, headers relabelled, every
 button renamed.
 
-- Tab 1: the change report, written by the comparison of two crawls.
-- Tab 2: pick *administrator*, then *discharge a patient and release the bed*:
-  before and after side by side. **25 of 29 tasks re-worded themselves; nothing
-  in the code changed.**
-- Tab 3: the two changes nothing could predict ("Unit", "Close episode") are
-  **withheld with the reason, not guessed**. Press *Confirm both proposals*:
-  29 of 29.
-- Tab 4: the scraper on the updated portal — **14 of 14 rows identical** on
+- Step 1, *The release*: each old screen beside the screen(s) now holding its
+  content — four renamed, billing split in two. Click a row for its column and
+  button changes, old struck through, new beside it.
+- Step 2, *Your tasks*: all 29 tasks as tiles. **25 placed again by
+  themselves; 4 withheld, not guessed** (the beds-and-wards tasks, touched by
+  "Unit" and "Close episode"). Click *Allocate a bed*: before and after side by
+  side, the withheld step saying why. Press *Confirm both*: 29 of 29.
+- Step 3, *The scraper*: the updated portal benchmarked again — **14 of 14
+  results identical** on
   compliance, coverage and traps; only the cost moved (32 → 53 page loads,
   because the release put fields behind record pages).
 
