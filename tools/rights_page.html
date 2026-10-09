@@ -4,25 +4,81 @@
 <title>Patient Rights</title>
 <style>
 /*__BASE__*/
-  .plist { display: grid; gap: 2px; max-height: 470px; overflow-y: auto; }
-  .plist button { font: inherit; font-family: var(--mono); font-size: .86rem; text-align: left; display: flex; justify-content: space-between; gap: 10px; padding: 5px 10px; border: 1px solid transparent; border-radius: var(--r); background: none; color: var(--ink); cursor: pointer; }
-  .plist button:hover { border-color: var(--line); }
-  .plist button[aria-pressed="true"] { border-color: var(--ours); background: color-mix(in srgb, var(--ours) 7%, var(--card)); }
-  .plist .c { font-family: var(--font); font-size: .78rem; color: var(--ink-3); }
-  .who { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .who .n { font-family: var(--display); font-size: 2rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .who .ours .n { color: var(--ours); } .who .base .n { color: var(--base); }
-  .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-  .chip { font-family: var(--mono); font-size: .74rem; padding: 1px 7px; border-radius: var(--rr); background: var(--card-2); color: var(--ink-2); }
-  .chip.not { background: var(--bad-bg); color: var(--bad); }
-  pre.txt { white-space: pre-wrap; font-family: var(--mono); font-size: .78rem; color: var(--ink-2); margin: 0; max-height: 380px; overflow-y: auto; }
-  .lk { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media (max-width: 760px) { .lk, .who { grid-template-columns: 1fr; } }
-  .lk .card.ours { border-color: color-mix(in srgb, var(--ours) 40%, var(--line)); }
-  .lk .card.base { border-color: color-mix(in srgb, var(--base) 50%, var(--line)); }
-  .big { font-family: var(--display); font-size: 2.2rem; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.1; }
-  .sev { font-weight: 600; font-size: .9rem; }
-  .sev.high { color: var(--bad); } .sev.mod { color: var(--warn); }
+  .fn .v .vs { font-family: var(--font); font-size: .9rem; font-weight: 400; color: var(--ink-3); margin: 0 2px; }
+
+  /* 1 -- a patient asks */
+  .ask { display: grid; grid-template-columns: minmax(230px, 280px) minmax(0, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 860px) { .ask { grid-template-columns: minmax(0, 1fr); } }
+  .plist { padding: 0; }
+  .phead, .prow { display: grid; grid-template-columns: 1fr 3.2rem 3.6rem; gap: 6px; align-items: center; }
+  .phead { padding: 12px 16px 6px; font-size: .78rem; color: var(--ink-3); font-weight: 600; }
+  .phead span:not(:first-child), .prow .n { text-align: right; }
+  .prows { max-height: 560px; overflow-y: auto; padding: 0 8px 8px; }
+  .prow { width: 100%; font: inherit; text-align: left; padding: 6px 8px; border: 1px solid transparent; border-radius: var(--r); background: none; color: var(--ink); cursor: pointer; }
+  .prow:hover { background: var(--card-2); }
+  .prow[aria-pressed="true"] { border-color: var(--ours); background: color-mix(in srgb, var(--ours) 7%, var(--card)); }
+  .prow .id { font-family: var(--mono); font-size: .86rem; }
+  .prow .id small { display: block; font-family: var(--font); font-size: .74rem; color: var(--ink-3); }
+  .prow .n { font-family: var(--display); font-weight: 600; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+  .prow .n.o { color: var(--ours); } .prow .n.b { color: var(--base); }
+
+  .reply .rh { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 14px; }
+  .reply .rh h2 .mono { font-size: .95rem; }
+  .tally { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 12px 0 4px; border: 1px solid var(--line); border-radius: var(--r); }
+  .tally > div { padding: 10px 14px; }
+  .tally > div + div { border-left: 1px solid var(--line); }
+  .tally .big { font-family: var(--display); font-size: 1.8rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.15; }
+  .tally .o .big { color: var(--ours); } .tally .b .big { color: var(--base); }
+  .tally .lab { font-size: .82rem; color: var(--ink-2); }
+  .acts { margin-top: 10px; }
+  .act { display: grid; grid-template-columns: 12rem minmax(0, 1fr) auto; gap: 4px 14px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: .9rem; }
+  .act:last-child { border-bottom: none; }
+  .act .t { display: inline-flex; gap: 0; align-items: baseline; font-weight: 600; }
+  .act .t small { display: block; font-weight: 400; font-size: .78rem; color: var(--ink-3); }
+  .act .cats { display: flex; flex-wrap: wrap; gap: 4px; }
+  .cat { font-size: .74rem; font-weight: 600; padding: 1px 7px; border-radius: var(--rr); background: var(--card-2); color: var(--ink-2); white-space: nowrap; }
+  .cat.clinical { background: var(--good-bg); color: var(--good); }
+  .cat.financial { background: var(--warn-bg); color: var(--warn); }
+  .cat.direct_identifier, .cat.contact { background: var(--bad-bg); color: var(--bad); }
+  .act .ex { font-size: .8rem; color: var(--ink-3); white-space: nowrap; text-align: right; }
+  .act .ex.yes { color: var(--ink); font-weight: 600; }
+  @media (max-width: 640px) { .act { grid-template-columns: minmax(0, 1fr); } .act .ex { text-align: left; } }
+  details.raw { margin-top: 10px; }
+  details.raw > summary { cursor: pointer; font-size: .86rem; color: var(--ink-2); }
+  details.raw > summary:hover { color: var(--ink); }
+  pre.txt { white-space: pre-wrap; font-family: var(--mono); font-size: .78rem; color: var(--ink-2); margin: 10px 0 0; max-height: 360px; overflow-y: auto; background: var(--card-2); border-radius: var(--r); padding: 10px 12px; }
+
+  /* 2 -- an export leaks */
+  .leak { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  @media (max-width: 760px) { .leak { grid-template-columns: minmax(0, 1fr); } }
+  .lcard .who { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  .lcard .sev { margin-left: auto; }
+  .lcard .big { font-family: var(--display); font-size: 3rem; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.05; margin-top: 10px; }
+  .lcard.o .big { color: var(--ours); } .lcard.b .big { color: var(--base); }
+  .lcard .unit { font-size: .92rem; color: var(--ink-2); }
+  .dots { display: flex; flex-wrap: wrap; gap: 4px; margin: 12px 0; }
+  .dots i { width: 14px; height: 14px; border-radius: 50%; background: var(--card-2); display: inline-block; }
+  .lcard.o .dots i.hit { background: var(--ours); } .lcard.b .dots i.hit { background: var(--base); }
+  .facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; font-size: .9rem; padding-top: 10px; border-top: 1px solid var(--line); }
+  .facts dt { color: var(--ink-3); }
+  .facts dd { margin: 0; }
+  .facts dd .cats { display: flex; flex-wrap: wrap; gap: 4px; }
+  .idline { font-weight: 600; }
+  .idline.ok { color: var(--good); } .idline.no { color: var(--bad); }
+  .late { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: var(--r); background: var(--warn-bg); color: var(--warn); font-size: .92rem; }
+  .late .ico { margin-top: .2em; flex: none; }
+
+  /* 3 -- the notices, set as letters */
+  .letters { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 860px) { .letters { grid-template-columns: minmax(0, 1fr); } }
+  .letter .to { font-size: .8rem; color: var(--ink-3); }
+  .letter h2 { margin: 2px 0 12px; font-size: 1.12rem; }
+  .letter dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 7px 16px; margin: 0; font-size: .9rem; }
+  .letter dt { color: var(--ink-3); }
+  .letter dd { margin: 0; }
+  .letter p { color: var(--ink); font-size: .95rem; line-height: 1.6; max-width: 62ch; }
+  .letter p + p { margin-top: 10px; }
+  .letter .sign { margin-top: 14px; font-size: .84rem; color: var(--ink-3); }
 </style>
 
 <div class="wrap">
@@ -46,31 +102,31 @@
   </nav>
 
   <section class="pane" id="pane-1">
-    <p class="lead">Every run of the eight tasks, logged with whom it read. Pick a patient: which runs touched their records, and the answer the data-protection contact sends.</p>
-    <div class="split">
-      <div class="card"><div class="head"><h2>Patients</h2><span class="muted">record numbers masked</span></div><div class="plist" id="plist"></div></div>
-      <div style="display:grid;gap:16px">
-        <div class="card"><div class="who" id="who"></div></div>
-        <div class="card"><div class="head"><h2>The answer to the request</h2><span class="muted">no value from the record</span></div><pre class="txt" id="summary"></pre></div>
+    <p class="lead">Eight jobs ran, each about one patient or one ward. Pick anyone: the runs that read their records, as the hospital would answer them.</p>
+    <div class="ask">
+      <div class="card plist">
+        <div class="phead"><span>Patient</span><span>Ours</span><span>Baseline</span></div>
+        <div class="prows" id="plist"></div>
       </div>
+      <div class="card reply" id="reply"></div>
     </div>
   </section>
 
   <section class="pane" id="pane-2" hidden>
-    <p class="lead">One job, one patient's summary, exported the way each technique would. Then the folder is lost. What did each export expose?</p>
-    <div class="lk" id="leak"></div>
-    <p class="note" id="late"></p>
+    <p class="lead">One patient's summary, exported the way each technique would. Then the folder is lost on a USB drive.</p>
+    <div class="leak" id="leak"></div>
+    <div class="late" id="late"></div>
   </section>
 
   <section class="pane" id="pane-3" hidden>
-    <div class="head" style="display:flex;gap:12px;align-items:center"><div class="seg" id="which"></div></div>
-    <div class="cols">
-      <div class="card"><div class="head"><h2>To the Data Protection Board</h2></div><pre class="txt" id="board"></pre></div>
-      <div class="card"><div class="head"><h2>To each affected patient</h2><span class="muted">the same for each, naming no one</span></div><pre class="txt" id="patient"></pre></div>
+    <div><div class="seg" id="which"></div></div>
+    <div class="letters">
+      <div class="card letter" id="board"></div>
+      <div class="card letter" id="patient"></div>
     </div>
   </section>
 
-  <footer>Built by <code>tools/build_rights_page.py</code> from <code>compliance.access_report</code> and <code>compliance.breach</code> · synthetic patients, masked record numbers, no values</footer>
+  <footer>Built by <code>tools/build_rights_page.py</code> from <code>compliance.access_report</code> and <code>compliance.breach</code> · synthetic patients, masked record numbers, no values from a record</footer>
 </div>
 
 <script id="data" type="application/json">/*__DATA__*/null</script>
@@ -82,47 +138,88 @@
   const D = JSON.parse(document.getElementById("data").textContent);
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const human = (s) => String(s || "").replace(/[_-]/g, " ");
+  const dash = (s) => String(s).replace(/ -- /g, " — ");
   const M = D.meta, B = D.breach;
+  const KC = (k) => (k === "ours" ? "var(--ours)" : "var(--base)");
+  const vs = (a, b) => `<span style="color:var(--ours)">${a}</span> <span class="vs">vs</span> <span style="color:var(--base)">${b}</span>`;
 
+  /* ---------------------------------------------------- key figures */
   $("funnel").innerHTML = [
-    [`${M.ours_bystander} / ${M.tasks}`, "runs that read a bystander · ours"],
-    [`${M.base_bystander} / ${M.tasks}`, "the same · baseline"],
-    [B.ours.patients, "patients a leak exposes · ours"],
-    [B.baseline.patients, "the same · baseline"],
-    ["0", "record values on this page"],
-  ].map(([v, l], i) => `<div class="fn${i === 4 ? " hero" : ""}"><div class="v">${esc(v)}</div><div class="l">${esc(l)}</div></div>`).join("");
+    [vs(M.ours_bystander, M.base_bystander), `of ${M.tasks} runs read someone the job was not about`],
+    [vs(B.ours.patients, B.baseline.patients), "patients a leaked export exposes"],
+    ["0", "values from a record on this page", "var(--good)"],
+  ].map(([v, l, c]) => `<div class="fn"${c ? ` style="--c:${c}"` : ""}><div class="v">${v}</div><div class="l">${esc(l)}</div></div>`).join("");
 
+  /* ---------------------------------------------------- 1. a patient asks */
   let pick = D.people.findIndex((p) => !p.about && p.ours.length < p.baseline.length);
   if (pick < 0) pick = 0;
   function paintPeople() {
-    $("plist").innerHTML = D.people.map((p, i) => `<button data-i="${i}" aria-pressed="${i === pick}"><span>${esc(p.id)}</span><span class="c">${p.about ? "the tasks' patient" : `${p.ours.length} · ${p.baseline.length}`}</span></button>`).join("");
-    $("plist").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { pick = Number(b.dataset.i); paintPeople(); }));
+    $("plist").innerHTML = D.people.map((p, i) => `<button class="prow" data-i="${i}" aria-pressed="${i === pick}"><span class="id">${esc(p.id)}${p.about ? "<small>the patient the jobs are about</small>" : ""}</span><span class="n o">${p.ours.length}</span><span class="n b">${p.baseline.length}</span></button>`).join("");
+    $("plist").querySelectorAll(".prow").forEach((b) => b.addEventListener("click", () => { pick = Number(b.dataset.i); paintPeople(); }));
+    paintReply();
+  }
+  function paintReply() {
     const p = D.people[pick];
-    const chips = (ids, other) => ids.map((t) => `<span class="chip ${other && !p.about ? "" : ""}">${esc(t)}</span>`).join("") || `<span class="muted">none</span>`;
-    $("who").innerHTML = `<div class="ours"><h3>Ours read their records in</h3><div class="n">${p.ours.length} <small class="muted">of ${M.tasks} runs</small></div><div class="chips">${chips(p.ours)}</div></div>`
-      + `<div class="base"><h3>The baseline</h3><div class="n">${p.baseline.length} <small class="muted">of ${M.tasks} runs</small></div><div class="chips">${p.baseline.map((t) => `<span class="chip ${p.ours.includes(t) ? "" : "not"}">${esc(t)}</span>`).join("")}</div></div>`;
-    $("summary").textContent = p.summary;
+    // Runs that read the same categories the same way are one row: the jobs listed, the reading shown once.
+    const groups = [];
+    [...p.activities].sort((a, b) => (a.kind === b.kind ? 0 : a.kind === "ours" ? -1 : 1)).forEach((a) => {
+      const sig = JSON.stringify([a.kind, Object.keys(a.categories).sort(), a.exported, a.pseudonymised]);
+      const g = groups.find((x) => x.sig === sig);
+      if (g) g.tasks.push(a.task); else groups.push({ ...a, sig, tasks: [a.task] });
+    });
+    const acts = groups;
+    const row = (a) => `<div class="act"><span class="t"><span class="dot-c" style="--c:${KC(a.kind)}"></span><span>${a.tasks.length > 1 ? `${a.tasks.length} runs` : esc(human(a.task))}<small>${a.kind === "ours" ? "ours" : "baseline"}${a.tasks.length > 1 ? ": " + a.tasks.map(human).map(esc).join(", ") : " · for " + esc(human(a.purpose))}</small></span></span>`
+      + `<span class="cats">${Object.entries(a.categories).map(([c, n]) => `<span class="cat ${esc(c)}" title="${n} field${n > 1 ? "s" : ""}">${esc(human(c))}</span>`).join("")}</span>`
+      + `<span class="ex${a.exported ? " yes" : ""}">${a.exported ? `exported${a.pseudonymised ? ", pseudonymised" : ""}${a.erase_after ? ` · erase by ${esc(a.erase_after)}` : ""}` : "not exported"}</span></div>`;
+    $("reply").innerHTML = `<div class="rh"><h2>Access request · <span class="mono">${esc(p.id)}</span></h2><span class="muted">field names and categories only, never a value</span></div>`
+      + `<div class="tally"><div class="o"><div class="big">${p.ours.length} <span class="muted" style="font-size:.9rem;font-weight:400">of ${M.tasks}</span></div><div class="lab">runs by ours read their records</div></div>`
+      + `<div class="b"><div class="big">${p.baseline.length} <span class="muted" style="font-size:.9rem;font-weight:400">of ${M.tasks}</span></div><div class="lab">runs by the baseline did</div></div></div>`
+      + (p.about ? `<p class="muted" style="margin-top:8px">Every job reads this patient: they are the one the jobs are about.</p>` : "")
+      + `<div class="acts">${acts.map(row).join("")}</div>`
+      + `<details class="raw"><summary>The reply as written</summary><pre class="txt">${esc(dash(p.summary))}</pre></details>`;
   }
 
+  /* ---------------------------------------------------- 2. an export leaks */
   function paintLeak() {
     const card = (k, label) => {
       const b = B[k], high = b.severity.startsWith("high");
-      return `<div class="card ${k === "ours" ? "ours" : "base"}"><div class="head"><h2>${label}</h2><span class="sev ${high ? "high" : "mod"}">${esc(b.severity.split(" -- ")[0])}</span></div>`
-        + `<div class="big">${b.patients} <small class="muted">patient${b.patients === 1 ? "" : "s"}</small></div>`
-        + `<p>${b.raw ? "identifiers <b>raw</b>" : "identifiers replaced by tokens"}</p>`
-        + `<div class="chips">${b.categories.map((c) => `<span class="chip">${esc(c.replace(/_/g, " "))}</span>`).join("")}</div>`
-        + `<p class="muted" style="margin-top:8px">${esc(b.severity)}</p></div>`;
+      return `<div class="card lcard ${k === "ours" ? "o" : "b"}"><div class="who"><span class="dot-c" style="--c:${KC(k)}"></span>${label}<span class="badge ${high ? "bad" : "warn"} sev">${esc(b.severity.split(" -- ")[0])}</span></div>`
+        + `<div class="big">${b.patients}</div><div class="unit">patient${b.patients === 1 ? "" : "s"} exposed, of the ${M.patients} in the portal</div>`
+        + `<div class="dots" aria-hidden="true">${Array.from({ length: M.patients }, (_, i) => `<i class="${i < b.patients ? "hit" : ""}"></i>`).join("")}</div>`
+        + `<dl class="facts"><dt>Identifiers</dt><dd class="idline ${b.raw ? "no" : "ok"}">${b.raw ? "raw — names and record numbers as they are" : "replaced by keyed tokens; the key was not in the files"}</dd>`
+        + `<dt>Categories</dt><dd><span class="cats">${b.categories.map((c) => `<span class="cat ${esc(c)}">${esc(human(c))}</span>`).join("")}</span></dd>`
+        + `<dt>Severity</dt><dd>${esc(dash(b.severity))}</dd></dl></div>`;
     };
     $("leak").innerHTML = card("ours", "Ours") + card("baseline", "The baseline");
-    $("late").textContent = `Found 31 days later: ${B.late.line || "the export had passed its erasure date."}`;
+    $("late").innerHTML = B.late.line
+      ? `${Kit.icon("alert")}<span>Had the drive been found 31 days later: ${esc(dash(B.late.line))}.</span>`
+      : `${Kit.icon("alert")}<span>Had the drive been found 31 days later, the export would already have passed its erasure date.</span>`;
   }
 
+  /* ---------------------------------------------------- 3. the notices, as letters */
   let which = "ours";
+  function boardLetter(text) {
+    const lines = text.split("\n"), rows = [];
+    for (const l of lines.slice(1)) {
+      const m = l.match(/^\s{2}(\S[^:]*?)\s*: (.*)$/);
+      if (m) rows.push([m[1], m[2]]);
+      else if (l.trim() && rows.length) rows[rows.length - 1][1] += " " + l.trim();
+    }
+    return `<div class="to">To the Data Protection Board</div><h2>${esc(dash(lines[0]).replace(/ — to the Data Protection Board$/, ""))}</h2>`
+      + `<dl>${rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(dash(v).replace(/_/g, " "))}</dd>`).join("")}</dl>`;
+  }
+  function patientLetter(text) {
+    const lines = text.split("\n");
+    const paras = lines.slice(1).filter((l) => l.trim()).map((l) => l.trim());
+    return `<div class="to">To each affected patient · the same letter for each, naming no one</div><h2>${esc(lines[0])}</h2>`
+      + paras.map((l) => `<p>${esc(dash(l))}</p>`).join("") + `<div class="sign">— the hospital's data-protection contact</div>`;
+  }
   function paintNotices() {
-    $("which").innerHTML = [["ours", "Ours"], ["baseline", "The baseline"]].map(([k, l]) => `<button data-k="${k}" aria-pressed="${k === which}">${l}</button>`).join("");
+    $("which").innerHTML = [["ours", "After ours"], ["baseline", "After the baseline"]].map(([k, l]) => `<button data-k="${k}" aria-pressed="${k === which}"><span class="dot-c" style="--c:${KC(k)}"></span>${l}</button>`).join("");
     $("which").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { which = b.dataset.k; paintNotices(); }));
-    $("board").textContent = B[which].board;
-    $("patient").textContent = B[which].patient;
+    $("board").innerHTML = boardLetter(B[which].board);
+    $("patient").innerHTML = patientLetter(B[which].patient);
   }
 
   paintPeople(); paintLeak(); paintNotices();

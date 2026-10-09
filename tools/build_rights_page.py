@@ -70,10 +70,17 @@ def build(out: Path = DEFAULT_OUT, *, patients: int = 20) -> dict:
                 if token in e.subjects:
                     key = "ours" if e.technique == ours.name else "baseline"
                     read[key].append(e.run_id.split("--")[0])
+            summary = access_summary(mrn, log=log, export_dirs=[exports])
+            # The same activities as data, for the page to set out; field names and categories only.
+            activities = [{"at": a.at.strftime("%Y-%m-%d %H:%M"), "task": a.run_id.split("--")[0],
+                           "kind": "ours" if a.technique == ours.name else "baseline", "purpose": a.purpose,
+                           "categories": {c: len(fs) for c, fs in a.categories.items()},
+                           "exported": a.exported, "pseudonymised": a.pseudonymised,
+                           "erase_after": a.erase_after.strftime("%Y-%m-%d") if a.erase_after else None}
+                          for a in summary.activities]
             people.append({"id": mask(mrn), "about": mrn == about, "ours": sorted(set(read["ours"])),
-                           "baseline": sorted(set(read["baseline"])),
-                           "summary": access_summary(mrn, log=log, export_dirs=[exports]).render()
-                                      .replace(str(log.path), "the audit log")})
+                           "baseline": sorted(set(read["baseline"])), "activities": activities,
+                           "summary": summary.render().replace(str(log.path), "the audit log")})
 
         # The breach: the same job exported both ways, the folder lost.
         leak_log = AuditLog(Path(tmp) / "leak.jsonl")
