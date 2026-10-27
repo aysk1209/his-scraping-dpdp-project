@@ -107,7 +107,7 @@ def test_the_update_page_shows_every_task_placed_after_the_release(tmp_path):
     data = build_update_page.build(out)
     assert data == _data(out.read_text(encoding="utf-8"))
     m = data["meta"]
-    assert m["tasks"] == len(REGISTRY)
+    assert m["tasks"] == sum(not s.refused_by_design for s in REGISTRY)
     assert m["reworded"] + m["withheld"] + m["unchanged"] == m["tasks"]
     assert m["withheld"] > 0 and m["restored"] == m["tasks"]
     # Every withheld step says why, and no withheld step is shown as if current.

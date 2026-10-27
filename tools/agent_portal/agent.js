@@ -48,9 +48,9 @@
     const v = D.vectors.concat(D.tours).find((c) => c.role === role && turns.length <= c.turns.length && turns.every((t, i) => c.turns[i] === t));
     return v ? v.replies[turns.length - 1] : { kind: "unrecognised", fn: null, text: "(Typing is off on this copy: choose a task or play the tour.)" };
   }
-  function respond(text) {
+  function respond(text, recorded) {
     history.push(text);
-    if (!Engine.live) return replay(history);
+    if (!Engine.live) return recorded || replay(history);
     return session.respond(text);
   }
 
@@ -353,13 +353,14 @@
   }
 
   /* ------------------------------------------------------------ a turn: the desk answers, the route walks */
-  function ask(text, fromTour = false) {
+  // A tour passes its recorded reply: a tour holds more than one request, which a replay by prefix cannot follow.
+  function ask(text, fromTour = false, recorded = null) {
     if (touring && !fromTour) return;
     land();
     const wasIdle = !Engine.live ? history.length === 0 || ["guidance", "declined", "unrecognised", "help", "changes", "cancelled"].includes(ctx && ctx.reply.kind) : session.state === "idle";
     if (!Engine.live && wasIdle) history = [];
     add("you", ids(esc(text || "(nothing)")));
-    const r = respond(text);
+    const r = respond(text, recorded);
     if (["guidance", "declined", "unrecognised", "help", "changes", "cancelled"].includes(r.kind)) history = [];
     track(text, r, wasIdle);
     if (r.kind === "cancelled" || r.kind === "help" || r.kind === "changes") ctx = null;
@@ -420,8 +421,9 @@
       if (!touring || my !== epoch) return;
       await typeInto(tour.turns[tourStep]);
       if (!touring || my !== epoch) return;
-      ask(tour.turns[tourStep], true);
-      await sleep(tour.replies[tourStep].kind === "guidance" ? 1800 : 1500);
+      ask(tour.turns[tourStep], true, tour.replies[tourStep]);
+      const kind = tour.replies[tourStep].kind;
+      await sleep(kind === "declined" ? 3200 : kind === "guidance" ? 1800 : 1500);
     }
     // the last answer stays; walk the steps on the screen
     const f = ctx && ctx.fn ? F[ctx.fn] : null;

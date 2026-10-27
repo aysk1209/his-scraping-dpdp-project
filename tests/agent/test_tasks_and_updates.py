@@ -72,7 +72,8 @@ def _placeholders(text: str) -> set[str]:
 
 def _guide(spec_id: str, screens: ScreenMap):
     spec = BY_ID[spec_id]
-    role = next(r for r in StaffRole if spec.permitted_for(r))
+    # A task refused by design is still placed, so a HIS update is checked against it too.
+    role = next((r for r in StaffRole if spec.permitted_for(r)), StaffRole.ADMINISTRATOR)
     return build_guidance(role, spec, {s.name: s.example for s in spec.inputs}, screens)
 
 
@@ -270,7 +271,7 @@ def test_what_nobody_predicted_is_withheld_with_a_proposal():
 def test_every_other_task_rewords_itself():
     statuses = {t.function_id: t.status for t in compare(BEFORE, AFTER).impact}
     assert set(statuses.values()) == {"re-worded", "withheld"}
-    assert sum(s == "re-worded" for s in statuses.values()) == len(REGISTRY) - 4
+    assert sum(s == "re-worded" for s in statuses.values()) == sum(not s.refused_by_design for s in REGISTRY) - 4
 
 
 def test_confirming_the_proposals_restores_every_task():

@@ -336,7 +336,8 @@ def compare(before: ScreenMap, after: ScreenMap) -> UIChanges:
     return UIChanges(
         before=before.discovered, after=after.discovered, changes=changes,
         field_proposals=field_proposals, control_proposals=control_proposals,
-        impact=[_impact(spec, before, after) for spec in REGISTRY],
+        # What a release does to staff work: a request refused to every role has none.
+        impact=[_impact(spec, before, after) for spec in REGISTRY if not spec.refused_by_design],
     )
 
 

@@ -13,7 +13,7 @@ from agent.functions import BY_ID
 from agent.session import recognise
 from compliance.models import FieldCategory
 from compliance.policy import policy_for
-from compliance.roles import ARTEFACTS
+from compliance.roles import ARTEFACTS, authorise
 from data_synthetic.catalogue import FIELD_CATALOGUE, categories_for_fields
 
 
@@ -47,6 +47,8 @@ def test_every_step_artefact_is_one_the_function_declared():
 
 def test_no_step_touches_data_its_own_purpose_forbids():
     for spec in REGISTRY:
+        if spec.refused_by_design:      # it touches such data: that is why every role is refused it
+            continue
         allowed = policy_for(spec.purpose).allowed_categories
         for step in spec.steps:
             touched = categories_for_fields(step.layer, step.fields)
@@ -67,7 +69,22 @@ def test_every_step_template_only_references_declared_inputs():
 
 def test_every_function_is_permitted_for_at_least_one_role():
     for spec in REGISTRY:
+        if spec.refused_by_design:
+            assert not any(spec.permitted_for(r) for r in StaffRole), f"{spec.id} is not refused"
+            continue
         assert any(spec.permitted_for(r) for r in StaffRole), f"{spec.id} is dead"
+
+
+def test_the_diagnosis_for_the_insurer_is_refused_on_necessity_not_purpose():
+    # The one request in the registry the gate refuses under DM-01: billing is a
+    # lawful purpose for the desk and the billing office, the diagnosis is not
+    # necessary for it. A nurse has no billing purpose, so PL-01 comes first.
+    spec = BY_ID["share_diagnosis_with_insurer"]
+    rule = {r: authorise(r, spec.purpose, spec.artefacts, spec.categories).rule_id for r in StaffRole}
+    assert rule == {StaffRole.RECEPTION: "DM-01", StaffRole.ADMINISTRATOR: "DM-01", StaffRole.NURSE: "PL-01"}
+    for role in (StaffRole.RECEPTION, StaffRole.ADMINISTRATOR):
+        reply = Session(role).respond("send the diagnosis for MRN2867825 to the insurer")
+        assert reply.kind == ReplyKind.DECLINED and reply.decision.rule_id == "DM-01"
 
 
 def test_function_ids_are_unique():

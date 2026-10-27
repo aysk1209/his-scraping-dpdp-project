@@ -91,6 +91,9 @@ class FunctionSpec(BaseModel):
     categories: set[FieldCategory] | None = None
     inputs: list[InputSlot]
     steps: list[Step]
+    # A request staff do make that no role may be walked through. It is registered so
+    # the gate refuses it with the rule, instead of the request being read as another task.
+    refused_by_design: bool = False
 
     def permitted_for(self, role: StaffRole) -> bool:
         return authorise(role, self.purpose, self.artefacts, self.categories).allowed
@@ -323,6 +326,34 @@ REGISTRY: list[FunctionSpec] = [
                  layer=_FIN, artefact="fhir:Coverage", fields=["payer_name"], continues=True,
                  caution="Eligibility is all this role needs; amounts owed are a different artefact and a different desk."),
         ],
+    ),
+    # Refused by design. Settling a bill is a lawful purpose for the desk and the
+    # billing office, but the diagnosis is not necessary for it.
+    # DPDP Act 2023 -- data minimisation: DM-01 at the gate, for every role that
+    # acts under billing settlement; the nurse, who has no billing purpose, is
+    # refused under purpose limitation first.
+    FunctionSpec(
+        id="share_diagnosis_with_insurer",
+        label="send a patient's diagnosis to their insurer",
+        group=INSURANCE,
+        synonyms=["send the diagnosis to the insurer", "diagnosis to the insurer",
+                  "share the diagnosis with the insurer", "insurer wants the diagnosis",
+                  "diagnosis for the claim"],
+        purpose=_BILL,
+        artefacts={"fhir:Condition", "fhir:Coverage"},
+        inputs=[
+            _MRN,
+            InputSlot(name="insurance_policy_no", prompt="The policy number on the card?",
+                      example="POL-44812-K", category=_FI),
+        ],
+        steps=[
+            _open_record(_EHR, "fhir:Condition"),
+            Step(text="Copy the {label.primary_diagnosis}.",
+                 layer=_EHR, artefact="fhir:Condition", fields=["primary_diagnosis"]),
+            Step(text="Open {module} and send it to the {label.payer_name} with policy {insurance_policy_no}.",
+                 layer=_FIN, artefact="fhir:Coverage", fields=["payer_name", "insurance_policy_no"]),
+        ],
+        refused_by_design=True,
     ),
     # ================================================== privacy requests
     # A patient asking about their own data is the Act's rights of the data

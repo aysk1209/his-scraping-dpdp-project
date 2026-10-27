@@ -36,7 +36,7 @@ RESULTS = ROOT / "docs" / "benchmark_results"
 
 
 def _steps(spec, screens: ScreenMap) -> list[dict]:
-    role = next(r for r in StaffRole if spec.permitted_for(r))
+    role = next(r for r in StaffRole if spec.permitted_for(r))      # never a refused-by-design request
     g = build_guidance(role, spec, {s.name: s.example for s in spec.inputs}, screens)
     return [{"text": s.text, "where": s.where or "", "withheld": s.withheld or ""} for s in g.steps]
 
@@ -114,7 +114,7 @@ def build(out: Path = DEFAULT_OUT) -> dict:
         "status": status[spec.id].status, "reasons": status[spec.id].reasons,
         "fixed_status": restored[spec.id],
         "before": _steps(spec, before), "after": _steps(spec, after), "fixed": _steps(spec, fixed),
-    } for spec in REGISTRY]
+    } for spec in REGISTRY if not spec.refused_by_design]
 
     roles = [{"id": r.value, "tasks": [s.id for s in capabilities(r)],
               "heard": changes.for_role(r)} for r in StaffRole]
@@ -134,7 +134,7 @@ def build(out: Path = DEFAULT_OUT) -> dict:
             "modules": len(groups.get("module", [])), "buttons": len(groups.get("button", [])),
             "fields": len(groups.get("field", [])),
             "reworded": len(counts["re-worded"]), "withheld": len(counts["withheld"]),
-            "unchanged": len(counts["unchanged"]), "tasks": len(REGISTRY),
+            "unchanged": len(counts["unchanged"]), "tasks": len(tasks),
             "restored": sum(1 for t in rechecked.impact if t.status != "withheld"),
             "scraper_same": sum(1 for r in scraper["rows"] if r["same"]), "scraper_rows": len(scraper["rows"]),
             # The cost the release added, said beside the "unchanged" figure (review: honesty is credibility).

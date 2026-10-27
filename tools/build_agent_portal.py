@@ -48,14 +48,22 @@ CSS = HERE / "agent.css"
 SCRIPTS = ["engine.js", "agent.js"]
 FONT = HERE / "fonts" / "Inter-latin-wght.woff2"       # Portal v2's face (user, 2026-10-23)
 
-# One tour per badge (user, 2026-10-16), each a recorded Python conversation.
+# One tour per badge (user, 2026-10-16), each a recorded Python conversation. A tour
+# opens on a request the badge may not make for a reason other than purpose (user,
+# 2026-10-28), refused before the record number typed with it is read: reception on
+# SS-01 (an artefact it does not handle), the administrator on DM-01 (the diagnosis is
+# not necessary for billing). The nurse has no such refusal: every request the gate
+# refuses a nurse fails on purpose first, so the nurse's tour shows the answer that
+# does not fit instead.
 TOURS = [
     ("reception", "Register a new patient",
-     ["register a new patient", "Priya Raman", "1988-03-14", "+91-9800000012"]),
+     ["allocate a bed for MRN2867825",
+      "register a new patient", "Priya Raman", "1988-03-14", "+91-9800000012"]),
     ("nurse", "Record a patient's vital signs",
      ["record obs for MRN2867825", "one twenty", "128/82", "76", "37.1"]),
     ("administrator", "Raise a bill",
-     ["raise the bill", "MRN2867825", "ENC-20260912-07"]),
+     ["send the diagnosis for MRN2867825 to the insurer",
+      "raise the bill", "MRN2867825", "ENC-20260912-07"]),
 ]
 # A request each badge may not make, offered beside its common tasks so the staff-only door is found.
 OUTSIDE = {"reception": "view_diagnosis", "nurse": "generate_invoice", "administrator": "record_vitals"}

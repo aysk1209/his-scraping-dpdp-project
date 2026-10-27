@@ -21,7 +21,7 @@ import subprocess
 import pytest
 
 from agent.functions import REGISTRY
-from compliance.roles import StaffRole
+from compliance.roles import StaffRole, authorise
 from tools import build_agent_portal as ap
 from tools import build_assistant_page as assistant
 from tools import build_portal_app as v1
@@ -82,14 +82,25 @@ def test_the_pages_engine_reproduces_every_recorded_conversation(built, tmp_path
 def test_each_badges_tour_ends_in_steps_that_badge_may_follow(built):
     data, _, _ = built
     assert sorted(t["role"] for t in data["tours"]) == sorted(r.value for r in StaffRole)
+    reachable, shown_anywhere = set(), set()
     for tour in data["tours"]:
         last = tour["replies"][-1]
         assert last["kind"] == "guidance", tour["title"]
         assert SPEC[last["fn"]].permitted_for(StaffRole(tour["role"]))
-        assert all(r["kind"] in ("ask_input", "guidance") for r in tour["replies"])
+        assert all(r["kind"] in ("declined", "ask_input", "guidance") for r in tour["replies"])
+        # A badge the gate can refuse for a reason other than purpose shows such a refusal in its tour,
+        # and the tours between them show every rule other than purpose that the gate can reach.
+        role = StaffRole(tour["role"])
+        other = {authorise(role, s.purpose, s.artefacts, s.categories).rule_id for s in REGISTRY} - {None, "PL-01"}
+        shown = {authorise(role, SPEC[r["fn"]].purpose, SPEC[r["fn"]].artefacts, SPEC[r["fn"]].categories).rule_id
+                 for r in tour["replies"] if r["kind"] == "declined"} - {"PL-01"}
+        assert shown or not other, (tour["role"], other)
+        reachable |= other
+        shown_anywhere |= shown
         # A tour is a recorded conversation like any other: the page's self-check covers it too.
         assert assistant._play(StaffRole(tour["role"]), tour["turns"], ap.ScreenMap.from_navigation(
             ap.NavigationMap.model_validate_json(assistant.NAV_MAP.read_text(encoding="utf-8"))))["replies"] == tour["replies"]
+    assert reachable == shown_anywhere == {"DM-01", "SS-01"}
 
 
 def test_every_placed_step_is_on_a_screen_the_crawler_found(built):
