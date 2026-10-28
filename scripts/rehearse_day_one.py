@@ -7,7 +7,7 @@ The real dataset will not look like our synthetic export. It will have the
 hospital's column names, a column we do not model, an Excel file among the
 CSVs, dates written the Indian way, and a table split across several files.
 This script fabricates exactly that from synthetic data (no real person is
-involved), then runs the day-one procedure from ``docs/access/when-access-lands.md``
+involved), then runs the day-one procedure from the real-data handling gate
 as a stranger would -- ``check_source.py`` to get the mapping template, the
 template filled in, the check again, ``run_pipeline.py --dataset`` -- through
 the real handling gate (the export sits under ``data/``, git-ignored, with a

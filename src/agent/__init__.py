@@ -8,7 +8,7 @@ templated steps. No LLM, no model, no training, no network.
 Its one research-relevant property: before it says anything it calls
 ``compliance.roles.authorise`` -- the same policy table that scores the
 extraction benchmark decides what may be said to whom. A receptionist asking for
-a diagnosis is declined with the rule cited. See ``PLAN.md`` section 2.
+a diagnosis is declined with the rule cited.
 
 It survives HIS updates the same way the scraper does: from the crawl. Steps say
 what to do, never what the screen calls it; ``agent.ui`` fills in today's module,

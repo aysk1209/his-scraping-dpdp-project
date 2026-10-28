@@ -8,8 +8,8 @@ Responsibilities:
   - `hl7` / `fhir` / `dicom` / `iso_ieee_11073` : lightweight, hand-rolled
                  record shapers per standard.
 
-Priority (PROJECT_CONTEXT.md): HL7 and FHIR shaping come first and must be
+Priority: HL7 and FHIR shaping come first and must be
 usable; DICOM and ISO/IEEE 11073 are modelled as stubs for this phase.
 
-No HIS vendor names in this package (CLAUDE.md convention).
+No HIS vendor names in this package.
 """

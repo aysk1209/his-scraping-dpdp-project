@@ -1,7 +1,7 @@
 """Live HIS implementation of `HISDataSource` — Tier 2 credentialed portal scraping.
 
 BLOCKED: build step 7. Credentialed access exists on paper but is not usable
-(CLAUDE.md, "Current Phase Constraint"). This module exists so the adapter
+(no live access). This module exists so the adapter
 boundary is real from day one. It must not be implemented against assumptions
 about a real HIS endpoint — wait for actual access.
 """

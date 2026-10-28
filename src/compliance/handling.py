@@ -1,4 +1,4 @@
-"""Handling checks for a real dataset -- PLAN.md section 4, as a gate.
+"""Handling checks for a real dataset -- as a gate.
 
 A hospital export is almost certainly real personal data. Before anything reads
 it, four things must be true, and this module checks them rather than trusting

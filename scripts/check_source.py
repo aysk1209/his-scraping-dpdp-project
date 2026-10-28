@@ -16,7 +16,7 @@ does (one list page and one record per module).
 left and a blank on the right, plus the catalogue's field names for reference,
 so the first hour with real data is spent filling in a file, not reading code.
 
-For a directory, the handling checks (PLAN.md section 4) run first. A real
+For a directory, the handling checks (the handling gate) run first. A real
 export that is not under data/, not git-ignored, or has no provenance note is
 reported and NOT read.
 """

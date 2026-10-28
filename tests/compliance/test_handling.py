@@ -1,4 +1,4 @@
-"""Tests for the real-data handling gate (PLAN.md section 4 as code)."""
+"""Tests for the real-data handling gate (as code)."""
 
 from __future__ import annotations
 

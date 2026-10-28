@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0b1220"/><stop offset="1" stop-color="#134e4a"/></linearGradient></defs>
+<rect width="1200" height="300" rx="18" fill="url(#g)"/>
+<g stroke="#2dd4bf" stroke-opacity=".18"><line x1="300" y1="0" x2="160" y2="300"/><line x1="360" y1="0" x2="220" y2="300"/><line x1="420" y1="0" x2="280" y2="300"/><line x1="480" y1="0" x2="340" y2="300"/><line x1="540" y1="0" x2="400" y2="300"/><line x1="600" y1="0" x2="460" y2="300"/><line x1="660" y1="0" x2="520" y2="300"/><line x1="720" y1="0" x2="580" y2="300"/><line x1="780" y1="0" x2="640" y2="300"/><line x1="840" y1="0" x2="700" y2="300"/><line x1="900" y1="0" x2="760" y2="300"/><line x1="960" y1="0" x2="820" y2="300"/><line x1="1020" y1="0" x2="880" y2="300"/><line x1="1080" y1="0" x2="940" y2="300"/><line x1="1140" y1="0" x2="1000" y2="300"/><line x1="1200" y1="0" x2="1060" y2="300"/><line x1="1260" y1="0" x2="1120" y2="300"/><line x1="1320" y1="0" x2="1180" y2="300"/><line x1="1380" y1="0" x2="1240" y2="300"/></g>
+<g fill="none" stroke="#5eead4" stroke-width="3" stroke-linecap="round">
+<rect x="70" y="86" width="86" height="86" rx="14"/><path d="M99 129h28M113 115v28"/>
+<path d="M156 129h70"/><circle cx="244" cy="129" r="16"/><path d="M262 129h70"/>
+<path d="M332 100l38 29-38 29z"/><path d="M370 129h60"/><path d="M430 104h44v50h-44z"/><path d="M440 118h24M440 130h24M440 142h14"/></g>
+<text x="70" y="230" font-size="40" font-weight="700" fill="#f8fafc">DPDP-compliant HIS data extraction</text>
+<text x="70" y="262" font-size="18" fill="#99f6e4">Seven rules of India's DPDP Act 2023, executable, benchmarked on every technique</text>
+</svg>

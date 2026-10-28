@@ -60,45 +60,8 @@ htmlcov/
 !/docs/benchmark_results/techniques-compared.html
 !/docs/benchmark_results/rules-vs-just-ai.html
 
-# --- review deck templates: kept outside the repository (REVIEW_TEMPLATE / build_review_deck.py) ---
-Review-* Template.pptx
-# the School's thesis class and logo (tools/build_thesis.py reads THESIS_TEMPLATE or this folder)
-/thesis-template/
-
 # recorder quota ledger (per machine, per day)
 .quota.json
 
-# design tooling: keep the product record, design sidecar and surface briefs; ignore local and generated files
-.impeccable/review/
-.impeccable/questions/
-.impeccable/config.local.json
-.impeccable/hook.cache.json
-
-# staging for the demo portal (tools/build_review_pages.py assembles docs/review/portal-v1.html)
-/build/
-
-# final-review working checklist (local only)
-/REVIEW-CHECKLIST.md
-
 # pseudonymisation keys written beside an export folder (interop.normalise)
 *.keys/
-
-# personal data for the thesis Biodata page (details and photos); reaches the built documents only
-/docs/thesis/private/
-
-# Kept on this machine only (team decision 2026-10-26): the thesis (sources and built copies),
-# the review decks, the old report drafts and the review documents.
-/final-thesis/
-/docs/thesis/
-/docs/report/
-/Review-*.pptx
-/Thesis.pdf
-/Thesis.docx
-/Thesis-LaTeX.zip
-/docs/review/final-review.md
-/docs/review/review-i-briefing.html
-/docs/review/review-*-flow.md
-/docs/review/portal-brief.md
-/docs/review/portal-v3-brief.md
-/docs/review/img/
-/docs/review/video/

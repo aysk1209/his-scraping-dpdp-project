@@ -6,7 +6,7 @@ says what a field *is* for compliance (its DPDP category); the schema says what
 shape its value takes (string, date, amount). Both are keyed by the same names.
 
 Kept as one model per layer rather than one flat record type -- the five-layer
-structure is preserved through the pipeline (PROJECT_CONTEXT.md). The types are
+structure is preserved through the pipeline. The types are
 deliberately permissive where a real export might be messy (dates and timestamps
 as ISO strings, amounts as floats), so that a real hospital file validates on
 structure without a normalisation pass first.

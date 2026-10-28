@@ -5,7 +5,7 @@ Used by `data_synthetic` (to decide which shaped outputs to emit per layer) and
 by the compliance benchmarking harness (to report extraction coverage per
 standard).
 
-Priority per PROJECT_CONTEXT.md: HL7 and FHIR first; DICOM and ISO/IEEE 11073
+Priority as designed: HL7 and FHIR first; DICOM and ISO/IEEE 11073
 are stubs for this phase.
 """
 

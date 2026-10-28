@@ -11,16 +11,13 @@ person is described.
 
 It lands in ``data/public_synthea/`` (git-ignored) with a ``PROVENANCE.md`` and
 **no** synthetic manifest, so it passes through the real-data handling gate like
-the hospital's export will. The provenance note says ``Synthetic: yes``, which
-lets ``tools/build_dataset_page.py`` show its values; a real export's page
-shows structure only. The column map is the committed
+the hospital's export will. The provenance note says ``Synthetic: yes``. The column map is the committed
 ``docs/access/synthea-column-map.json``.
 
 Then:
 
     python scripts/check_source.py data/public_synthea --column-map data/public_synthea/column_map.json
     python scripts/run_pipeline.py --dataset data/public_synthea --column-map data/public_synthea/column_map.json
-    python tools/build_dataset_page.py data/public_synthea --column-map data/public_synthea/column_map.json
 """
 
 from __future__ import annotations
@@ -86,7 +83,7 @@ def main() -> int:
 
     shutil.copyfile(COLUMN_MAP, TARGET / "column_map.json")
     print(f"  column map: {COLUMN_MAP.relative_to(ROOT)} -> {(TARGET / 'column_map.json').relative_to(ROOT)}")
-    print("  next: python tools/build_dataset_page.py data/public_synthea "
+    print("  next: python scripts/run_pipeline.py --dataset data/public_synthea "
           "--column-map data/public_synthea/column_map.json")
     return 0
 

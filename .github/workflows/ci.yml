@@ -51,8 +51,3 @@ jobs:
         run: |
           python tools/weight_sweep.py > /dev/null
           git diff --exit-code -I 'generated 20' -- docs/benchmark_results/weight-sweep.md
-      - name: the report's tables match the artefacts
-        run: python tools/report_tables.py --check
-        env:
-          PYTHONIOENCODING: utf-8
-      # The deck is not built here: the VIT template is kept outside the repository.

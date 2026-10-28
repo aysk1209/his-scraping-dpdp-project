@@ -8,7 +8,7 @@ new code.
 
 The manifest states plainly that the data is synthetic. A real export dropped
 into the same directory would carry its own provenance note instead; the
-handling requirements in PLAN.md section 4 apply to it and not to this.
+handling requirements in the handling gate apply to it and not to this.
 
 Output goes under ``data/``, which is git-ignored -- the same place a real export
 will land, so that the ignore rule is in force before any real data exists.

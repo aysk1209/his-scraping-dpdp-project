@@ -53,7 +53,7 @@ techniques, rules, benchmark and export run unchanged. Until then it is exercise
 against ``data_synthetic.export.write_export``, which writes files of the right
 shape.
 
-Handling note: a real export is real personal data. PLAN.md section 4 governs
+Handling note: a real export is real personal data. the handling gate governs
 where it may live (``data/``, git-ignored) and what must be confirmed first --
 and ``compliance.handling`` enforces it: unless the directory is a synthetic
 export, the adapter refuses to read it until the checks pass. ``enforce_handling``

@@ -6,5 +6,5 @@ Everything downstream is developed and tested against this until live HIS access
 is usable.
 
 The five layers are kept as distinct schema modules under `schemas/` — do not
-flatten them into a single record type (PROJECT_CONTEXT.md).
+flatten them into a single record type.
 """

@@ -114,10 +114,6 @@ def main() -> int:
                                                               for t in tasks], "rows": rows}, indent=2),
                                         encoding="utf-8")
     print(present.wrote(OUT / "injection.json"))
-    from tools.report_tables import table_injection
-    (OUT / "injection.md").write_text("### Instructions planted in the request" + chr(10) + chr(10)
-                                      + table_injection(), encoding="utf-8")
-    print(present.wrote(OUT / "injection.md"))
     return 0
 
 

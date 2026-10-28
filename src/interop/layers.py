@@ -2,13 +2,9 @@
 
 Single source of truth for layer identity. `data_synthetic` schemas and
 `extraction` adapters reference these constants rather than re-declaring layer
-names, so the "don't flatten into a single schema" constraint from
-PROJECT_CONTEXT.md is enforced structurally.
+names, so the five layers are never flattened into a single schema.
 
-NOTE: PROJECT_CONTEXT.md names the five-layer architecture but does not enumerate
-it. The layers below are the team's working reconstruction (adopted 2026-08-29)
-and may be refined before the synthetic data generator (build step 3) is built.
-See docs/architecture/five-layer-his.md.
+The layers are a working reconstruction and may be refined if a real HIS differs.
 """
 
 from __future__ import annotations
